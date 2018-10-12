@@ -1,6 +1,6 @@
 # product-service
 
-This repository is the home of a domain service used to manage product data. This service will provide a central mechanism by which various product data feeds can be ingested and stored. It will also provide a mechanism for broadcasting product data changes through well-defined events. The resulting events will be fed to a messaging broker such that all downstream systesm can subscribe and act upon those events.
+This repository is the home of a domain service used to manage product data. This service will provide a central mechanism by which various product data feeds can be ingested and stored. It will also provide a mechanism for broadcasting product data changes through well-defined events. The resulting events will be fed to a messaging broker such that all downstream systems can subscribe and act upon those events.
 
 ## This is a work in progress and will be under constant change.
 
@@ -14,8 +14,7 @@ The following are useful links to help clarify domain terminology and design dec
 
 ## Assertions
 
-- The domain used for this service will be "com.ferguson.cs.product"
-- This service must provide the ability to support a multi-tenant view of the data. This means that product data can be mutated based on a targeted business unit and/or store front.
+- This service must provide the ability to support a multi-tenant view of the data. This means that product data can be ingested and mutated based on a given business unit or store front.
 - The storage mechanism for product data will not be visible to any systems external to the product service. This requirements means that the service must provide an API for getting data in/out of the underlying storage mechanism.
 - The domain terminology defined by this service will be based off of industry standards.
 
@@ -46,14 +45,10 @@ The inventory feed may/may not belong in the product service, as an argument can
 
 ## Related Data
 
-Related data consists of domain concepts that are not directly managed by the product service but impmanaged within this service. These types of domains are imported "copies" of data that may be managed by a separate system.
+Related data consists of domain concepts that are not directly managed by the product service but required to support the business use cases. These types of domains are imported "copies" of data that may be managed by a separate system.
 
 - Manufacturers (Each product will be associated with its manufacturer.)
 - Vendors (Vendors are third-parties that are selling the products, used only in the inventory feeds.)
 - Business Units (A business unit is an organization entity within Ferguson which might have different operational and financial rules. A business unit can have one or more store fronts associated with it)
 - Store Fronts (A store front is represented as a unique web domain on which products are sold, a store front belongs to a busienss unit)
-
-
-
-
->>>>>>> Initial commit
+- Marketplaces (A marketplace is third-party channel in which online goods are sold, think : Amazon, Google's marketplace, etc.)

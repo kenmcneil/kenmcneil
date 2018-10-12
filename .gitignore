@@ -10,6 +10,9 @@ bin
 *.DS_Store
 pom.xml.versionsBackup
 
+#VS Code
+.vscode/
+
 #IntelliJ project files
 *.iml
 .idea/
