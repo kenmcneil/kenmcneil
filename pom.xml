@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.build</groupId>
+		<artifactId>api-parent</artifactId>
+		<version>2.1.3</version>
+	</parent>
+	<version>1.0.0-SNAPSHOT</version>
+	<group>com.ferguson.cs.product</group>
+	<artifactId>product-service</artifactId>
+	<packaging>pom</packaging>
+	<name>product-service</name>
+	<description>Commerce Services Product Service</description>
+	<url>http://www.build.com/</url>
+	<organization>
+		<name>Build.com</name>
+		<url>http://www.build.com/</url>
+	</organization>
+	<inceptionYear>2018</inceptionYear>
+
+	<modules>
+		<module>product-common</module>
+		<module>product-domain</module>
+		<module>product-test</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.ferguson.cs.product</groupId>
+				<artifactId>product-common</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ferguson.cs.product</groupId>
+				<artifactId>product-domain</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ferguson.cs.product</groupId>
+				<artifactId>product-test</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>buildcom-release</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-release</url>
+		</repository>
+		<repository>
+			<snapshots/>
+			<id>snapshots</id>
+			<name>buildcom-snapshot</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-snapshot</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>buildcom-release</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<snapshots/>
+			<id>snapshots</id>
+			<name>buildcom-snapshot</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>central</id>
+			<name>chico-artifactory-releases</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-maven-release</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>chico-artifactory-snapshots</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-maven-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>
