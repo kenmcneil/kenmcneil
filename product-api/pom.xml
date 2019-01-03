@@ -14,19 +14,19 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.build</groupId>
+			<groupId>com.ferguson.cs</groupId>
 			<artifactId>api-starter-service</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.build</groupId>
+			<groupId>com.ferguson.cs</groupId>
 			<artifactId>api-unified-cache</artifactId>
 		</dependency>
         <dependency>
-            <groupId>com.build</groupId>
+            <groupId>com.ferguson.cs</groupId>
             <artifactId>api-utilities</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.build</groupId>
+            <groupId>com.ferguson.cs</groupId>
             <artifactId>api-test-utilities</artifactId>
 			<scope>test</scope>
         </dependency>

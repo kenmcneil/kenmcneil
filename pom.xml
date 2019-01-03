@@ -2,11 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<!-- It is important to use a version of api-task that is compatible with the api-parent version. -->
+
 	<parent>
-		<groupId>com.build</groupId>
+		<groupId>com.ferguson.cs</groupId>
 		<artifactId>api-parent</artifactId>
-		<version>2.1.5</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
+	
+	<properties>
+		<api-task.version>3.0.0-SNAPSHOT</api-task.version>
+	</properties>
+	
 	<version>1.0.0-SNAPSHOT</version>
 	<groupId>com.ferguson.cs.product</groupId>
 	<artifactId>product-services</artifactId>
