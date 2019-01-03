@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.ferguson.cs.product</groupId>
+		<artifactId>product-services</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<!-- The api-system-task dependencies will dictate the version of spring boot and spring for task-based applications. The versions managed by api-parent
+				may be mismatched if the api-system-task version does not use the same api-parent. This does not necessarily constitute an issue but care must be
+				taken. -->
+		<api-task.version>2.0.6-SNAPSHOT</api-task.version>
+	</properties>
+
+	<artifactId>product-tasks</artifactId>
+	<packaging>pom</packaging>
+	<name>product-tasks</name>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.build</groupId>
+				<artifactId>api-task-dependencies</artifactId>
+				<version>${api-task.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>		
+	</dependencyManagement>
+</project>
