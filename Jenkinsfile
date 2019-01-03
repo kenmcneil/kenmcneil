@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 //@formatter:off
-def repositoryName = 'product-service'
+def repositoryName = 'product-services'
 def gitRepoUrl = "https://github.com/buildcom/${repositoryName}.git"
 
 def commitId = null
