@@ -16,7 +16,12 @@
         <dependency>
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-utilities</artifactId>
-        </dependency>		
+        </dependency>	
+	    <dependency>
+	        <groupId>org.projectlombok</groupId>
+	        <artifactId>lombok</artifactId>
+	        <scope>provided</scope>
+	    </dependency>        
         <dependency>
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-test-utilities</artifactId>
