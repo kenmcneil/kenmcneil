@@ -25,6 +25,11 @@
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-utilities</artifactId>
         </dependency>
+	    <dependency>
+	        <groupId>org.projectlombok</groupId>
+	        <artifactId>lombok</artifactId>
+	        <scope>provided</scope>
+	    </dependency>
         <dependency>
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-test-utilities</artifactId>
@@ -47,13 +52,13 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
-			</plugin>
+			</plugin>			
 			<!-- This should be uncommented once the api service has been stubbed out.
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			-->
+			-->			
 		</plugins>
 	</build>
 </project>
