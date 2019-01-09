@@ -1,6 +1,7 @@
 package com.ferguson.cs.model.taxonomy;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
@@ -10,14 +11,17 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * A category within a taxonomy's hierarchy can have one or more attributes associated with it. These attributes represent characteristics
- * common to products thats belong (or will be added to the category). The category attributes can be used to derive search facets and
+ * A category within a taxonomy's hierarchy can have one or more "traits" associated with it. These traits represent characteristics
+ * common to products thats belong (or will be added) to the category. The category attributes can be used to derive search facets and
  * enforce validation rules when products are added to the category (or its sub-categories). 
  *  
  * @author tyler.vangorder
  */
-@Getter @Setter @NoArgsConstructor @ToString
-public class CategoryAttribute implements Serializable {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public class CategoryTrait implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

@@ -17,7 +17,10 @@ import lombok.ToString;
  *
  * @param <T>
  */
-@Getter @Setter @NoArgsConstructor @ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public abstract class AttributeDefinition <T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;

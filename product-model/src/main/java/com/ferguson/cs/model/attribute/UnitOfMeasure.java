@@ -19,7 +19,10 @@ import lombok.ToString;
  *   
  * @author tyler.vangorder
  */
-@Getter @Setter @NoArgsConstructor @ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class UnitOfMeasure implements Serializable {
 
 	private static final long serialVersionUID = 1L;

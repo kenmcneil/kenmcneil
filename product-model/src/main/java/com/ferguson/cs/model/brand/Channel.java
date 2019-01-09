@@ -35,7 +35,10 @@ import lombok.ToString;
  * </table>
  * @author tyler.vangorder
  */
-@Getter @Setter @NoArgsConstructor @ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class Channel implements Serializable {
 
 	private static final long serialVersionUID = 1L;

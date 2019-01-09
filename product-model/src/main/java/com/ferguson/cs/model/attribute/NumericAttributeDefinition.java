@@ -14,7 +14,10 @@ import lombok.ToString;
  *
  * @param <T>
  */
-@Getter @Setter @NoArgsConstructor @ToString(callSuper=true)
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class NumericAttributeDefinition<T> extends AttributeDefinition<T> {
 
 	private static final long serialVersionUID = 1L;

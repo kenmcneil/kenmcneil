@@ -17,7 +17,10 @@ import lombok.ToString;
  * It is also important to note that different channels may require the product data to be mutated from the "master"
  * data to apply branding, follow specific marketplace rules, or to implement a specific SEO strategy.
  */
-@Getter @Setter @NoArgsConstructor @ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class BusinessUnit implements Serializable {
 
 	private static final long serialVersionUID = 1L;
