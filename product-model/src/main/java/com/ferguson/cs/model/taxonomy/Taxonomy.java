@@ -56,7 +56,7 @@ public class Taxonomy implements Serializable {
 	 * A flag to indicate if a product can be placed more than once within the classification system. Setting this flag to "true"
 	 * will only allow a product to be placed ONCE within the classification system.
 	 */
-	boolean strict;
+	private boolean strict;
 	
 	/**
 	 * A set of "root" categories that represent the top-level categories within the classification system. 

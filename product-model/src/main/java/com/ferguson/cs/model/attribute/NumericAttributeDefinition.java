@@ -1,5 +1,7 @@
 package com.ferguson.cs.model.attribute;
 
+import java.io.Serializable;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,7 +20,7 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class NumericAttributeDefinition<T> extends AttributeDefinition<T> {
+public class NumericAttributeDefinition<T extends Serializable> extends AttributeDefinition<T> {
 
 	private static final long serialVersionUID = 1L;
 

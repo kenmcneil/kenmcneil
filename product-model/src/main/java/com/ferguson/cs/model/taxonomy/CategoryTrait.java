@@ -1,7 +1,6 @@
 package com.ferguson.cs.model.taxonomy;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
@@ -25,6 +24,9 @@ public class CategoryTrait implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Unique persistence ID.
+	 */
 	private String id;
 	
 	/**
@@ -35,10 +37,10 @@ public class CategoryTrait implements Serializable {
 	/**
 	 * This flag indicates that any product added to the category MUST have the an attribute with the same definition.
 	 */
-	boolean required;
+	private boolean required;
 	
 	/**
 	 * This flag can be used to determine if the attribute is visible within the store front (or available as a search facet).
 	 */
-	boolean hidden;
+	private boolean hidden;
 }

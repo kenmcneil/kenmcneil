@@ -29,14 +29,49 @@ public class Category implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	/**
+	 * Unique persistence ID assigned to the category 
+	 */
 	private String id;
-	private Long taxonomyCode;
-	private Long categoryIdParent;
 	
+	/**
+	 * The taxonomy code to which this category belongs.
+	 */
+	private Long taxonomyCode;
+	
+	/**
+	 * A business key assigned to this category that is unique within the context of the taxonomy but is not globally unique.	
+	 */
 	private String code;
+	
+	/**
+	 * The name of the category ("Lights", "Bathroom", etc)
+	 */
 	private String name;
-	private String description;	
-	private String parentCategoryId;
-	private List<Category> childCategoryList;
+	
+	/**
+	 * Description of the category
+	 */
+	private String description;
+
+	/**
+	 * The persistent ID of the parent category, top-level categories will NOT have a parent.
+	 */
+	private String categoryIdParent;
+	
+	/**
+	 * A list of subcategories belonging to this category.
+	 */
+	private List<Category> subcategoryList;
+	
+	/**
+	 * A list of traits that are common for products that are assigned to this category.
+	 */
 	private List<CategoryTrait> traitList;
+	
+	/**
+	 * A list of product IDs that have been assigned to this category. A product can only be assigned to this category if
+	 * it has all of the category's required traits.
+	 */
+	private List<String> productIdList;
 }
