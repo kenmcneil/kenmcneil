@@ -1,10 +1,12 @@
 package com.ferguson.cs.model.attribute;
 
+import java.io.Serializable;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-@Getter @Setter @NoArgsConstructor
 /**
  * A unit of measure is standard unit that can be applied to a numerical attribute definition.
  * 
@@ -17,8 +19,12 @@ import lombok.Setter;
  *   
  * @author tyler.vangorder
  */
-public class UnitOfMeasure {
-	private Integer id;
+@Getter @Setter @NoArgsConstructor @ToString
+public class UnitOfMeasure implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	
+	private String id;
 	private String code;
 	private String description;
 }

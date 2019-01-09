@@ -1,10 +1,12 @@
 package com.ferguson.cs.model.attribute;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * An attribute provides a way to describe a characteristic about a product, a product variant, product customization, or within a
@@ -15,13 +17,16 @@ import lombok.Setter;
  *
  * @param <T>
  */
-@Getter @Setter @NoArgsConstructor
-public abstract class AttributeDefinition <T> {
+@Getter @Setter @NoArgsConstructor @ToString
+public abstract class AttributeDefinition <T> implements Serializable {
 
-	private Long id;
+	private static final long serialVersionUID = 1L;
+	
+	private String id;
 	private String code;
 	private String description;
-
+	
+	private T defaultValue;
 	private List<T> enumeratedValueList;
 
 }
