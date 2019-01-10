@@ -39,6 +39,11 @@ public abstract class AttributeDefinition <T extends Serializable> implements Se
 	private String description;
 	
 	/**
+	 * This flag can be used to mark an attribute such that it is not visible to the end user.
+	 */
+	private boolean hidden;
+
+	/**
 	 * A default value for an attribute.
 	 */
 	private T defaultValue;

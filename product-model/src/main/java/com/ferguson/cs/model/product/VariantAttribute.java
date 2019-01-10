@@ -13,14 +13,13 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class ProductAttribute implements Serializable {
+public class VariantAttribute implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private String id;
-	private String productId;
+	private String variantId;
 	private AttributeDefinition<?> definition;
-	private boolean overrideAllowed;
 	private String value;
 
 }

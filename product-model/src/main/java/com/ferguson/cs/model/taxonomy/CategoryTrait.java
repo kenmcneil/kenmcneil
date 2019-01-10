@@ -37,10 +37,5 @@ public class CategoryTrait implements Serializable {
 	/**
 	 * This flag indicates that any product added to the category MUST have the an attribute with the same definition.
 	 */
-	private boolean required;
-	
-	/**
-	 * This flag can be used to determine if the attribute is visible within the store front (or available as a search facet).
-	 */
-	private boolean hidden;
+	private boolean required;	
 }

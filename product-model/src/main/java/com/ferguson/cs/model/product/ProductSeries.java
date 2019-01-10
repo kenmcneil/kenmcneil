@@ -2,7 +2,7 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 
-import com.ferguson.cs.model.attribute.AttributeDefinition;
+import com.ferguson.cs.model.image.ImageResource;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,14 +13,14 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class ProductAttribute implements Serializable {
+public class ProductSeries implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private String id;
-	private String productId;
-	private AttributeDefinition<?> definition;
-	private boolean overrideAllowed;
-	private String value;
+	private String name;
+	private String description;
+	private String tagline;	
+	private ImageResource imageSplash;
 
 }
