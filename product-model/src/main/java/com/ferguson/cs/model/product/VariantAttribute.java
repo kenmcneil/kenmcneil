@@ -19,7 +19,13 @@ public class VariantAttribute implements Serializable {
 
 	private String id;
 	private String variantId;
-	private AttributeDefinition<?> definition;
+	private AttributeDefinition definition;
+
+	/**
+	 * This flag can be used to mark an attribute such that it is not visible to the end user.
+	 */
+	private boolean hidden;
+
 	private String value;
 
 }
