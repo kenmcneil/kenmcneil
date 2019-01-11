@@ -1,6 +1,7 @@
 package com.ferguson.cs.model.brand;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 
@@ -71,14 +72,23 @@ public class Channel implements Serializable {
 	private Boolean isActive;
 
 	/**
-	 * The primary product classification hierarchy that only allows a product to be placed exactly once within the hierarchy. This taxonomy is appropriate for use when deriving SEO searches or for
-	 * mirroring the classification structure defined by a third-party marketplace.
+	 * A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories. A product category
+	 * is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A
+	 * category also has a set of "traits" that define what types of products can be added to that category.
+	 * <p>
+	 *
+	 * A channel allows more than one taxonomy to be assigned to it. This allows for one taxonomy that can be u
 	 */
-	private Taxonomy primaryTaxonomy;
+	private List<Taxonomy> taxonomyList;
 
 	/**
-	 * Product classification hierarchy that mirrors a channel's navigation system. Products can be listed in more than on place within the hierarchy
+	 * A list of products sold through this sales channel. Taxonomies are shared across sales channels and offer a holistic view of a product
+	 * classification system. Only products sold through this channel will be visible when used in combination with a taxonomy system.
+	 * <p>
+	 * A channel's product categories (and products) can be derived by using a taxonomy and then filtering to only products sold within the
+	 * channel.
 	 */
-	private Taxonomy navigationTaxonomy;
+	private List<String> productIdList;
+
 
 }

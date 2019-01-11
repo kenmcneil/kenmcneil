@@ -2,7 +2,7 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 
-import com.ferguson.cs.model.image.ImageResource;
+import com.ferguson.cs.model.asset.ImageResource;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

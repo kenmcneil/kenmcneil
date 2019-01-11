@@ -18,7 +18,7 @@ import lombok.ToString;
  * Each trait within the category is associated with an attribute definition {@link com.ferguson.cs.model.attribute.AttributeDefinition}.  These
  * same definitions are used when defining product attributes and that is how traits are mapped to a product's attribute.
  *
- * The category traits are also intended to be used to derive search facets and the attribute definitions define the datatype and validation rules.
+ * The category traits can also be used to derive search facets and the attribute definitions define the datatype and validation rules.
  *
  * @author tyler.vangorder
  */

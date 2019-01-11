@@ -10,6 +10,16 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through
+ * the attribute definition. A attribute the does not change across variants will have its value defined at the product level, while an attribute
+ * that does change between variants will have its value defined within each variant.
+ *
+ * The collection of product attributes can be validated with a taxonomy's category traits to insure a product has the traits required to be
+ * added to that category. The commonality between attributes and traits is they must both be linked to the same attribute definition.
+ *
+ * @author tyler.vangorder
+ */
 @Getter
 @Setter
 @AllArgsConstructor

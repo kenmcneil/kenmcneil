@@ -3,7 +3,7 @@ package com.ferguson.cs.model.product;
 import java.io.Serializable;
 import java.util.List;
 
-import com.ferguson.cs.model.image.ImageResource;
+import com.ferguson.cs.model.asset.DigitalResource;
 import com.ferguson.cs.model.manufacturer.Manufacturer;
 
 import lombok.AllArgsConstructor;
@@ -15,7 +15,8 @@ import lombok.ToString;
 /**
  * A product representations a family of closely related items called "variants" and defines all of the characteristics/attributes that are pertinent
  * to the product and its variants. Information that is common across the variants is represented at the product level while each unique variant will have
- * a slightly different configuration of the product's characteristics.
+ * a slightly different configuration of the product's characteristics. Variants represent the unique, sellable items and a user selects variants when adding
+ * things to their shopping cart. A product's manufacturer information is also represented within the context of this object.
  * <p>
  * <b>Example:</b>
  *<p>
@@ -26,6 +27,10 @@ import lombok.ToString;
  * <b>NOTE:</b> The manufacturer and the manufacturer's product ID are enough to identify a product/family but that is not enough to identify
  *  				   a specific, sellable item.
  *
+ * <b>IMPORTANT</b>The type/application/handle type is really just a "strict" taxonomy with a product classification hierarchy where the top level categories
+ * 										are "type", the sub-categories of types are "application", and the sub-categories of application are "handle type". This means that the
+ * 										assignment of products within this "base" taxonomy is decoupled from the definition of the product. We can still use the base taxonomy
+ * 										to enforce characteristics of products as part of a product ingest process.
  * @author tyler.vangorder
  */
 @Getter
@@ -53,7 +58,6 @@ public class Product implements Serializable {
 	private String description;
 
 	//TODO: Need to define how to better break up the description into separate, smaller fields. Need input from data team, supply, and Dan V.
-
 
 	/**
 	 * The product ID assigned to the product family by the manufacturer.
@@ -86,12 +90,15 @@ public class Product implements Serializable {
 	private List<ProductAttribute> attributeList;
 
 
+	/**
+	 * The list of uniquely, sellable items that belong to this product's family.
+	 */
 	private List<Variant> variantList;
 
 	/**
-	 * A collection of image assets that are associated with a product.
+	 * A collection of digital assets that are associated with a product. The can be images, documents, or AR models.
 	 */
-	private List<ImageResource> imageList;
+	private List<DigitalResource> digitalResourceList;
 
 	//TODO Need to figure out what to do with auditing columns (timestampCreated, timestampUpdated)
 
