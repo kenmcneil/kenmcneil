@@ -29,15 +29,15 @@ The core product data is used to represent products that will be sold within an 
 - Product Options (Product customizations)
 - Digital Assets (Images, pdfs, AR models, etc.)
 
-###Identifyng a Product and a Product Variant
+### Identifyng a Product and a Product Variant
 A manufacturer and the manufacturer's assigned product ID are enough to identify a product family but a more specific identifier must be used to identify a product variant. The global identifier that is used by ferguson to reference a product variant is called an MPN (Master Product Number) ID. Additionally, there are alternate identifiers that can be assigned to a product variant and these identifiers are modeled as an identifier type ((GTIN, SKU, UPC, etc) and the actual identifier value.
 
-###Product Attributes
+### Product Attributes
 A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through the attribute definition. An attribute that does not change across variants will have its value defined at the product level, while an attribute that does change between variants will have its value defined within each variant.
  
 > **IMPORTANT:** The collection of product attributes can be validated with a taxonomy's category traits to insure a product has the traits required to be added to that category. The commonality between attributes and traits is they must both be linked to the same attribute definition.**
 
-###Product Options
+### Product Options
 A product option is represented almost identically to a product attribute but represents a "customization" that can be made to a product variant that does NOT change the variant's SKU. The best way to distinguish between an attribute and an option is to think of a simple use case:
 
 A Shirt has a size and a color and also allows a customer to select a name that will be printed on the back of the shirt. The "size" and "color" are product attributes and each combination of those two will result in a different product variant. The "name" is a customization that will be applied to item variant (by the vendor/manufacturer).
