@@ -35,7 +35,7 @@ A manufacturer and the manufacturer's assigned product ID are enough to identify
 ###Product Attributes
 A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through the attribute definition. An attribute that does not change across variants will have its value defined at the product level, while an attribute that does change between variants will have its value defined within each variant.
  
-**IMPORTANT: The collection of product attributes can be validated with a taxonomy's category traits to insure a product has the traits required to be added to that category. The commonality between attributes and traits is they must both be linked to the same attribute definition.**
+> **IMPORTANT:** The collection of product attributes can be validated with a taxonomy's category traits to insure a product has the traits required to be added to that category. The commonality between attributes and traits is they must both be linked to the same attribute definition.**
 
 ###Product Options
 A product option is represented almost identically to a product attribute but represents a "customization" that can be made to a product variant that does NOT change the variant's SKU. The best way to distinguish between an attribute and an option is to think of a simple use case:
@@ -46,7 +46,7 @@ A Shirt has a size and a color and also allows a customer to select a name that 
 
 A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories. A product category is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A category also has a set of "traits" that define what types of products can be added to that category. The traits can also be used to derive search facets for that category.
 
-**IMPORTANT: A taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" taxonomy allows a product to be placed within mulitple categories within the classification hierarchy. A "strict" taxonomy is more appropriate for defining SEO strategies while a "non-strict" taxonomy can be used for site navigation.  It is important to understand that more than one taxonomy can be defined for a given sales channel where one taxonomy may reflect an SEO classification and another may reflect the a site's navigation system. ** 
+> **IMPORTANT:** A taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" taxonomy allows a product to be placed within mulitple categories within the classification hierarchy. A "strict" taxonomy is more appropriate for defining SEO strategies while a "non-strict" taxonomy can be used for site navigation.  It is important to understand that more than one taxonomy can be defined for a given sales channel where one taxonomy may reflect an SEO classification and another may reflect the a site's navigation system. 
 
 - Taxonomies
 - Categories
