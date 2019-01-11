@@ -11,7 +11,7 @@ The following are useful links to help clarify domain terminology and design dec
 - [The Product Service PRD](https://docs.google.com/document/d/1ro6jKQwZFOGIfYMqxy9_bSAVALk10kNN5OaLdARDidA/edit?usp=sharing)
 - [Product Options and Product Variations](https://www.skuvault.com/blog/difference-between-product-options-and-product-variations)
 - [Product Kitting](https://www.skuvault.com/blog/product-kitting-alternates-for-ecommerce)
-
+- [GTIN](https://blog.datafeedwatch.com/how-to-find-the-gtins)
 ## Assertions
 
 - This service must provide the ability to support a multi-tenant view of the data. This means that product data can be ingested and mutated based on a given business unit or store front.

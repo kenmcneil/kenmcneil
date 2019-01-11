@@ -3,8 +3,9 @@ package com.ferguson.cs.model.attribute;
 import java.io.Serializable;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -17,9 +18,10 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString
-public abstract class AttributeDefinition implements Serializable {
+public class AttributeDefinition implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

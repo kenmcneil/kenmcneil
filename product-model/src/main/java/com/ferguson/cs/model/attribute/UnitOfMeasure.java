@@ -2,8 +2,9 @@ package com.ferguson.cs.model.attribute;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -14,19 +15,20 @@ import lombok.ToString;
  * It is perfectly acceptable to have more than one length attribute (with different units of measure) associated to the
  * same product.
  *  <p>
- *   <b>NOTE:<b> It might be a good idea to have a "unit of measure type" enumeration added to this class (LENGTH, WEIGHT, SPEED, etc).   
- *   
- *   
+ *   <b>NOTE:<b> It might be a good idea to have a "unit of measure type" enumeration added to this class (LENGTH, WEIGHT, SPEED, etc).
+ *
+ *
  * @author tyler.vangorder
  */
 @Getter
 @Setter
-@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString
 public class UnitOfMeasure implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
 	 * Unique persistence ID.
 	 */
@@ -36,12 +38,12 @@ public class UnitOfMeasure implements Serializable {
 	 * Unique business key.
 	 */
 	private String code;
-	
+
 	/**
-	 * Name assigned to the unit of measure that is appropriate for display.  
+	 * Name assigned to the unit of measure that is appropriate for display.
 	 */
 	private String name;
-	
+
 	/**
 	 * Description of unit of measure.
 	 */

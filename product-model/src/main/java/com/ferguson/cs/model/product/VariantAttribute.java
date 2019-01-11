@@ -4,14 +4,16 @@ import java.io.Serializable;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString
 public class VariantAttribute implements Serializable {
 
