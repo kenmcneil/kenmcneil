@@ -1,4 +1,4 @@
-= product-services
+= Product Domain Services
 Tyler Van Gorder <tyler.vangorder@build.com>
 :sectlinks:
 :sectanchors:
