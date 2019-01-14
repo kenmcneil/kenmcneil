@@ -1,13 +1,10 @@
 = Techincal Decision Notes
 Tyler Van Gorder <tyler.vangorder@build.com>
-:toc: macro
 
 :sectlinks:
 :sectanchors:
 
 This file is intended to record some of the technical decisions that have been made as we implement the product-service domain. We intend for this to be a living document that others can reference as they start similar services.
-
-toc::[]
 
 [IMPORTANT]
 ====
