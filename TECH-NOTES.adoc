@@ -1,0 +1,46 @@
+= Techincal Decision Notes
+Tyler Van Gorder <tyler.vangorder@build.com>
+:toc: macro
+
+:sectlinks:
+:sectanchors:
+
+This file is intended to record some of the technical decisions that have been made as we implement the product-service domain. We intend for this to be a living document that others can reference as they start similar services.
+
+toc::[]
+
+[IMPORTANT]
+====
+This is a work in progress and will be under constant change.
+====
+
+## ASCII Doctor
+
+
+The documentation contained within this repository is using ASCII Doctor rather than mark down formatting. ASCII Doctor provide better formatting options and is rendered natively on GitHub.
+
+- https://asciidoctor.org/docs/user-manual/[Please see the link for an overview of ASCII Doctor]
+- https://asciidoctor.org/docs/user-manual/#basic-document-anatomy[Overview of the syntax]
+- https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub
+- https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
+
+## Spring Data Mongo 
+
+We are going to attempt to use the Spring Data repository abstraction for this project, this should allow us to move to a different data store, if we chose. We are selecting Mongo, as its readily available and we can continue our MVP. We can later choose to move to a different data store, like CosmoDB or something else if we run into road blocks. 
+
+The following are useful links to help clarify the difference between Spring Data vs something like mybatis-spring. Many of the low-level data access concerns are abstracted away by Spring Data:
+
+- https://spring.io/projects/spring-data[Spring Data Overview]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#repositories[Core Spring Data Concepts]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mapping-chapter[Spring Data Object Mapping]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongo-template.id-handling[ID Handling In Mongo]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#projections[Projections]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#auditing[Spring Data Auditing Support]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongo.repositories[Mongo DB Repository Details]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongodb.repositories.queries.json-based[Using JSON Expressions For Repository Query Methods]
+
+[IMPORTANT]
+====
+If you are not familar with Spring Data, I highly recommend that you read ALL of the links listed above.
+====
+
