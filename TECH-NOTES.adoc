@@ -46,9 +46,9 @@ Please see these links for more information:
 
 The documentation contained within this repository is using ASCII Doctor rather than mark down formatting. ASCII Doctor provide better formatting options and is rendered natively on GitHub.
 
-- https://asciidoctor.org/docs/asciidoc-syntax-quick-reference [Syntax Quick Reference]
+- https://asciidoctor.org/docs/asciidoc-syntax-quick-reference[Syntax Quick Reference]
+- https://asciidoctor.org/docs/asciidoc-writers-guide[AsciiDoc Writer's Guide]
 - https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub]
-- https://asciidoctor.org/docs/user-manual/[ASCII Doctor User Manual]
 - https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
 
 [TIP]
