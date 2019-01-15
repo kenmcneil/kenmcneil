@@ -51,6 +51,28 @@ The documentation contained within this repository is using ASCII Doctor rather 
 - https://asciidoctor.org/docs/user-manual/[ASCII Doctor User Manual]
 - https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
 
+[TIP]
+====
+The rendering of icons across environments can be a bit tricky, the following works well assuming that the asciidocotor.css file is in the same directory as the .adoc file.
+====
+[source]
+====
+ :sectlinks:
+ :sectanchors:
+ :stylesheet: asciidoctor.css
+ // If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ ifndef::env-github[]
+ :icons: font
+ endif::[]
+ ifdef::env-github[]
+ :important-caption: :exclamation:
+ :warning-caption: :x:
+ :caution-caption: :hand:
+ :note-caption: :bulb:
+ :tip-caption: :mag:
+ endif::[]
+====
+
 ## Spring Data Mongo 
 
 We are going to attempt to use the Spring Data repository abstraction for this project, this should allow us to move to a different data store, if we chose. We are selecting Mongo, as its readily available and we can continue our MVP. We can later choose to move to a different data store, like CosmoDB or something else if we run into road blocks. 
