@@ -11,14 +11,34 @@ This file is intended to record some of the technical decisions that have been m
 This is a work in progress and will be under constant change.
 ====
 
-## ASCII Doctor
+## Conventional Commits
 
+To facilitate the automation of releases notes/change logs and how we increment the semantic version of the services we have enabled a github application that enforces that the pull request description is in a specific format. The format communicates if a PR constitutes a fix, a new feature, and a breaking change.
+
+The format of the pull request description is of the form: `SODEV-xxxxx <type>: Short description.`
+ 
+.Commit Types
+|===
+|Type |Description  
+|fix |The change constitutes a bug fix and does not add new functionality.
+|feature |New functionality has been added to the application.
+|BREAKING CHANGE |The work constitutes a breaking change.
+|doc |Documentation
+|test |Changes to unit/integration tests 
+|===
+
+Please see these links for more information:
+
+- https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary[Conventional Commits Summary]
+- https://github.com/zieka/commit-cop[Commit Cop is a github plugin that enforces the description format]
+
+## ASCII Doctor
 
 The documentation contained within this repository is using ASCII Doctor rather than mark down formatting. ASCII Doctor provide better formatting options and is rendered natively on GitHub.
 
 - https://asciidoctor.org/docs/user-manual/[Please see the link for an overview of ASCII Doctor]
 - https://asciidoctor.org/docs/user-manual/#basic-document-anatomy[Overview of the syntax]
-- https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub
+- https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub]
 - https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
 
 ## Spring Data Mongo 
