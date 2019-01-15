@@ -8,6 +8,11 @@ ifndef::env-github[]
 :icons: font
 endif::[]
 ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
 endif::[]
 
 This file is intended to record some of the technical decisions that have been made as we implement the product-service domain. We intend for this to be a living document that others can reference as they start similar services.
