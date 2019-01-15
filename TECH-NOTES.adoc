@@ -15,6 +15,8 @@ This is a work in progress and will be under constant change.
 
 To facilitate the automation of releases notes/change logs and how we increment the semantic version of the services we have enabled a github application that enforces that the pull request description is in a specific format. The format communicates if a PR constitutes a fix, a new feature, and a breaking change.
 
+IMPORTANT: For now we are just enforcing the format of the pull requestion descriptions with the intention of automating the semantic version and release notes later.
+
 The format of the pull request description is of the form: `SODEV-xxxxx <type>: Short description.`
  
 .Commit Types
