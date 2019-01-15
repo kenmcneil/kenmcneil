@@ -2,9 +2,10 @@
 Tyler Van Gorder <tyler.vangorder@build.com>
 :sectlinks:
 :sectanchors:
-:icons: font
 
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis.
 ifndef::env-github[]
+:icons: font
 endif::[]
 ifdef::env-github[]
 :important-caption: :exclamation:
@@ -16,7 +17,7 @@ endif::[]
 
 This repository is the home of a domain service used to manage product data. This service will provide a central mechanism by which various product data feeds can be ingested and stored. It will also provide a mechanism for broadcasting product data changes through well-defined events. The resulting events will be fed to a messaging broker such that all downstream systems can subscribe and act upon those events.
 
-IMPORTANT: This is a work in progress and will be under constant change.
+WARNING: This is a work in progress and will be under constant change.
 
 == Links
 
