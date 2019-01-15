@@ -14,6 +14,10 @@
 
 	<dependencies>
 		<dependency>
+            <groupId>com.ferguson.cs.product</groupId>
+            <artifactId>product-model</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.ferguson.cs</groupId>
 			<artifactId>api-starter-service</artifactId>
 		</dependency>
@@ -26,9 +30,10 @@
             <artifactId>api-utilities</artifactId>
         </dependency>
 		<dependency>
-            <groupId>com.ferguson.cs.product</groupId>
-            <artifactId>product-model</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
+        
         <dependency>
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-test-utilities</artifactId>
@@ -52,12 +57,10 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>			
-			<!-- This should be uncommented once the api service has been stubbed out.
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			-->			
 		</plugins>
 	</build>
 </project>

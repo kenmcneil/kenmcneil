@@ -1,8 +1,8 @@
 = Techincal Decision Notes
 Tyler Van Gorder <tyler.vangorder@build.com>
-
 :sectlinks:
 :sectanchors:
+:icons: font
 
 This file is intended to record some of the technical decisions that have been made as we implement the product-service domain. We intend for this to be a living document that others can reference as they start similar services.
 
@@ -38,9 +38,9 @@ Please see these links for more information:
 
 The documentation contained within this repository is using ASCII Doctor rather than mark down formatting. ASCII Doctor provide better formatting options and is rendered natively on GitHub.
 
-- https://asciidoctor.org/docs/user-manual/[Please see the link for an overview of ASCII Doctor]
-- https://asciidoctor.org/docs/user-manual/#basic-document-anatomy[Overview of the syntax]
+- https://asciidoctor.org/docs/asciidoc-syntax-quick-reference [Syntax Quick Reference]
 - https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub]
+- https://asciidoctor.org/docs/user-manual/[ASCII Doctor User Manual]
 - https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
 
 ## Spring Data Mongo 
