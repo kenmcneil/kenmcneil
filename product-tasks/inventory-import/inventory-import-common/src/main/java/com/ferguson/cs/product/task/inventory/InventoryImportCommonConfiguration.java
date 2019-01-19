@@ -61,26 +61,26 @@ public class InventoryImportCommonConfiguration {
 		// Setup the reporter data source and then wire up a mybatis sql map. We have to alias the data source
 		// so that the task batch auto configuration works properly.
 		//--------------------------------------------------------------------------------------------------
-		@Bean(name = {"reporterDataSourceProperties"}, destroyMethod="")
+		@Bean
 		@Primary
 		@ConfigurationProperties(prefix = "datasource.reporter")
-		public DataSourceProperties inventorioReporterDataSourceProperties() {
+		public DataSourceProperties reporterDataSourceProperties() {
 			return new DataSourceProperties();
 		}
 
-		@Bean(name = {"reporterDataSource"}, destroyMethod="")
+		@Bean
 		@Primary
 		@ConfigurationProperties(prefix = "datasource.reporter")
 		public DataSource reporterDataSource() {
-			return inventorioReporterDataSourceProperties().initializeDataSourceBuilder().build();
+			return reporterDataSourceProperties().initializeDataSourceBuilder().build();
 		}
 
-		@Bean(name = "reporterTransactionManager")
+		@Bean
 		public DataSourceTransactionManager reporterTransactionManager() {
 			return new DataSourceTransactionManager(reporterDataSource());
 		}
 
-		@Bean(name = "reporterSqlSessionFactory")
+		@Bean
 		public SqlSessionFactory reporterSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(reporterDataSource());
@@ -98,25 +98,25 @@ public class InventoryImportCommonConfiguration {
 		// Setup the pdm data source and then wire up a mybatis sql map. We have to alias the data source
 		// so that the task batch auto configuration works properly.
 		//--------------------------------------------------------------------------------------------------
-		@Bean(name = {"pdmDataSourceProperties"}, destroyMethod="")
+		@Bean
 		@ConfigurationProperties(prefix = "datasource.pdm")
-		public DataSourceProperties inventorioPdmDataSourceProperties() {
+		public DataSourceProperties pdmDataSourceProperties() {
 			return new DataSourceProperties();
 		}
 
-		@Bean(name = {"pdmDataSource"}, destroyMethod="")
+		@Bean
 		@ConfigurationProperties(prefix = "datasource.pdm")
 		public DataSource pdmDataSource() {
-			return inventorioPdmDataSourceProperties().initializeDataSourceBuilder().build();
+			return pdmDataSourceProperties().initializeDataSourceBuilder().build();
 		}
 
-		@Bean(name = "pdmTransactionManager")
+		@Bean
 		@Primary
 		public DataSourceTransactionManager pdmTransactionManager() {
 			return new DataSourceTransactionManager(pdmDataSource());
 		}
 
-		@Bean(name = "pdmSqlSessionFactory")
+		@Bean
 		@Primary
 		public SqlSessionFactory pdmSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
