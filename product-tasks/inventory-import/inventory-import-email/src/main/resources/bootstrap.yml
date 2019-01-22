@@ -1,0 +1,36 @@
+# Application that hosts all the scheduled tasks for returns.
+spring:
+  application:
+    name: inventorio
+
+  profiles:
+    active: local
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      label: master
+      name: api-task,api-task-inventorio
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+
+health:
+  config:
+    enabled: false
+
+---
+
+spring:
+  profiles: sandbox,staging,production
+  cloud:
+    config:
+      fail-fast: true
+      username: sdc
+
+---
+spring:
+  profiles: unit
+  cloud:
+    config:
+      enabled: false

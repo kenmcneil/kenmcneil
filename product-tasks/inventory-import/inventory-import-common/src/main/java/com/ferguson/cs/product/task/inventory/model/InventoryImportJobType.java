@@ -1,6 +1,8 @@
 package com.ferguson.cs.product.task.inventory.model;
 
-public enum InventoryImportJobType implements IntMappedEnum{
+import com.ferguson.cs.utilities.IntMappedEnum;
+
+public enum InventoryImportJobType implements IntMappedEnum {
 	FTP(1),
 	EMAIL(2);
 
