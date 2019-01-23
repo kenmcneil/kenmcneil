@@ -188,7 +188,7 @@ ansiColor('gnome-terminal') { timestamps {
 
                                                                                             //register task version with dataflow
                                                                                             echo "Beginning POST: ${taskRegistrationUrl}/apps/task/${appName}?uri=maven://com.ferguson.cs.product:${appName}:jar:${releaseVersion}&force=true"
-                                                                                            def taskResponse = restificationGeneric url: "${taskRegistrationUrl}/apps/task/${appName}?uri=maven://com.ferguson.cs:${appName}:jar:${releaseVersion}&force=true",
+                                                                                            def taskResponse = restificationGeneric url: "${taskRegistrationUrl}/apps/task/${appName}?uri=maven://com.ferguson.cs.product:${appName}:jar:${releaseVersion}&force=true",
                                                                                                     method: 'POST',
                                                                                                     password: PASSWORD,
                                                                                                     userName: USERNAME
