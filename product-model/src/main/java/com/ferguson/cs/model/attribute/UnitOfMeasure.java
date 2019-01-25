@@ -2,6 +2,8 @@ package com.ferguson.cs.model.attribute;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.mongodb.core.index.Indexed;
+
 import com.ferguson.cs.model.PersistentDocument;
 
 import lombok.Builder;
@@ -32,6 +34,7 @@ public class UnitOfMeasure implements PersistentDocument {
 	/**
 	 * Unique business key.
 	 */
+	@Indexed(unique=true)
 	private String code;
 
 	/**
@@ -47,5 +50,5 @@ public class UnitOfMeasure implements PersistentDocument {
 	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
-
+	private Long version;
 }

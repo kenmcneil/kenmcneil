@@ -109,6 +109,10 @@ The rendering of icons across environments can be a bit tricky, the following wo
 
 We are going to attempt to use the Spring Data repository abstraction for this project, this should allow us to move to a different data store, if we chose. We are selecting Mongo, as its readily available and we can continue our MVP. We can later choose to move to a different data store, like CosmoDB or something else if we run into road blocks. 
 
+There have been several base-level decisions that have been made to make it easier to leverage Spring Data MongoDB. Please see the stack overflow post that we created for details: 
+
+https://stackoverflow.com/questions/54338496/spring-data-models-abstract-base-classes-with-lombok[Spring Data MongoDB Design Decisions]
+
 The following are useful links to help clarify the difference between Spring Data vs something like mybatis-spring. Many of the low-level data access concerns are abstracted away by Spring Data:
 
 - https://spring.io/projects/spring-data[Spring Data Overview]
