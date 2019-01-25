@@ -1,0 +1,32 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.build: info
+
+spring:
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.build
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+datasource:
+  reporter:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://cic-mssql-dev-2\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: Build12Dot24Cow!
+  pdm:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://cic-mssql-dev-2\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: Build12Dot24Cow!
+
+inventory-import:
+  inventory-directory: "/mnt/shares/omc_files/vendor_inventory/temp"

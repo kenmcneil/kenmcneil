@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobMapper">
+
+	<resultMap id="inventoryImportJobErrorMap" type="InventoryImportJobError">
+		<id column="id" property="id" />
+		<result column="inventoryImportJobLogId" property="inventoryImportJobLogId" />
+		<result column="errorMessage" property="errorMessage" />
+	</resultMap>
+
+	<resultMap id="ftpInventoryImportJobLogMap" type="FtpInventoryImportJobLog">
+		<id column="id" property="id" />
+		<result column="lastUpdatedDate" property="lastUpdatedDate" />
+		<result column="vendorUid" property="vendorUid" />
+		<result property="status" column="inventoryImportJobStatusId" typeHandler="com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler" />
+		<result property="jobType" column="inventoryImportJobTypeId" typeHandler="com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler" />
+		<result column="filename" property="filename" />
+		<result column="isSftp" property="isSftp" />
+		<collection property="errors" resultMap="inventoryImportJobErrorMap"/>
+	</resultMap>
+
+	<insert id="insertInventoryImportJobLog" parameterType="InventoryImportJobLog" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		INSERT INTO pdm.inventory.inventoryImportJobLog (vendorUid,inventoryImportJobStatusId,inventoryImportJobTypeId)
+		VALUES (#{vendorUid},
+				#{status,jdbcType=TINYINT,javaType=InventoryImportJobStatus,typeHandler=com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler},
+				#{jobType,jdbcType=TINYINT,javaType=InventoryImportJobType,typeHandler=com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler})
+	</insert>
+
+	<insert id="insertFtpInventoryImportJobDetails" parameterType="map">
+		INSERT INTO pdm.inventory.ftpInventoryImportJobDetails (inventoryImportJobLogId,filename,isSftp)
+		VALUES(#{inventoryImportJobLogId},#{filename},#{isSftp})
+	</insert>
+
+	<insert id="insertInventoryImportJobError" parameterType="InventoryImportJobError" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		INSERT INTO pdm.inventory.inventoryImportJobError (inventoryImportJobLogId,errorMessage)
+		VALUES(#{inventoryImportJobLogId},#{errorMessage})
+	</insert>
+
+	<update id="updateInventoryImportJobLog" parameterType="InventoryImportJobLog">
+		UPDATE pdm.inventory.inventoryImportJobLog
+		SET inventoryImportJobStatusId = #{status,jdbcType=TINYINT,javaType=InventoryImportJobStatus,typeHandler=com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler},
+			lastUpdatedDate = GETDATE()
+		WHERE
+			id = #{id}
+	</update>
+</mapper>

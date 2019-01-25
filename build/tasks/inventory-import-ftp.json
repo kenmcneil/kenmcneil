@@ -1,0 +1,7 @@
+[
+  {
+    "appName" : "inventory-import-ftp",
+    "name" : "product-inventory-import-ftp",
+    "heapSize" : "256m"
+  }
+]
