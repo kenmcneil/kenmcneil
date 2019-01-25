@@ -1,5 +1,6 @@
 = Product Domain Services
 Tyler Van Gorder <tyler.vangorder@build.com>
+:toc: left
 :sectlinks:
 :sectanchors:
 :stylesheet: asciidoctor.css
@@ -57,27 +58,41 @@ IMPORTANT: The collection of product attributes can be validated with a taxonomy
 A product option is represented almost identically to a product attribute but represents a "customization" that can be made to a product variant that does NOT change the variant's SKU. The best way to distinguish between an attribute and an option is to think of a simple use case:
 
 A Shirt has a size and a color and also allows a customer to select a name that will be printed on the back of the shirt. The "size" and "color" are product attributes and each combination of those two will result in a different product variant. The "name" is a customization that will be applied to item variant (by the vendor/manufacturer).
- 
+
 == Product Taxonomy
 
-A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories. A product category is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A category also has a set of "traits" that define what types of products can be added to that category. The traits can also be used to derive search facets for that category.
+A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories.
+
+IMPORTANT: There is a strong need to provide multiple, different taxonomy systems for the product data: Business units may have very different ideas for the categorization of products, a third-party market place may have its own taxonomy structure, and in fact a single business unit may have more than one taxonomy structure.
+
+=== Taxonomy
+
+A taxonomy has a set of "top level" categories that representing the first hierachy of product categorization. A taxonomy structure can stand on its own without being associated to a business unit or channel. Conversely, a taxonomy may be built for a specific business unit and then shared across that business unit's sales channels. 
 
 [IMPORTANT]
 ====
 A taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" taxonomy allows a product to be placed within multiple categories within the classification hierarchy. A "strict" taxonomy is more appropriate for defining SEO strategies while a "non-strict" taxonomy can be used for site navigation.  It is important to understand that more than one taxonomy can be defined for a given sales channel where one taxonomy may reflect an SEO classification and another may reflect the a site's navigation system.
 ==== 
 
-- Taxonomies
-- Categories
-- Category Traits
- 
+=== Category
+
+A category is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A category also has a set of "traits" that define what types of products can be added to that category. 
+
+=== Category Traits
+
+A category within a taxonomy's hierarchy can have one or more "traits" associated with it. These traits represent characteristics common to products thats belong (or will be added) to the category. The category attributes can be used to derive search facets and enforce validation rules when products are added to the category (or its sub-categories).
+
 == Product Pricing
+
+IMPORTANT: We have not yet started modeling pricing.
 
 A pricing "profile" represents the retail pricing for products and allows for different pricing across stores and/or for professionals or end consumers.
 
 - Pricing Profiles/Pricebooks
 
 == Product Inventory
+
+IMPORTANT: We have not yet started modeling product inventory
 
 The inventory feed may/may not belong in the product service, as an argument can be made that it might be better to locate this feed within the order management system. For now, we will assume the inventory will be hosted in this service but will be modularized (and encapsulated) to make it easy to move.
 
@@ -87,7 +102,40 @@ The inventory feed may/may not belong in the product service, as an argument can
 
 Related data consists of domain concepts that are not directly managed by the product service but required to support the business use cases. These types of domains are imported "copies" of data that may be managed by a separate system.
 
-- Manufacturers (Each product will be associated with its manufacturer.)
-- Vendors (Vendors are third-parties that are selling the products, used only in the inventory feeds.)
-- Business Units (A business unit is an organization entity within Ferguson which might have different operational and financial rules. A business unit can have one or more channels associated with it.)
-- Channels (A channel represents a distribution channel through which products are sold. A channel can represent a product inventory sold through a web store front or through a third-party marketplace) 
+=== Business Units
+
+A business unit is an organization entity within Ferguson which might have different operational and financial rules. A business unit can have one or more channels associated with it.
+
+NOTE: Each "brand" (Build, Supply, etc) will be represented as a business unit.
+
+=== Channels
+
+A channel represents a distinct distribution channel, within a given business unit, through which products are sold. A channel can represent a product inventory sold through a web store front or through a third-party marketplace.
+
+Important Notes About Channels:
+
+- Two channels within a business unit can represent a different "tenant" in a multi-tenant environment. This is important when you consider that a business unit may have two store fronts that serve different classes of users (Example: buid.com vs faucetsdirect.com).
+- A business unit may have a channel for the web store front and a second channel for selling that store front's inventory through a third-party marketplace such as Amazon.
+- Each channel may have different product catalogs, taxonomies, pricing, and available vendors.
+- Each channel may require the product data to be mutated from the "master" data to apply branding, follow specific marketplace rules, or to implement a specific SEO strategy.
+- A channel may have more than one taxonomy associated with it. A prime example of this might be that one taxonomy is used to map that channel's product inventory into a strict classification for the purposes of SEO. A second taxonomy can be used to model a web store's site navigation system that allows a product to be placed into multiple catagories.
+- A taxonomy classification system can be holistically defined for the entire "master" product catalog and that taxonomy can be associated with one or more channels. A channel's "view" of a taxonomy structure will be filtered to only those products sold on that channel! 
+
+=== Manufacturers
+
+Each product will be associated with its manufacturer.
+
+
+=== Vendors
+
+IMPORTANT: We have not yet started modeling vendors.
+
+Vendors are third-parties that are selling the products, used only in the inventory feeds.
+
+== Mapping Build/Supply Concepts
+
+There are established tools and processes used by our "brands" and it is important that we enumerate how those existing concepts will be mapped into the new product domain service.
+
+=== Type, Application, and Handletype
+
+Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary saling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used to by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems. This structure will be imported into the product domain service's taxonomy system. This will serve two purposes: It will validate that the new taxonomy structure supports the validation rules of the data team's existing process and it can later be used in the product ingestion process to validate product data.

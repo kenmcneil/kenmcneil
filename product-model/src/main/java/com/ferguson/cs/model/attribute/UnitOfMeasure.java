@@ -1,12 +1,11 @@
 package com.ferguson.cs.model.attribute;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
+import com.ferguson.cs.model.PersistentDocument;
+
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * A unit of measure is standard unit that can be applied to a numerical attribute definition.
@@ -17,15 +16,11 @@ import lombok.ToString;
  *  <p>
  *   <b>NOTE:<b> It might be a good idea to have a "unit of measure type" enumeration added to this class (LENGTH, WEIGHT, SPEED, etc).
  *
- *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
-public class UnitOfMeasure implements Serializable {
+public class UnitOfMeasure implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -48,4 +43,9 @@ public class UnitOfMeasure implements Serializable {
 	 * Description of unit of measure.
 	 */
 	private String description;
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+
 }

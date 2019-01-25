@@ -14,7 +14,7 @@ import lombok.ToString;
 /**
  * A channel represents a distribution channel through which products are sold.
  *
- *  A business unit may have one or more channels may have different product catalogs, taxonomies, pricing, and vendors.
+ *  A business unit may have one or more channels that have different product catalogs, taxonomies, pricing, and vendors.
  *
  * It is also important to note that different channels may require the product data to be mutated from the "master"
  * data to apply branding, follow specific marketplace rules, or to implement a specific SEO strategy.

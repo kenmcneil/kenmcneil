@@ -2,3 +2,10 @@
 logging:
   level:
     ROOT: info
+
+spring:
+    data:
+      mongodb:
+        database: products
+        uri: mongodb://${docker.hostname:localhost}
+  

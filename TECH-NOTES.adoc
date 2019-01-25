@@ -3,6 +3,7 @@ Tyler Van Gorder <tyler.vangorder@build.com>
 :sectlinks:
 :sectanchors:
 :stylesheet: asciidoctor.css
+:imagesdir: ./docs/images
 // If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
 ifndef::env-github[]
 :icons: font
@@ -18,6 +19,37 @@ endif::[]
 This file is intended to record some of the technical decisions that have been made as we implement the product-service domain. We intend for this to be a living document that others can reference as they start similar services.
 
 WARNING: This is a work in progress and will be under constant change.
+
+## Lombok
+
+This project is currently using the Lombok java library to reduce the amount of boilerplate code within the domain model. This project ONLY uses lombok in the model layer and requires that a plugin is installed in your IDE of choice.
+
+The following code snippet:
+
+```java
+@Data
+@Builder
+public class UnitOfMeasure implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private String id;
+    private String code;
+	private String name;
+	private String description;
+}
+```
+
+Results in a Lombok generated class with the following:
+
+image:lombok-example.png[]
+
+NOTE: You can start with Lombok and if you choose to drop it from your service, you can use the "delombok" plugin to generate the lombok source code. You can simply copy those files over the lombok-annotated classes and drop the Lombok library from the dependencies.
+
+Please see this link for more information: 
+
+https://projectlombok.org/[Lombok Project Home Page]
+
 
 ## Conventional Commits
 
@@ -93,3 +125,40 @@ The following are useful links to help clarify the difference between Spring Dat
 If you are not familar with Spring Data, I highly recommend that you read ALL of the links listed above.
 ====
 
+== Data Model vs Domain Model
+
+A "perfect" design would create a domain model that does not have any additional attributes used for persisting the model to the underlying data store. In practice, this results in a large amount of duplication and marshalling between the data and domain model.
+
+This project uses a single domain/data model which means that the persistence attributes are mixed into the domain model. We felt this was a needed compromise to allow the implementation to be changed quickly. 
+
+IMPORTANT: The model project has a dependency on the spring-data projects so that the model can be correctly annotated with persistence hints. We try to minimize the amount of spring-data infrastructure within the model.
+
+Notes:
+
+- The datatype of the persistent IDs is a String to provide maximum capatibility. Please see the "ID Handling In Mongo" in the section <<Spring Data Mongo>>.
+
+== Functional Seperation of Concerns 
+
+This application provides a REST API that can be consumed by multiple downstream clients. Additionally, this service also provides messaging infrastructure that allows downstream clients to subscribe to domain events emitted from this service. There is also a real need to allow this service to rapidly evolve as it is developed and more features are defined within the product domain.
+
+NOTE: Separation of concerns (SoC) is a design principle for separating a computer program into distinct sections, such that each section addresses a separate concern.
+
+This service has been separeate into four layers to separate the functional concerns and at first glance, this may appear to be overkill for simple use-cases. However, the separation of concerns is deliberate and allows for rapid iteration when the system needs to be refactored.
+
+=== Rest Controller Layer
+
+The controller layer handles the mapping from the transport/protocal layer (in this case REST over HTTP) into the service layer. This layer relies heavily on Spring's REST MVC framework to marshal those requests into strongly-typed domain objects that are used as input/outputs to the services. The REST framework also handles marshaling errors into a standard responses.
+
+=== Service Layer
+
+The service layer is where the primary domain business logic is encapsulated. Each service is defined as an interface/implementation pair where the implementation can have one or more dependencies on data access interfaces from the same business domain. Additionally the service implementation may require calls to other domains that manifest as service interface dependencies. All cross-domain aggregation will occur in the service layer by injecting other domain-level services.
+
+=== Data Access Layer
+
+The data access interface/implementation pair will define a collection of data access queries that are all related to the same domain. A single call to the data access layer may actually result in several calls to the underlying data store.
+
+IMPORTANT: We had considered collapsing the data access layer with the repository layer, however, this becomes problematic for implementing transaction and caching cross cutting concerns. The data access layer is a good place to aggregate those concerns, the alternative would have been to move those up into the service layer, which really muddies the waters when those concerns are mixed with external calls and business logic that is performed at the service layer. 
+
+=== Repository Layer
+
+Each call that is made to the underlying data store is modeled as a method within a "Data Repository" interface. This layer will lean on the Spring Data project to automate much of the CRUD operations and each "repository" manages a single aggregate root.
