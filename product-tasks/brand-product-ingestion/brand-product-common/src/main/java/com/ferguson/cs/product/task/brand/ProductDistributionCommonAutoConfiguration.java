@@ -1,0 +1,68 @@
+package com.ferguson.cs.product.task.brand;
+
+import javax.sql.DataSource;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+import com.ferguson.cs.product.task.brand.dao.ProductDistributionDao;
+import com.ferguson.cs.product.task.brand.dao.ProductDistributionDaoImpl;
+
+
+@Configuration
+@MapperScan(basePackageClasses=ProductDistributionCommonAutoConfiguration.class, annotationClass=Mapper.class, sqlSessionFactoryRef="productDistributionSqlSessionFactory")
+public class ProductDistributionCommonAutoConfiguration {
+	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.brand.dao";
+	
+	
+	@Bean
+	@Primary
+	@ConfigurationProperties(prefix = "datasource.productdistribution")
+	public DataSourceProperties productDistributionDataSourceProperties() {
+		return new DataSourceProperties();
+	}
+	
+	@Bean(name = {"productDistributionDataSource"}, destroyMethod="")
+	@Primary
+	@ConfigurationProperties(prefix = "datasource.productdistribution")
+	public DataSource productDistributionDataSource() {
+		return productDistributionDataSourceProperties().initializeDataSourceBuilder().build();
+	}
+
+	@Bean(name = "productDistributionTransactionManager")
+	public DataSourceTransactionManager productDistributionTransactionManager() {
+		return new DataSourceTransactionManager(productDistributionDataSource());
+	}
+
+	@Bean(name = "productDistributionSqlSessionFactory")
+	public SqlSessionFactory integrationSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
+
+		SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+		factory.setDataSource(productDistributionDataSource());
+		factory.setVfs(SpringBootVFS.class);
+		factory.setTypeAliasesPackage(CORE_BASE_ALIAS_PACKAGE);
+		factory.setTypeHandlersPackage(typeHandlerPackage);
+		return factory.getObject();
+	}
+	
+	
+	
+	@Bean
+	public ProductDistributionDao productDistributionDao() {
+		return new ProductDistributionDaoImpl();
+	}
+	
+	
+
+
+}

@@ -1,0 +1,51 @@
+---
+
+logging:
+  level:
+    ROOT: info
+    com.ferguson.cs: info
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.ferguson.cs
+    
+ 
+datasource:
+  productdistribution:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=integration;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: 'Build12Dot24Cow!'
+    
+  
+  
+    
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+management:
+  security:
+    enabled: false
+    
+  
+    
+ge_products:
+  host: content.geappliances.io
+  results: https://content.geappliances.io/search/b2b/results?
+  dimensions: https://content.geappliances.io/search/b2b/dimensions?
+  apiKey: AKIAIECJJ44FN2WW6J7Q
+  apiSecretKey: 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
+  region: us-east-1
+  service: execute-api
+  documentBaseUrl: http://products.geappliances.com/MarketingObjectRetrieval/Dispatcher
+  videoBaseUrl: https://www.youtube.com/embed/
+  
+
