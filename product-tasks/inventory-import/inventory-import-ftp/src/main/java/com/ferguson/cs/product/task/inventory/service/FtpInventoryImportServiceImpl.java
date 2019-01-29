@@ -17,7 +17,7 @@ import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobType;
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
-@Service
+@Service("ftpInventoryImportService")
 public class FtpInventoryImportServiceImpl implements InventoryImportService {
 	private FtpInventoryDao ftpInventoryDao;
 	private InventoryImportJobLogService inventoryImportJobLogService;

@@ -10,7 +10,8 @@ import java.util.Map;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
-import com.ferguson.cs.product.task.inventory.model.IntMappedEnum;
+import com.ferguson.cs.utilities.IntMappedEnum;
+
 
 public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeHandler<IntMappedEnum> {
 

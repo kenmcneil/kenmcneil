@@ -23,6 +23,7 @@ public class EmailInventoryImportTaskImpl implements EmailInventoryImportTask {
 		this.emailInventoryImportService = emailInventoryImportService;
 	}
 
+
 	@Override
 	public void importInventoryViaEmail() throws IOException, MessagingException {
 		emailInventoryImportService.importInventory();

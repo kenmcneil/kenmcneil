@@ -1,12 +1,12 @@
-package com.ferguson.cs.product.task.inventory.dao;
+package com.ferguson.cs.product.task.inventory.dao.pdm;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;
+import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobError;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobType;
 

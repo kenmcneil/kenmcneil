@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>email-inventory-import</artifactId>
+	<artifactId>inventory-import-email</artifactId>
 
 	<dependencies>
 		<dependency>

@@ -1,7 +1,6 @@
-# Application that hosts all the scheduled tasks for returns.
 spring:
   application:
-    name: inventorio
+    name: inventory-import-email
 
   profiles:
     active: local
@@ -9,7 +8,7 @@ spring:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
       label: master
-      name: api-task,api-task-inventorio
+      name: api-task,product-services-inventory-import
       fail-fast: true
       uri: http://config
       username: config
@@ -27,10 +26,3 @@ spring:
     config:
       fail-fast: true
       username: sdc
-
----
-spring:
-  profiles: unit
-  cloud:
-    config:
-      enabled: false

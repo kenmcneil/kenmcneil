@@ -21,11 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import com.ferguson.cs.product.task.inventory.InventoryImportException;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
-import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
+import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobError;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobErrorMessage;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;

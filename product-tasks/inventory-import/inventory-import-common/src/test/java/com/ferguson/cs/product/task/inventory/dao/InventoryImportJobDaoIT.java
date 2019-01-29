@@ -14,9 +14,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
-import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
+import com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobDao;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;
+import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobError;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.task.test.EnableTaskIntegrationTesting;

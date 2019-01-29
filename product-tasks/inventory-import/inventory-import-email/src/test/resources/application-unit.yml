@@ -22,33 +22,3 @@ info:
 management:
   security:
     enabled: false
-
-datasource:
-  reporter:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    username: wbsrvr_mmc
-    password: 'Build12Dot24Cow!'
-  pdm:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    username: wbsrvr_mmc
-    password: 'Build12Dot24Cow!'
-  task:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    username: wbsrvr_mmc
-    password: 'Build12Dot24Cow!'
-
-inventory-import:
-  email:
-    inventory-directory: /mnt/shares/omc_files/vendor_inventory/temp
-    log-dile: /mnt/shares/omc_files/vendor_inventory/logging/email_logging.log
-    email-host-name: imap.gmail.com
-    email-port: 993
-    email-username: inventory%40improvementdirect.com
-    email-password: BYm7k3OvNu5ris7zEIlAyTC
-    safe-mode: true
-  inventory-directory: /mnt/shares/omc_files/vendor_inventory/temp
-
-

@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.task.inventory.dao;
+package com.ferguson.cs.product.task.inventory.dao.pdm;
 
 
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;

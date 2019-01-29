@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.task.inventory.dao;
+package com.ferguson.cs.product.task.inventory.dao.pdm;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
