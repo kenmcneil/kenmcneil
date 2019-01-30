@@ -34,7 +34,7 @@
 		END
 	</insert>
 	
-	<select  id="getSystemSourceId" parameterType="map" resultType="int">
+	<select  id="getSystemSourceId" parameterType="string" resultType="int">
 		select id from integration.productDistribution.systemSource s WITH (NOLOCK) WHERE s.sourceName = #{sourceName}
 	</select>
 
@@ -151,7 +151,7 @@
 		<result property="productId" column="productId"/>
 	</resultMap>
 	
-	<select  id="listInactiveProducts" parameterType="map" resultMap="productJson">
+	<select  id="listInactiveProducts" parameterType="int" resultMap="productJson">
 		select *  from integration.productdistribution.productjson where productId in  (
 			select id from integration.productdistribution.product  p 
 				where 
@@ -162,7 +162,7 @@
 	
 	
 	
-	<delete  id="deleteInactiveProductJson" parameterType="map" >
+	<delete  id="deleteInactiveProductJson"  parameterType="map">
 		delete from integration.productDistribution.productjson   
 		where 
 			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)

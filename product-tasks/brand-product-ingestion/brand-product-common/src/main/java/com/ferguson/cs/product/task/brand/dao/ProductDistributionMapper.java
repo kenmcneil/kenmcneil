@@ -16,7 +16,7 @@ import com.ferguson.cs.product.task.brand.model.SystemSource;
 public interface ProductDistributionMapper {
 	
 	void upsertSystemSource(SystemSource systemSouirce);
-	int getSystemSourceId(@Param("sourceName") String sourceName);
+	int getSystemSourceId(String sourceName);
 	void upsertProduct(BrandProduct product);
 	int getProductId(@Param("productId") String productId,@Param("systemSourceId") Integer systemSourceId);
 	void upsertJsonReferences(@Param("productId") Integer productId, @Param("jsonReferences") List<JsonReference> jsonReferences);
@@ -25,6 +25,6 @@ public interface ProductDistributionMapper {
 	
 	void deleteInactiveProducts(@Param("systemSourceId") Integer systemSourceId, @Param("ids") List<Integer> ids);
 	 
-	void deleteInactiveProductJson( @Param("ids") List<Integer> ids);
-	void deleteInactiveJson( @Param("ids") List<Integer> ids);
+	void deleteInactiveProductJson(@Param("ids") List<Integer> ids);
+	void deleteInactiveJson(@Param("ids") List<Integer> ids);
 }

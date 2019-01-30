@@ -1,5 +1,5 @@
 datasource:
-  productdistribution:
+  integration:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=integration;sendStringParametersAsUnicode=false
     username: wbsrvr_mmc

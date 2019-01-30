@@ -9,7 +9,7 @@ spring:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
       label: master
-      name: api-task,product-services
+      name: api-task,api-task-brand-product
       fail-fast: true
       uri: http://config
       username: config

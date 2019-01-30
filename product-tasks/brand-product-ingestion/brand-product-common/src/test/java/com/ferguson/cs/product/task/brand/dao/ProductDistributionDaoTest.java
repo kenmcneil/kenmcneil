@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -38,7 +39,7 @@ public class ProductDistributionDaoTest extends BaseTest {
 	private ProductDistributionDao productDistributionDao;
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	private  int systemSourceId =1;
+	private  int systemSourceId = 0;
 	
 	@SpringBootApplication(exclude = { RabbitAutoConfiguration.class})
 	protected static class DataAccessTestConfiguration {
@@ -50,15 +51,13 @@ public class ProductDistributionDaoTest extends BaseTest {
 		}
 	}
 	
-	//@Before
+	@Before
 	public  void  testInsertSystemSource() throws Exception {
 		SystemSource systemSource = new SystemSource();
-		systemSource.setSourceName("GE");
+		systemSource.setSourceName("UnitTest");
 		systemSource.setActiveProductsFetched(1201);
 		systemSource.setObsoleteProductsFetched(5000);
-		
 		productDistributionDao.upsertSystemSource(systemSource);
-		
 		assertNotNull("The id cannot be null",systemSource.getId());
 		systemSourceId = systemSource.getId();
 		
@@ -200,15 +199,13 @@ public class ProductDistributionDaoTest extends BaseTest {
 		products.add(product);
 		
 		productDistributionDao.upsertProducts(products);
+		for (BrandProduct brandProduct:products) {
+			assertNotNull("The id cannot be null",brandProduct.getId());
+		}
 		
 		
 	}
 	
-	@Test
-	public void testListInActiveProducts() throws Exception {
-		productDistributionDao.deleteInactiveProducts(systemSourceId);
-		
-	}
 	
 	
 	

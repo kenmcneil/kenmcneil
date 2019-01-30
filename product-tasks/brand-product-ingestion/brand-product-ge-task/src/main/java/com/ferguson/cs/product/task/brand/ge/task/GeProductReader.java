@@ -55,15 +55,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 		
 		
 	} 
-	private List<GeProduct> fetchGeProducts(String dimFilter) {
-		String query = dimFilter+"&Nrpp="+getPageSize()+"&No="+(getCurrentItemCount());
-		GeProductSearchResult result = geProductApiService.getResults(query );
-		System.out.println("Search for " + query + " (page number " + getPage() + " got a page of " + result.getProducts().size() 
-	    + " (results"); 
-		return result.getProducts();
-		
-		
-	}
+	
 	
 	
 	

@@ -20,35 +20,37 @@ import com.ferguson.cs.product.task.brand.dao.ProductDistributionDaoImpl;
 
 
 @Configuration
-@MapperScan(basePackageClasses=ProductDistributionCommonAutoConfiguration.class, annotationClass=Mapper.class, sqlSessionFactoryRef="productDistributionSqlSessionFactory")
+@MapperScan(basePackages=ProductDistributionCommonAutoConfiguration.INTEGRATION_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef="integrationSqlSessionFactory")
 public class ProductDistributionCommonAutoConfiguration {
-	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.brand.dao";
+	
+	protected static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.brand.dao";
+	protected static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product";
 	
 	
 	@Bean
 	@Primary
-	@ConfigurationProperties(prefix = "datasource.productdistribution")
-	public DataSourceProperties productDistributionDataSourceProperties() {
+	@ConfigurationProperties(prefix = "datasource.integration")
+	public DataSourceProperties integrationDataSourceProperties() {
 		return new DataSourceProperties();
 	}
 	
-	@Bean(name = {"productDistributionDataSource"}, destroyMethod="")
+	@Bean(name = {"integrationDataSource"}, destroyMethod="")
 	@Primary
-	@ConfigurationProperties(prefix = "datasource.productdistribution")
-	public DataSource productDistributionDataSource() {
-		return productDistributionDataSourceProperties().initializeDataSourceBuilder().build();
+	@ConfigurationProperties(prefix = "datasource.integration")
+	public DataSource integrationDataSource() {
+		return integrationDataSourceProperties().initializeDataSourceBuilder().build();
 	}
 
-	@Bean(name = "productDistributionTransactionManager")
-	public DataSourceTransactionManager productDistributionTransactionManager() {
-		return new DataSourceTransactionManager(productDistributionDataSource());
+	@Bean(name = "integrationTransactionManager")
+	public DataSourceTransactionManager integrationTransactionManager() {
+		return new DataSourceTransactionManager(integrationDataSource());
 	}
 
-	@Bean(name = "productDistributionSqlSessionFactory")
+	@Bean(name = "integrationSqlSessionFactory")
 	public SqlSessionFactory integrationSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 
 		SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
-		factory.setDataSource(productDistributionDataSource());
+		factory.setDataSource(integrationDataSource());
 		factory.setVfs(SpringBootVFS.class);
 		factory.setTypeAliasesPackage(CORE_BASE_ALIAS_PACKAGE);
 		factory.setTypeHandlersPackage(typeHandlerPackage);
@@ -56,13 +58,5 @@ public class ProductDistributionCommonAutoConfiguration {
 	}
 	
 	
-	
-	@Bean
-	public ProductDistributionDao productDistributionDao() {
-		return new ProductDistributionDaoImpl();
-	}
-	
-	
-
 
 }

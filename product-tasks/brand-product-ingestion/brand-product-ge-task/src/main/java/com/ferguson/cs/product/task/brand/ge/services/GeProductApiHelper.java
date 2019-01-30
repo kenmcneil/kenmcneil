@@ -607,15 +607,8 @@ public final class GeProductApiHelper {
 		if (strings.isEmpty()) {
 			return "";
 		}
+		return String.join(separator, strings);
 
-		StringBuilder combined = new StringBuilder();
-
-		for (String i : strings) {
-			combined.append(i).append(separator);
-		}
-
-		String res = combined.toString();
-		return res.substring(0, res.length() - separator.length());
 	}
 
 	/**
@@ -743,7 +736,7 @@ public final class GeProductApiHelper {
 	
 	
 	
-	public static boolean getGeProductStatus(GeProduct geProduct) {
+	public static boolean isGeProductActive(GeProduct geProduct) {
 		Boolean isActive = false;
 		if (!getGeProperty(geProduct.getProperties(), "Product_Obsolete", FIRST_VALUE).isEmpty()) {
 			isActive = !getGePropertyAsBoolean(geProduct.getProperties(), "Product_Obsolete", FIRST_VALUE, true);
@@ -874,7 +867,7 @@ public final class GeProductApiHelper {
 	 */
 	private static void checkAndLogUnsupportedGeElement(String fieldIdentifier, String value, String referenceIdentifier) {
 		if (!StringUtils.isEmpty(value)) {
-			LOGGER.info("*****WARNING: GE field '" + fieldIdentifier + "' found (value: " + value + ") referenced by: " + referenceIdentifier);
+			LOGGER.warn("*****WARNING: GE field '" + fieldIdentifier + "' found (value: " + value + ") referenced by: " + referenceIdentifier);
 		}
 	}
 	
@@ -910,34 +903,39 @@ public final class GeProductApiHelper {
 		try {
 			node = objectMapper.readTree(response);
 		} catch (IOException e) {
+			LOGGER.warn("*****WARNING: GE convertResultsToJson failed '" + e.getMessage());
 		}
 		return node;
 	}
 	
 	
 	private static void addToDeSerializedState(SortedMap<String, List<String>> deSerializedState, String key, String value) {
-		List<String> mapValues= null;
-		if (deSerializedState.containsKey(key)) {
-			mapValues = deSerializedState.get(key);
-		}	else {
-			mapValues = new ArrayList<>();
-			deSerializedState.put(key, mapValues);
-		}
-		mapValues.add(value);
+		if (value != null) {
+			List<String> mapValues= null;
+			if (deSerializedState.containsKey(key)) {
+				mapValues = deSerializedState.get(key);
+			} else {
+				mapValues = new ArrayList<>();
+				deSerializedState.put(key, mapValues);
+			}
+			mapValues.add(value);
+		}	
 	}
 	
 	private static void addToDeSerializedState(SortedMap<String, List<String>> deSerializedState, String key, List<String> values) {
-		List<String> mapValues= null;
-		if (deSerializedState.containsKey(key)) {
-			mapValues = deSerializedState.get(key);
-		}	else {
-			mapValues = new ArrayList<>();
-			deSerializedState.put(key, mapValues);
-		}
-		mapValues.addAll(values);	
+		if (values != null && !values.isEmpty()) {
+			List<String> mapValues= null;
+			if (deSerializedState.containsKey(key)) {
+				mapValues = deSerializedState.get(key);
+			}	else {
+				mapValues = new ArrayList<>();
+				deSerializedState.put(key, mapValues);
+			}
+			mapValues.addAll(values);	
+		}	
 	}
 	
-	public static BrandProduct convertToProductDistributionProduct(GeProduct geProduct, Integer sourceId) throws Exception {
+	public static BrandProduct convertToProductDistributionProduct(GeProduct geProduct, Integer sourceId, String documentBaseUrl) throws Exception {
 		
 		BrandProduct product = new BrandProduct();
 		product.setSystemSourceId(sourceId);
@@ -976,7 +974,10 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Color.Color_Appearance", getGeProperty(geProduct.getProperties(), "Product_Color.Color_Appearance", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Color.Color_Appearance_Image", getGeProperty(geProduct.getProperties(), "Product_Color.Color_Appearance_Image", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Color.Image", getGeProperty(geProduct.getProperties(), "Color.Image", FIRST_VALUE));
+			addToDeSerializedState(deSerializedState,"Color.ImageName",  getGeProperty(geProduct.getProperties(), "Color.ImageName", FIRST_VALUE));
+			addToDeSerializedState(deSerializedState,"Color.ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
 			addToDeSerializedState(deSerializedState,"Product_Color.Data_ID", getGeProperty(geProduct.getProperties(), "Product_Color.Data_ID", FIRST_VALUE));
+			
 		} 
 		JsonReference jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.FINISH);
@@ -997,6 +998,7 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Brand.Data_ID",getGeProperty(geProduct.getProperties(), "Product_Brand.Data_ID", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Brand.ImageName",getGeProperty(geProduct.getProperties(), "Brand.ImageName", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Brand.Image",getGeProperty(geProduct.getProperties(), "Brand.Image", FIRST_VALUE));
+			addToDeSerializedState(deSerializedState,"Brand.ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
 		} 
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.BRAND);
@@ -1006,7 +1008,7 @@ public final class GeProductApiHelper {
 		
 		product.setRetailPrice(getGePropertyAsDouble(geProduct.getProperties(), "EstimatedRetailPrice", FIRST_VALUE, true));
 		product.setUpc(getGeProperty(geProduct.getProperties(), "UPC", FIRST_VALUE));
-		product.setIsActive(getGeProductStatus(geProduct));
+		product.setIsActive(isGeProductActive(geProduct));
 		
 		// other product fields are N/A to GE Products
 		
@@ -1030,8 +1032,6 @@ public final class GeProductApiHelper {
 		if (geProduct.getAttributes() != null && !geProduct.getAttributes().isEmpty()) {
 			for (GeProductAttribute geAttribute : geProduct.getAttributes()) {
 				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDisplayName(),geAttribute.getValue());
-//				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDescription()+"_Value",geAttribute.getValue());
-//				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDescription()+"_Priority",geAttribute.getPriority());
 				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDisplayName()+"_UOM",geAttribute.getUOM());
 				
 			}
@@ -1084,7 +1084,7 @@ public final class GeProductApiHelper {
 		if (geProduct.getImages() != null && !geProduct.getImages().isEmpty()) {
 			for (GeProductImage geImage : geProduct.getImages()) {
 				addToDeSerializedState(deSerializedState,"Image_"+geImage.getDataGroupID(),geImage.getName());
-				//addToDeSerializedState(deSerializedState,"Image_"+geImage.getDataGroupID()+"_Name",geImage.getName());
+				addToDeSerializedState(deSerializedState,"ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
 			}
 		}
 
@@ -1101,8 +1101,6 @@ public final class GeProductApiHelper {
 				 int i = 0;
 				 for (GeProductRelationship relationship:relationships) {
 					 addToDeSerializedState(deSerializedState,"Accessory_"+i+"_SKU", relationship.getSKU());
-//					 addToDeSerializedState(deSerializedState,"Accessory_"+i+"_Brand_Subhead", relationship.getBrandSubhead());
-//					 addToDeSerializedState(deSerializedState,"Accessory_"+i+"_Description", relationship.getDescription());
 					 i++;
 					 
 				 }	 
@@ -1112,8 +1110,6 @@ public final class GeProductApiHelper {
 				 int i = 0;
 				 for (GeProductRelationship relationship:relationships) {
 					 addToDeSerializedState(deSerializedState,"Cross-Sell Colors_"+i+"_SKU", relationship.getSKU());
-//					 addToDeSerializedState(deSerializedState,"Cross-Sell Colors_"+i+"_Brand_Subhead", relationship.getBrandSubhead());
-//					 addToDeSerializedState(deSerializedState,"Cross-Sell Colors_"+i+"_Description", relationship.getDescription());
 					 i++;
 					 
 				 }	 

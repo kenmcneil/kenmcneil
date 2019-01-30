@@ -1,3 +1,0 @@
-# AutoConfiguration
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.ferguson.cs.product.task.brand.ProductDistributionCommonAutoConfiguration

@@ -95,7 +95,6 @@ public class GeProductsTasksConfiguration {
 	            .build();
 
 	        return taskBatchJobFactory.getJobBuilder("processGeProducts")
-	                .incrementer(new RunIdIncrementer())
 	                .start(flow)
 	                .next(processGeInactiveProducts())
 	                .end()

@@ -44,7 +44,7 @@ public class GeDimensionsTasklet  implements Tasklet {
 	
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		GeProductSearchResult result = geProductApiService.getDimensions("");
+		GeProductSearchResult result = geProductApiService.getDimensions(null);
 		SystemSource systemSource = new SystemSource();
 		systemSource.setSourceName("GE");
 		if (result != null && !result.getFilters().isEmpty()) {

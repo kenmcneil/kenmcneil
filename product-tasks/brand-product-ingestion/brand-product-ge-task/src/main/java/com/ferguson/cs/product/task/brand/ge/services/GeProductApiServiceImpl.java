@@ -77,18 +77,6 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		return response;
 	}
 
-	@Override
-	public GeProductSearchResult getResults(String query) {
-		String response =  executeQuery(settings.getResults(), query);
-		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
-	}
-
-	@Override
-	public GeProductSearchResult getDimensions(String query) {
-		String response = executeQuery(settings.getDimensions(), query);
-		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
-	}
-
 	
 	/**
 	 * Convert a GE Product API response string into a JSON
@@ -112,13 +100,18 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 	@Override
 	public GeProductSearchResult getResults(GeProductSearchCriteria criteria) {
 		// Get the search query string from the search criteria
-		return getResults(GeProductApiHelper.getQueryStringFromSearchCriteria(criteria));
+		String query = GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
+		String response =  executeQuery(settings.getResults(), query);
+		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
+		
 	}
 
 	@Override
 	public GeProductSearchResult getDimensions(GeProductSearchCriteria criteria) {
 		// Get the search query string from the search criteria
-		return getDimensions(GeProductApiHelper.getQueryStringFromSearchCriteria(criteria));
+		String query =  GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
+		String response = executeQuery(settings.getDimensions(), query);
+		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
 	}
 	
 	

@@ -18,16 +18,16 @@ public interface ProductDistributionService {
 	void saveSystemSource(SystemSource source);
 
 	/**
-	 * Save list of   product
+	 * Save list of  product
 	 * @param product
 	 * @return unique id of product
 	 */
 	void saveProducts(List<BrandProduct> products);
 	
 	/**
-	 * To delete the inactibve products
+	 * To delete the inactive products
 	 * 
-	 * @param systemSOurceId
+	 * @param systemSourceId
 	 */
 	void deleteInactiveProducts(Integer systemSourceId);
 }
