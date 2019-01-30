@@ -2,6 +2,7 @@ package com.ferguson.cs.productapi.attribute;
 
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
 
 @Service
@@ -26,5 +27,20 @@ public class AttributeServiceImpl implements AttributeService {
 	@Override
 	public void deleteUnitOfMeasure(String uomCode) {
 		attributeDataAccess.deleteUnitOfMeasure(uomCode);
+	}
+
+	@Override
+	public AttributeDefinition getAttributeDefinition(String code) {
+		return attributeDataAccess.getAttributeDefinition(code);
+	}
+
+	@Override
+	public AttributeDefinition saveAttributeDefinition(AttributeDefinition attributeDefinition) {
+		return attributeDataAccess.saveAttributeDefinition(attributeDefinition);
+	}
+
+	@Override
+	public void deleteAttributeDefinition(String code) {
+		attributeDataAccess.deleteAttributeDefinition(code);
 	}
 }
