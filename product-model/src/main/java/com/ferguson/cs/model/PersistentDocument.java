@@ -24,7 +24,6 @@ public interface PersistentDocument extends Serializable {
 	void setId(String id);
 	String getId();
 
-
 	/**
 	 * The timestamp indicating when this document was created.
 	 *
@@ -51,7 +50,6 @@ public interface PersistentDocument extends Serializable {
 	 */
 	LocalDateTime getLastModifiedTimestamp();
 
-
 	/**
 	 * Used to record a record version and prevent dirty writes.
 	 *
@@ -65,7 +63,5 @@ public interface PersistentDocument extends Serializable {
 	 *
 	 */
 	Long getVersion();
-
-
 
 }

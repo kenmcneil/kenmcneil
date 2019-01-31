@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @SpringBootApplication
 @EnableMongoAuditing
-@EnableMongoRepositories(repositoryBaseClass=PersistentDocumentMongoRepository.class)
+@EnableMongoRepositories
 public class ProductApplication {
 
 	public static void main(String[] args) {

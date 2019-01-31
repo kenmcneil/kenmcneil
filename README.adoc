@@ -125,7 +125,6 @@ Important Notes About Channels:
 
 Each product will be associated with its manufacturer.
 
-
 === Vendors
 
 IMPORTANT: We have not yet started modeling vendors.
@@ -138,4 +137,13 @@ There are established tools and processes used by our "brands" and it is importa
 
 === Type, Application, and Handletype
 
-Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary saling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used to by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems. This structure will be imported into the product domain service's taxonomy system. This will serve two purposes: It will validate that the new taxonomy structure supports the validation rules of the data team's existing process and it can later be used in the product ingestion process to validate product data.
+Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary selling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used to by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems. This structure will be imported into the product domain service's taxonomy system. This will serve two purposes: It will validate that the new taxonomy structure supports the validation rules of the data team's existing process and it can later be used in the product ingestion process to validate product data.
+
+=== Build Terms to Product Domain Terms
+
+.Terminology Mapping
+|===
+|Build.com Term |Product Domain Term|Description
+|Finish |Product Variant |A product finish/variant is a tangible unit of merchandise that has a specific name, part number, size, price, and any other attribute required to make the merchandise “sellable”.
+|Product Specification |Product Attribute | A product specification is synomymous with a product attribute and is used to describe a specific characteristic about the product.
+|===
