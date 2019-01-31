@@ -15,16 +15,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
-import com.ferguson.cs.product.task.brand.dao.ProductDistributionDao;
-import com.ferguson.cs.product.task.brand.dao.ProductDistributionDaoImpl;
-
 
 @Configuration
 @MapperScan(basePackages=ProductDistributionCommonAutoConfiguration.INTEGRATION_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef="integrationSqlSessionFactory")
 public class ProductDistributionCommonAutoConfiguration {
 	
 	protected static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.brand.dao";
-	protected static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product";
+	protected static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.brand";
 	
 	
 	@Bean
