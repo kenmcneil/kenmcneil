@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.database.AbstractPagingItemReader;
 import org.springframework.beans.factory.InitializingBean;
@@ -18,6 +20,8 @@ import com.ge_products.api.GeProductSearchResult;
 
 public class GeProductReader extends AbstractPagingItemReader<GeProduct> implements InitializingBean {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(GeProductReader.class);
+	
 	@Autowired
 	private GeProductApiService geProductApiService;
 	
@@ -49,7 +53,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 		}
 		
 		GeProductSearchResult result = geProductApiService.getResults(criteria);
-		System.out.println("Search for " + criteria.getNavDescriptors()+ " (start index " + criteria.getStartIndex() + " (page number " + getPage() + " got a page of " + result.getProducts().size() 
+		LOGGER.info("Search for " + criteria.getNavDescriptors()+ " (start index " + criteria.getStartIndex() + " (page number " + getPage() + " got a page of " + result.getProducts().size() 
 	    + " (results"); 
 		return result.getProducts();
 		
@@ -64,13 +68,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 		//DO NOTHING.  This just reads a page of the products
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
-	}
-
 	
-
 	
 }
 

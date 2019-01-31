@@ -596,21 +596,7 @@ public final class GeProductApiHelper {
 		return stringList;
 	}
 
-	/**
-	 * Combines strings with provided string delimiter
-	 * 
-	 * @param strings - input strings to include
-	 * @param separator - delimiter 
-	 * @return formatted string
-	 */
-	private static String combine(List<String> strings, String separator) {
-		if (strings.isEmpty()) {
-			return "";
-		}
-		return String.join(separator, strings);
-
-	}
-
+	
 	/**
 	 * Format the search "range" content for use in a GE Product API query
 	 * 
@@ -648,8 +634,8 @@ public final class GeProductApiHelper {
 			values.add(AwsVersion4RequestSigner.rfc3986EncodeString(entry.getValue()));
 		}
 
-		String ntk = "Ntk=" + combine(keys, "|");
-		String ntt = "&Ntt=" + combine(values, "|");
+		String ntk = "Ntk=" + String.join("|", keys);
+		String ntt = "&Ntt=" + String.join("|", values) ;
 
 		return ntk + ntt;
 	}
@@ -676,7 +662,7 @@ public final class GeProductApiHelper {
 		if (criteria.getNavDescriptors() == null) {
 			N += "0";
 		} else {
-			N += combine(getStringList(criteria.getNavDescriptors()), "+");
+			N += String.join("+", getStringList(criteria.getNavDescriptors()));
 		}
 
 		// Add the nav descriptors variable to the query fragment list
@@ -684,7 +670,7 @@ public final class GeProductApiHelper {
 
 		// Ne - Exposed product refinements
 		if (criteria.getExposedRefinements() != null && !criteria.getExposedRefinements().isEmpty()) {
-			fragments.add("Ne=" + combine(getStringList(criteria.getExposedRefinements()), "+"));
+			fragments.add("Ne=" + String.join("+",getStringList(criteria.getExposedRefinements())));
 		}
 
 		// Nf - Range filters
@@ -693,7 +679,7 @@ public final class GeProductApiHelper {
 			for (GeProductSearchRangeFilter rf : criteria.getRangeFilters()) {
 				rangeFilters.add(getRangeFilterText(rf));
 			}
-			fragments.add("Nf=" + combine(rangeFilters, "||"));
+			fragments.add("Nf=" + String.join("||", rangeFilters));
 		}
 
 		// No - Record start index
@@ -721,7 +707,7 @@ public final class GeProductApiHelper {
 
 		// D - Record Dimension search terms
 		if (criteria.getDimensionSearchTerms() != null && !criteria.getDimensionSearchTerms().isEmpty()) {
-			fragments.add("D=" + combine(criteria.getDimensionSearchTerms(), "+"));
+			fragments.add("D=" + String.join( "+", criteria.getDimensionSearchTerms()));
 		}
 
 		// Dx - Record dimension search mode
@@ -729,7 +715,7 @@ public final class GeProductApiHelper {
 			fragments.add("Dx=" + criteria.getDimensionSearchMode().value());
 		}
 
-		return combine(fragments, "&");
+		return String.join("&", fragments);
 	}
 
 

@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.brand.model;
 
+import com.ferguson.cs.utilities.IntMappedEnum;
 
 public enum JsonType implements IntMappedEnum { 
 	

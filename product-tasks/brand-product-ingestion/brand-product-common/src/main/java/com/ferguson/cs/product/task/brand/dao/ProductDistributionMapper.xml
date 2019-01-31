@@ -152,7 +152,7 @@
 	</resultMap>
 	
 	<select  id="listInactiveProducts" parameterType="int" resultMap="productJson">
-		select *  from integration.productdistribution.productjson where productId in  (
+		select id, jsonId, productId  from integration.productdistribution.productjson where productId in  (
 			select id from integration.productdistribution.product  p 
 				where 
 					p.systemSourceId =  #{systemSourceId} AND 
