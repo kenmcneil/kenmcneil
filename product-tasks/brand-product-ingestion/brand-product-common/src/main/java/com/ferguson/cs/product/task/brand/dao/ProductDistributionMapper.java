@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.ferguson.cs.product.task.brand.model.JsonReference;
+import com.ferguson.cs.product.task.brand.model.JsonType;
 import com.ferguson.cs.product.task.brand.model.ProductJson;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
@@ -15,16 +16,35 @@ import com.ferguson.cs.product.task.brand.model.SystemSource;
 @Mapper
 public interface ProductDistributionMapper {
 	
-	void upsertSystemSource(SystemSource systemSouirce);
-	int getSystemSourceId(String sourceName);
-	void upsertProduct(BrandProduct product);
-	int getProductId(@Param("productId") String productId,@Param("systemSourceId") Integer systemSourceId);
-	void upsertJsonReferences(@Param("productId") Integer productId, @Param("jsonReferences") List<JsonReference> jsonReferences);
+	Integer getSystemSourceId(String sourceName);
+	
+	void insertSystemSource(SystemSource systemSource);
+	
+	void updateSystemSource(SystemSource systemSource);
+	
+	
+	Integer getProductId(@Param("productId") String productId,@Param("systemSourceId") Integer systemSourceId);
+	
+	void insertProduct(BrandProduct product);
+	
+	void updateProduct(BrandProduct product);
+	
+	
+	
+	Integer getJson(@Param("jsonTypeId") Integer jsonTypeId,@Param("productId") Integer productId);
+	
+	void insertJson(JsonReference jsonReference);
+	
+	void updateJson(@Param("id") Integer id, @Param("jsonString") String jsonString );
+	
+	void insertProductJson( @Param("productId") Integer productId , @Param("jsonId") Integer jsonId);
+	
 	
 	List<ProductJson> listInactiveProducts(@Param("systemSourceId") Integer systemSourceId);
 	
 	void deleteInactiveProducts(@Param("systemSourceId") Integer systemSourceId, @Param("ids") List<Integer> ids);
 	 
 	void deleteInactiveProductJson(@Param("ids") List<Integer> ids);
+	
 	void deleteInactiveJson(@Param("ids") List<Integer> ids);
 }

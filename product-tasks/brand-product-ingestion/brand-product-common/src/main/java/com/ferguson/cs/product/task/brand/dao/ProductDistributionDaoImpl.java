@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
+import com.ferguson.cs.product.task.brand.model.JsonReference;
 import com.ferguson.cs.product.task.brand.model.ProductJson;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 
@@ -30,9 +31,14 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 		Assert.hasText(systemSource.getSourceName(), "SystemSourceName is required field.");
 		Assert.notNull(systemSource.getActiveProductsFetched(), "ActiveProductsFetched cannot be null.");
 		Assert.notNull(systemSource.getObsoleteProductsFetched(), "ObsoleteProductsFetched cannot be null.");
-		mapper.upsertSystemSource(systemSource);
-		int id = mapper.getSystemSourceId(systemSource.getSourceName());
-		systemSource.setId(id);
+		Integer id = mapper.getSystemSourceId(systemSource.getSourceName());
+		if (id == null) {
+			mapper.insertSystemSource(systemSource);
+		} else {
+			systemSource.setId(id);
+			mapper.updateSystemSource(systemSource);
+		}
+		
 		
 	}
 	
@@ -46,15 +52,37 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 				Assert.hasText(product.getCategoryName(), "The categoryName is required.");
 				Assert.hasText(product.getColor(), "The color is required.");
 				Assert.hasText(product.getBrandName(), "The brandName is required.");
-				mapper.upsertProduct(product);
-				int id = mapper.getProductId(product.getProductId(), product.getSystemSourceId());
-				product.setId(id);
-				mapper.upsertJsonReferences(product.getId(),product.getJsonReferences());
+				Integer id = mapper.getProductId(product.getProductId(), product.getSystemSourceId());
+				if (id == null) {
+					mapper.insertProduct(product);
+				} else {
+					product.setId(id);
+					mapper.updateProduct(product);
+				}
+				upsertJsonReferences(product);
+				
 			} catch (Exception e) {
-				LOGGER.error("The product could be inserted/updated:" +product.getProductId() );
+				LOGGER.error("The product " +product.getProductId()+" could be inserted/updated: "  + e.getStackTrace());
 			}
 		}	
 		
+	}
+	
+	private void upsertJsonReferences(BrandProduct product) {
+		if (product.getJsonReferences() != null && !product.getJsonReferences().isEmpty()) {
+			for (JsonReference jsonReference: product.getJsonReferences()) {
+				Integer jsonId = mapper.getJson(jsonReference.getJsonType().getIntValue(), product.getId());
+				if (jsonId == null) {
+					//Insert in json and productjson tables
+					mapper.insertJson(jsonReference);
+					mapper.insertProductJson(product.getId(), jsonReference.getId());
+					
+				} else {
+					//update in json table
+					mapper.updateJson(jsonId, jsonReference.getJsonString());
+				}
+			}	
+		}
 	}
 	
 	@Override

@@ -4,19 +4,12 @@
 
 <mapper namespace="com.ferguson.cs.product.task.brand.dao.ProductDistributionMapper">
 
-
-	<insert id="upsertSystemSource" parameterType="com.ferguson.cs.product.task.brand.model.SystemSource">
+	<select  id="getSystemSourceId" parameterType="string" resultType="Integer">
+		select id from integration.productDistribution.systemSource s WITH (NOLOCK) WHERE s.sourceName = #{sourceName}
+	</select>
 	
-	UPDATE integration.productDistribution.systemSource 
-		SET activeProductsFetched = #{activeProductsFetched},
-		obsoleteProductsFetched = #{obsoleteProductsFetched},
-		activeProductsLastUpdated = getDate(),
-		obsoleteProductsLastUpdated = getDate()
-		WHERE sourceName = #{sourceName}
-
-		IF @@ROWCOUNT = 0
-		BEGIN
-		insert into integration.productDistribution.systemSource(
+	<insert id="insertSystemSource" parameterType="SystemSource" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
+		INSERT into integration.productDistribution.systemSource (
 			sourceName,
 			activeProductsFetched,
 			obsoleteProductsFetched,
@@ -31,36 +24,27 @@
 			getDate(),
 			getDate()
 		)
-		END
+	
 	</insert>
 	
-	<select  id="getSystemSourceId" parameterType="string" resultType="int">
-		select id from integration.productDistribution.systemSource s WITH (NOLOCK) WHERE s.sourceName = #{sourceName}
+	<update id="updateSystemSource">
+		UPDATE integration.productDistribution.systemSource 
+		SET activeProductsFetched = #{activeProductsFetched},
+			obsoleteProductsFetched = #{obsoleteProductsFetched},
+			activeProductsLastUpdated = getDate(),
+			obsoleteProductsLastUpdated = getDate()
+		WHERE id = #{id}
+	
+	</update>
+	
+	
+	
+	<select  id="getProductId" parameterType="map" resultType="Integer">
+		select id from integration.productDistribution.product p WITH (NOLOCK) WHERE p.productId = #{productId} and p.systemSourceId = #{systemSourceId}
 	</select>
-
-	<insert id="upsertProduct" parameterType="com.ferguson.cs.product.task.brand.model.BrandProduct" >
-		UPDATE integration.productDistribution.product  
-			SET lastModifiedDate = getDate(),
-			productName = #{productName},
-			title = #{title},
-			description = #{description},
-			shortDescription = #{shortDescription},
-			manufacturer = #{manufacturer},
-			type = #{type},
-			retailPrice = #{retailPrice},
-			sku = #{sku},
-			upc = #{upc},
-			isActive = #{isActive},
-			dateAvailable = #{dateAvailable},
-			dateUpdated = #{dateUpdated},
-			status = #{status},
-			categoryName = #{categoryName},
-			color = #{color},
-			brandName = #{brandName}
-		WHERE productId = #{productId} and systemSourceId = #{systemSourceId}
-
-		IF @@ROWCOUNT = 0
-		BEGIN
+	
+	
+	<insert id="insertProduct" parameterType="SystemSource" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
 		insert into integration.productDistribution.product(
 				systemSourceId,
 				productId,
@@ -103,47 +87,75 @@
 				#{color},
 				#{brandName}
 		)
-			
-		END
 	</insert>
 	
+	<update id="updateProduct">
+		UPDATE integration.productDistribution.product  
+			SET lastModifiedDate = getDate(),
+			productName = #{productName},
+			title = #{title},
+			description = #{description},
+			shortDescription = #{shortDescription},
+			manufacturer = #{manufacturer},
+			type = #{type},
+			retailPrice = #{retailPrice},
+			sku = #{sku},
+			upc = #{upc},
+			isActive = #{isActive},
+			dateAvailable = #{dateAvailable},
+			dateUpdated = #{dateUpdated},
+			status = #{status},
+			categoryName = #{categoryName},
+			color = #{color},
+			brandName = #{brandName}
+		WHERE id = #{id} 
+	</update>
+
 	
 	
-	<select  id="getProductId" parameterType="map" resultType="int">
-		select id from integration.productDistribution.product p WITH (NOLOCK) WHERE p.productId = #{productId} and p.systemSourceId = #{systemSourceId}
+	<select id="getJson" parameterType="map" resultType="Integer">
+		
+	SELECT j.id from  Integration.productDistribution.json j , integration.productDistribution.productJson pj   
+	WHERE
+			j.id = pj.jsonId AND pj.productId=#{productId}
+			AND
+			j.jsonTypeId =   #{jsonTypeId}
+			 
+			
 	</select>
 	
-	<insert id="upsertJsonReferences" parameterType="map">
-		DECLARE @jsonId int;
-	<foreach collection="jsonReferences" item="jsonReference" open="" close="" separator=";">
+	<insert id="insertJson" parameterType="com.ferguson.cs.product.task.brand.model.JsonReference"  
+					keyColumn="id" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO integration.productDistribution.json (jsonTypeId, createdDate, json)  
+			VALUES (#{jsonType, typeHandler=com.ferguson.cs.product.task.brand.dao.IntMappedEnumTypeHandler},
+			 		getDate(),
+			 		#{jsonString}  
+			)
+				
+	</insert>
+	
+	<insert id="updateJson"  >
 		UPDATE integration.productDistribution.json  
 			SET createdDate = getDate(),
-				json = #{jsonReference.jsonString}  
-		WHERE  jsonTypeId = #{jsonReference.jsonType, typeHandler=com.ferguson.cs.product.task.brand.dao.IntMappedEnumTypeHandler} 
-		AND integration.productDistribution.json.id in (select jsonId from integration.productDistribution.productJson j  where integration.productDistribution.json.id = j.jsonId and j.productId=#{productId})
+				json = #{jsonString}  
+		WHERE  id = #{id}
 		
-
-		IF @@ROWCOUNT = 0
-		BEGIN
-			INSERT INTO integration.productDistribution.json (jsonTypeId, createdDate, json)  
-			VALUES (#{jsonReference.jsonType, typeHandler=com.ferguson.cs.product.task.brand.dao.IntMappedEnumTypeHandler},
-			 		getDate(),
-			 		#{jsonReference.jsonString}  
-			)
-
-			SELECT @jsonId = SCOPE_IDENTITY();
+				
+	</insert>
 	
-			INSERT INTO integration.productDistribution.productJson(
+	<insert id="insertProductJson"  parameterType="map"  keyColumn="id" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO integration.productDistribution.productJson(
 				productId,
 				jsonid
 			)
 			VALUES (
 				#{productId},
-				@jsonId
+				#{jsonId}
 			) 
-		END
-	</foreach>	
+				
 	</insert>
+	
+	
 	
 	<resultMap id="productJson" type="com.ferguson.cs.product.task.brand.model.ProductJson">
 		<id property="id" column="id"/>

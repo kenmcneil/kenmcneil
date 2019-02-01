@@ -946,6 +946,7 @@ public final class GeProductApiHelper {
 		List<JsonReference> jsonReferences = new ArrayList<>();
 		product.setJsonReferences(jsonReferences);
 		
+		String imageUrl = documentBaseUrl + "?RequestType=Image&Name=";
 		// Extract Finish information for product
 		String color = null; 
 		if (geProduct.getColors() != null && !geProduct.getColors().isEmpty()) {
@@ -960,8 +961,10 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Color.Color_Appearance", getGeProperty(geProduct.getProperties(), "Product_Color.Color_Appearance", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Color.Color_Appearance_Image", getGeProperty(geProduct.getProperties(), "Product_Color.Color_Appearance_Image", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Color.Image", getGeProperty(geProduct.getProperties(), "Color.Image", FIRST_VALUE));
-			addToDeSerializedState(deSerializedState,"Color.ImageName",  getGeProperty(geProduct.getProperties(), "Color.ImageName", FIRST_VALUE));
-			addToDeSerializedState(deSerializedState,"Color.ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
+			String imageName = getGeProperty(geProduct.getProperties(), "Color.ImageName", FIRST_VALUE);
+			if (!StringUtils.isEmpty(imageName)) {
+				addToDeSerializedState(deSerializedState,"Color.ImageName", imageUrl+imageName);
+			}	
 			addToDeSerializedState(deSerializedState,"Product_Color.Data_ID", getGeProperty(geProduct.getProperties(), "Product_Color.Data_ID", FIRST_VALUE));
 			
 		} 
@@ -982,9 +985,11 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Brand.Subhead",getGeProperty(geProduct.getProperties(), "Product_Brand.Subhead", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Brand.Brand_Copy",getGeProperty(geProduct.getProperties(), "Product_Brand.Brand_Copy", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Brand.Data_ID",getGeProperty(geProduct.getProperties(), "Product_Brand.Data_ID", FIRST_VALUE));
-			addToDeSerializedState(deSerializedState,"Brand.ImageName",getGeProperty(geProduct.getProperties(), "Brand.ImageName", FIRST_VALUE));
+			String imageName = getGeProperty(geProduct.getProperties(), "Brand.ImageName", FIRST_VALUE);
+			if (!StringUtils.isEmpty(imageName)) {
+				addToDeSerializedState(deSerializedState,"Brand.ImageName", imageUrl+imageName);
+			}	
 			addToDeSerializedState(deSerializedState,"Brand.Image",getGeProperty(geProduct.getProperties(), "Brand.Image", FIRST_VALUE));
-			addToDeSerializedState(deSerializedState,"Brand.ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
 		} 
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.BRAND);
@@ -1069,8 +1074,11 @@ public final class GeProductApiHelper {
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getImages() != null && !geProduct.getImages().isEmpty()) {
 			for (GeProductImage geImage : geProduct.getImages()) {
-				addToDeSerializedState(deSerializedState,"Image_"+geImage.getDataGroupID(),geImage.getName());
-				addToDeSerializedState(deSerializedState,"ImageBaseUrl", documentBaseUrl + "?RequestType=Image&Name=");
+				String imageName = geImage.getName();
+				if (!StringUtils.isEmpty(imageName)) {
+					addToDeSerializedState(deSerializedState,"Image_"+geImage.getDataID()+"_"+geImage.getDataGroupID(), imageUrl+imageName);
+				}
+				
 			}
 		}
 
