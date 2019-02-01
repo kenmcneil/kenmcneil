@@ -16,7 +16,7 @@ package com.ferguson.cs.model.product;
  *   
  * @author tyler.vangorder
  */
-public enum VariantStatus {
+public enum ProductVariantStatus {
 
 	ACTIVE,
 	PENDING,

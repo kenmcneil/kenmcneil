@@ -6,11 +6,8 @@ import java.util.List;
 
 import com.ferguson.cs.model.asset.DigitalResource;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
 /**
  * A variant is a tangible unit of merchandise that has a specific name, part number, size, price, and any other attribute required to make the merchandise “sellable”.
@@ -21,12 +18,9 @@ import lombok.ToString;
  * @author tyler.vangorder
  *
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
 @Builder
-@ToString
-public class Variant implements Serializable {
+public class ProductVariant implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -50,7 +44,7 @@ public class Variant implements Serializable {
 	/**
 	 * Each variant is assigned a status to represent the different stages in the variant data's life cycle.
 	 */
-	private VariantStatus status;
+	private ProductVariantStatus status;
 
 	/**
 	 * The manufacturer's suggested retail price.
@@ -63,12 +57,12 @@ public class Variant implements Serializable {
 	/**
 	 * A list of alternate IDs that can be used to reference the product variant.
 	 */
-	private List<VariantIdentifier> identifierList;
+	private List<ProductVariantIdentifier> identifierList;
 
 	/**
 	 * A collection of product characteristics that differentiate this variant from the other variants within the same product family.
 	 */
-	private List<VariantAttribute> attributeList;
+	private List<ProductVariantAttribute> attributeList;
 
 	/**
 	 * The weight of the variant in pounds?

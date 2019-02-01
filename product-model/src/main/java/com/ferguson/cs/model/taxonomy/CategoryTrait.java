@@ -4,11 +4,8 @@ import java.io.Serializable;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * A category within a taxonomy's hierarchy can have one or more "traits" associated with it. These traits represent characteristics
@@ -17,11 +14,8 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
 public class CategoryTrait implements Serializable {
 
 	private static final long serialVersionUID = 1L;

@@ -2,11 +2,8 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
 /**
  * A variant identifier type represents an an enumeration of the types of identifiers that can be used to link to a specific product variant.
@@ -18,12 +15,9 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
 @Builder
-@ToString
-public class VariantIdentifierType implements Serializable {
+public class ProductVariantIdentifierType implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

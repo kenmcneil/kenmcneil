@@ -3,14 +3,14 @@ package com.ferguson.cs.model.product;
 import java.io.Serializable;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
 import com.ferguson.cs.model.asset.DigitalResource;
 import com.ferguson.cs.model.manufacturer.Manufacturer;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
 /**
  * A product representations a family of closely related items called "variants" and defines all of the characteristics/attributes that are pertinent
@@ -33,11 +33,8 @@ import lombok.ToString;
  * 										to enforce characteristics of products as part of a product ingest process.
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
 @Builder
-@ToString
 public class Product implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -67,6 +64,7 @@ public class Product implements Serializable {
 	/**
 	 * The manufacture of the product.
 	 */
+	 @DBRef
 	private Manufacturer manufacturer;
 
 	/**
@@ -93,13 +91,12 @@ public class Product implements Serializable {
 	/**
 	 * The list of uniquely, sellable items that belong to this product's family.
 	 */
-	private List<Variant> variantList;
+	 @Transient
+	private List<ProductVariant> variantList;
 
 	/**
 	 * A collection of digital assets that are associated with a product. The can be images, documents, or AR models.
 	 */
 	private List<DigitalResource> digitalResourceList;
-
-	//TODO Need to figure out what to do with auditing columns (timestampCreated, timestampUpdated)
 
 }

@@ -1,4 +1,4 @@
-package com.ferguson.cs.model.brand;
+package com.ferguson.cs.model.channel;
 
 /**
  * Channel Type used to categorize channels.
