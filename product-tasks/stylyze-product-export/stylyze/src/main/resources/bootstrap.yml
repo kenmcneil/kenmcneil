@@ -1,0 +1,49 @@
+spring:
+  application:
+    # Name is used to lookup configuration on the configuration server and for service discovery.
+    name: api-task-stylyze
+  profiles:
+    active: local
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      name: api-task,api-integration,api-task-stylyze
+      label: master
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+
+# Setup the instance that will be registered with Eureka
+eureka:
+  instance:
+    # The instance information is used to register this service with the discovery service. We include a version with the metadata
+    # and this version is used as a sanity check between the clients and the servers. This must be set BEFORE the spring boot application
+    # is initialized.
+    health-check-url-path: ${server.contextPath:}/health
+    status-page-url-path: ${server.contextPath:}/env
+    home-page-url-path: ${server.contextPath:}/swagger-ui.html
+    prefer-ip-address: false
+
+---
+
+#The unit testing profile disables both the configuration server and the discovery service.
+spring:
+  profiles: unit
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+---
+
+spring:
+  profiles: sandbox,staging,production
+  cloud:
+    config:
+      fail-fast: true
+      username: sdc
+
