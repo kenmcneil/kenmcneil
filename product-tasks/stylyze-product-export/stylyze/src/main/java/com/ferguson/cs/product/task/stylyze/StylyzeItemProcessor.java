@@ -2,11 +2,10 @@ package com.ferguson.cs.product.task.stylyze;
 
 import com.ferguson.cs.product.task.stylyze.model.*;
 import com.ferguson.cs.product.task.stylyze.service.ProductService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,14 +18,19 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
 
     private String getBreadcrumbs(int categoryId) {
         ProductCategory category = this.productService.getCategory(categoryId);
-        int parentId = category.getParentId();
+        if (category == null) {
+            return null;
+        }
+        Integer parentId = category.getParentId();
         String breadcrumbs = category.getCategoryName();
-        while (parentId != 0) {
+        while (parentId != 0 && parentId != null) {
             ProductCategory parentCategory = this.productService.getCategory(parentId);
+            if (parentCategory == null) {
+                break;
+            }
             breadcrumbs = parentCategory.getCategoryName().concat(">" + breadcrumbs);
             parentId = parentCategory.getParentId();
         }
-        log.info(breadcrumbs);
         return breadcrumbs;
     }
 
@@ -34,19 +38,21 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         if (image == null) {
             return null;
         }
-        String manufacturerString = manufacturer.replaceAll(" ", "").toLowerCase();
+        String manufacturerString = StringUtils.trimAllWhitespace(manufacturer).toLowerCase();
         String imageString = image.replaceAll(" ", "_").toLowerCase();
         return String.format("https://s3.img-b.com/image/private/c_lpad,f_auto,h_1200,t_base/v3/product/%s/%s", manufacturerString, imageString);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(StylyzeItemProcessor.class);
     @Override
     public StylyzeProduct process(final StylyzeInputProduct inputProduct) throws Exception {
-        List<Product> databaseProducts = this.productService.getProductData(inputProduct.getFamilyId());
+        Integer familyId = inputProduct.getFamilyId();
+        if (familyId == null) {
+            return null;
+        }
+        List<Product> databaseProducts = this.productService.getProductData(familyId);
         if (databaseProducts == null || databaseProducts.size() == 0) {
             return null;
         }
-        log.info("here");
         Product product = databaseProducts.get(0);
         StylyzeProduct stylyzeProduct = new StylyzeProduct();
         stylyzeProduct.setIdentifier(product.getFamilyId());
@@ -59,7 +65,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         metadata.put("title", product.getTitle());
         metadata.put("series", product.getSeries());
         metadata.put("type", product.getType());
-        ProductRatings ratings = this.productService.getProductRatings(inputProduct.getFamilyId());
+        ProductRatings ratings = this.productService.getProductRatings(familyId);
 
         Float rating = null;
         Integer count = null;
@@ -105,9 +111,6 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
             HashMap<String, String> finish = new HashMap<>();
             finish.put("uniqueId", databaseProduct.getUniqueId().toString());
             finish.put("finish", databaseProduct.getFinish());
-//            TODO!!
-//            finish.put("masterFinish", databaseProduct.??)
-//            finish.put("hexValue", databaseProduct.??)
             finish.put("msrp", databaseProduct.getMsrp());
             Float cost = this.productService.getProductCost(databaseProduct.getUniqueId());
             if (cost != null) {
