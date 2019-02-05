@@ -21,11 +21,6 @@ public class CategoryTrait implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Unique persistence ID.
-	 */
-	private String id;
-
-	/**
 	 * Link to the attribute definition which defines validation rules for this attribute.
 	 */
 	private AttributeDefinition definition;

@@ -1,9 +1,11 @@
 package com.ferguson.cs.model.taxonomy;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.annotation.Transient;
+
+import com.ferguson.cs.model.PersistentDocument;
 
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +25,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Category implements Serializable {
+public class Category implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -73,4 +75,10 @@ public class Category implements Serializable {
 	 * it has all of the category's required traits.
 	 */
 	private List<String> productIdList;
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
+
 }

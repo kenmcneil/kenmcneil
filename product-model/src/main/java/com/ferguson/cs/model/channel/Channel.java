@@ -1,11 +1,12 @@
 package com.ferguson.cs.model.channel;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
+import com.ferguson.cs.model.PersistentDocument;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 
 import lombok.Builder;
@@ -39,7 +40,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Channel implements Serializable {
+public class Channel  implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -84,6 +85,11 @@ public class Channel implements Serializable {
 	 */
 	@DBRef
 	private List<Taxonomy> taxonomyList;
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
 
 
 }

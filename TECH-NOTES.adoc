@@ -147,7 +147,7 @@ This application provides a REST API that can be consumed by multiple downstream
 
 NOTE: Separation of concerns (SoC) is a design principle for separating a computer program into distinct sections, such that each section addresses a separate concern.
 
-This service has been separeate into four layers to separate the functional concerns and at first glance, this may appear to be overkill for simple use-cases. However, the separation of concerns is deliberate and allows for rapid iteration when the system needs to be refactored.
+This service has been separated into three layers (but you may want a 4th optional layer) to separate the functional concerns. The decision to use 3 or 4 layers can be made on a case-by-case basis within the same domain service. 
 
 === Rest Controller Layer
 
@@ -155,14 +155,14 @@ The controller layer handles the mapping from the transport/protocal layer (in t
 
 === Service Layer
 
-The service layer is where the primary domain business logic is encapsulated. Each service is defined as an interface/implementation pair where the implementation can have one or more dependencies on data access interfaces from the same business domain. Additionally the service implementation may require calls to other domains that manifest as service interface dependencies. All cross-domain aggregation will occur in the service layer by injecting other domain-level services.
+The service layer is where the primary domain business logic is encapsulated. Each service is defined as an interface/implementation pair where the implementation can have one or more dependencies on repository interfaces from the same business domain. Additionally the service implementation may require calls to other domains that manifest as service interface dependencies. All cross-domain aggregation will occur in the service layer by injecting other domain-level services.
 
-=== Data Access Layer
+=== Data Access Layer & Repositories
 
-The data access interface/implementation pair will define a collection of data access queries that are all related to the same domain. A single call to the data access layer may actually result in several calls to the underlying data store.
+In many simple cases, having a data access layer AND a repository layer is cumbersome. Therefore, the default pattern leveraged by this domain service is to inject the repositories directly into the service layer. This means that if multiple data access calls must be aggregated, those can be orchestrated at the service level.  
 
-IMPORTANT: We had considered collapsing the data access layer with the repository layer, however, this becomes problematic for implementing transaction and caching cross cutting concerns. The data access layer is a good place to aggregate those concerns, the alternative would have been to move those up into the service layer, which really muddies the waters when those concerns are mixed with external calls and business logic that is performed at the service layer. 
+IMPORTANT: If the service layer is orchestrating mulitple calls to the database via repository calls and there is a need to use transaction/caching annotations, the scope of those cross-cutting concerns is at the service level. A developer must be careful when introducing transactions at the service level if that service makes external web service calls. You generally do not want to perform third-party calls in the scope of a database transaction.  
 
-=== Repository Layer
+There are two ways to address the above concern: Either introduce a data access/implementation pair and use that as the aggregation point with cross-cutting concerns OR use a transaction template to insure the calls to the external service are performed outside of the transaction. 
 
-Each call that is made to the underlying data store is modeled as a method within a "Data Repository" interface. This layer will lean on the Spring Data project to automate much of the CRUD operations and each "repository" manages a single aggregate root.
+A developer must make the correct decision for each use case and its OK to mix both approaches in a single service, just make it clear in your documentation if you have something complex.

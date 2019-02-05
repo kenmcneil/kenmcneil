@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi.controller;
+package com.ferguson.cs.productapi.attribute;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
-import com.ferguson.cs.productapi.attribute.AttributeService;
 
 @RestController
 @RequestMapping("/attributes")
