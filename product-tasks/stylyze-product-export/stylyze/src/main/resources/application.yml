@@ -1,5 +1,3 @@
-
-
 logging:
   level:
     ROOT: ERROR
@@ -17,20 +15,6 @@ management:
   security:
     enabled: false
 
-datasource:
-  # Development
-  core:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    jdbc-url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    username: wbsrvr_mmc
-    password: 'Build12Dot24Cow!'
-  reporter:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    jdbc-url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
-    username: wbsrvr_mmc
-    password: 'Build12Dot24Cow!'
 sample:
   # It is ok for initial config to be here however it should be moved to the config server
   localFilePath: ./

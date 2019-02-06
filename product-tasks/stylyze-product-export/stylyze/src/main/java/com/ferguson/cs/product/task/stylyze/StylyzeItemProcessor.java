@@ -5,6 +5,9 @@ import com.ferguson.cs.product.task.stylyze.service.ProductService;
 import org.springframework.batch.item.ItemProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -12,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, StylyzeProduct> {
+
+    @Value("${stylyze.base-url}")
+    String baseUrl;
 
     @Autowired
     private ProductService productService;
@@ -78,7 +84,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         stylyzeProduct.setMetadata(metadata);
 
         String slug = String.format("%s %s", product.getManufacturer(), product.getProductId()).replaceAll(" ", "-").toLowerCase();
-        stylyzeProduct.setUrl(String.format("https://www.build.com/%s/s%d", slug, product.getFamilyId()));
+        stylyzeProduct.setUrl(String.format("%s/%s/s%d", baseUrl, slug, product.getFamilyId()));
 
         // images
         List<ProductGalleryImage> galleryImages = this.productService.getProductImages(product.getManufacturer(), product.getProductId());
