@@ -9,9 +9,8 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.file.FlatFileParseException;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
@@ -41,24 +40,16 @@ public class StylyzeJobConfiguration {
     @Bean
     public FlatFileItemReader<StylyzeInputProduct> stylyzeProductReader()
     {
-        FlatFileItemReader<StylyzeInputProduct> reader = new FlatFileItemReader<>();
-        reader.setResource(new ClassPathResource("stylyze-input.csv"));
-        reader.setLinesToSkip(1);
-        reader.setLineMapper(new DefaultLineMapper() {
-            {
-                setLineTokenizer(new DelimitedLineTokenizer() {
-                    {
-                        setNames(new String[] {"familyId", "categoryId"});
-                    }
-                });
-                setFieldSetMapper(new BeanWrapperFieldSetMapper<StylyzeInputProduct>() {
-                    {
-                        setTargetType(StylyzeInputProduct.class);
-                    }
-                });
-            }
-        });
-        return reader;
+        FlatFileItemReaderBuilder<StylyzeInputProduct> reader = new FlatFileItemReaderBuilder<>();
+        return reader
+                .name("stylyze-item-reader")
+                .resource(new ClassPathResource("stylyze-input.csv"))
+                .targetType(StylyzeInputProduct.class)
+                .linesToSkip(1)
+                .delimited()
+                .delimiter(",")
+                .names(new String[]{ "familyId", "categoryId"})
+                .build();
     }
 
     @Bean
@@ -81,13 +72,28 @@ public class StylyzeJobConfiguration {
     }
 
     @Bean
-    public Step stylyzeStep(FlatFileItemReader<StylyzeInputProduct> stylyzeProductReader, ItemProcessor<StylyzeInputProduct, StylyzeProduct> processor, JsonFileItemWriter<StylyzeProduct> writer) {
-        return stylyzeSteps.get("stylyzeStep").<StylyzeInputProduct, StylyzeProduct> chunk(100).reader(stylyzeProductReader).processor(processor).writer(writer).build();
+    public Step stylyzeStep(
+            FlatFileItemReader<StylyzeInputProduct> stylyzeProductReader,
+            ItemProcessor<StylyzeInputProduct, StylyzeProduct> processor,
+            JsonFileItemWriter<StylyzeProduct> writer) {
+        return stylyzeSteps
+                .get("stylyzeStep")
+                .<StylyzeInputProduct, StylyzeProduct> chunk(100)
+                .reader(stylyzeProductReader)
+                .processor(processor)
+                .writer(writer)
+                .faultTolerant()
+                .skipLimit(10)
+                .skip(FlatFileParseException.class)
+                .build();
     }
 
     @Bean(name = "stylyze")
     public Job stylyzeJob(@Qualifier("stylyzeStep") Step stylyzeStep) {
-        return stylyzeJobs.get("stylyze").start(stylyzeStep).build();
+        return stylyzeJobs
+                .get("stylyze")
+                .start(stylyzeStep)
+                .build();
     }
 
 }
