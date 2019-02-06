@@ -56,14 +56,14 @@ public class SupplyProductDataFeedBatchConfiguration {
 		this.supplyProductDataFeedSettings = supplyProductDataFeedSettings;
 	}
 
-	private MyBatisCursorItemReader dataReader (String jobName,String queryId){
+	private MyBatisCursorItemReader dataReader(String jobName, String queryId) {
 		MyBatisCursorItemReader reader = new MyBatisCursorItemReader<>();
 
 		reader.setSqlSessionFactory(reporterSqlSessionFactory);
 		reader.setQueryId(queryId);
-		Date lastRanDate =supplyProductDataFeedService.getLastRanDate(jobName);
-		Map<String,Object> params = new HashMap<>();
-		params.put("lastRanDate",lastRanDate);
+		Date lastRanDate = supplyProductDataFeedService.getLastRanDate(jobName);
+		Map<String, Object> params = new HashMap<>();
+		params.put("lastRanDate", lastRanDate);
 		reader.setParameterValues(params);
 		return reader;
 	}
@@ -91,37 +91,33 @@ public class SupplyProductDataFeedBatchConfiguration {
 	}
 
 
-
-
 	private Step writeProductData(String jobName) {
 
-		String[] headerColumns = new String[] {"uniqueId","productId","manufacturer","finish","sku","upc","mpn","msrp","isLtl","freightCost","type","application","handleType","status"};
+		String[] headerColumns = new String[]{"uniqueId", "productId", "manufacturer", "finish", "sku", "upc", "mpn", "msrp", "isLtl", "freightCost", "type", "application", "handleType", "status", "series", "weight"};
 		String filePrefix = supplyProductDataFeedSettings.getFilePath() + "cs_product_data_";
 		FieldExtractor fieldExtractor = new ProductFieldExtractor();
 
 
-
 		return taskBatchJobFactory.getStepBuilder("writeProductData")
-				.<Product,Product>chunk(1000)
+				.<Product, Product>chunk(1000)
 				.faultTolerant()
-				.reader(dataReader(jobName,"getProductData"))
-				.writer(createItemWriter(headerColumns,filePrefix,fieldExtractor))
+				.reader(dataReader(jobName, "getProductData"))
+				.writer(createItemWriter(headerColumns, filePrefix, fieldExtractor))
 				.build();
 	}
 
 	private Step writeVendorData(String jobName) {
 
-		String[] headerColumns = new String[] {"id","vendorName","vendorId","vendorAddress","vendorCity","vendorState","vendorZipCode","contactPhone","contactFax","lastUpdated","active"};
+		String[] headerColumns = new String[]{"id", "vendorName", "vendorId", "vendorAddress", "vendorCity", "vendorState", "vendorZipCode", "contactPhone", "contactFax", "lastUpdated", "active"};
 		String filePrefix = supplyProductDataFeedSettings.getFilePath() + "cs_vendor_data_";
 		FieldExtractor fieldExtractor = new VendorFieldExtractor();
 
 
-
 		return taskBatchJobFactory.getStepBuilder("writeProductData")
-				.<Product,Product>chunk(1000)
+				.<Product, Product>chunk(1000)
 				.faultTolerant()
-				.reader(dataReader(jobName,"getVendorData"))
-				.writer(createItemWriter(headerColumns,filePrefix,fieldExtractor))
+				.reader(dataReader(jobName, "getVendorData"))
+				.writer(createItemWriter(headerColumns, filePrefix, fieldExtractor))
 				.build();
 	}
 
@@ -130,7 +126,7 @@ public class SupplyProductDataFeedBatchConfiguration {
 		DelimitedLineAggregator productLineAggregator = new DelimitedLineAggregator<>();
 		productLineAggregator.setFieldExtractor(fieldExtractor);
 
-		CsvHeaderWriterCallback csvHeaderWriterCallback = new CsvHeaderWriterCallback(headerColumns,DELIMITER);
+		CsvHeaderWriterCallback csvHeaderWriterCallback = new CsvHeaderWriterCallback(headerColumns, DELIMITER);
 
 		productItemWriter.setLineAggregator(productLineAggregator);
 		productItemWriter.setHeaderCallback(csvHeaderWriterCallback);

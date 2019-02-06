@@ -7,7 +7,7 @@ import com.ferguson.cs.product.task.supply.model.Product;
 public class ProductFieldExtractor implements FieldExtractor<Product> {
 	@Override
 	public Object[] extract(Product product) {
-		Object[] fields = new Object[14];
+		Object[] fields = new Object[16];
 		fields[0] = product.getUniqueId();
 		fields[1] = product.getProductId();
 		fields[2] = product.getManufacturer();
@@ -22,6 +22,9 @@ public class ProductFieldExtractor implements FieldExtractor<Product> {
 		fields[11] = product.getApplication();
 		fields[12] = product.getHandleType();
 		fields[13] = product.getStatus();
+		fields[14] = product.getSeries();
+		fields[15] = product.getWeight();
+
 
 		return fields;
 	}

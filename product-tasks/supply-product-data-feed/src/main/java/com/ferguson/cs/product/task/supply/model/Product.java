@@ -19,6 +19,8 @@ public class Product implements Serializable {
 	private String application;
 	private String handleType;
 	private String status;
+	private String series;
+	private Double weight;
 
 	public Integer getUniqueId() {
 		return uniqueId;
@@ -130,5 +132,21 @@ public class Product implements Serializable {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getSeries() {
+		return series;
+	}
+
+	public void setSeries(String series) {
+		this.series = series;
+	}
+
+	public Double getWeight() {
+		return weight;
+	}
+
+	public void setWeight(Double weight) {
+		this.weight = weight;
 	}
 }

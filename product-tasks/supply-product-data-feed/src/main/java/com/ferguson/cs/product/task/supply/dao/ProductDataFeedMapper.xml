@@ -17,6 +17,8 @@
 		<result property="application" column="application" />
 		<result property="handleType" column="handleType" />
 		<result property="status" column="status" />
+		<result property="series" column="series" />
+		<result property="weight" column="weight" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productMap">
@@ -34,7 +36,10 @@
 			taxonamyType.type AS 'type',
 			taxonamyApp.application AS 'application',
 			taxonamyHandleType.handletype AS 'handleType',
-			s.status AS 'status'
+			status.status AS 'status',
+			series.series AS 'series',
+			shippingDetail.weight AS 'weight'
+
 		FROM mmc.product.product product WITH(NOLOCK)
     	INNER JOIN mmc.product.finish finish WITH(NOLOCK) ON product.finishId = finish.id
     	INNER JOIN mmc.product.family family WITH(NOLOCK) ON product.familyId = family.id
@@ -44,12 +49,13 @@
 		INNER JOIN mmc.product.sku sku WITH(NOLOCK) ON upcsku.skuId = sku.id
 		INNER JOIN mmc.product.modified modified WITH(NOLOCK) ON product.uniqueId = modified.uniqueId
 		INNER JOIN mmc.product.shippingDetail shippingDetail WITH(NOLOCK) ON product.uniqueId = shippingDetail.uniqueId
-		INNER JOIN mmc.product.status s WITH(NOLOCK) ON product.statusId = s.id
+		INNER JOIN mmc.product.status status WITH(NOLOCK) ON product.statusId = status.id
 		INNER JOIN mmc.product.typeApplicationHandletype tah WITH(NOLOCK) ON family.typeApplicationHandletypeId = tah.id
 		INNER JOIN mmc.product.typeApplication typeApplication WITH(NOLOCK) ON tah.typeApplicationId = typeApplication.id
 		INNER JOIN mmc.product.application taxonamyApp WITH(NOLOCK) ON typeApplication.applicationId = taxonamyApp.id
 		INNER JOIN mmc.product.type taxonamyType WITH(NOLOCK) ON typeApplication.typeId = taxonamyType.id
 		INNER JOIN mmc.product.handletype taxonamyHandleType WITH(NOLOCK) ON tah.handletypeId = taxonamyHandleType.id
+		INNER JOIN mmc.product.series series WITH(NOLOCK) ON family.seriesId = series.id
 		LEFT JOIN (SELECT mpn,productId, Manufacturer, finish
 			  	   FROM omc.dbo.vendor_mapping WITH(NOLOCK)
 				   WHERE vendor = 'Ferguson') AS vendorMap
