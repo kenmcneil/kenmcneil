@@ -13,11 +13,10 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.cloud.task.configuration.SimpleTaskConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.ferguson.cs.product.task.brand.ge.task.GeDeletInactiveProductsTasklet;
+import com.ferguson.cs.product.task.brand.ge.task.GeDeleteStaleProductsTasklet;
 import com.ferguson.cs.product.task.brand.ge.task.GeDimensionsTasklet;
 import com.ferguson.cs.product.task.brand.ge.task.GeProductProcessor;
 import com.ferguson.cs.product.task.brand.ge.task.GeProductReader;
@@ -122,8 +121,8 @@ public class GeProductsTasksConfiguration {
 	
 	
 	@Bean
-	public GeDeletInactiveProductsTasklet deleteGeProductsTasklet() {
-		return new GeDeletInactiveProductsTasklet();
+	public GeDeleteStaleProductsTasklet deleteGeProductsTasklet() {
+		return new GeDeleteStaleProductsTasklet();
 	}
 	
 	@Bean

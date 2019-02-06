@@ -31,6 +31,6 @@ public interface ProductDistributionDao {
 	  * 
 	  * @param systemSourceId
 	  */
-	 void deleteInactiveProducts(Integer systemSourceId);
+	 void deleteStaleProducts(Integer systemSourceId);
 	
 }

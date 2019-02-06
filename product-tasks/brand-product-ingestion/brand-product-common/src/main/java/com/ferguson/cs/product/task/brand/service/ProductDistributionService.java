@@ -29,5 +29,5 @@ public interface ProductDistributionService {
 	 * 
 	 * @param systemSourceId
 	 */
-	void deleteInactiveProducts(Integer systemSourceId);
+	void deleteStaleProducts(Integer systemSourceId);
 }

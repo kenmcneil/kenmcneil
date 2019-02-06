@@ -40,11 +40,11 @@ public interface ProductDistributionMapper {
 	void insertProductJson( @Param("productId") Integer productId , @Param("jsonId") Integer jsonId);
 	
 	
-	List<ProductJson> listInactiveProducts(@Param("systemSourceId") Integer systemSourceId);
+	List<ProductJson> listStaleProducts(@Param("systemSourceId") Integer systemSourceId);
 	
-	void deleteInactiveProducts(@Param("systemSourceId") Integer systemSourceId, @Param("ids") List<Integer> ids);
+	void deleteProducts(@Param("systemSourceId") Integer systemSourceId, @Param("ids") List<Integer> ids);
 	 
-	void deleteInactiveProductJson(@Param("ids") List<Integer> ids);
+	void deleteProductJson(@Param("ids") List<Integer> ids);
 	
-	void deleteInactiveJson(@Param("ids") List<Integer> ids);
+	void deleteJson(@Param("ids") List<Integer> ids);
 }

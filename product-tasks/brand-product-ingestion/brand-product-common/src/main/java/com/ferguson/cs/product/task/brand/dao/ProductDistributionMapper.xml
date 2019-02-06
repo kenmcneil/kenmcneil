@@ -115,13 +115,11 @@
 	
 	<select id="getJson" parameterType="map" resultType="Integer">
 		
-	SELECT j.id from  Integration.productDistribution.json j , integration.productDistribution.productJson pj   
-	WHERE
-			j.id = pj.jsonId AND pj.productId=#{productId}
-			AND
-			j.jsonTypeId =   #{jsonTypeId}
-			 
-			
+	SELECT j.id from  Integration.productDistribution.json j WITH(NOLOCK)
+	INNER JOIN  integration.productDistribution.productJson pj WITH (NOLOCK)
+	ON  j.id = pj.jsonId 
+	WHERE j.jsonTypeId =   #{jsonTypeId}
+		AND pj.productId=#{productId}
 	</select>
 	
 	<insert id="insertJson" parameterType="com.ferguson.cs.product.task.brand.model.JsonReference"  
@@ -163,7 +161,7 @@
 		<result property="productId" column="productId"/>
 	</resultMap>
 	
-	<select  id="listInactiveProducts" parameterType="int" resultMap="productJson">
+	<select  id="listStaleProducts" parameterType="int" resultMap="productJson">
 		select id, jsonId, productId  from integration.productdistribution.productjson where productId in  (
 			select id from integration.productdistribution.product  p 
 				where 
@@ -174,20 +172,20 @@
 	
 	
 	
-	<delete  id="deleteInactiveProductJson"  parameterType="map">
+	<delete  id="deleteProductJson"  parameterType="map">
 		delete from integration.productDistribution.productjson   
 		where 
 			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
 	</delete>
 	
-	<delete  id="deleteInactiveProducts" parameterType="map" >
+	<delete  id="deleteProducts" parameterType="map" >
 		delete from integration.productDistribution.product 
 		where 
 			systemSourceId =  #{systemSourceId} AND 
 			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
 	</delete> 
 	
-	<delete  id="deleteInactiveJson" parameterType="map" >
+	<delete  id="deleteJson" parameterType="map" >
 		delete from integration.productDistribution.json 
 		where 
 			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)

@@ -29,8 +29,8 @@ public class ProductDistributionServiceImpl implements ProductDistributionServic
 	}
 	
 	@Override
-	public void deleteInactiveProducts(Integer systemSourceId) {
-		productDistributionDao.deleteInactiveProducts(systemSourceId);
+	public void deleteStaleProducts(Integer systemSourceId) {
+		productDistributionDao.deleteStaleProducts(systemSourceId);
 		
 	}
 

@@ -86,8 +86,8 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 	}
 	
 	@Override
-	public void deleteInactiveProducts(Integer systemSourceId) {
-		List<ProductJson> productJsons = mapper.listInactiveProducts(systemSourceId);
+	public void deleteStaleProducts(Integer systemSourceId) {
+		List<ProductJson> productJsons = mapper.listStaleProducts(systemSourceId);
 		if (productJsons != null && !productJsons.isEmpty()) {
 			List<Integer> productJsonIds = new ArrayList<>();
 			List<Integer> productIds = new ArrayList<>();
@@ -103,9 +103,9 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 					jsonIds.add(productJson.getJsonId());
 				}
 			}
-			mapper.deleteInactiveProductJson(productJsonIds);
-			mapper.deleteInactiveJson(jsonIds);
-			mapper.deleteInactiveProducts(systemSourceId, productIds);
+			mapper.deleteProductJson(productJsonIds);
+			mapper.deleteJson(jsonIds);
+			mapper.deleteProducts(systemSourceId, productIds);
 		}
 		
 		
