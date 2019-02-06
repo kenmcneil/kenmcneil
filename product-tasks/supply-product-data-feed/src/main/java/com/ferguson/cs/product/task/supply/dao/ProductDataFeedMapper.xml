@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.supply.dao.ProductDataFeedMapper">
+	<resultMap id="productMap" type="Product">
+		<result property="uniqueId" column="uniqueId" />
+		<result property="productId" column="productId" />
+		<result property="manufacturer" column="manufacturer" />
+		<result property="finish" column="finish" />
+		<result property="sku" column="sku" />
+		<result property="upc" column="upc" />
+		<result property="mpn" column="mpn" />
+		<result property="msrp" column="msrp" />
+		<result property="isLtl" column="ltl" />
+		<result property="freightCost" column="freightCost" />
+		<result property="type" column="type" />
+		<result property="application" column="application" />
+		<result property="handleType" column="handleType" />
+		<result property="status" column="status" />
+	</resultMap>
+
+	<select id="getProductData" resultMap="productMap">
+		SELECT
+    		product.uniqueId AS 'uniqueId',
+    		family.productId AS 'productId',
+			manufacturer.[name] AS 'manufacturer',
+    		finish.finish AS 'finish',
+			sku.sku AS 'sku',
+			upc.upc AS 'upc',
+			shippingDetail.ltl AS 'ltl',
+			shippingDetail.freightCost AS 'freightCost',
+			product.msrp AS 'msrp',
+			vendorMap.mpn AS 'MPN',
+			taxonamyType.type AS 'type',
+			taxonamyApp.application AS 'application',
+			taxonamyHandleType.handletype AS 'handleType',
+			s.status AS 'status'
+		FROM mmc.product.product product WITH(NOLOCK)
+    	INNER JOIN mmc.product.finish finish WITH(NOLOCK) ON product.finishId = finish.id
+    	INNER JOIN mmc.product.family family WITH(NOLOCK) ON product.familyId = family.id
+    	INNER JOIN mmc.dbo.Manufacturer manufacturer WITH(NOLOCK) ON family.manufacturerId = manufacturer.ID
+		INNER JOIN mmc.product.upcsku upcsku WITH(NOLOCK) ON product.uniqueId = upcsku.uniqueId
+		INNER JOIN mmc.product.upc upc WITH(NOLOCK) ON upcsku.upcId = upc.id
+		INNER JOIN mmc.product.sku sku WITH(NOLOCK) ON upcsku.skuId = sku.id
+		INNER JOIN mmc.product.modified modified WITH(NOLOCK) ON product.uniqueId = modified.uniqueId
+		INNER JOIN mmc.product.shippingDetail shippingDetail WITH(NOLOCK) ON product.uniqueId = shippingDetail.uniqueId
+		INNER JOIN mmc.product.status s WITH(NOLOCK) ON product.statusId = s.id
+		INNER JOIN mmc.product.typeApplicationHandletype tah WITH(NOLOCK) ON family.typeApplicationHandletypeId = tah.id
+		INNER JOIN mmc.product.typeApplication typeApplication WITH(NOLOCK) ON tah.typeApplicationId = typeApplication.id
+		INNER JOIN mmc.product.application taxonamyApp WITH(NOLOCK) ON typeApplication.applicationId = taxonamyApp.id
+		INNER JOIN mmc.product.type taxonamyType WITH(NOLOCK) ON typeApplication.typeId = taxonamyType.id
+		INNER JOIN mmc.product.handletype taxonamyHandleType WITH(NOLOCK) ON tah.handletypeId = taxonamyHandleType.id
+		LEFT JOIN (SELECT mpn,productId, Manufacturer, finish
+			  	   FROM omc.dbo.vendor_mapping WITH(NOLOCK)
+				   WHERE vendor = 'Ferguson') AS vendorMap
+		ON family.productId = vendorMap.productId
+		AND manufacturer.name = vendorMap.manufacturer
+		AND finish.finish = vendorMap.finish
+	  	<if test="lastRanDate != null">
+			WHERE modified.modifiedDate gt; #{lastRanDate}
+		</if>
+	</select>
+
+	<resultMap id="vendorMap" type="Vendor">
+		<result property="id" column="id" />
+		<result property="vendorName" column="vendorName" />
+		<result property="vendorId" column="vendorId" />
+		<result property="vendorAddress" column="vendorAddress" />
+		<result property="vendorCity" column="vendorCity" />
+		<result property="vendorState" column="vendorState" />
+		<result property="vendorZipCode" column="vendorZipCode" />
+		<result property="contactPhone" column="contactPhone" />
+		<result property="contactFax" column="contactFax" />
+		<result property="lastUpdated" column="lastUpdated" />
+		<result property="inactive" column="inactive" />
+	</resultMap>
+
+	<select id="getVendorData" resultMap="vendorMap">
+		SELECT
+			v.uid AS 'id',
+			v.vendorName AS 'vendorName',
+			v.vendorId AS 'vendorId',
+			v.Address AS 'vendorAddress',
+			v.City AS 'vendorCity',
+			v.State AS 'vendorState',
+			v.ZipCode AS 'vendorZipCode',
+			v.PhoneNumber AS 'contactPhone',
+			v.Fax AS 'contactFax',
+			v.last_update_datetime AS 'lastUpdated',
+			v.inactive AS 'inactive'
+		FROM omc.dbo.vendor v WITH(NOLOCK)
+	</select>
+</mapper>
