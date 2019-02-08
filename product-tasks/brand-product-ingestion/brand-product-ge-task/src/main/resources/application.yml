@@ -1,0 +1,27 @@
+---
+
+logging:
+  level:
+    ROOT: info
+    com.ferguson.cs: info
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.build
+    
+ 
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+
+
+  
+
