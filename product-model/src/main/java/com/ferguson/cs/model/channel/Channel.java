@@ -1,15 +1,16 @@
-package com.ferguson.cs.model.brand;
+package com.ferguson.cs.model.channel;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
+import com.ferguson.cs.model.PersistentDocument;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * A channel represents a distribution channel through which products are sold.
@@ -37,12 +38,9 @@ import lombok.ToString;
  * </table>
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
-public class Channel implements Serializable {
+public class Channel  implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -50,6 +48,12 @@ public class Channel implements Serializable {
 	 * Unique ID of the channel.
 	 */
 	private String id;
+
+	/**
+	 * Unique business key for the channel.
+	 */
+	@Indexed(unique=true)
+	private String code;
 
 	/**
 	 * A short description of the channel.
@@ -79,16 +83,13 @@ public class Channel implements Serializable {
 	 *
 	 * A channel allows more than one taxonomy to be assigned to it. This allows for one taxonomy that can be u
 	 */
+	@DBRef
 	private List<Taxonomy> taxonomyList;
 
-	/**
-	 * A list of products sold through this sales channel. Taxonomies are shared across sales channels and offer a holistic view of a product
-	 * classification system. Only products sold through this channel will be visible when used in combination with a taxonomy system.
-	 * <p>
-	 * A channel's product categories (and products) can be derived by using a taxonomy and then filtering to only products sold within the
-	 * channel.
-	 */
-	private List<String> productIdList;
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
 
 
 }

@@ -4,17 +4,11 @@ import java.io.Serializable;
 
 import com.ferguson.cs.model.asset.ImageResource;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
 @Builder
-@ToString
 public class ProductSeries implements Serializable {
 
 	private static final long serialVersionUID = 1L;

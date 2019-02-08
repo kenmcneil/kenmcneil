@@ -1,13 +1,14 @@
 package com.ferguson.cs.model.taxonomy;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Transient;
+
+import com.ferguson.cs.model.PersistentDocument;
+
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * A category is a grouping of products and sub-categories within a taxonomy's classification system. The categories are organized into a
@@ -22,12 +23,9 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
-public class Category implements Serializable {
+public class Category implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -62,18 +60,25 @@ public class Category implements Serializable {
 	private String categoryIdParent;
 
 	/**
-	 * A list of subcategories belonging to this category.
-	 */
-	private List<Category> subcategoryList;
-
-	/**
 	 * A list of traits that are common for products that are assigned to this category.
 	 */
 	private List<CategoryTrait> traitList;
+
+	/**
+	 * A list of subcategories belonging to this category.
+	 */
+	@Transient
+	private List<Category> subcategoryList;
 
 	/**
 	 * A list of product IDs that have been assigned to this category. A product can only be assigned to this category if
 	 * it has all of the category's required traits.
 	 */
 	private List<String> productIdList;
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
+
 }

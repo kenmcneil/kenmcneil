@@ -4,11 +4,8 @@ import java.io.Serializable;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
 /**
  * A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through
@@ -20,11 +17,8 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
 @Builder
-@ToString
 public class ProductAttribute implements Serializable {
 
 	private static final long serialVersionUID = 1L;

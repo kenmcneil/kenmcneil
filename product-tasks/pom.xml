@@ -5,6 +5,7 @@
 	<modules>
 		<module>inventory-import</module>
 		<module>stylyze-product-export</module>
+		<module>supply-product-data-feed</module>
 	</modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>

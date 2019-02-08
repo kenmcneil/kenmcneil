@@ -1,13 +1,14 @@
 package com.ferguson.cs.model.taxonomy;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
+import com.ferguson.cs.model.PersistentDocument;
+
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * A taxonomy defines a product classification hierarchy organized as a set of category trees. A category can have a list of child categories and
@@ -29,12 +30,9 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
-public class Taxonomy implements Serializable {
+public class Taxonomy implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -62,5 +60,12 @@ public class Taxonomy implements Serializable {
 	/**
 	 * A set of "root" categories that represent the top-level categories within the classification system.
 	 */
+	@DBRef(lazy=true)
 	private List<Category> rootCategoryList;
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
+
 }

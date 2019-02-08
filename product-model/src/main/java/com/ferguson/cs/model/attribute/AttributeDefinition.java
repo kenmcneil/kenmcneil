@@ -1,27 +1,26 @@
 package com.ferguson.cs.model.attribute;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
+import com.ferguson.cs.model.PersistentDocument;
+
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
- * An attribute provides a way to describe a characteristic about a product, a product variant, product customization, or trait within a
+ * An attribute provides a way to describe a characteristic about a product, a product variant, product option, or trait within a
  * specific category. The attribute definition defines the "rules" that apply when assigning a value to an attribute and those rules
  * can be applied consistently regardless of where that attribute is linked.
  *
  * @author tyler.vangorder
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
-@ToString
-public class AttributeDefinition implements Serializable {
+public class AttributeDefinition implements PersistentDocument {
 
 	private static final long serialVersionUID = 1L;
 
@@ -32,8 +31,18 @@ public class AttributeDefinition implements Serializable {
 
 	/**
 	 * A unique business key assigned to the attribute definition.
+	 *
+	 * This value is required.
 	 */
+	@Indexed(unique=true)
 	private String code;
+
+	/**
+	 * Indicates the datatype for the values of this attribute definition.
+	 *
+	 * This value is required.
+	 */
+	private AttributeDatatype datatype;
 
 	/**
 	 * A description of the attribute definition.
@@ -43,6 +52,7 @@ public class AttributeDefinition implements Serializable {
 	/**
 	 * An optional unit of measure to better qualify the numeric value. Examples of unit of measure are : inches, centimeters, pounds, kilometers, etc
 	 */
+	@DBRef
 	private UnitOfMeasure unitOfMeasure;
 
 	/**
@@ -58,7 +68,6 @@ public class AttributeDefinition implements Serializable {
 	 * This value must be able to be parsed into the datatype defined for the attribute definition.
 	 */
 	private String maximumValue;
-
 
 	/**
 	 * A default value for an attribute.
@@ -76,4 +85,8 @@ public class AttributeDefinition implements Serializable {
 	 */
 	private List<String> enumeratedValueList;
 
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Long version;
 }

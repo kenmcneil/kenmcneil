@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,13 +25,13 @@ public interface PersistentDocument extends Serializable {
 	void setId(String id);
 	String getId();
 
-
 	/**
 	 * The timestamp indicating when this document was created.
 	 *
 	 * @param timestamp
 	 */
 	@CreatedDate
+	@ReadOnlyProperty
 	void setCreatedTimestamp(LocalDateTime timestamp);
 
 	/**
@@ -44,13 +45,13 @@ public interface PersistentDocument extends Serializable {
 	 * @param timestamp
 	 */
 	@LastModifiedDate
+	@ReadOnlyProperty
 	void setLastModifiedTimestamp(LocalDateTime timestamp);
 
 	/**
 	 * The timestamp indicating when this document was last updated.
 	 */
 	LocalDateTime getLastModifiedTimestamp();
-
 
 	/**
 	 * Used to record a record version and prevent dirty writes.
@@ -65,7 +66,5 @@ public interface PersistentDocument extends Serializable {
 	 *
 	 */
 	Long getVersion();
-
-
 
 }

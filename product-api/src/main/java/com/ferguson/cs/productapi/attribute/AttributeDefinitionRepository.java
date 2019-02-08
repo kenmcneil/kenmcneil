@@ -6,4 +6,6 @@ import com.ferguson.cs.model.attribute.AttributeDefinition;
 
 public interface AttributeDefinitionRepository extends MongoRepository<AttributeDefinition, String> {
 
+	AttributeDefinition findByCode(String code);
+
 }
