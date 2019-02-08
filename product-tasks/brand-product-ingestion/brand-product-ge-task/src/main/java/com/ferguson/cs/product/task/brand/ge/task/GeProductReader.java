@@ -48,9 +48,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 
 	private List<GeProduct> fetchGeProducts(GeProductSearchCriteria criteria) {
 		criteria.setNumberOfProducts(getPageSize());
-		if (getCurrentItemCount() > 1) {
-			criteria.setStartIndex(getCurrentItemCount());
-		}
+		criteria.setStartIndex(getCurrentItemCount() -1);
 		
 		GeProductSearchResult result = geProductApiService.getResults(criteria);
 		LOGGER.info("Search for " + criteria.getNavDescriptors()+ " (start index " + criteria.getStartIndex() + " (page number " + getPage() + " got a page of " + result.getProducts().size() 
