@@ -85,7 +85,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         String slug = String.format("%s %s", product.getManufacturer(), product.getProductId()).replaceAll(" ", "-").toLowerCase();
         stylyzeProduct.setUrl(String.format("%s/%s/s%d", baseUrl, slug, product.getFamilyId()));
 
-        // images
+        // product images
         List<ProductGalleryImage> galleryImages = this.productService.getProductImages(product.getManufacturer(), product.getProductId());
         if (galleryImages != null && galleryImages.size() > 0) {
             List<HashMap<String, String>> images = new ArrayList<>();
