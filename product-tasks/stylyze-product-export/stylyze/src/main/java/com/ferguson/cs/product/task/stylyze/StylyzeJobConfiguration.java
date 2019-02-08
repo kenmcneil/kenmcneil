@@ -7,18 +7,20 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.*;
 import org.springframework.batch.item.file.FlatFileParseException;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Configuration
 public class StylyzeJobConfiguration {
@@ -38,18 +40,27 @@ public class StylyzeJobConfiguration {
     private StepBuilderFactory stylyzeSteps;
 
     @Bean
-    public FlatFileItemReader<StylyzeInputProduct> stylyzeProductReader()
+    public ItemReader<StylyzeInputProduct> stylyzeProductReader()
     {
-        FlatFileItemReaderBuilder<StylyzeInputProduct> reader = new FlatFileItemReaderBuilder<>();
-        return reader
-                .name("stylyze-item-reader")
-                .resource(new ClassPathResource("stylyze-input.csv"))
-                .targetType(StylyzeInputProduct.class)
-                .linesToSkip(1)
-                .delimited()
-                .delimiter(",")
-                .names(new String[]{ "familyId", "categoryId"})
-                .build();
+
+        ItemReader<StylyzeInputProduct> reader = new ItemReader<StylyzeInputProduct>() {
+            @Autowired
+            private StylyzeSettings stylyzeSettings;
+
+            private Integer index = 0;
+
+            @Override
+            public StylyzeInputProduct read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+                StylyzeInputProduct product = null;
+                List<StylyzeInputProduct> inputData = this.stylyzeSettings.getInputData();
+                if (this.index < inputData.size()) {
+                    product = inputData.get(index);
+                    index++;
+                }
+                return product;
+            }
+        };
+        return reader;
     }
 
     @Bean
@@ -73,7 +84,7 @@ public class StylyzeJobConfiguration {
 
     @Bean
     public Step stylyzeStep(
-            FlatFileItemReader<StylyzeInputProduct> stylyzeProductReader,
+            ItemReader<StylyzeInputProduct> stylyzeProductReader,
             ItemProcessor<StylyzeInputProduct, StylyzeProduct> processor,
             JsonFileItemWriter<StylyzeProduct> writer) {
         return stylyzeSteps

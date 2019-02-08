@@ -6,8 +6,6 @@ import org.springframework.batch.item.ItemProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.config.environment.Environment;
-import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;

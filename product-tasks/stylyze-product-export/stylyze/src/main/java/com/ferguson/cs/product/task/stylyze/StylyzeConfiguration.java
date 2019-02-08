@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.stylyze;
 
 import javax.sql.DataSource;
 
+import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -35,6 +36,11 @@ public class StylyzeConfiguration {
     @Autowired
     public void setStylyzeSettings(StylyzeSettings stylyzeSettings) {
         this.stylyzeSettings = stylyzeSettings;
+    }
+
+    @Bean
+    public StylyzeInputProduct stylyzeInputProduct() {
+        return new StylyzeInputProduct();
     }
 
 
