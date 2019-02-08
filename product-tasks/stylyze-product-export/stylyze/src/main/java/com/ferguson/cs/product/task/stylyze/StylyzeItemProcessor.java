@@ -81,6 +81,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         metadata.put("numReviews", count);
         stylyzeProduct.setMetadata(metadata);
 
+        // product url
         String slug = String.format("%s %s", product.getManufacturer(), product.getProductId()).replaceAll(" ", "-").toLowerCase();
         stylyzeProduct.setUrl(String.format("%s/%s/s%d", baseUrl, slug, product.getFamilyId()));
 
