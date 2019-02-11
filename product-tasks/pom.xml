@@ -4,6 +4,7 @@
 	<modules>
 		<module>inventory-import</module>
 		<module>supply-product-data-feed</module>
+		<module>brand-product-ingestion</module>
 	</modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
@@ -14,9 +15,6 @@
 	<artifactId>product-tasks</artifactId>
 	<packaging>pom</packaging>
 	<name>product-tasks</name> 
- <modules>
-    <module>brand-product-ingestion</module>
-  </modules>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
