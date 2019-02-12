@@ -1,0 +1,8 @@
+[
+  {
+    "appName" : "supply-product-data-feed",
+    "name" : "supply-product-data-feed",
+    "jobName" : "supplyProductDataFeedJob",
+    "heapSize" : "256m"
+  }
+]
