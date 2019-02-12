@@ -161,7 +161,7 @@ The service layer is where the primary domain business logic is encapsulated. Ea
 
 In many simple cases, having a data access layer AND a repository layer is cumbersome. Therefore, the default pattern leveraged by this domain service is to inject the repositories directly into the service layer. This means that if multiple data access calls must be aggregated, those can be orchestrated at the service level.  
 
-IMPORTANT: If the service layer is orchestrating mulitple calls to the database via repository calls and there is a need to use transaction/caching annotations, the scope of those cross-cutting concerns is at the service level. A developer must be careful when introducing transactions at the service level if that service makes external web service calls. You generally do not want to perform third-party calls in the scope of a database transaction.  
+IMPORTANT: If the service layer is orchestrating multiple calls to the database via repository calls and there is a need to use transaction/caching annotations, the scope of those cross-cutting concerns is at the service level. A developer must be careful when introducing transactions at the service level if that service makes external web service calls. You generally do not want to perform third-party calls in the scope of a database transaction.  
 
 There are two ways to address the above concern: Either introduce a data access/implementation pair and use that as the aggregation point with cross-cutting concerns OR use a transaction template to insure the calls to the external service are performed outside of the transaction. 
 

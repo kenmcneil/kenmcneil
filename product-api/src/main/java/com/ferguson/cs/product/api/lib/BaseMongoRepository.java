@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi.lib;
+package com.ferguson.cs.product.api.lib;
 
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;

@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi.attribute;
+package com.ferguson.cs.product.api.attribute;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +20,7 @@ public class AttributeController {
 	public AttributeController(AttributeService attributeService) {
 		this.attributeService = attributeService;
 	}
+
 	@GetMapping(value = "/unit-of-measure/{code}")
 	public UnitOfMeasure getUnitOfMeasure(@PathVariable("code") String code) {
 		return attributeService.getUnitOfMeasure(code);

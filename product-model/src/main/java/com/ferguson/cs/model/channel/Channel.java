@@ -4,10 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import com.ferguson.cs.model.PersistentDocument;
-import com.ferguson.cs.model.taxonomy.Taxonomy;
+import com.ferguson.cs.model.taxonomy.TaxonomyReference;
 
 import lombok.Builder;
 import lombok.Data;
@@ -83,8 +82,7 @@ public class Channel  implements PersistentDocument {
 	 *
 	 * A channel allows more than one taxonomy to be assigned to it. This allows for one taxonomy that can be u
 	 */
-	@DBRef
-	private List<Taxonomy> taxonomyList;
+	private List<TaxonomyReference> taxonomyReferenceList;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;

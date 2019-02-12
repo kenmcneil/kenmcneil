@@ -3,9 +3,8 @@ package com.ferguson.cs.model.taxonomy;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.annotation.Transient;
-
 import com.ferguson.cs.model.PersistentDocument;
+import com.ferguson.cs.model.product.ProductReference;
 
 import lombok.Builder;
 import lombok.Data;
@@ -57,7 +56,7 @@ public class Category implements PersistentDocument {
 	/**
 	 * The persistent ID of the parent category, top-level categories will NOT have a parent.
 	 */
-	private String categoryIdParent;
+	private CategoryReference categoryParent;
 
 	/**
 	 * A list of traits that are common for products that are assigned to this category.
@@ -67,14 +66,13 @@ public class Category implements PersistentDocument {
 	/**
 	 * A list of subcategories belonging to this category.
 	 */
-	@Transient
-	private List<Category> subcategoryList;
+	private List<CategoryReference> subcategoryList;
 
 	/**
 	 * A list of product IDs that have been assigned to this category. A product can only be assigned to this category if
 	 * it has all of the category's required traits.
 	 */
-	private List<String> productIdList;
+	private List<ProductReference> productIdList;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;

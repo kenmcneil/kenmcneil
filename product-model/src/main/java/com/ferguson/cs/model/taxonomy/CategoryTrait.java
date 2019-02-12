@@ -5,7 +5,7 @@ import java.io.Serializable;
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 /**
  * A category within a taxonomy's hierarchy can have one or more "traits" associated with it. These traits represent characteristics
@@ -14,7 +14,7 @@ import lombok.Data;
  *
  * @author tyler.vangorder
  */
-@Data
+@Value
 @Builder
 public class CategoryTrait implements Serializable {
 

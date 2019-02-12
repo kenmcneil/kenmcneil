@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi.attribute;
+package com.ferguson.cs.product.api.attribute;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

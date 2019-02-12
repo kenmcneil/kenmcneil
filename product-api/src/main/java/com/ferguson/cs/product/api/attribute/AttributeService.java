@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi.attribute;
+package com.ferguson.cs.product.api.attribute;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;

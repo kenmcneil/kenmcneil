@@ -3,8 +3,6 @@ package com.ferguson.cs.model.taxonomy;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
 import com.ferguson.cs.model.PersistentDocument;
 
 import lombok.Builder;
@@ -60,8 +58,7 @@ public class Taxonomy implements PersistentDocument {
 	/**
 	 * A set of "root" categories that represent the top-level categories within the classification system.
 	 */
-	@DBRef(lazy=true)
-	private List<Category> rootCategoryList;
+	private List<CategoryReference> rootCategoryList;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;

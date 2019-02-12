@@ -1,4 +1,4 @@
-package com.ferguson.cs.productapi;
+package com.ferguson.cs.product.api;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
