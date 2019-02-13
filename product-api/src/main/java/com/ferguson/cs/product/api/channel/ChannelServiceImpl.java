@@ -14,6 +14,7 @@ import com.ferguson.cs.model.product.Product;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.product.api.taxonomy.TaxonomyService;
 import com.ferguson.cs.server.common.response.exception.ResourceNotFoundException;
+import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Service
 public class ChannelServiceImpl implements ChannelService {
@@ -28,22 +29,22 @@ public class ChannelServiceImpl implements ChannelService {
 	}
 
 	@Override
-	public Channel getChannelByCode(String code) {
-		Assert.hasText(code, "The code is required to retrieve the channel.");
+	public Optional<Channel> getChannelByCode(String code) {
+		ArgumentAssert.notNullOrEmpty(code, "code");
 		return channelRepository.findByCode(code);
 	}
 
 	@Override
 	public List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit) {
-		Assert.notNull(businessUnit, "The business unit is required to retrieve the channel list.");
+		ArgumentAssert.notNull(businessUnit, "business unit");
 		return channelRepository.findByBusinessUnit(businessUnit);
 	}
 
 	@Override
 	public Channel saveChannel(Channel channel) {
-		Assert.notNull(channel, "A channel was not specified.");
-		Assert.hasText(channel.getCode(), "The chanel code is required.");
-		Assert.notNull(channel.getBusinessUnit(), "The business unit is required.");
+		ArgumentAssert.notNull(channel, "channel");
+		ArgumentAssert.notNullOrEmpty(channel.getCode(), "code");
+		ArgumentAssert.notNull(channel.getBusinessUnit(), "business unit");
 
 		if (channel.getIsActive() == null) {
 			channel.setIsActive(Boolean.FALSE);
@@ -53,9 +54,8 @@ public class ChannelServiceImpl implements ChannelService {
 
 	@Override
 	public void deleteChannel(final Channel channel) {
-		Assert.notNull(channel, "A channel was not specified.");
-		Assert.isTrue(StringUtils.hasText(channel.getId()), "The channel ID must be provided to delete the channel.");
-
+		ArgumentAssert.notNull(channel, "channel");
+		ArgumentAssert.notNullOrEmpty(channel.getId(), "ID");
 		channelRepository.delete(channel);
 		//TODO Need to delete all the channel/product links. Note: Mongo does not support transactions across document operations, so this is NOT atomic.
 	}
@@ -68,10 +68,8 @@ public class ChannelServiceImpl implements ChannelService {
 		if (!retrievedChannel.isPresent()) {
 			throw new ResourceNotFoundException("The channel [" + channel.getId() + "] could not be found.");
 		}
-		return taxonomyService.getTaxonomiesByReference(retrievedChannel.get().getTaxonomyReferenceList());
-
+		return taxonomyService.getTaxonomiesByReferences(retrievedChannel.get().getTaxonomyReferenceList());
 	}
-
 
 	@Override
 	public List<Product> getFilteredProductsByChannel(Channel channel, List<String> productListId) {

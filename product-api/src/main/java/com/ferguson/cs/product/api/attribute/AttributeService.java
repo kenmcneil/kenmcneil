@@ -1,18 +1,18 @@
 package com.ferguson.cs.product.api.attribute;
 
+import java.util.Optional;
+
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
 
 public interface AttributeService {
 
-	UnitOfMeasure getUnitOfMeasure(String uomCode);
-
+	Optional<UnitOfMeasure> getUnitOfMeasure(String uomCode);
 	UnitOfMeasure saveUnitOfMeasure(UnitOfMeasure unitOfMeasure);
+	void deleteUnitOfMeasure(UnitOfMeasure unitOfMeasure);
 
-	void deleteUnitOfMeasure(String uomCode);
-
-	AttributeDefinition getAttributeDefinition(String code);
+	Optional<AttributeDefinition> getAttributeDefinition(String code);
 	AttributeDefinition saveAttributeDefinition(AttributeDefinition attributeDefinition);
-	void deleteAttributeDefinition(String code);
+	void deleteAttributeDefinition(AttributeDefinition attributeDefinition);
 
 }

@@ -34,9 +34,9 @@ public class Category implements PersistentDocument {
 	private String id;
 
 	/**
-	 * The taxonomy code to which this category belongs.
+	 * The taxonomy to which this category belongs.
 	 */
-	private Long taxonomyCode;
+	private TaxonomyReference taxonomyReference;
 
 	/**
 	 * A business key assigned to this category that is unique within the context of the taxonomy but is not globally unique.

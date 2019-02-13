@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.api.channel;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 
@@ -11,7 +12,7 @@ import com.ferguson.cs.model.taxonomy.Taxonomy;
 
 public interface ChannelService {
 
-	Channel getChannelByCode(String code);
+	Optional<Channel> getChannelByCode(String code);
 	List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit);
 	Channel saveChannel(Channel channel);
 	void deleteChannel(Channel channel);

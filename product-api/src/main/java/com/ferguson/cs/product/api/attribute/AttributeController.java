@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
+import com.ferguson.cs.product.api.lib.OptionalResourceHelper;
 
 @RestController
 @RequestMapping("/attributes")
@@ -23,7 +24,7 @@ public class AttributeController {
 
 	@GetMapping(value = "/unit-of-measure/{code}")
 	public UnitOfMeasure getUnitOfMeasure(@PathVariable("code") String code) {
-		return attributeService.getUnitOfMeasure(code);
+		return OptionalResourceHelper.handle(attributeService.getUnitOfMeasure(code), "unit of measure", code);
 	}
 
 	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)
@@ -33,13 +34,14 @@ public class AttributeController {
 	}
 
 	@DeleteMapping(value = "/unit-of-measure/{code}")
-	public void deleteArticle(@PathVariable("code") String code) {
-		attributeService.deleteUnitOfMeasure(code);
+	public void deleteUnitOfMeasure(@PathVariable("code") String code) {
+		UnitOfMeasure unitOfMeasure = getUnitOfMeasure(code);
+		attributeService.deleteUnitOfMeasure(unitOfMeasure);
 	}
 
 	@GetMapping(value = "/attribute-definition/{code}")
 	public AttributeDefinition getAttributeDefinition(@PathVariable("code") String code) {
-		return attributeService.getAttributeDefinition(code);
+		return OptionalResourceHelper.handle(attributeService.getAttributeDefinition(code), "attribute definition", code);
 	}
 
 	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)
@@ -50,7 +52,8 @@ public class AttributeController {
 
 	@DeleteMapping(value = "/attribute-definition/{code}")
 	public void deleteAttributeDefinition(@PathVariable("code") String code) {
-		attributeService.deleteAttributeDefinition(code);
+		AttributeDefinition attributeDefinition = getAttributeDefinition(code);
+		attributeService.deleteAttributeDefinition(attributeDefinition);
 	}
 
 }

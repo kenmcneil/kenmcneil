@@ -10,6 +10,7 @@ import com.ferguson.cs.model.channel.BusinessUnit;
 import com.ferguson.cs.model.channel.Channel;
 import com.ferguson.cs.model.product.Product;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
+import com.ferguson.cs.product.api.lib.OptionalResourceHelper;
 
 @RestController
 @RequestMapping("/channels")
@@ -21,8 +22,8 @@ public class ChannelController {
 		this.channelService = channelService;
 	}
 
-	public Channel getChannelByCode(String id) {
-		return channelService.getChannelByCode(id);
+	public Channel getChannelByCode(String code) {
+		return OptionalResourceHelper.handle(channelService.getChannelByCode(code), "channel", code);
 	}
 
 	public List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit) {
@@ -33,7 +34,8 @@ public class ChannelController {
 		return channelService.saveChannel(channel);
 	}
 
-	public void deleteChannel(Channel channel) {
+	public void deleteChannel(String code) {
+		Channel channel = getChannelByCode(code);
 		channelService.deleteChannel(channel);
 	}
 

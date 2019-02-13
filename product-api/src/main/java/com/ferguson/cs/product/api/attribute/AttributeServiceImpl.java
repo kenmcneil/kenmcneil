@@ -1,18 +1,21 @@
 package com.ferguson.cs.product.api.attribute;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
 import com.ferguson.cs.server.common.response.exception.ResourceNotFoundException;
+import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Service
 public class AttributeServiceImpl implements AttributeService {
 
 	private final UnitOfMeasureRepository unitOfMeasureRepository;
 	private final AttributeDefinitionRepository attributeDefinitionRepository;
+
 
 	public AttributeServiceImpl(
 			UnitOfMeasureRepository unitOfMeasureRepository,
@@ -23,45 +26,41 @@ public class AttributeServiceImpl implements AttributeService {
 	}
 
 	@Override
-	public UnitOfMeasure getUnitOfMeasure(String uomCode) {
-		Assert.hasText(uomCode, "The code for the unit of measure is required to retrieve the record.");
-		UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findByCode(uomCode);
-		if (unitOfMeasure == null) {
-			throw new ResourceNotFoundException(String.format("The unit of measure code [%s] does not exist in the database.", uomCode));
-		}
-		return unitOfMeasure;
+	public Optional<UnitOfMeasure> getUnitOfMeasure(String uomCode) {
+		ArgumentAssert.notNullOrEmpty(uomCode, "code");
+		return unitOfMeasureRepository.findByCode(uomCode);
 	}
 
 	@Override
 	public UnitOfMeasure saveUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
-		Assert.notNull(unitOfMeasure, "The unit of measure must be provided to update the record.");
-		Assert.hasText(unitOfMeasure.getCode(), "The unit of measure must have a code.");
-		Assert.hasText(unitOfMeasure.getName(), "The unit of measure must have a name..");
+		ArgumentAssert.notNull(unitOfMeasure, "unit of measure");
+		ArgumentAssert.notNullOrEmpty(unitOfMeasure.getCode(), "code");
+		ArgumentAssert.notNullOrEmpty(unitOfMeasure.getName(), "name");
+
 		return unitOfMeasureRepository.save(unitOfMeasure);
 	}
 
 	@Override
-	public void deleteUnitOfMeasure(String uomCode) {
-		UnitOfMeasure unitOfMeasure = getUnitOfMeasure(uomCode);
+	public void deleteUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
+		ArgumentAssert.notNull(unitOfMeasure, "unit of measure");
+		ArgumentAssert.notNullOrEmpty(unitOfMeasure.getId(), "ID");
+
 		unitOfMeasureRepository.delete(unitOfMeasure);
 	}
 
 	@Override
-	public AttributeDefinition getAttributeDefinition(String code) {
-		Assert.hasText(code, "The code for the attribute definition is required to retrieve the record.");
-		AttributeDefinition attributeDefinition = attributeDefinitionRepository.findByCode(code);
-		if (attributeDefinition == null) {
-			throw new ResourceNotFoundException(String.format("The attribute definition code [%s] does not exist in the database.", code));
-		}
-		return attributeDefinition;
+	public Optional<AttributeDefinition> getAttributeDefinition(String code) {
+		ArgumentAssert.notNullOrEmpty(code, "code");
+		return attributeDefinitionRepository.findByCode(code);
 	}
 
 	@Override
 	public AttributeDefinition saveAttributeDefinition(AttributeDefinition attributeDefinition) {
-		Assert.notNull(attributeDefinition, "The attribute definition must be provided to update the record.");
-		Assert.hasText(attributeDefinition.getCode(), "The attribute definition must have a code.");
-		Assert.hasText(attributeDefinition.getDescription(), "The attribute definition must have a description.");
-		Assert.notNull(attributeDefinition.getDatatype(), "The attribute definition must have a datatype.");
+
+		ArgumentAssert.notNull(attributeDefinition, "attribute definition");
+		ArgumentAssert.notNullOrEmpty(attributeDefinition.getCode(), "code.");
+		ArgumentAssert.notNullOrEmpty(attributeDefinition.getDescription(), "description.");
+		ArgumentAssert.notNull(attributeDefinition.getDatatype(), "datatype.");
 		if (attributeDefinition.getUnitOfMeasure() != null && StringUtils.hasText(attributeDefinition.getUnitOfMeasure().getId())) {
 			if (!unitOfMeasureRepository.findById(attributeDefinition.getUnitOfMeasure().getId()).isPresent()) {
 				throw new ResourceNotFoundException("The unit of measure associated with the attribute definition does not exist in the database.");
@@ -71,8 +70,10 @@ public class AttributeServiceImpl implements AttributeService {
 	}
 
 	@Override
-	public void deleteAttributeDefinition(String code) {
-		AttributeDefinition attributeDefinition = getAttributeDefinition(code);
+	public void deleteAttributeDefinition(AttributeDefinition attributeDefinition) {
+		ArgumentAssert.notNull(attributeDefinition, "attribute definition");
+		ArgumentAssert.notNullOrEmpty(attributeDefinition.getId(), "ID");
+
 		attributeDefinitionRepository.delete(attributeDefinition);
 	}
 }
