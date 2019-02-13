@@ -26,12 +26,12 @@ public class TaxonomyController {
 	}
 
 	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)
-	@PostMapping(value = "/")
+	@PostMapping(value = "")
 	public Taxonomy saveTaxonomy(@RequestBody Taxonomy taxonomy) {
 		return taxonomyService.saveTaxonomy(taxonomy);
 	}
 
-	@DeleteMapping(value = "/")
+	@DeleteMapping(value = "/{code}")
 	public void deleteTaxonomy(@PathVariable("code") String code) {
 		Taxonomy taxonomy = getTaxonomy(code);
 		taxonomyService.deleteTaxonomy(taxonomy);

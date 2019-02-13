@@ -3,6 +3,7 @@ package com.ferguson.cs.product.api.channel;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -78,8 +79,7 @@ public class ChannelServiceImpl implements ChannelService {
 	}
 
 	@Override
-	public List<Product> getProductsByChannel(Channel channel, Pageable pageable) {
-		// TODO Auto-generated method stub
+	public Page<Product> getProductsByChannel(Channel channel, Pageable pageable) {
 		return null;
 	}
 

@@ -3,6 +3,7 @@ package com.ferguson.cs.product.api.channel;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.ferguson.cs.model.channel.BusinessUnit;
@@ -19,7 +20,7 @@ public interface ChannelService {
 	List<Taxonomy> getTaxonomiesByChannel(Channel channel);
 
 	List<Product> getFilteredProductsByChannel(Channel channel, List<String> productListId);
-	List<Product> getProductsByChannel(Channel channel, Pageable pageable);
+	Page<Product> getProductsByChannel(Channel channel, Pageable pageable);
 	void addProductsToChannel(Channel channel, List<String> productIdList);
 	void removeProductsFromChannel(Channel channel, List<String> productIdList);
 }

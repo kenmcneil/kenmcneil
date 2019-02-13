@@ -2,11 +2,16 @@ package com.ferguson.cs.product.api.channel;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ferguson.cs.model.channel.BusinessUnit;
 import com.ferguson.cs.model.channel.Channel;
 import com.ferguson.cs.model.product.Product;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
@@ -22,40 +27,52 @@ public class ChannelController {
 		this.channelService = channelService;
 	}
 
+	@GetMapping(value = "/{code}")
 	public Channel getChannelByCode(String code) {
 		return OptionalResourceHelper.handle(channelService.getChannelByCode(code), "channel", code);
 	}
 
-	public List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit) {
-		return channelService.getChannelsByBusinessUnit(businessUnit);
-	}
-
+	@PostMapping(value = "")
 	public Channel saveChannel(Channel channel) {
 		return channelService.saveChannel(channel);
 	}
 
-	public void deleteChannel(String code) {
+	@DeleteMapping(value = "/{code}")
+	public void deleteChannel(@PathVariable("code") String code) {
 		Channel channel = getChannelByCode(code);
 		channelService.deleteChannel(channel);
 	}
 
-	public List<Taxonomy> getTaxonomiesByChannel(Channel channel) {
+	@GetMapping(value = "/{code}/taxonomies")
+	public List<Taxonomy> getTaxonomiesByChannel(@PathVariable("code") String code) {
+		Channel channel = getChannelByCode(code);
 		return channelService.getTaxonomiesByChannel(channel);
 	}
 
-	public List<Product> getFilteredProductsByChannel(Channel channel, List<String> productListId) {
+
+	@PostMapping(value = "/{code}/filterProducts")
+	public List<Product> getFilteredProductsByChannel(@PathVariable("code") String code, @RequestBody List<String> productListId) {
+		Channel channel = getChannelByCode(code);
 		return channelService.getFilteredProductsByChannel(channel, productListId);
 	}
 
-	public List<Product> getProductsByChannel(Channel channel, Pageable pageable) {
-		return channelService.getProductsByChannel(channel, pageable);
+	@GetMapping(value = "/{code}/products-references")
+	public List<Product> getProductsByChannel(@PathVariable("code") String code, Pageable pageRequest) {
+		Channel channel = getChannelByCode(code);
+
+		Page<Product> page = channelService.getProductsByChannel(channel, pageRequest);
+		return page.getContent();
 	}
 
-	public void addProductsToChannel(Channel channel, List<String> productIdList) {
+	@PostMapping(value = "/{code}/product-references")
+	public void addProductsToChannel(@PathVariable("code") String code, @RequestBody List<String> productIdList) {
+		Channel channel = getChannelByCode(code);
 		channelService.addProductsToChannel(channel, productIdList);
 	}
 
-	public void removeProductsFromChannel(Channel channel, List<String> productIdList) {
+	@PostMapping(value = "/{code}/product-references/delete")
+	public void removeProductsFromChannel(@PathVariable("code") String code, @RequestBody List<String> productIdList) {
+		Channel channel = getChannelByCode(code);
 		channelService.removeProductsFromChannel(channel, productIdList);
 	}
 
