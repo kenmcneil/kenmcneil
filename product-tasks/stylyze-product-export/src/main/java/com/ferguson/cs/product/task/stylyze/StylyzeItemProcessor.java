@@ -6,6 +6,7 @@ import org.springframework.batch.item.ItemProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
             return null;
         }
         List<Product> databaseProducts = this.productService.getProductData(familyId);
-        if (databaseProducts == null || databaseProducts.size() == 0) {
+        if (CollectionUtils.isEmpty(databaseProducts)) {
             return null;
         }
         Product product = databaseProducts.get(0);
@@ -87,10 +88,10 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
 
         // product images
         List<ProductGalleryImage> galleryImages = this.productService.getProductImages(product.getManufacturer(), product.getProductId());
-        if (galleryImages != null && galleryImages.size() > 0) {
+        if (!CollectionUtils.isEmpty(galleryImages)) {
             List<HashMap<String, String>> images = new ArrayList<>();
             for (ProductGalleryImage galleryImage : galleryImages) {
-                HashMap image = new HashMap();
+                HashMap<String, String> image = new HashMap();
                 image.put("identifier", galleryImage.getImageId());
                 image.put("url", this.getImageUrl(product.getManufacturer(), galleryImage.getImage()));
                 images.add(image);
@@ -100,10 +101,10 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
 
         // product specs
         List<ProductSpec> productSpecs = this.productService.getProductSpecs(product.getFamilyId(), product.getApplication(), product.getType());
-        if (productSpecs != null && productSpecs.size() > 0) {
-            List<HashMap> specs = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(productSpecs)) {
+            List<HashMap<String, String>> specs = new ArrayList<>();
             for (ProductSpec productSpec : productSpecs) {
-                HashMap spec = new HashMap();
+                HashMap<String, String> spec = new HashMap();
                 spec.put(productSpec.getAttributeName(), productSpec.getValue() + (productSpec.getUnits() != null ? " " + productSpec.getUnits() : ""));
                 specs.add(spec);
             }
