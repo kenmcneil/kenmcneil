@@ -21,11 +21,6 @@ public class ProductDaoImpl implements ProductDao {
     }
 
     @Override
-    public Product getProductByUniqueId(int uniqueId) {
-        return productMapper.getProductByUniqueId(uniqueId);
-    }
-
-    @Override
     public List<ProductSpec> getProductSpecs(int familyId, String application, String type) { return productMapper.getProductSpecs(familyId, application, type); }
 
     @Override

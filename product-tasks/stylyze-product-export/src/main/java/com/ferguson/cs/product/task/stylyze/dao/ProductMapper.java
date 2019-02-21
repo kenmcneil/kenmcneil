@@ -11,7 +11,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ProductMapper {
     List<Product> getProductData(@Param("familyId") int familyId);
-    Product getProductByUniqueId(@Param("uniqueId") int uniqueId);
     List<ProductSpec> getProductSpecs(@Param("familyId") int familyId, @Param("application") String application, @Param("type") String type);
     List<ProductGalleryImage> getProductImages(@Param("manufacturer") String manufacturer, @Param("productId") String productId);
     Float getProductCost(@Param("uniqueId") int uniqueId);

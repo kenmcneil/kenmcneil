@@ -36,29 +36,10 @@
             series,
             description,
             msrp,
-            UPC
+            UPC,
+            status
         from dbo.product
         where familyId = #{familyId} and status = 'stock';
-    </select>
-
-    <select id="getProductByUniqueId" resultMap="productMap">
-        select distinct
-            uniqueId,
-            familyId,
-            productid as productId,
-            manufacturer,
-            finish,
-            image,
-            type,
-            application,
-            SKU as sku,
-            ProductTitle as title,
-            series,
-            description,
-            msrp,
-            UPC
-        from dbo.product
-        where uniqueId = #{uniqueId} and status = 'stock';
     </select>
 
     <resultMap id="productSpecsMap" type="ProductSpec">
@@ -168,7 +149,7 @@
           CategoryID,
           CategoryName,
           ParentID
-        from MMC_Build.dbo.PRD_CategoryV2
+        from MMC_Build.dbo.PRD_CategoryV2 WITH(NOLOCK)
         where CategoryID = #{categoryId};
     </select>
 
@@ -204,11 +185,9 @@
 				,pvm.useProductImage
 			FROM
 				mmc.dbo.productVariation pv WITH (NOLOCK)
-				--
 				INNER JOIN mmc.dbo.productVariationMapping pvm WITH (NOLOCK)
 				ON
 				pv.id = pvm.productVariationId
-				--
 				LEFT JOIN mmc.product.productVariationMappingImage pvmi WITH(NOLOCK)
 				ON pvmi.productVariationMappingId = pvm.id
 				LEFT JOIN mmc.product.image i WITH(NOLOCK)
@@ -228,21 +207,17 @@
 			,pvm.useProductImage
 		FROM
 			mmc.dbo.productVariationMapping pvm WITH (NOLOCK)
-			--
 			INNER JOIN variantIds
 			ON
 			pvm.productVariationId = variantIds.productVariationId
-			--
 			INNER JOIN mmc.dbo.productid_manufacturer pm WITH (NOLOCK)
 			ON
 			pm.productid_manufacturer_id = pvm.productIdManufacturerId
-			--
 			INNER JOIN mmc.dbo.product p WITH (NOLOCK)
 			ON
 			p.productid = pm.productid
 			AND
 			p.manufacturer = pm.manufacturer
-			--
 			LEFT JOIN mmc.product.productVariationMappingImage pvmi WITH(NOLOCK)
 			ON pvmi.productVariationMappingId = pvm.id
 			LEFT JOIN mmc.product.image i WITH(NOLOCK)

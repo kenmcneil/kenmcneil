@@ -26,10 +26,6 @@ public class ProductService {
         return this.productDao.getProductData(familyId);
     }
 
-    public Product getProductByUniqueId(int uniqueId) {
-        return this.productDao.getProductByUniqueId(uniqueId);
-    }
-
     public List<ProductSpec> getProductSpecs(int familyId, String application, String type) {
         return this.productDao.getProductSpecs(familyId, application, type);
     }

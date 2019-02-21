@@ -19,6 +19,15 @@ public class Product {
     private String mpn;
     private String msrp;
     private String upc;
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getUpc() {
         return upc;

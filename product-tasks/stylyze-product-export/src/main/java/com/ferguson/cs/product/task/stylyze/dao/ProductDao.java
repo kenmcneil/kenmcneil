@@ -7,7 +7,6 @@ import com.ferguson.cs.product.task.stylyze.model.*;
 public interface ProductDao {
 
     List<Product> getProductData(int familyId);
-    Product getProductByUniqueId(int uniqueId);
     List<ProductSpec> getProductSpecs(int familyId, String application, String type);
     List<ProductGalleryImage> getProductImages(String manufacturer, String productId);
     Float getProductCost(int uniqueId);

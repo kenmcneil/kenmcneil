@@ -124,7 +124,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
             }
             finish.put("sku", databaseProduct.getSku());
             finish.put("upc", databaseProduct.getUpc());
-            finish.put("status", "stock");
+            finish.put("status", databaseProduct.getStatus());
             finish.put("image", this.getImageUrl(databaseProduct.getManufacturer(), databaseProduct.getImage()));
             finishes.add(finish);
         }
