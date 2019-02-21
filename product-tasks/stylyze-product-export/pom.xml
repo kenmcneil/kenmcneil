@@ -5,24 +5,55 @@
     <parent>
         <artifactId>product-tasks</artifactId>
         <groupId>com.ferguson.cs.product</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>stylyze-product-export</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>stylyze</module>
-    </modules>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.ferguson.cs.product</groupId>
-                <artifactId>stylyze</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+    <dependencies>
+        <dependency>
+            <groupId>com.ferguson.cs</groupId>
+            <artifactId>api-starter-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ferguson.cs</groupId>
+            <artifactId>api-task-batch-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ferguson.cs</groupId>
+            <artifactId>api-utilities</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-file</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.ferguson.cs</groupId>
+            <artifactId>api-test-utilities</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ferguson.cs</groupId>
+            <artifactId>api-task-batch-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>
