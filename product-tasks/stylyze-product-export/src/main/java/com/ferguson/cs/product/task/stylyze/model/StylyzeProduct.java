@@ -5,12 +5,12 @@ import java.util.List;
 
 public class StylyzeProduct {
     private int identifier;
-    private HashMap metadata;
+    private HashMap<String, Object> metadata;
     private String url;
-    private List images;
-    private List productSpecs;
-    private List finishes;
-    private List variations;
+    private List<HashMap<String, String>> images;
+    private List<HashMap<String, String>> productSpecs;
+    private List<HashMap<String, String>> finishes;
+    private List<HashMap<String, Object>> variations;
 
     public int getIdentifier() {
         return identifier;
@@ -20,11 +20,11 @@ public class StylyzeProduct {
         this.identifier = identifier;
     }
 
-    public HashMap getMetadata() {
+    public HashMap<String, Object> getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(HashMap metadata) {
+    public void setMetadata(HashMap<String, Object> metadata) {
         this.metadata = metadata;
     }
 
@@ -36,35 +36,35 @@ public class StylyzeProduct {
         this.url = url;
     }
 
-    public List getImages() {
+    public List<HashMap<String, String>> getImages() {
         return images;
     }
 
-    public void setImages(List images) {
+    public void setImages(List<HashMap<String, String>> images) {
         this.images = images;
     }
 
-    public List getProductSpecs() {
+    public List<HashMap<String, String>> getProductSpecs() {
         return productSpecs;
     }
 
-    public void setProductSpecs(List productSpecs) {
+    public void setProductSpecs(List<HashMap<String, String>> productSpecs) {
         this.productSpecs = productSpecs;
     }
 
-    public List getFinishes() {
+    public List<HashMap<String, String>> getFinishes() {
         return finishes;
     }
 
-    public void setFinishes(List finishes) {
+    public void setFinishes(List<HashMap<String, String>> finishes) {
         this.finishes = finishes;
     }
 
-    public List getVariations() {
+    public List<HashMap<String, Object>> getVariations() {
         return variations;
     }
 
-    public void setVariations(List variations) {
+    public void setVariations(List<HashMap<String, Object>> variations) {
         this.variations = variations;
     }
 }
