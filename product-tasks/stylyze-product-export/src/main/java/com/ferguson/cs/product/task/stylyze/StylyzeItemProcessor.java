@@ -132,14 +132,14 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
 
         // variations
         List<ProductVariation> productVariations = this.productService.getProductVariations(product.getFamilyId());
-        if (productVariations != null && productVariations.size() > 0) {
-            List<HashMap> variations = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(productVariations)) {
+            List<HashMap<String, Object>> variations = new ArrayList<>();
             for (ProductVariation productVariation : productVariations) {
                 List<Product> variationProducts = this.productService.getProductData(productVariation.getFamilyId());
-                if (variationProducts == null || variationProducts.size() == 0) {
+                if (CollectionUtils.isEmpty(variationProducts)) {
                     continue;
                 }
-                HashMap variation = new HashMap();
+                HashMap<String, Object> variation = new HashMap();
                 variation.put("identifier", productVariation.getFamilyId());
                 List<Integer> variationFinishes = new ArrayList<>();
                 for (Product variationProduct : variationProducts) {

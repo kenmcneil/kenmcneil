@@ -25,12 +25,12 @@ import java.util.List;
 @Configuration
 public class StylyzeJobConfiguration {
 
-    private SqlSessionFactory sqlSessionFactory;
+    private SqlSessionFactory reporterSqlSessionFactory;
 
     @Autowired
     @Qualifier("reporterSqlSessionFactory")
     public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
-        this.sqlSessionFactory = sqlSessionFactory;
+        this.reporterSqlSessionFactory = sqlSessionFactory;
     }
 
     @Autowired
