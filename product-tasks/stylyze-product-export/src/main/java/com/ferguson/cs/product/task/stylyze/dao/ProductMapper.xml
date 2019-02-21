@@ -124,7 +124,7 @@
             ImageID,
             imageText
         from
-            mmc.dbo.product_ImageGallery
+            mmc.dbo.product_ImageGallery WITH(NOLOCK)
         where
             manufacturer = #{manufacturer} and productID = #{productId};
     </select>
@@ -134,7 +134,7 @@
     </resultMap>
 
     <select id="getProductCost" resultMap="productCostResults">
-        select Cost from mmc.dbo.pricebook_cost where UniqueId = ${uniqueId} and PriceBookId = 1;
+        select Cost from mmc.dbo.pricebook_cost WITH(NOLOCK) where UniqueId = ${uniqueId} and PriceBookId = 1;
     </select>
 
     <resultMap id="productCategoriesResults" type="ProductCategory">

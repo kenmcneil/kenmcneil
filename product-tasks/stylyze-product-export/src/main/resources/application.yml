@@ -2,7 +2,7 @@ logging:
   level:
     ROOT: ERROR
     org.springframework: WARN
-    org.springframework.cloud: INFO
+    org.springframework.cloud: WARN
     org.springframework.web: INFO
     com.build: INFO
 
@@ -15,9 +15,6 @@ management:
   security:
     enabled: false
 
-sample:
-  # It is ok for initial config to be here however it should be moved to the config server
-  localFilePath: ./
 spring:
   main:
     allow-bean-definition-overriding: true

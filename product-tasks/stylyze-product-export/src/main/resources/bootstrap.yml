@@ -7,7 +7,7 @@ spring:
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      name: api-task,api-integration,api-task-stylyze
+      name: api-task,api-task-stylyze
       label: master
       fail-fast: true
       uri: http://config

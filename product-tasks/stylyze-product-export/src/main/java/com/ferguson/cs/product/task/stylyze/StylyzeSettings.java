@@ -9,7 +9,6 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties("stylyze")
 public class StylyzeSettings {
-    private String localFilePath;
     private List<StylyzeInputProduct> inputData;
 
     public List<StylyzeInputProduct> getInputData() {
@@ -20,11 +19,4 @@ public class StylyzeSettings {
         this.inputData = inputData;
     }
 
-    public String getLocalFilePath() {
-        return localFilePath;
-    }
-
-    public void setLocalFilePath(String localFilePath) {
-        this.localFilePath = localFilePath;
-    }
 }

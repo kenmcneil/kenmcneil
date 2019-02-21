@@ -62,7 +62,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         StylyzeProduct stylyzeProduct = new StylyzeProduct();
         stylyzeProduct.setIdentifier(product.getFamilyId());
 
-        HashMap metadata = new HashMap();
+        HashMap<String, Object> metadata = new HashMap();
         metadata.put("manufacturer", product.getManufacturer());
         metadata.put("productOverview", product.getDescription());
         metadata.put("breadcrumbs", this.getBreadcrumbs(inputProduct.getCategoryId()));
