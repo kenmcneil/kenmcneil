@@ -1,0 +1,9 @@
+[
+	{
+		"appName": "brand-product-ge-task",
+		"name": "product-brand-ge-import",
+		"jobName": "processGeProducts",
+		"heapSize": "512m"
+	}
+	
+]

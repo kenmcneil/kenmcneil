@@ -59,7 +59,7 @@ public class Product implements Serializable {
 	/**
 	 * The product ID assigned to the product family by the manufacturer.
 	 */
-	private String manufacturerProductId;
+	private String productId;
 
 	/**
 	 * The manufacture of the product.

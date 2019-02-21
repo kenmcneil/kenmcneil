@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.brand.dao.ProductDistributionMapper">
+
+	<select  id="getSystemSourceId" parameterType="string" resultType="Integer">
+		select id from integration.productDistribution.systemSource s WITH (NOLOCK) WHERE s.sourceName = #{sourceName}
+	</select>
+	
+	<insert id="insertSystemSource" parameterType="SystemSource" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
+		INSERT into integration.productDistribution.systemSource (
+			sourceName,
+			activeProductsFetched,
+			obsoleteProductsFetched,
+			activeProductsLastUpdated,
+			obsoleteProductsLastUpdated
+			
+		)
+		VALUES(
+			#{sourceName},
+			#{activeProductsFetched},
+			#{obsoleteProductsFetched},
+			getDate(),
+			getDate()
+		)
+	
+	</insert>
+	
+	<update id="updateSystemSource">
+		UPDATE integration.productDistribution.systemSource 
+		SET activeProductsFetched = #{activeProductsFetched},
+			obsoleteProductsFetched = #{obsoleteProductsFetched},
+			activeProductsLastUpdated = getDate(),
+			obsoleteProductsLastUpdated = getDate()
+		WHERE id = #{id}
+	
+	</update>
+	
+	
+	
+	<select  id="getProductId" parameterType="map" resultType="Integer">
+		select id from integration.productDistribution.product p WITH (NOLOCK) WHERE p.productId = #{productId} and p.systemSourceId = #{systemSourceId}
+	</select>
+	
+	
+	<insert id="insertProduct" parameterType="SystemSource" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
+		insert into integration.productDistribution.product(
+				systemSourceId,
+				productId,
+				lastModifiedDate,
+				productName,
+				title,
+				description,
+				shortDescription,
+				manufacturer,
+				type,
+				retailPrice,
+				sku,
+				upc,
+				isActive,
+				dateAvailable,
+				dateUpdated,
+				status,
+				categoryName,
+				color,
+				brandName
+		)
+		VALUES(
+				#{systemSourceId},
+				#{productId},
+				getDate(),
+				#{productName},
+				#{title},
+				#{description},
+				#{shortDescription},
+				#{manufacturer},
+				#{type},
+				#{retailPrice},
+				#{sku},
+				#{upc},
+				#{isActive},
+				#{dateAvailable},
+				#{dateUpdated},
+				#{status},
+				#{categoryName},
+				#{color},
+				#{brandName}
+		)
+	</insert>
+	
+	<update id="updateProduct">
+		UPDATE integration.productDistribution.product  
+			SET lastModifiedDate = getDate(),
+			productName = #{productName},
+			title = #{title},
+			description = #{description},
+			shortDescription = #{shortDescription},
+			manufacturer = #{manufacturer},
+			type = #{type},
+			retailPrice = #{retailPrice},
+			sku = #{sku},
+			upc = #{upc},
+			isActive = #{isActive},
+			dateAvailable = #{dateAvailable},
+			dateUpdated = #{dateUpdated},
+			status = #{status},
+			categoryName = #{categoryName},
+			color = #{color},
+			brandName = #{brandName}
+		WHERE id = #{id} 
+	</update>
+
+	
+	
+	<select id="getJson" parameterType="map" resultType="Integer">
+		
+	SELECT j.id from  Integration.productDistribution.json j WITH(NOLOCK)
+	INNER JOIN  integration.productDistribution.productJson pj WITH (NOLOCK)
+	ON  j.id = pj.jsonId 
+	WHERE j.jsonTypeId =   #{jsonTypeId}
+		AND pj.productId=#{productId}
+	</select>
+	
+	<insert id="insertJson" parameterType="com.ferguson.cs.product.task.brand.model.JsonReference"  
+					keyColumn="id" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO integration.productDistribution.json (jsonTypeId, createdDate, json)  
+			VALUES (#{jsonType, typeHandler=com.ferguson.cs.product.task.brand.dao.IntMappedEnumTypeHandler},
+			 		getDate(),
+			 		#{jsonString}  
+			)
+				
+	</insert>
+	
+	<insert id="updateJson"  >
+		UPDATE integration.productDistribution.json  
+			SET createdDate = getDate(),
+				json = #{jsonString}  
+		WHERE  id = #{id}
+		
+				
+	</insert>
+	
+	<insert id="insertProductJson"  parameterType="map"  keyColumn="id" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO integration.productDistribution.productJson(
+				productId,
+				jsonid
+			)
+			VALUES (
+				#{productId},
+				#{jsonId}
+			) 
+				
+	</insert>
+	
+	
+	
+	<resultMap id="productJson" type="com.ferguson.cs.product.task.brand.model.ProductJson">
+		<id property="id" column="id"/>
+		<result property="jsonId" column="jsonId"/>
+		<result property="productId" column="productId"/>
+	</resultMap>
+	
+	<select  id="listStaleProducts" parameterType="int" resultMap="productJson">
+		select id, jsonId, productId  from integration.productdistribution.productjson where productId in  (
+			select id from integration.productdistribution.product  p 
+				where 
+					p.systemSourceId =  #{systemSourceId} AND 
+					p.lastModifiedDate &lt;&gt; cast(GETDATE() as date) )
+					
+	</select> 
+	
+	
+	
+	<delete  id="deleteProductJson"  parameterType="map">
+		delete from integration.productDistribution.productjson   
+		where 
+			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
+	</delete>
+	
+	<delete  id="deleteProducts" parameterType="map" >
+		delete from integration.productDistribution.product 
+		where 
+			systemSourceId =  #{systemSourceId} AND 
+			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
+	</delete> 
+	
+	<delete  id="deleteJson" parameterType="map" >
+		delete from integration.productDistribution.json 
+		where 
+			id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
+	</delete> 
+	
+</mapper>
