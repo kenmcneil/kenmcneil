@@ -12,6 +12,7 @@ import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
+import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,6 +35,9 @@ public class StylyzeJobConfiguration {
     }
 
     @Autowired
+    private StylyzeSettings stylyzeSettings;
+
+    @Autowired
     private JobBuilderFactory stylyzeJobs;
 
     @Autowired
@@ -42,24 +46,7 @@ public class StylyzeJobConfiguration {
     @Bean
     public ItemReader<StylyzeInputProduct> stylyzeProductReader()
     {
-
-        ItemReader<StylyzeInputProduct> reader = new ItemReader<StylyzeInputProduct>() {
-            @Autowired
-            private StylyzeSettings stylyzeSettings;
-
-            private Integer index = 0;
-
-            @Override
-            public StylyzeInputProduct read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
-                StylyzeInputProduct product = null;
-                List<StylyzeInputProduct> inputData = this.stylyzeSettings.getInputData();
-                if (this.index < inputData.size()) {
-                    product = inputData.get(index);
-                    index++;
-                }
-                return product;
-            }
-        };
+        ItemReader<StylyzeInputProduct> reader = new ListItemReader<>(this.stylyzeSettings.getInputData());
         return reader;
     }
 

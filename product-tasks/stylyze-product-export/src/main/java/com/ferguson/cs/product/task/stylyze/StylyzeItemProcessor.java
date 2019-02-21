@@ -18,6 +18,9 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
     @Value("${stylyze.base-url}")
     String baseUrl;
 
+    @Value("${stylyze.base-image-url}")
+    String baseImageUrl;
+
     @Autowired
     private ProductService productService;
 
@@ -45,7 +48,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
         }
         String manufacturerString = StringUtils.trimAllWhitespace(manufacturer).toLowerCase();
         String imageString = image.replaceAll(" ", "_").toLowerCase();
-        return String.format("https://s3.img-b.com/image/private/c_lpad,f_auto,h_1200,t_base/v3/product/%s/%s", manufacturerString, imageString);
+        return String.format("%s/c_lpad,f_auto,h_1200,t_base/v3/product/%s/%s", baseImageUrl, manufacturerString, imageString);
     }
 
     @Override

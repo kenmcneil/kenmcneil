@@ -15,11 +15,11 @@ public class ProductService {
         return productDao;
     }
 
+    @Autowired
     public void setProductDao(ProductDao productDao) {
         this.productDao = productDao;
     }
 
-    @Autowired
     private ProductDao productDao;
 
     public List<Product> getProductData(int familyId) {
