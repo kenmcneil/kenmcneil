@@ -8,20 +8,20 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.*;
-import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 @Configuration
 public class StylyzeJobConfiguration {
@@ -43,6 +43,17 @@ public class StylyzeJobConfiguration {
     @Autowired
     private StepBuilderFactory stylyzeSteps;
 
+    @Value("${spring.application.name}")
+    private String applicationName;
+
+    public Resource getTempResource(String prefix, String fileType) throws IOException {
+        String tmpDirStr = System.getProperty("java.io.tmpdir");
+        File tempFolder =  new File(tmpDirStr.concat("/").concat(applicationName));
+        tempFolder.mkdirs();
+        File tempFile = File.createTempFile(prefix + "-", "." + fileType, tempFolder);
+        return new FileSystemResource(tempFile);
+    }
+
     @Bean
     public ItemReader<StylyzeInputProduct> stylyzeProductReader()
     {
@@ -61,10 +72,10 @@ public class StylyzeJobConfiguration {
      * @return writer
      */
     @Bean
-    public JsonFileItemWriter<StylyzeProduct> stylyzeProductWriter(){
+    public JsonFileItemWriter<StylyzeProduct> stylyzeProductWriter() throws IOException {
         return new JsonFileItemWriterBuilder<StylyzeProduct>()
                 .jsonObjectMarshaller(new JacksonJsonObjectMarshaller<>())
-                .resource(new ClassPathResource("stylyze-output.json"))
+                .resource(this.getTempResource("stylyze-output", "json"))
                 .name("stylyzeProductWriter")
                 .build();
     }
