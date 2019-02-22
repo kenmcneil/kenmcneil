@@ -91,9 +91,6 @@ public class StylyzeJobConfiguration {
                 .reader(stylyzeProductReader)
                 .processor(processor)
                 .writer(writer)
-                .faultTolerant()
-                .skipLimit(10)
-                .skip(FlatFileParseException.class)
                 .build();
     }
 
