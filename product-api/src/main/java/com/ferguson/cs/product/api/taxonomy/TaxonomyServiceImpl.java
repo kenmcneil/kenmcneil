@@ -7,12 +7,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.model.taxonomy.TaxonomyReference;
 import com.ferguson.cs.utilities.ArgumentAssert;
 
+@Service
 public class TaxonomyServiceImpl implements TaxonomyService {
 
 	private final TaxonomyRepository taxonomyRepository;
