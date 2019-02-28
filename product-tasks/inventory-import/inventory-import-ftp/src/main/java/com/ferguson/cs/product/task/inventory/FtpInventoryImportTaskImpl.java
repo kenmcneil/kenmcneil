@@ -1,22 +1,24 @@
 package com.ferguson.cs.product.task.inventory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.ferguson.cs.product.task.inventory.service.FtpInventoryImportService;
+import com.ferguson.cs.product.task.inventory.service.InventoryImportService;
 
 @Service
 public class FtpInventoryImportTaskImpl implements FtpInventoryImportTask {
 
-	private FtpInventoryImportService ftpInventoryImportService;
+	private InventoryImportService ftpInventoryImportService;
 
 	@Autowired
-	public void setFtpInventoryImportService(FtpInventoryImportService ftpInventoryImportService) {
+	@Qualifier("ftpInventoryImportService")
+	public void setFtpInventoryImportService(InventoryImportService ftpInventoryImportService) {
 		this.ftpInventoryImportService = ftpInventoryImportService;
 	}
 
 	@Override
 	public void importInventoryViaFtp() {
-		ftpInventoryImportService.downloadVendorInventoryFiles();
+		ftpInventoryImportService.importInventory();
 	}
 }

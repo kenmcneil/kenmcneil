@@ -1,0 +1,20 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.build: debug
+
+spring:
+  batch:
+    job:
+      enabled: false
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.build
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"

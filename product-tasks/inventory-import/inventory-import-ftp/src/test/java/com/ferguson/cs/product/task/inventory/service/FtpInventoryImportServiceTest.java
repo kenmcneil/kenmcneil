@@ -19,9 +19,8 @@ import org.mockito.Spy;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.messaging.MessagingException;
 
+import com.ferguson.cs.product.task.inventory.FtpInventoryImportConfiguration;
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
-import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration.InventoryGateway;
-import com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobDao;
 import com.ferguson.cs.product.task.inventory.dao.reporter.FtpInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
@@ -34,17 +33,17 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 	private FtpInventoryDao ftpInventoryDao;
 
 	@Mock
-	private InventoryImportJobDao inventoryImportJobDao;
+	private InventoryImportJobLogService inventoryImportJobLogService;
 
 	@Mock
 	private DelegatingSessionFactory delegatingSessionFactory;
 
 	@Mock
-	private InventoryGateway inventoryGateway;
+	private FtpInventoryImportConfiguration.InventoryGateway inventoryGateway;
 
 	@InjectMocks
 	@Spy
-	private FtpInventoryImportService ftpInventoryImportService = new FtpInventoryImportServiceImpl();
+	private InventoryImportService ftpInventoryImportService = new FtpInventoryImportServiceImpl();
 
 	@Before
 	public void beforeTest() {
@@ -58,12 +57,12 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);
 		when(ftpInventoryDao.getVendorFtpData()).thenReturn(vendorFtpDataList);
-		ftpInventoryImportService.downloadVendorInventoryFiles();
+		ftpInventoryImportService.importInventory();
 		ArgumentCaptor<FtpInventoryImportJobLog> argument =  ArgumentCaptor.forClass(FtpInventoryImportJobLog.class);
 
 
 		verify(inventoryGateway,times(1)).receiveVendorInventoryFileFtp(any());
-		verify(ftpInventoryImportService,times(2)).saveFtpInventoryImportJobLog(argument.capture());
+		verify(inventoryImportJobLogService,times(2)).saveInventoryImportJobLog(argument.capture());
 
 		FtpInventoryImportJobLog ftpInventoryImportJobLog = argument.getAllValues().get(1);
 
@@ -82,13 +81,13 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 		MessagingException e = new MessagingException("Failure", new MessagingException("Failure Cause"));
 		when(inventoryGateway.receiveVendorInventoryFileFtp(any())).thenThrow(e);
 
-		ftpInventoryImportService.downloadVendorInventoryFiles();
+		ftpInventoryImportService.importInventory();
 
 
 		ArgumentCaptor<FtpInventoryImportJobLog> argument =  ArgumentCaptor.forClass(FtpInventoryImportJobLog.class);
 
 		verify(inventoryGateway,times(1)).receiveVendorInventoryFileFtp(any());
-		verify(ftpInventoryImportService,times(2)).saveFtpInventoryImportJobLog(argument.capture());
+		verify(inventoryImportJobLogService,times(2)).saveInventoryImportJobLog(argument.capture());
 		assertThat(argument.getAllValues().size()).isEqualTo(2);
 		FtpInventoryImportJobLog ftpInventoryImportJobLog = argument.getAllValues().get(1);
 
@@ -105,12 +104,12 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);
 		when(ftpInventoryDao.getVendorFtpData()).thenReturn(vendorFtpDataList);
-		ftpInventoryImportService.downloadVendorInventoryFiles();
+		ftpInventoryImportService.importInventory();
 
 		ArgumentCaptor<FtpInventoryImportJobLog> argument =  ArgumentCaptor.forClass(FtpInventoryImportJobLog.class);
 
 		verify(inventoryGateway,times(1)).receiveVendorInventoryFileSftp(any());
-		verify(ftpInventoryImportService,times(2)).saveFtpInventoryImportJobLog(argument.capture());
+		verify(inventoryImportJobLogService,times(2)).saveInventoryImportJobLog(argument.capture());
 
 		FtpInventoryImportJobLog ftpInventoryImportJobLog = argument.getAllValues().get(1);
 
@@ -128,13 +127,13 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 		MessagingException e = new MessagingException("Failure", new MessagingException("Failure Cause"));
 		when(inventoryGateway.receiveVendorInventoryFileSftp(any())).thenThrow(e);
 
-		ftpInventoryImportService.downloadVendorInventoryFiles();
+		ftpInventoryImportService.importInventory();
 
 
 		ArgumentCaptor<FtpInventoryImportJobLog> argument =  ArgumentCaptor.forClass(FtpInventoryImportJobLog.class);
 
 		verify(inventoryGateway,times(1)).receiveVendorInventoryFileSftp(any());
-		verify(ftpInventoryImportService,times(2)).saveFtpInventoryImportJobLog(argument.capture());
+		verify(inventoryImportJobLogService,times(2)).saveInventoryImportJobLog(argument.capture());
 		assertThat(argument.getAllValues().size()).isEqualTo(2);
 		FtpInventoryImportJobLog ftpInventoryImportJobLog = argument.getAllValues().get(1);
 

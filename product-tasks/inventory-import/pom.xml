@@ -14,6 +14,7 @@
 	<modules>
 		<module>inventory-import-common</module>
 		<module>inventory-import-ftp</module>
+		<module>inventory-import-email</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
@@ -26,6 +27,11 @@
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>inventory-import-ftp</artifactId>
 				<version>1.0.2-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ferguson.cs.product</groupId>
+				<artifactId>inventory-import-email</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

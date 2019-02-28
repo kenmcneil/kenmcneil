@@ -7,9 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.product.task.inventory.FtpInventoryImportConfiguration.InventoryGateway;
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
-import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration.InventoryGateway;
-import com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobDao;
 import com.ferguson.cs.product.task.inventory.dao.reporter.FtpInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobError;
@@ -18,10 +17,10 @@ import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobType;
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
-@Service
-public class FtpInventoryImportServiceImpl implements FtpInventoryImportService {
+@Service("ftpInventoryImportService")
+public class FtpInventoryImportServiceImpl implements InventoryImportService {
 	private FtpInventoryDao ftpInventoryDao;
-	private InventoryImportJobDao inventoryImportJobDao;
+	private InventoryImportJobLogService inventoryImportJobLogService;
 	private DelegatingSessionFactory delegatingSessionFactory;
 	private InventoryGateway inventoryGateway;
 
@@ -31,8 +30,8 @@ public class FtpInventoryImportServiceImpl implements FtpInventoryImportService 
 	}
 
 	@Autowired
-	public void setInventoryImportJobDao(InventoryImportJobDao inventoryImportJobDao) {
-		this.inventoryImportJobDao = inventoryImportJobDao;
+	public void setInventoryImportJobLogService(InventoryImportJobLogService inventoryImportJobLogService) {
+		this.inventoryImportJobLogService = inventoryImportJobLogService;
 	}
 
 	@Autowired
@@ -46,7 +45,7 @@ public class FtpInventoryImportServiceImpl implements FtpInventoryImportService 
 	}
 
 	@Override
-	public void downloadVendorInventoryFiles() {
+	public void importInventory() {
 		List<VendorFtpData> vendorFtpDataList = ftpInventoryDao.getVendorFtpData();
 
 		for (VendorFtpData vendorFtpData : vendorFtpDataList) {
@@ -61,7 +60,7 @@ public class FtpInventoryImportServiceImpl implements FtpInventoryImportService 
 			} else {
 				ftpInventoryImportJobLog.setSftp(true);
 			}
-			saveFtpInventoryImportJobLog(ftpInventoryImportJobLog);
+			inventoryImportJobLogService.saveInventoryImportJobLog(ftpInventoryImportJobLog);
 
 			if (StringUtils.isBlank(vendorFtpData.getFtpUrl())) {
 				InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
@@ -124,17 +123,7 @@ public class FtpInventoryImportServiceImpl implements FtpInventoryImportService 
 			} else {
 				ftpInventoryImportJobLog.setStatus(InventoryImportJobStatus.FAILED);
 			}
-			saveFtpInventoryImportJobLog(ftpInventoryImportJobLog);
+			inventoryImportJobLogService.saveInventoryImportJobLog(ftpInventoryImportJobLog);
 		}
-	}
-
-	@Override
-	public FtpInventoryImportJobLog saveFtpInventoryImportJobLog(FtpInventoryImportJobLog ftpInventoryImportJobLog) {
-		if (ftpInventoryImportJobLog.getId() == null) {
-			inventoryImportJobDao.insertFtpInventoryImportJobLog(ftpInventoryImportJobLog);
-		} else {
-			inventoryImportJobDao.updateFtpInventoryImportJobLog(ftpInventoryImportJobLog);
-		}
-		return ftpInventoryImportJobLog;
 	}
 }
