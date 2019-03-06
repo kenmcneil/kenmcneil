@@ -80,27 +80,26 @@ public class StylyzeConfiguration {
     @Configuration
     protected static class CoreDataSourceConfiguration {
         @Bean
-        @Primary
         @ConfigurationProperties("datasource.core")
+        @Primary
         public DataSourceProperties coreDataSourceProperties() {
             return new DataSourceProperties();
         }
 
         @Bean
-        @Primary
         @ConfigurationProperties("datasource.core")
+        @Primary
         public DataSource coreDataSource() {
             return coreDataSourceProperties().initializeDataSourceBuilder().build();
         }
 
         @Bean(name = "coreTransactionManager")
-        @Primary
         public DataSourceTransactionManager coreTransactionManager() {
             return new DataSourceTransactionManager(coreDataSource());
         }
 
-        @Bean(name = "coreSqlSessionFactory")
         @Primary
+        @Bean(name = "coreSqlSessionFactory")
         public SqlSessionFactory coreSqlSessionFactory(DataSource dataSource) throws Exception {
             SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
             factory.setDataSource(dataSource);

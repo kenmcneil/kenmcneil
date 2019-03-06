@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.stylyze;
 
 import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
 import com.ferguson.cs.product.task.stylyze.model.StylyzeProduct;
+import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -45,11 +46,8 @@ public class StylyzeJobConfiguration {
     @Value("${spring.application.name}")
     private String applicationName;
 
-    public Resource getTempResource(String prefix, String fileType) throws IOException {
-        String tmpDirStr = System.getProperty("user.dir");
-        File tempFolder =  new File(tmpDirStr.concat("/").concat(applicationName));
-        tempFolder.mkdirs();
-        File tempFile = File.createTempFile(prefix + "-", "." + fileType, tempFolder);
+    public Resource getTempResource() throws IOException {
+        File tempFile = DataFlowTempFileHelper.createTempFile("stylyze-output", "json");
         return new FileSystemResource(tempFile);
     }
 
@@ -74,7 +72,7 @@ public class StylyzeJobConfiguration {
     public JsonFileItemWriter<StylyzeProduct> stylyzeProductWriter() throws IOException {
         return new JsonFileItemWriterBuilder<StylyzeProduct>()
                 .jsonObjectMarshaller(new JacksonJsonObjectMarshaller<>())
-                .resource(this.getTempResource("stylyze-output", "json"))
+                .resource(this.getTempResource())
                 .name("stylyzeProductWriter")
                 .build();
     }
