@@ -47,7 +47,7 @@ public class StylyzeJobConfiguration {
     private String applicationName;
 
     public Resource getTempResource(String prefix, String fileType) throws IOException {
-        String tmpDirStr = System.getProperty("java.io.tmpdir");
+        String tmpDirStr = System.getProperty("user.dir");
         File tempFolder =  new File(tmpDirStr.concat("/").concat(applicationName));
         tempFolder.mkdirs();
         File tempFile = File.createTempFile(prefix + "-", "." + fileType, tempFolder);
