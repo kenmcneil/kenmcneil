@@ -12,7 +12,7 @@
 	</parent>
 	
 	<properties>
-		<api-task.version>3.0.0-SNAPSHOT</api-task.version>
+		<api-task.version>3.0.0</api-task.version>
 	</properties>
 	
 	<version>1.0.2-SNAPSHOT</version>
