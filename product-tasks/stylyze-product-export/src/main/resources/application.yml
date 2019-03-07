@@ -1,0 +1,20 @@
+logging:
+  level:
+    ROOT: ERROR
+    org.springframework: WARN
+    org.springframework.cloud: WARN
+    org.springframework.web: INFO
+    com.build: INFO
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+management:
+  security:
+    enabled: false
+
+spring:
+  main:
+    allow-bean-definition-overriding: true

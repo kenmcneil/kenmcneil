@@ -1,0 +1,38 @@
+spring:
+  application:
+    # Name is used to lookup configuration on the configuration server and for service discovery.
+    name: api-task-stylyze
+  profiles:
+    active: local
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      name: api-task,api-task-stylyze
+      label: master
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+
+---
+
+#The unit testing profile disables both the configuration server and the discovery service.
+spring:
+  profiles: unit
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+---
+
+spring:
+  profiles: sandbox,staging,production
+  cloud:
+    config:
+      fail-fast: true
+      username: sdc
+

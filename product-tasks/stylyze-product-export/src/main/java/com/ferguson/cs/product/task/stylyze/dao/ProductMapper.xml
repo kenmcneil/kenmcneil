@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.stylyze.dao.ProductMapper">
+
+    <resultMap id="productMap" type="Product">
+        <result column="uniqueId" property="uniqueId" />
+        <result column="familyId" property="familyId" />
+        <result column="productid" property="productId" />
+        <result column="manufacturer" property="manufacturer" />
+        <result column="finish" property="finish" />
+        <result column="image" property="image" />
+        <result column="type" property="type" />
+        <result column="application" property="application" />
+        <result column="SKU" property="sku" />
+        <result column="ProductTitle" property="title" />
+        <result column="series" property="series" />
+        <result column="description" property="description" />
+        <result column="msrp" property="msrp" />
+        <result column="UPC" property="upc" />
+    </resultMap>
+
+    <select id="getProductData" resultMap="productMap">
+        select distinct
+            uniqueId,
+            familyId,
+            productid as productId,
+            manufacturer,
+            finish,
+            image,
+            type,
+            application,
+            SKU as sku,
+            ProductTitle as title,
+            series,
+            description,
+            msrp,
+            UPC,
+            status
+        from dbo.product
+        where familyId = #{familyId} and status = 'stock';
+    </select>
+
+    <resultMap id="productSpecsMap" type="ProductSpec">
+        <result column="productSpecId" property="productSpecId" />
+        <result column="value" property="value" />
+        <result column="attributeId" property="attributeId" />
+        <result column="dataType" property="dataType" />
+        <result column="attributeName" property="attributeName" />
+        <result column="showInList" property="showInList" />
+        <result column="units" property="units" />
+        <result column="showInGallery" property="showInGallery" />
+        <result column="hidden" property="hidden" />
+        <result column="productFeedInclude" property="productFeedInclude" />
+        <result column="dictionaryTermId" property="dictionaryTermId" />
+        <result column="shortDescription" property="shortDescription" />
+        <result column="attributeType" property="attributeType" />
+    </resultMap>
+
+    <select id="getProductSpecs" resultMap="productSpecsMap">
+        SELECT
+			pao.product_attr_optionvalue_id productSpecId,
+			pao.OptionValue value,
+			pa.attribute_id attributeId,
+			pa.DataType dataType,
+			pa.name attributeName,
+			pa.showInList showInList,
+			pa.showInGallery showInGallery,
+			pa.units units,
+			pa.hidden hidden,
+			pa.product_feed_include productFeedInclude,
+			dt.dictionaryTermId dictionaryTermId,
+			dt.shortDescription shortDescription,
+			pat.name attributeType,
+			CASE
+				WHEN specDropDisplay.id IS NOT NULL THEN 1
+				ELSE 0
+			END as displayOnProductDrop
+		FROM
+			mmc.dbo.product_attr pa WITH (NOLOCK)
+			INNER JOIN mmc.dbo.product_attr_optionvalue pao WITH(NOLOCK)
+				ON pa.attribute_id = pao.attribute_id
+			LEFT JOIN mmc.dbo.product_attr_types pat WITH(NOLOCK)
+				ON pat.type_id = pa.type_id
+			LEFT JOIN mmc.dbo.DictionaryTerms dt WITH(NOLOCK)
+				ON dt.dictionaryTermId = pa.dictionary_term_id
+			LEFT JOIN mmc.dbo.product_drop_product_specs_displayed specDropDisplay WITH(NOLOCK)
+				ON specDropDisplay.spec_id = pa.attribute_id
+				AND specDropDisplay.application = #{application}
+				AND specDropDisplay.type = #{type}
+		WHERE pao.productid_manufacturer_id	= #{familyId}
+		ORDER BY pat.orderBy, pa.name ASC
+    </select>
+
+    <resultMap id="productImagesResults" type="ProductGalleryImage">
+        <result column="imageName" property="image" />
+        <result column="imageText" property="imageText" />
+        <result column="ImageID" property="imageId" />
+    </resultMap>
+
+    <select id="getProductImages" resultMap="productImagesResults">
+        select
+            imageName,
+            ImageID,
+            imageText
+        from
+            mmc.dbo.product_ImageGallery WITH(NOLOCK)
+        where
+            manufacturer = #{manufacturer} and productID = #{productId};
+    </select>
+
+    <resultMap id="productCostResults" type="Float">
+        <result column="Cost" property="cost" />
+    </resultMap>
+
+    <select id="getProductCost" resultMap="productCostResults">
+        select Cost from mmc.dbo.pricebook_cost WITH(NOLOCK) where UniqueId = ${uniqueId} and PriceBookId = 1;
+    </select>
+
+    <resultMap id="productCategoriesResults" type="ProductCategory">
+        <result column="CategoryID" property="categoryId" />
+        <result column="ParentID" property="parentId" />
+        <result column="CategoryName" property="categoryName" />
+    </resultMap>
+
+    <select id="getProductCategories" resultMap="productCategoriesResults">
+        SELECT
+          c.CategoryID,
+          c.ParentID,
+          c.CategoryName
+        FROM
+          MMC_Build.dbo.PRD_CategoryProducts cp WITH(NOLOCK)
+        INNER JOIN
+          MMC_Build.dbo.PRD_CategoryV2 c WITH(NOLOCK) ON
+            c.CategoryID = cp.CategoryID AND
+            c.Active = 'Y'
+        WHERE
+          cp.Manufacturer = #{manufacturer} AND
+          cp.productID = #{productId} AND
+          c.isFeatured = 1
+        ORDER BY
+          c.isFeatured DESC,
+          c.CategoryID ASC;
+    </select>
+
+    <select id="getCategory" resultMap="productCategoriesResults">
+        select
+          CategoryID,
+          CategoryName,
+          ParentID
+        from MMC_Build.dbo.PRD_CategoryV2 WITH(NOLOCK)
+        where CategoryID = #{categoryId};
+    </select>
+
+    <resultMap id="productRatingsResults" type="ProductRatings">
+        <result column="count" property="count" />
+        <result column="rating" property="rating" />
+    </resultMap>
+
+    <select id="getProductRatings" resultMap="productRatingsResults">
+        select top 1 count, rating from dbo.product_ratings where product_composite_id = #{familyId}
+    </select>
+
+    <resultMap id="productVariationResults" type="ProductVariation">
+        <result column="variationId" property="id" />
+        <result column="name" property="name" />
+        <result column="productCompositeId" property="familyId" />
+        <result column="dictionaryTermId" property="dictionaryTermId" />
+        <result column="productVariationName" property="variationName" />
+        <result column="sortOrder" property="sortOrder" />
+        <result column="image" property="image" />
+        <result column="useProductImage" property="useProductImage" />
+    </resultMap>
+
+    <select id="getProductVariations" resultMap="productVariationResults">
+        		WITH variantIds AS
+		(
+			SELECT
+				pv.id
+				,pv.name
+				,pvm.productVariationId
+				,pv.dictionaryTermId
+				,i.image
+				,pvm.useProductImage
+			FROM
+				mmc.dbo.productVariation pv WITH (NOLOCK)
+				INNER JOIN mmc.dbo.productVariationMapping pvm WITH (NOLOCK)
+				ON
+				pv.id = pvm.productVariationId
+				LEFT JOIN mmc.product.productVariationMappingImage pvmi WITH(NOLOCK)
+				ON pvmi.productVariationMappingId = pvm.id
+				LEFT JOIN mmc.product.image i WITH(NOLOCK)
+				ON
+				pvmi.imageId = i.id
+			WHERE
+				pvm.productIdManufacturerId = #{familyId}
+		)
+		SELECT
+			variantIds.id as variationId
+			,variantIds.name as name
+			,pvm.productIdManufacturerId as productCompositeId
+			,variantIds.dictionaryTermId
+			,pvm.variationName as productVariationName
+			,pvm.sortOrder
+			,i.image
+			,pvm.useProductImage
+		FROM
+			mmc.dbo.productVariationMapping pvm WITH (NOLOCK)
+			INNER JOIN variantIds
+			ON
+			pvm.productVariationId = variantIds.productVariationId
+			INNER JOIN mmc.dbo.productid_manufacturer pm WITH (NOLOCK)
+			ON
+			pm.productid_manufacturer_id = pvm.productIdManufacturerId
+			INNER JOIN mmc.dbo.product p WITH (NOLOCK)
+			ON
+			p.productid = pm.productid
+			AND
+			p.manufacturer = pm.manufacturer
+			LEFT JOIN mmc.product.productVariationMappingImage pvmi WITH(NOLOCK)
+			ON pvmi.productVariationMappingId = pvm.id
+			LEFT JOIN mmc.product.image i WITH(NOLOCK)
+			ON
+			pvmi.imageId = i.id
+		WHERE
+			p.status = 'stock'
+		GROUP BY
+			variantIds.id
+			,variantIds.name
+			,pvm.productIdManufacturerId
+			,variantIds.dictionaryTermId
+			,pvm.variationName
+			,pvm.sortOrder
+			,i.image
+			,pvm.useProductImage
+		ORDER BY
+			isnull(pvm.sortOrder, 255), productCompositeId
+    </select>
+</mapper>
