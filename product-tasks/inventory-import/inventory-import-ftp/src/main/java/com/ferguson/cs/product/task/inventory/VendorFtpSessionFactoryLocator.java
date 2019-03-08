@@ -14,6 +14,7 @@ import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
 
 	private final Map<Object,SessionFactory> sessionFactoryMap = new HashMap();
+	private static final int MILLISECOND_TIMEOUT = 15000;
 
 	@Override
 	public SessionFactory getSessionFactory(Object key) {
@@ -36,6 +37,8 @@ class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
 			sessionFactory.setPort(key.getFtpPort());
 			sessionFactory.setUsername(key.getFtpUser());
 			sessionFactory.setPassword(key.getFtpPassword());
+			sessionFactory.setConnectTimeout(MILLISECOND_TIMEOUT);
+			sessionFactory.setDataTimeout(MILLISECOND_TIMEOUT);
 			if(key.getFtpFilename().toLowerCase().endsWith(".zip")) {
 				sessionFactory.setFileType(FTP.BINARY_FILE_TYPE);
 			} else {
@@ -49,6 +52,7 @@ class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
 			sessionFactory.setUser(key.getFtpUser());
 			sessionFactory.setPassword(key.getFtpPassword());
 			sessionFactory.setAllowUnknownKeys(true);
+			sessionFactory.setTimeout(MILLISECOND_TIMEOUT);
 			return sessionFactory;
 		}
 	}
