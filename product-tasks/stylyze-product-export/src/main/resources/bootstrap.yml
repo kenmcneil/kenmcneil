@@ -1,13 +1,13 @@
 spring:
   application:
     # Name is used to lookup configuration on the configuration server and for service discovery.
-    name: api-task-stylyze
+    name: stylize-product-export
   profiles:
     active: local
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      name: api-task,api-task-stylyze
+      name: api-task,stylize-product-export
       label: master
       fail-fast: true
       uri: http://config
