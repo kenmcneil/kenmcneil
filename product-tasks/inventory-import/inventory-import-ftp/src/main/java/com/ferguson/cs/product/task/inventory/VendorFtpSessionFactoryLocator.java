@@ -14,7 +14,7 @@ import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
 
 	private final Map<Object,SessionFactory> sessionFactoryMap = new HashMap();
-	private static final int MILLISECOND_TIMEOUT = 5000;
+	private static final int MILLISECOND_TIMEOUT = 15000;
 
 	@Override
 	public SessionFactory getSessionFactory(Object key) {
