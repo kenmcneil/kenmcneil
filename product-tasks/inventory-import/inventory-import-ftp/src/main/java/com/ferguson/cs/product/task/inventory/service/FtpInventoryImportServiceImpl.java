@@ -3,6 +3,8 @@ package com.ferguson.cs.product.task.inventory.service;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 	private InventoryImportJobLogService inventoryImportJobLogService;
 	private DelegatingSessionFactory delegatingSessionFactory;
 	private InventoryGateway inventoryGateway;
+
+	private static final Logger LOG = LoggerFactory.getLogger(FtpInventoryImportServiceImpl.class);
 
 	@Autowired
 	public void setFtpInventoryDao(FtpInventoryDao ftpInventoryDao) {
@@ -95,7 +99,9 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 				if (ftpInventoryImportJobLog.getSftp()) {
 					try {
 
+						LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
 						inventoryGateway.receiveVendorInventoryFileSftp(vendorFtpData);
+						LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 						inventoryImportJobError.setErrorMessage(String
@@ -106,7 +112,10 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 					}
 				} else {
 					try {
+						LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
 						inventoryGateway.receiveVendorInventoryFileFtp(vendorFtpData);
+						LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
+
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 						inventoryImportJobError.setErrorMessage(String

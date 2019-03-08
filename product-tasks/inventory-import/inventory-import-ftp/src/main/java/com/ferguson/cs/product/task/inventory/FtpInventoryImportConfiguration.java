@@ -18,11 +18,15 @@ import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
 @Configuration
 @IntegrationComponentScan(basePackages = "com.ferguson.cs.product.task.inventory")
+@EnableRetry
 public class FtpInventoryImportConfiguration {
 
 	protected static final String INBOUND_SFTP_CHANNEL = "inboundSftpChannel";
@@ -80,9 +84,11 @@ public class FtpInventoryImportConfiguration {
 	public interface InventoryGateway {
 
 		@Gateway(requestChannel = INBOUND_SFTP_CHANNEL)
+		@Retryable
 		File receiveVendorInventoryFileSftp(VendorFtpData vendorFtpData);
 
 		@Gateway(requestChannel = INBOUND_FTP_CHANNEL)
+		@Retryable
 		File receiveVendorInventoryFileFtp(VendorFtpData vendorFtpData);
 	}
 }
