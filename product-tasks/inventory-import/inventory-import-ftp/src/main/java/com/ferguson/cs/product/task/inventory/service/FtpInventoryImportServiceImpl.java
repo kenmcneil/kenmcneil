@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.task.inventory.FtpInventoryImportConfiguration.InventoryGateway;
@@ -99,9 +100,7 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 				if (ftpInventoryImportJobLog.getSftp()) {
 					try {
 
-						LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
-						inventoryGateway.receiveVendorInventoryFileSftp(vendorFtpData);
-						LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
+						receiveVendorInventoryFileSftp(vendorFtpData);
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 						inventoryImportJobError.setErrorMessage(String
@@ -112,10 +111,7 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 					}
 				} else {
 					try {
-						LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
-						inventoryGateway.receiveVendorInventoryFileFtp(vendorFtpData);
-						LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
-
+						receiveVendorInventoryFileFtp(vendorFtpData);
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 						inventoryImportJobError.setErrorMessage(String
@@ -134,5 +130,19 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 			}
 			inventoryImportJobLogService.saveInventoryImportJobLog(ftpInventoryImportJobLog);
 		}
+	}
+
+	@Retryable
+	private void receiveVendorInventoryFileSftp(VendorFtpData vendorFtpData) {
+		LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
+		inventoryGateway.receiveVendorInventoryFileSftp(vendorFtpData);
+		LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
+	}
+
+	@Retryable
+	private void receiveVendorInventoryFileFtp(VendorFtpData vendorFtpData) {
+		LOG.info("Retrieving file from " + vendorFtpData.getVendorId());
+		inventoryGateway.receiveVendorInventoryFileFtp(vendorFtpData);
+		LOG.info("Retrieved file from " + vendorFtpData.getVendorId());
 	}
 }

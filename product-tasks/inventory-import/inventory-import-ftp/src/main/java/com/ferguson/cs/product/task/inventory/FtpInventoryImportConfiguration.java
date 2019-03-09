@@ -84,11 +84,9 @@ public class FtpInventoryImportConfiguration {
 	public interface InventoryGateway {
 
 		@Gateway(requestChannel = INBOUND_SFTP_CHANNEL)
-		@Retryable
 		File receiveVendorInventoryFileSftp(VendorFtpData vendorFtpData);
 
 		@Gateway(requestChannel = INBOUND_FTP_CHANNEL)
-		@Retryable
 		File receiveVendorInventoryFileFtp(VendorFtpData vendorFtpData);
 	}
 }
