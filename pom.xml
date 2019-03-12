@@ -15,7 +15,7 @@
 		<api-task.version>3.0.0</api-task.version>
 	</properties>
 	
-	<version>1.0.6</version>
+	<version>1.0.7-SNAPSHOT</version>
 	<groupId>com.ferguson.cs.product</groupId>
 	<artifactId>product-services</artifactId>
 	<packaging>pom</packaging>
@@ -40,7 +40,7 @@
 			<dependency>
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>product-model</artifactId>
-				<version>1.0.6</version>
+				<version>1.0.7-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
