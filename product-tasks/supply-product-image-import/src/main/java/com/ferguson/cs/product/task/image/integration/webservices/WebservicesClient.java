@@ -5,6 +5,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -85,7 +86,7 @@ public class WebservicesClient extends IntegrationClient {
 	 * @param inputStream
 	 * @return
 	 */
-	public ProductImageUploadResult uploadSupplyProductImageIOStream(String fileName, FileMessageResource inputStream) {
+	public ProductImageUploadResult uploadSupplyProductImageIOStream(String fileName, ImageFileResource inputStream) {
 		ArgumentAssert.notNullOrEmpty(fileName, "fileName");
 		ArgumentAssert.notNull(inputStream, "inputStream");
 		final MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();

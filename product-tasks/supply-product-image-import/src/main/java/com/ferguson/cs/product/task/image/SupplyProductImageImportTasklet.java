@@ -13,11 +13,12 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 
 import com.ferguson.cs.product.task.image.SupplyProductImageFileNameHelper.SupplyProductImageFileName;
-import com.ferguson.cs.product.task.image.integration.webservices.FileMessageResource;
+import com.ferguson.cs.product.task.image.integration.webservices.ImageFileResource;
 import com.ferguson.cs.product.task.image.integration.webservices.WebservicesClient;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -43,12 +44,20 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 		this.sessionFactroy = sessionFactroy;
 		this.ftpDirectory = supplyImageImportFtpConfiguration.getBaseFilePath();
 		this.wsClient = wsClient;
-		this.errorFtpDirectory = supplyImageImportFtpConfiguration.getErrorFilePath();
+		this.errorFtpDirectory = this.ftpDirectory + "/" + supplyImageImportFtpConfiguration.getErrorFilePath();
 	}
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-
+		
+		//Before proceeding check connection to webservices
+		if (!this.wsClient.serverUp()) {
+			throw new RuntimeException(String.format("Webservices can not be communicated with. Processing stoped. %s",
+					this.wsClient.getClientConfiguration() != null
+							? this.wsClient.getClientConfiguration().getRemoteServerAddress()
+							: "remote server not configured"));
+		}
+		
 		final UUID uploadUUID = UUID.randomUUID();
 		LOGGER.info(String.format("FileRenamingTasklet executing ... %s", uploadUUID));
 
@@ -102,61 +111,33 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 
 		}
 
-		if (!this.wsClient.serverUp()) {
-			throw new RuntimeException(String.format("Webservices can not be communicated with. Processing stoped. %s",
-					this.wsClient.getClientConfiguration() != null
-							? this.wsClient.getClientConfiguration().getRemoteServerAddress()
-							: "remote server not configured"));
-		}
-
 		LOGGER.info(String.format("Webservices server up ... %s", this.wsClient.serverUp()));
 
-		// do we want to thread these?
 		try (Session<LsEntry> ftpSession = sessionFactroy.getSession()) {
-			// upload to cloudinary
-
 			for (SupplyProductImageFileName supplyProductImageFileName : filesToProcess) {
-
-				// TODO: review each catch. I think we will have a keep processing approach by
-				// default and we can config a fail-fast if needed or desired.
-
 				LOGGER.info("Uploading supply product image file ... {} ",
 						supplyProductImageFileName.getUploadFileName());
 
 				InputStream inputStream = null;
-
 				try {
 					inputStream = ftpSession
 							.readRaw(this.ftpDirectory + "/" + supplyProductImageFileName.getUploadFileName());
 				} catch (Exception e) {
-
-					// TODO: Unable to write to byteArray most likely.
-
-					// same conditions exist below ...
-
-					// rename to allow processing in future run?
-					// move to an error directory?
-					// write to an error log file in this location?
+					//  move to an error directory
 					moveFileToErrorDir(ftpSession, supplyProductImageFileName.getUploadFileName());
 					LOGGER.error("Exception occured while reading file from ftp location: {} ",
 							supplyProductImageFileName.getNameWithExtension());
 					continue;
 				}
 
-				FileMessageResource fileMessageResource = null;
-
+				//
+				ImageFileResource imageFileResource = null;
 				try {
-					fileMessageResource = new FileMessageResource(IOUtils.toByteArray(inputStream),
+					imageFileResource = new ImageFileResource(IOUtils.toByteArray(inputStream),
 							supplyProductImageFileName.getNameWithExtension());
 				} catch (Exception e) {
-					// TODO: Unable to write to byteArray most likely.
-
-					// same conditions exist below ...
-
-					// rename to allow processing in future run?
-					// move to an error directory?
-					// write to an error log file in this location?
-                    moveFileToErrorDir(ftpSession, supplyProductImageFileName.getUploadFileName());
+					// move to an error directory
+					moveFileToErrorDir(ftpSession, supplyProductImageFileName.getUploadFileName());
 					LOGGER.error("Exception occured while managing file inputstream for upload.: {} ",
 							supplyProductImageFileName.getNameWithExtension());
 					continue;
@@ -165,17 +146,11 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 
 				try {
 					this.wsClient.uploadSupplyProductImageIOStream(supplyProductImageFileName.getNameWithExtension(),
-							fileMessageResource);
+							imageFileResource);
 				} catch (Exception e) {
 					LOGGER.error("Exception occured for uploading supply product image {}: {} ",
 							supplyProductImageFileName.getNameWithExtension(), e.getMessage());
-
-					// The image file was not imported. Move or rename back to allow processing.
-
-					// TODO: The file is in place on ftp under new name.
-					// rename to allow processing in future run?
-					// move to an error directory?
-					// write to an error log file in this location?
+					// move to an error directory
 					moveFileToErrorDir(ftpSession, supplyProductImageFileName.getUploadFileName());
 					LOGGER.error("Exception occured while uploading supply image file.: {} ",
 							supplyProductImageFileName.getNameWithExtension());
@@ -188,12 +163,8 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 							supplyProductImageFileName.getUploadFileName());
 					ftpSession.remove(this.ftpDirectory + "/" + supplyProductImageFileName.getUploadFileName());
 				} catch (Exception e) {
-
 					// Log but take no action. The file will be stale for any future runs and will
-					// need to
-					// be removed manually.
-					// This handling can be enhanced as needed.
-
+					// need to be removed manually.
 					LOGGER.error(
 							"Exception occured while cleaning up import file, file will be left in place for manual removal: {}: {} ",
 							supplyProductImageFileName.getNameWithExtension(), e.getMessage());
@@ -209,28 +180,17 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 
 	}
 	
-	//TODO assumption error dir is already presents or should we create one if not exists
 	private void moveFileToErrorDir(Session<LsEntry> ftpSession, String fileName) {
-		String errorDir = this.ftpDirectory + this.errorFtpDirectory ;
 		try {
 			//Check is error dir exists - if not create in under ftpDirectory
-			if (!ftpSession.exists(errorDir)) {
-				ftpSession.mkdir(errorDir);
+			if (!ftpSession.exists(this.errorFtpDirectory)) {
+				ftpSession.mkdir(this.errorFtpDirectory);
 			}
-		} catch (IOException e) {
-			//TODO should terminate the task ? 
-			LOGGER.error(
-					String.format("Error creating error dir ... | %s ", errorDir),
-					e);
-			return;
-		}
-		try {
 			ftpSession.rename(this.ftpDirectory + "/" + fileName, 
-					errorDir + "/" + fileName);
+					this.errorFtpDirectory + "/" + fileName);
 		} catch (IOException e) {
-			LOGGER.error(
-					String.format("Error moving file to error dir ... | %s ", fileName),
-					e);
+			throw new RuntimeException(
+					String.format("Error moving image file %s to error dir %s ",fileName, this.errorFtpDirectory),e);
 		}
 	}
 
