@@ -25,9 +25,6 @@ public class JobConfiguration {
 
 	private final TaskBatchJobFactory taskBatchJobFactory;
 
-	@Value("${numberOfImages.page.size:2}")
-	private int pageSize;
-
 	private final TaskConfiguration taskConfiguration;
 
 	private final WebservicesClient wsClient;

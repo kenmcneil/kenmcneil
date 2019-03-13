@@ -36,7 +36,7 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 	private final WebservicesClient wsClient;
 	private final SessionFactory<ChannelSftp.LsEntry> sessionFactroy;
 	private final String ftpDirectory;
-	private Integer numberOfFilesToProcess = 2;
+	private Integer numberOfFilesToProcess = 10;
 	private final String errorFtpDirectory;
 
 	public SupplyProductImageImportTasklet(SessionFactory<ChannelSftp.LsEntry> sessionFactroy, SupplyImageImportFtpConfiguration supplyImageImportFtpConfiguration,
@@ -45,6 +45,9 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 		this.ftpDirectory = supplyImageImportFtpConfiguration.getBaseFilePath();
 		this.wsClient = wsClient;
 		this.errorFtpDirectory = this.ftpDirectory + "/" + supplyImageImportFtpConfiguration.getErrorFilePath();
+		if (supplyImageImportFtpConfiguration.getMaxFilesToSync() != null) {
+			numberOfFilesToProcess = supplyImageImportFtpConfiguration.getMaxFilesToSync();
+		}
 	}
 
 	@Override
