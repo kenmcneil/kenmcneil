@@ -1,12 +1,13 @@
 package com.ferguson.cs.product.task.image.integration.webservices;
 
 import java.net.URI;
+import java.util.List;
 
 public class ProductImageUploadResult {
 
 	private String publicId;
 	private String uploadFileName;
-	private URI uri;
+	private List<URI> uriList;
 
 	public String getPublicId() {
 		return publicId;
@@ -24,12 +25,12 @@ public class ProductImageUploadResult {
 		this.uploadFileName = uploadFileName;
 	}
 
-	public URI getUri() {
-		return uri;
+	public List<URI> getUriList() {
+		return uriList;
 	}
 
-	public void setUri(URI uri) {
-		this.uri = uri;
+	public void setUriList(List<URI> uriList) {
+		this.uriList = uriList;
 	}
 
 }

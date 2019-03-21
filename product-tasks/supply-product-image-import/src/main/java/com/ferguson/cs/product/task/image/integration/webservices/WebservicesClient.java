@@ -97,6 +97,12 @@ public class WebservicesClient extends IntegrationClient {
 				this.buildServerPath("/v1/business-units/{business-unit}/upload-product-image"), HttpMethod.POST,
 				requestEntity, ProductImageUploadResult.class,
 				SupplyProductImageFileNameHelper.BUSINESS_UNIT_ID_SUPPLY);
+		if (result != null) {
+			LOGGER.info("Cloudinary Uploaded FileName "+result.getBody().getUploadFileName());
+			LOGGER.info("Cloudinary PublicId is "+result.getBody().getPublicId());
+			LOGGER.info("Cloudinary URI is "+result.getBody().getUriList());
+		
+		}	
 		return result.getBody();
 	}
 
