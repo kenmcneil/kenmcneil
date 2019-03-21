@@ -1,0 +1,23 @@
+
+spring:
+  application:
+    name: product-services-supply-product-image-import
+  profiles:
+    active: localdev
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      name: api-task, product-services-supply-product-image-import
+      label: master
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+      
+
+server:
+  port: 8084
+
+health:
+  config:
+    enabled: false
