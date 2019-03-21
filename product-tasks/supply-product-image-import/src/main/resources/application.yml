@@ -11,14 +11,3 @@ info:
     version: "@project.version@"
 
 
-
-eureka:
-  client:
-    enabled: false
-
-
-## http://webservices-dev-1.build.internal:8080
-## localdev or dev -- use eureka instance.
-## http://build-webservices
-webservices-client:
-  remote-server-address: http://localhost:8080
