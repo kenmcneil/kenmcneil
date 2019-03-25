@@ -1,6 +1,6 @@
 [
 	{
-		"appName": "product-services-supply-product-image-import",
+		"appName": "supply-product-image-import",
 		"name": "supply-product-image-import",
 		"jobName": "supply-product-image-import-job",
 		"heapSize": "512m"
