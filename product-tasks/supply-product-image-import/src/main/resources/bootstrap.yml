@@ -1,7 +1,7 @@
 
 spring:
   application:
-    name: supply-product-image-import
+    name: product-services-supply-product-image-import
   profiles:
     active: localdev
   cloud:
