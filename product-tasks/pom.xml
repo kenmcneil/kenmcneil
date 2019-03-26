@@ -6,7 +6,7 @@
 		<module>stylyze-product-export</module>
 		<module>supply-product-data-feed</module>
 		<module>brand-product-ingestion</module>
-    	<module>supply-product-image-import</module>
+    	<module>product-task-supply-image-import</module>
   </modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>

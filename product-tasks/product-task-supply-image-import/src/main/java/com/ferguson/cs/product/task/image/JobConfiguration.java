@@ -8,7 +8,6 @@ import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,7 +35,7 @@ public class JobConfiguration {
 		this.wsClient = wsClient;
 	}
 
-	@Bean(name = "supply-product-image-import-job")
+	@Bean(name = "supply-image-import-job")
 	public Job productImageImportJob() {
 
 		LOGGER.info("Creating product image import job bean ...");
@@ -51,7 +50,7 @@ public class JobConfiguration {
 			throw rethrow;
 		}
 
-		return taskBatchJobFactory.getJobBuilder("supply-product-image-import-job").incrementer(new RunIdIncrementer())
+		return taskBatchJobFactory.getJobBuilder("supply-image-import-job").incrementer(new RunIdIncrementer())
 				.listener(new JobListener()).start(jobStartStep).build();
 
 	}
