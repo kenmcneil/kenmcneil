@@ -1,76 +1,78 @@
 package com.ferguson.cs.product.task.stylyze.model;
 
 public class ProductVariation {
-    private Integer id;
-    private String name;
-    private Integer familyId;
-    private Integer dictionaryTermId;
-    private String variationName;
-    private Integer sortOrder;
-    private String image;
-    private Integer useProductImage;
 
-    public Integer getId() {
-        return id;
-    }
+	private Integer id;
+	private String name;
+	private Integer familyId;
+	private Integer dictionaryTermId;
+	private String variationName;
+	private Integer sortOrder;
+	private String image;
+	private Integer useProductImage;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+	public Integer getId() {
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public Integer getFamilyId() {
-        return familyId;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setFamilyId(Integer familyId) {
-        this.familyId = familyId;
-    }
+	public Integer getFamilyId() {
+		return familyId;
+	}
 
-    public Integer getDictionaryTermId() {
-        return dictionaryTermId;
-    }
+	public void setFamilyId(Integer familyId) {
+		this.familyId = familyId;
+	}
 
-    public void setDictionaryTermId(Integer dictionaryTermId) {
-        this.dictionaryTermId = dictionaryTermId;
-    }
+	public Integer getDictionaryTermId() {
+		return dictionaryTermId;
+	}
 
-    public String getVariationName() {
-        return variationName;
-    }
+	public void setDictionaryTermId(Integer dictionaryTermId) {
+		this.dictionaryTermId = dictionaryTermId;
+	}
 
-    public void setVariationName(String variationName) {
-        this.variationName = variationName;
-    }
+	public String getVariationName() {
+		return variationName;
+	}
 
-    public Integer getSortOrder() {
-        return sortOrder;
-    }
+	public void setVariationName(String variationName) {
+		this.variationName = variationName;
+	}
 
-    public void setSortOrder(Integer sortOrder) {
-        this.sortOrder = sortOrder;
-    }
+	public Integer getSortOrder() {
+		return sortOrder;
+	}
 
-    public String getImage() {
-        return image;
-    }
+	public void setSortOrder(Integer sortOrder) {
+		this.sortOrder = sortOrder;
+	}
 
-    public void setImage(String image) {
-        this.image = image;
-    }
+	public String getImage() {
+		return image;
+	}
 
-    public Integer getUseProductImage() {
-        return useProductImage;
-    }
+	public void setImage(String image) {
+		this.image = image;
+	}
 
-    public void setUseProductImage(Integer useProductImage) {
-        this.useProductImage = useProductImage;
-    }
+	public Integer getUseProductImage() {
+		return useProductImage;
+	}
+
+	public void setUseProductImage(Integer useProductImage) {
+		this.useProductImage = useProductImage;
+	}
+
 }
