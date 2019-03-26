@@ -1,13 +1,13 @@
 
 spring:
   application:
-    name: supply-product-image-import
+    name: product-task-supply-image-import
   profiles:
     active: localdev
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      name: api-task, product-services-supply-product-image-import
+      name: api-task, product-task-supply-image-import
       label: master
       fail-fast: true
       uri: http://config
