@@ -35,8 +35,8 @@ public class JobConfiguration {
 		this.wsClient = wsClient;
 	}
 
-	@Bean(name = "supply-image-import-job")
-	public Job productImageImportJob() {
+	@Bean
+	public Job supplyImageImportJob() {
 
 		LOGGER.info("Creating product image import job bean ...");
 
@@ -50,7 +50,7 @@ public class JobConfiguration {
 			throw rethrow;
 		}
 
-		return taskBatchJobFactory.getJobBuilder("supply-image-import-job").incrementer(new RunIdIncrementer())
+		return taskBatchJobFactory.getJobBuilder("supplyImageImportJob").incrementer(new RunIdIncrementer())
 				.listener(new JobListener()).start(jobStartStep).build();
 
 	}
