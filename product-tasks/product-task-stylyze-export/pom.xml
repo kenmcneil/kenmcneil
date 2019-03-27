@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>stylyze-product-export</artifactId>
+    <artifactId>product-task-stylyze-export</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.ferguson.cs</groupId>

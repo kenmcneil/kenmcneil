@@ -1,0 +1,9 @@
+[
+  {
+    "appName": "product-task-stylyze-export",
+    "name": "product-task-stylyze-export",
+    "jobName": "stylyzeJob",
+    "heapSize": "256m"
+  }
+
+]
