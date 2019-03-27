@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<modules>
 		<module>inventory-import</module>
-		<module>stylyze-product-export</module>
+		<module>product-task-stylyze-export</module>
 		<module>supply-product-data-feed</module>
 		<module>brand-product-ingestion</module>
     	<module>product-task-supply-image-import</module>

@@ -86,9 +86,12 @@ public class StylyzeJobConfiguration {
 				.build();
 	}
 
-	@Bean(name = "stylyze")
+	@Bean(name = "stylyzeJob")
 	public Job stylyzeJob(@Qualifier("stylyzeStep") Step stylyzeStep) {
-		return jobBuilderFactory.get("stylyze").start(stylyzeStep).build();
+		return jobBuilderFactory
+				.get("stylyzeJob")
+				.start(stylyzeStep)
+				.build();
 	}
 
 }
