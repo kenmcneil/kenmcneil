@@ -1,8 +1,6 @@
 package com.ferguson.cs.product.task.inventory.model.manhattan;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 public class LocationAvailabilityResponse implements Serializable {
@@ -10,10 +8,7 @@ public class LocationAvailabilityResponse implements Serializable {
 
 	private String itemId;
 	private String locationId;
-	private String status;
-	private Integer statusCode;
 	private Integer quantity;
-	private Date nextAvailabilityDate;
 	private Date transactionDateTime;
 	private String viewName;
 	private String viewId;
@@ -34,36 +29,12 @@ public class LocationAvailabilityResponse implements Serializable {
 		this.locationId = locationId;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public Integer getStatusCode() {
-		return statusCode;
-	}
-
-	public void setStatusCode(Integer statusCode) {
-		this.statusCode = statusCode;
-	}
-
 	public Integer getQuantity() {
 		return quantity;
 	}
 
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
-	}
-
-	public Date getNextAvailabilityDate() {
-		return nextAvailabilityDate;
-	}
-
-	public void setNextAvailabilityDate(Date nextAvailabilityDate) {
-		this.nextAvailabilityDate = nextAvailabilityDate;
 	}
 
 	public Date getTransactionDateTime() {

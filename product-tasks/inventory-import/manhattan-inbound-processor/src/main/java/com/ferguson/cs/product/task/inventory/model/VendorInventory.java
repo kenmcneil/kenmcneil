@@ -10,7 +10,7 @@ public class VendorInventory implements Serializable {
 	private String location;
 	private String status;
 	private Integer quantity;
-	private Date eta;
+	private String jobKey;
 
 	public String getMpn() {
 		return mpn;
@@ -44,11 +44,11 @@ public class VendorInventory implements Serializable {
 		this.quantity = quantity;
 	}
 
-	public Date getEta() {
-		return eta;
+	public String getJobKey() {
+		return jobKey;
 	}
 
-	public void setEta(Date eta) {
-		this.eta = eta;
+	public void setJobKey(String jobKey) {
+		this.jobKey = jobKey;
 	}
 }

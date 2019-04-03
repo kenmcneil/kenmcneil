@@ -1,0 +1,23 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.build: info
+
+spring:
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.build
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+inventory-import:
+  manhattan:
+    location-id-dc-map:
+      foo: "bar"
+      foo2: "bar2"
