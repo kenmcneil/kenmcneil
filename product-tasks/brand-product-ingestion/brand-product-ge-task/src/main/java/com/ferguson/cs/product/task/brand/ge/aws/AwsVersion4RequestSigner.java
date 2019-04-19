@@ -20,10 +20,8 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.http.HttpRequest;
 import org.springframework.web.util.UriUtils;

@@ -1,10 +1,8 @@
 package com.ferguson.cs.product.task.brand.ge.task;
 
 import java.util.List;
-
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.service.ProductDistributionService;
 

@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.brand.ge.aws;
 
 import java.io.IOException;
-
 import org.springframework.http.HttpRequest;
 
 public interface AwsRequestSigner {

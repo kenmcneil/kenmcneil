@@ -1,23 +1,21 @@
 package com.ferguson.cs.product.task.inventory.model;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class VendorInventory implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private String mpn;
+	private String sku;
 	private String location;
-	private String status;
 	private Integer quantity;
-	private String jobKey;
+	private String transactionNumber;
 
-	public String getMpn() {
-		return mpn;
+	public String getSku() {
+		return sku;
 	}
 
-	public void setMpn(String mpn) {
-		this.mpn = mpn;
+	public void setSku(String sku) {
+		this.sku = sku;
 	}
 
 	public String getLocation() {
@@ -28,14 +26,6 @@ public class VendorInventory implements Serializable {
 		this.location = location;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
 	public Integer getQuantity() {
 		return quantity;
 	}
@@ -44,11 +34,11 @@ public class VendorInventory implements Serializable {
 		this.quantity = quantity;
 	}
 
-	public String getJobKey() {
-		return jobKey;
+	public String getTransactionNumber() {
+		return transactionNumber;
 	}
 
-	public void setJobKey(String jobKey) {
-		this.jobKey = jobKey;
+	public void setTransactionNumber(String transactionNumber) {
+		this.transactionNumber = transactionNumber;
 	}
 }

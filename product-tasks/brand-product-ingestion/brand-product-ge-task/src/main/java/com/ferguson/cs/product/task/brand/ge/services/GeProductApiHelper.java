@@ -12,19 +12,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;
+import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.JsonReference;
 import com.ferguson.cs.product.task.brand.model.JsonType;
-import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.utilities.DateUtils;
 import com.ferguson.cs.utilities.StringUtils;
 import com.ge_products.api.GeProduct;

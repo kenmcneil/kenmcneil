@@ -1,13 +1,16 @@
 package com.ferguson.cs.product.task.stylyze.service;
 
 
-import com.ferguson.cs.product.task.stylyze.dao.ProductDao;
-import com.ferguson.cs.product.task.stylyze.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ferguson.cs.product.task.stylyze.dao.ProductDao;
+import com.ferguson.cs.product.task.stylyze.model.Product;
+import com.ferguson.cs.product.task.stylyze.model.ProductCategory;
+import com.ferguson.cs.product.task.stylyze.model.ProductGalleryImage;
+import com.ferguson.cs.product.task.stylyze.model.ProductRatings;
+import com.ferguson.cs.product.task.stylyze.model.ProductSpec;
+import com.ferguson.cs.product.task.stylyze.model.ProductVariation;
 
 @Service
 public class ProductService {

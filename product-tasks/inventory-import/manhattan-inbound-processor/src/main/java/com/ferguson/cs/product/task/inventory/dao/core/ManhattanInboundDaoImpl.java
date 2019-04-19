@@ -1,7 +1,9 @@
 package com.ferguson.cs.product.task.inventory.dao.core;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanIntakeJob;
 
 @Repository
 public class ManhattanInboundDaoImpl implements ManhattanInboundDao {
@@ -14,7 +16,12 @@ public class ManhattanInboundDaoImpl implements ManhattanInboundDao {
 	}
 
 	@Override
-	public void createTemporaryManhattanInventoryTable(String jobKey) {
-		manhattanInboundMapper.createTemporaryManhattanInventoryTable(jobKey);
+	public List<ManhattanIntakeJob> getManhattanIntakeJobs() {
+		return manhattanInboundMapper.getManhattanIntakeJobs();
+	}
+
+	@Override
+	public void updateManhattanIntakeJobStatus(ManhattanIntakeJob manhattanIntakeJob) {
+		manhattanInboundMapper.updateManhattanIntakeJobStatus(manhattanIntakeJob);
 	}
 }

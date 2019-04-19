@@ -3,7 +3,6 @@ package com.ferguson.cs.product.task.inventory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.aopalliance.aop.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,10 +17,7 @@ import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.retry.annotation.Retryable;
-
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
 @Configuration

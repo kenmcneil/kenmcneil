@@ -2,11 +2,9 @@ package com.ferguson.cs.product.task.inventory.dao.reporter;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 

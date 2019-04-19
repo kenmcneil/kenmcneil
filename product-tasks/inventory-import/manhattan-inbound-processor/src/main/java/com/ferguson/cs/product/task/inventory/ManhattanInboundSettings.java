@@ -1,31 +1,31 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties("inventory-import.manhattan")
 public class ManhattanInboundSettings {
-	private String manhattanInputFile;
-	private String manhattanOutputFile;
+	private String manhattanInputFilePath;
+	private String manhattanOutputFilePath;
 	private Map<String, String> locationIdDcMap;
+	private Long jobCompletionTimeOutInMilliseconds;
 
-	public String getManhattanInputFile() {
-		return manhattanInputFile;
+	public String getManhattanInputFilePath() {
+		return manhattanInputFilePath;
 	}
 
-	public void setManhattanInputFile(String manhattanInputFile) {
-		this.manhattanInputFile = manhattanInputFile;
+	public void setManhattanInputFilePath(String manhattanInputFilePath) {
+		this.manhattanInputFilePath = manhattanInputFilePath;
 	}
 
-	public String getManhattanOutputFile() {
-		return manhattanOutputFile;
+	public String getManhattanOutputFilePath() {
+		return manhattanOutputFilePath;
 	}
 
-	public void setManhattanOutputFile(String manhattanOutputFile) {
-		this.manhattanOutputFile = manhattanOutputFile;
+	public void setManhattanOutputFilePath(String manhattanOutputFilePath) {
+		this.manhattanOutputFilePath = manhattanOutputFilePath;
 	}
 
 	public Map<String, String> getLocationIdDcMap() {
@@ -34,5 +34,13 @@ public class ManhattanInboundSettings {
 
 	public void setLocationIdDcMap(Map<String, String> locationIdDcMap) {
 		this.locationIdDcMap = locationIdDcMap;
+	}
+
+	public Long getJobCompletionTimeOutInMilliseconds() {
+		return jobCompletionTimeOutInMilliseconds;
+	}
+
+	public void setJobCompletionTimeOutInMilliseconds(Long jobCompletionTimeOutInMilliseconds) {
+		this.jobCompletionTimeOutInMilliseconds = jobCompletionTimeOutInMilliseconds;
 	}
 }

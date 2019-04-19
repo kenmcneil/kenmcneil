@@ -1,8 +1,6 @@
 package com.ferguson.cs.product.task.stylyze;
 
 import javax.sql.DataSource;
-
-import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -19,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
 
 @Configuration
 @IntegrationComponentScan

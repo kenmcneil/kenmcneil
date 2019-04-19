@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.brand.service;
 
 import java.util.List;
-
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 

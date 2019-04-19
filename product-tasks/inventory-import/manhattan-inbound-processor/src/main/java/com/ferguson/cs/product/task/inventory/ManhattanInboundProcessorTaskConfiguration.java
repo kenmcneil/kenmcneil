@@ -2,10 +2,9 @@ package com.ferguson.cs.product.task.inventory;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -13,18 +12,15 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-
-import com.ferguson.cs.product.task.inventory.batch.CreateManhattanTempTableTasklet;
-import com.ferguson.cs.product.task.inventory.batch.ManhattanJsonItemReader;
-import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryProcessor;
+import com.ferguson.cs.product.task.inventory.batch.ManhattanJobInitializationTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryJobListener;
+import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryProcessor;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanZeroesDecider;
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
-import com.ferguson.cs.product.task.inventory.model.manhattan.LocationAvailabilityResponse;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanIntakeJob;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
 @Configuration
@@ -32,7 +28,6 @@ public class ManhattanInboundProcessorTaskConfiguration {
 
 	private ManhattanInboundSettings manhattanInboundSettings;
 	private TaskBatchJobFactory taskBatchJobFactory;
-	private SqlSessionFactory batchSqlSessionFactory;
 	private SqlSessionFactory coreSqlSessionFactory;
 
 
@@ -47,39 +42,17 @@ public class ManhattanInboundProcessorTaskConfiguration {
 	}
 
 	@Autowired
-	@Qualifier("batchSqlSessionFactory")
-	public void setBatchSqlSessionFactory(SqlSessionFactory batchSqlSessionFactory) {
-		this.batchSqlSessionFactory = batchSqlSessionFactory;
-	}
-
-	@Autowired
+	@Qualifier("coreSqlSessionFactory")
 	public void setCoreSqlSessionFactory(SqlSessionFactory coreSqlSessionFactory) {
 		this.coreSqlSessionFactory = coreSqlSessionFactory;
 	}
 
 	@Bean
 	@StepScope
-	public ManhattanJsonItemReader manhattanJsonItemReader() {
+	public FlatFileItemWriter<VendorInventory> vendorInventoryFlatFileItemWriter(ManhattanIntakeJob manhattanIntakeJob) {
 
-		return new ManhattanJsonItemReader();
-	}
 
-	@Bean
-	@StepScope
-	public FlatFileItemWriter<VendorInventory> vendorInventoryFlatFileItemWriter() {
-
-		return new FlatFileItemWriterBuilder<VendorInventory>()
-				.delimited()
-				.delimiter(",")
-				.names(new String[] {"mpn","location","status","quantity"})
-				.resource(new FileSystemResource(manhattanInboundSettings.getManhattanOutputFile()))
-				.append(true)
-				.build();
-	}
-
-	@Bean
-	public FileSystemResource fileSystemResource() {
-		return new FileSystemResource(manhattanInboundSettings.getManhattanInputFile());
+		return createVendorInventoryWriter(manhattanIntakeJob.getTransactionNumber());
 	}
 
 	@Bean
@@ -88,50 +61,42 @@ public class ManhattanInboundProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public Step writeManhattanVendorInventoryToTempTable() {
-		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventoryStep")
-				.<LocationAvailabilityResponse,VendorInventory>chunk(1000)
-				.reader(manhattanJsonItemReader())
-				.processor(manhattanVendorInventoryProcessor())
-				.writer(manhattanTempTableWriter())
-				.build();
-
-
-	}
-
-	@Bean
-	public Step createManhattanTempTable() {
-		return taskBatchJobFactory.getStepBuilder("createManhattanTempTable")
-				.tasklet(createManhattanTempTableTasklet())
-				.build();
-	}
-
-	@Bean
 	public Step writeManhattanVendorInventory() {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventory")
-				.<VendorInventory,VendorInventory>chunk(1000)
+				.<VendorInventory, VendorInventory>chunk(1000)
 				.reader(manhattanVendorInventoryReader(null))
-				.writer(vendorInventoryFlatFileItemWriter())
+				.writer(vendorInventoryFlatFileItemWriter(null))
 				.build();
 	}
 
 	@Bean
 	public Step writeManhattanVendorInventoryZeroes() {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventoryZeroes")
-				.<VendorInventory,VendorInventory>chunk(1000)
+				.<VendorInventory, VendorInventory>chunk(1000)
 				.reader(manhattanVendorInventoryZeroesReader(null))
-				.writer(vendorInventoryFlatFileItemWriter())
+				.writer(vendorInventoryFlatFileItemWriter(null))
 				.build();
 	}
+
+	@Bean
+	public Step initializeManhattanJob() {
+		return taskBatchJobFactory.getStepBuilder("initializeManhattanJob")
+				.tasklet(manhattanJobInitializationTasklet())
+				.build();
+	}
+
 
 	@Bean
 	public Job manhattanInboundProcessorJob() {
 		return taskBatchJobFactory.getJobBuilder("manhattanInboundProcessorJob")
 				.listener(manhattanVendorInventoryJobListener())
-				.start(createManhattanTempTable())
-				.next(writeManhattanVendorInventoryToTempTable())
-				.next(writeManhattanVendorInventory())
+				.start(initializeManhattanJob())
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(initializeManhattanJob()).on(ExitStatus.COMPLETED.getExitCode())
+				.to(writeManhattanVendorInventory())
 				.next(manhattanZeroesDecider())
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.end()
 				.on("ZEROES")
 				.to(writeManhattanVendorInventoryZeroes())
 				.end()
@@ -140,27 +105,15 @@ public class ManhattanInboundProcessorTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public MyBatisBatchItemWriter<VendorInventory> manhattanTempTableWriter() {
-		MyBatisBatchItemWriter<VendorInventory> writer = new MyBatisBatchItemWriter<>();
-
-		writer.setStatementId("insertManhattanVendorInventory");
-		writer.setSqlSessionFactory(batchSqlSessionFactory);
-
-		return writer;
+	public MyBatisCursorItemReader<VendorInventory> manhattanVendorInventoryReader(ManhattanIntakeJob manhattanIntakeJob) {
+		return createVendorInventoryReader("getManhattanVendorInventory", manhattanIntakeJob.getTransactionNumber());
 	}
 
 	@Bean
 	@StepScope
-	public MyBatisCursorItemReader<VendorInventory> manhattanVendorInventoryReader(@Value("#{jobExecutionContext['jobKey']}") String jobKey) {
-		return createVendorInventoryReader("getManhattanVendorInventory",jobKey);
+	public MyBatisCursorItemReader<VendorInventory> manhattanVendorInventoryZeroesReader(ManhattanIntakeJob manhattanIntakeJob) {
+		return createVendorInventoryReader("getManhattanVendorInventoryZeroes", manhattanIntakeJob.getTransactionNumber());
 	}
-
-	@Bean
-	@StepScope
-	public MyBatisCursorItemReader<VendorInventory> manhattanVendorInventoryZeroesReader(@Value("#{jobExecutionContext['jobKey']}") String jobKey) {
-		return createVendorInventoryReader("getManhattanVendorInventoryZeroes",jobKey);
-	}
-
 
 
 	@Bean
@@ -169,25 +122,42 @@ public class ManhattanInboundProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public CreateManhattanTempTableTasklet createManhattanTempTableTasklet() {
-		return new CreateManhattanTempTableTasklet();
-	}
-
-	@Bean
 	public ManhattanZeroesDecider manhattanZeroesDecider() {
 		return new ManhattanZeroesDecider();
 	}
 
-	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String jobKey) {
+	@Bean
+	public ManhattanIntakeJob manhattanIntakeJob() {
+		return new ManhattanIntakeJob();
+	}
+
+	@Bean
+	public ManhattanJobInitializationTasklet manhattanJobInitializationTasklet() {
+		return new ManhattanJobInitializationTasklet();
+	}
+
+	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
 		MyBatisCursorItemReader<VendorInventory> reader = new MyBatisCursorItemReader<>();
 		reader.setQueryId(queryName);
+		reader.setSqlSessionFactory(coreSqlSessionFactory);
 
-		Map<String, Object> params  = new HashMap<>();
-		params.put("jobKey",jobKey);
+		Map<String, Object> params = new HashMap<>();
+		params.put("transactionNumber", transactionNumber);
 
 		reader.setParameterValues(params);
 		return reader;
 
 
+	}
+
+	private FlatFileItemWriter<VendorInventory> createVendorInventoryWriter(String transactionNumber) {
+		return new FlatFileItemWriterBuilder<VendorInventory>()
+				.delimited()
+				.delimiter(",")
+				.names(new String[]{"sku", "location", "quantity"})
+				.name("vendorInventoryFlatFileItemWriter")
+				.resource(new FileSystemResource(manhattanInboundSettings.getManhattanOutputFilePath() + "_" + transactionNumber + ".csv"))
+				.append(true)
+				.build();
 	}
 }

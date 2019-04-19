@@ -1,0 +1,29 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.build: info
+
+spring:
+  mvc:
+    favicon:
+      enabled: false
+  jmx:
+    default-domain: com.build
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+inventory-import:
+  manhattan:
+    manhattan-output-file: "/tmp/manhattan_output.csv"
+    job-completion-time-out-in-milliseconds: 60000
+
+datasource:
+  core:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://cic-mssql-dev-2\CICDEV2;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: Build12Dot24Cow!

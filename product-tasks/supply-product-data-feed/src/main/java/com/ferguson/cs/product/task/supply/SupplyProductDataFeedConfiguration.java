@@ -1,9 +1,7 @@
 package com.ferguson.cs.product.task.supply;
 
 import java.io.File;
-
 import javax.sql.DataSource;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -26,7 +24,6 @@ import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.messaging.MessageHandler;
-
 import com.jcraft.jsch.ChannelSftp;
 
 

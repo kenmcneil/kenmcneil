@@ -4,7 +4,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import com.ferguson.cs.product.task.brand.ge.aws.GeProductApiSettings;
 import com.ferguson.cs.product.task.brand.ge.services.GeProductApiHelper;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;

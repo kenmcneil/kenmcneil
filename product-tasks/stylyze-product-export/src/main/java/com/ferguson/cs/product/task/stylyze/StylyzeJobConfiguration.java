@@ -1,14 +1,14 @@
 package com.ferguson.cs.product.task.stylyze;
 
-import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
-import com.ferguson.cs.product.task.stylyze.model.StylyzeProduct;
-import com.ferguson.cs.task.util.DataFlowTempFileHelper;
+import java.io.File;
+import java.io.IOException;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.item.*;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
@@ -20,8 +20,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import java.io.File;
-import java.io.IOException;
+import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
+import com.ferguson.cs.product.task.stylyze.model.StylyzeProduct;
+import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
 @Configuration
 public class StylyzeJobConfiguration {

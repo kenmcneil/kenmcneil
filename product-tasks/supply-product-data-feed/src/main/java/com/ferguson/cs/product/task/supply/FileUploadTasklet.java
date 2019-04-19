@@ -2,9 +2,6 @@ package com.ferguson.cs.product.task.supply;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
-
-import com.ferguson.cs.product.task.supply.SupplyProductDataFeedConfiguration.SupplyGateway;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +12,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import com.ferguson.cs.product.task.supply.SupplyProductDataFeedConfiguration.SupplyGateway;
 
 public class FileUploadTasklet implements Tasklet {
 

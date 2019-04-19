@@ -2,7 +2,6 @@ package com.ferguson.cs.product.task.supply;
 
 import java.io.IOException;
 import java.io.Writer;
-
 import org.springframework.batch.item.file.FlatFileHeaderCallback;
 
 public class CsvHeaderWriterCallback implements FlatFileHeaderCallback {

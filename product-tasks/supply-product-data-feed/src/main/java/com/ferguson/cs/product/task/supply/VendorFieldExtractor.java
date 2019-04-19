@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.supply;
 
 import org.springframework.batch.item.file.transform.FieldExtractor;
-
 import com.ferguson.cs.product.task.supply.model.Vendor;
 
 public class VendorFieldExtractor implements FieldExtractor<Vendor> {

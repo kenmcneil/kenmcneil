@@ -6,21 +6,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.ferguson.cs.product.task.inventory.InventoryImportException;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
@@ -30,7 +27,6 @@ import com.ferguson.cs.product.task.inventory.model.InventoryImportJobErrorMessa
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobType;
 import com.ferguson.cs.product.task.inventory.utility.ZipUtil;
-
 import net.freeutils.tnef.TNEF;
 import net.freeutils.tnef.TNEFInputStream;
 

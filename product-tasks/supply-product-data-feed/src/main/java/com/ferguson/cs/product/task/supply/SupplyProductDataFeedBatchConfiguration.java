@@ -6,13 +6,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -22,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-
 import com.ferguson.cs.product.task.supply.model.Product;
 import com.ferguson.cs.product.task.supply.service.SupplyProductDataFeedService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;

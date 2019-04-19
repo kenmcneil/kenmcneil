@@ -1,17 +1,22 @@
 package com.ferguson.cs.product.task.stylyze;
 
-import com.ferguson.cs.product.task.stylyze.model.*;
-import com.ferguson.cs.product.task.stylyze.service.ProductService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import org.springframework.batch.item.ItemProcessor;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import com.ferguson.cs.product.task.stylyze.model.Product;
+import com.ferguson.cs.product.task.stylyze.model.ProductCategory;
+import com.ferguson.cs.product.task.stylyze.model.ProductGalleryImage;
+import com.ferguson.cs.product.task.stylyze.model.ProductRatings;
+import com.ferguson.cs.product.task.stylyze.model.ProductSpec;
+import com.ferguson.cs.product.task.stylyze.model.ProductVariation;
+import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
+import com.ferguson.cs.product.task.stylyze.model.StylyzeProduct;
+import com.ferguson.cs.product.task.stylyze.service.ProductService;
 
 public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, StylyzeProduct> {
 

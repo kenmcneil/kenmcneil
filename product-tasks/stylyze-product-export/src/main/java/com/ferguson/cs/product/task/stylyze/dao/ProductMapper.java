@@ -1,11 +1,14 @@
 package com.ferguson.cs.product.task.stylyze.dao;
 
 import java.util.List;
-
-import com.ferguson.cs.product.task.stylyze.model.*;
 import org.apache.ibatis.annotations.Mapper;
-
 import org.apache.ibatis.annotations.Param;
+import com.ferguson.cs.product.task.stylyze.model.Product;
+import com.ferguson.cs.product.task.stylyze.model.ProductCategory;
+import com.ferguson.cs.product.task.stylyze.model.ProductGalleryImage;
+import com.ferguson.cs.product.task.stylyze.model.ProductRatings;
+import com.ferguson.cs.product.task.stylyze.model.ProductSpec;
+import com.ferguson.cs.product.task.stylyze.model.ProductVariation;
 
 
 @Mapper

@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.brand.model;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class JsonReference implements Serializable { 
 	private static final long serialVersionUID = 1L;

@@ -2,57 +2,68 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.ferguson.cs.product.task.inventory.dao.core.ManhattanInboundMapper">
-	<update id="createTemporaryManhattanInventoryTable" parameterType="String">
-		CREATE TABLE tempData.dbo.manhattan_${jobKey} (
-		[id] [int] IDENTITY(1,1) NOT NULL,
-		[quantity] [int] NOT NULL,
-		[mpn] [varchar](40) NULL,
-		[location] [varchar](40) NULL,
-		[createDate] [smalldatetime] NULL
-		) ON PRIMARY
-	</update>
-
 	<resultMap id="vendorInventoryMap" type="VendorInventory">
-		<result column="mpn" property="mpn" />
+		<result column="sku" property="sku" />
 		<result column="location" property="location" />
-		<result column="status" property="status" />
 		<result column="quantity" property="quantity" />
-		<result column="jobKey" property="jobKey" />
+		<result column="transactionNumber" property="transactionNumber" />
 	</resultMap>
 
-
-	
-	<select id="getManhattanVendorInventory" resultMap="vendorInventoryMap">
-		SELECT manhattan.quantity,vm.mpn,dcVendor.vendorid AS location from omc.dbo.vendor dcVendor
+	<select id="getManhattanVendorInventory" resultMap="vendorInventoryMap" parameterType="String">
+		SELECT DISTINCT manhattan.quantity,vm.sku,dcVendor.vendorid AS location,'${transactionNumber}' AS transactionNumber
+		FROM omc.dbo.vendor dcVendor
 		INNER JOIN omc.dbo.vendorDC dc with(NOLOCK)
 		ON dcVendor.uid = dc.dcVendorUid
 		INNER JOIN omc.dbo.vendor vp with(NOLOCK)
 		ON dc.parentVendorUid = vp.uid
 		INNER JOIN omc.dbo.Vendor_Mapping vm
 		ON vp.vendorid = vm.Vendor
-		INNER JOIN tempData.dbo.manhattan_#{jobKey} manhattan with(NOLOCK)
+		INNER JOIN tempData.dbo.manhattan_${transactionNumber} manhattan with(NOLOCK)
 		ON dcVendor.vendorid = manhattan.location
-		AND vm.mpn = manhattan.mpn
+		AND vm.sku = manhattan.sku
 		WHERE vp.vendorid LIKE 'Ferguson%'
 		AND vp.vendorid != 'Ferguson_039'
-		AND vm.mpn != ''
+		AND vm.sku != ''
 	</select>
 
-	<select id="getManhattanVendorInventoryZeroes" resultMap="vendorInventoryMap">
-		SELECT TOP 1000000 0 AS quantity,vm.mpn,dcVendor.vendorid AS location from omc.dbo.vendor dcVendor
+	<select id="getManhattanVendorInventoryZeroes" resultMap="vendorInventoryMap" parameterType="String">
+		SELECT DISTINCT TOP 1000000 0 AS quantity,vm.sku,dcVendor.vendorid AS location,'${transactionNumber}' AS transactionNumber
+		FROM omc.dbo.vendor dcVendor
 		INNER JOIN omc.dbo.vendorDC dc with(NOLOCK)
 		ON dcVendor.uid = dc.dcVendorUid
 		INNER JOIN omc.dbo.vendor vp with(NOLOCK)
 		ON dc.parentVendorUid = vp.uid
 		INNER JOIN omc.dbo.Vendor_Mapping vm
 		ON vp.vendorid = vm.Vendor
-		LEFT JOIN tempData.dbo.manhattan_#{jobKey} manhattan with(NOLOCK)
+		LEFT JOIN tempData.dbo.manhattan_${transactionNumber} manhattan with(NOLOCK)
 		ON dcVendor.vendorid = manhattan.location
-		AND vm.mpn = manhattan.mpn
+		AND vm.sku = manhattan.sku
 		WHERE vp.vendorid LIKE 'Ferguson%'
 		AND vp.vendorid != 'Ferguson_039'
 		AND manhattan.id IS NULL
-		AND vm.mpn IS NOT NULL
-		AND vm.mpn != ''
+		AND vm.sku IS NOT NULL
+		AND vm.sku != ''
+		AND 1 = 0
 	</select>
+
+	<resultMap id="manhattanIntakeJobMap" type="ManhattanIntakeJob">
+		<id property="id" column="id" />
+		<result property="transactionNumber" column="transactionNumber" />
+		<result property="totalCount" column="totalCount" />
+		<result property="currentCount" column="currentCount" />
+		<result column="manhattanIntakeJobStatusId" property="manhattanIntakeJobStatus" javaType="ManhattanIntakeJobStatus" typeHandler="com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler"/>
+		<result column="createdDateTime" property="createdDateTime" />
+	</resultMap>
+
+	<select id="getManhattanIntakeJobs" resultMap="manhattanIntakeJobMap">
+		SELECT id,transactionNumber,totalCount,currentCount,manhattanIntakeJobStatusId,createdDateTime
+		FROM omc.vendor.manhattanIntakeJob
+		WHERE manhattanIntakeJobStatusId IN (1,2)
+	</select>
+
+	<update id="updateManhattanIntakeJob" parameterType="ManhattanIntakeJob">
+		UPDATE omc.vendor.manhattanIntakeJob
+		SET manhattanIntakeJobStatusId = #{manhattanIntakeJobStatus.intValue}
+		WHERE id = #{id}
+	</update>
 </mapper>

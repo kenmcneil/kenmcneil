@@ -1,12 +1,10 @@
 package com.ferguson.cs.product.task.supply.service;
 
 import java.util.Date;
-
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 
 @Service

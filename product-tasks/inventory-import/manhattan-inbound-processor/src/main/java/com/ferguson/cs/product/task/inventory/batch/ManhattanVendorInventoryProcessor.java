@@ -1,45 +1,31 @@
 package com.ferguson.cs.product.task.inventory.batch;
 
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.ferguson.cs.product.task.inventory.ManhattanInboundSettings;
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
-import com.ferguson.cs.product.task.inventory.model.manhattan.LocationAvailabilityResponse;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanIntakeJob;
 
-public class ManhattanVendorInventoryProcessor implements ItemProcessor<LocationAvailabilityResponse,VendorInventory> {
+public class ManhattanVendorInventoryProcessor implements ItemProcessor<VendorInventory,VendorInventory> {
 
-	private ManhattanInboundSettings manhattanInboundSettings;
-	private String jobKey;
+	private ManhattanIntakeJob manhattanIntakeJob;
 
 	@Autowired
-	public void setManhattanInboundSettings(ManhattanInboundSettings manhattanInboundSettings) {
-		this.manhattanInboundSettings = manhattanInboundSettings;
-	}
-
-	@BeforeStep
-	public void beforeStep(StepExecution stepExecution) {
-		jobKey = stepExecution.getJobExecution().getExecutionContext().getString("jobKey");
+	public void setManhattanIntakeJob(ManhattanIntakeJob manhattanIntakeJob) {
+		this.manhattanIntakeJob = manhattanIntakeJob;
 	}
 
 	@Override
-	public VendorInventory process(LocationAvailabilityResponse locationAvailabilityResponse) throws Exception {
-		if(validate(locationAvailabilityResponse)) {
-			VendorInventory vendorInventory = new VendorInventory();
-			vendorInventory.setMpn(locationAvailabilityResponse.getItemId());
-			vendorInventory.setLocation(manhattanInboundSettings.getLocationIdDcMap().get(locationAvailabilityResponse.getLocationId()));
-			vendorInventory.setQuantity(locationAvailabilityResponse.getQuantity());
-			vendorInventory.setJobKey(jobKey);
+	public VendorInventory process(VendorInventory vendorInventory) throws Exception {
+		if(validate(vendorInventory)) {
+			vendorInventory.setTransactionNumber(manhattanIntakeJob.getTransactionNumber());
 			return vendorInventory;
 		}
 		return null;
 	}
 
-	private boolean validate(LocationAvailabilityResponse locationAvailabilityResponse) {
-		return locationAvailabilityResponse != null &&
-				locationAvailabilityResponse.getItemId() != null &&
-				locationAvailabilityResponse.getLocationId() != null;
+	private boolean validate(VendorInventory vendorInventory) {
+		return vendorInventory != null &&
+				vendorInventory.getSku() != null &&
+				vendorInventory.getLocation() != null;
 	}
 }
