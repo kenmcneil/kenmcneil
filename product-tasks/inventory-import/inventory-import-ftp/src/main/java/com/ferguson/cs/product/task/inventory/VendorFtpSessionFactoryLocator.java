@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactoryLocator;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
@@ -44,6 +45,7 @@ class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
 			} else {
 				sessionFactory.setFileType(FTP.ASCII_FILE_TYPE);
 			}
+			sessionFactory.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
 			return sessionFactory;
 		} else {
 			DefaultSftpSessionFactory sessionFactory = new DefaultSftpSessionFactory();
