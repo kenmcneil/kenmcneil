@@ -4,7 +4,6 @@
 	<modules>
 		<module>inventory-import</module>
 		<module>product-task-stylyze-export</module>
-		<module>supply-product-data-feed</module>
 		<module>brand-product-ingestion</module>
     	<module>product-task-supply-image-import</module>
   </modules>
