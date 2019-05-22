@@ -1,0 +1,8 @@
+[
+  {
+    "appName": "product-task-distribution-center-quick-ship",
+    "name": "product-task-distribution-center-quick-ship",
+    "jobName": "distributionCenterProductQuickShipJob",
+    "heapSize": "512m"
+  }
+]
