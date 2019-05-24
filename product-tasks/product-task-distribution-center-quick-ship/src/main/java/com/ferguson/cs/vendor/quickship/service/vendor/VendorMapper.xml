@@ -12,11 +12,11 @@
 	<select id="getFergusonQuickShipDistributionCenterList" parameterType="string" resultMap="distributionCenterMap">
 		SELECT
 			v.uid vendor_id,
-			v.code vendor_vendorId
+			v.vendorId vendor_vendorId
 		FROM
 			omc.dbo.Master_Vendor_Inventory mvi
 			INNER JOIN omc.dbo.vendor v
-				ON v.code = mvi.vendor
+				ON v.vendorId = mvi.vendor
 			INNER JOIN omc.dbo.vendorDC vdc
 				ON vdc.dcVendorUid = v.uid AND vdc.parentVendorUid = 112
 			INNER JOIN omc.dbo.vendorShipmentLeadTime vslt
