@@ -17,10 +17,10 @@ public class ProductServiceImpl implements ProductService {
 
 	private final ProductDao productDao;
 
-	@Value("${vendor-quickship.batchSize:1000}")
+	@Value("${distributionCenterQuickShip.batchSize:1000}")
 	private int batchSize;
 
-	@Value("${vendor-quickship.vendorId:112}")
+	@Value("${distributionCenterQuickShip.vendorId:112}")
 	private int vendorId;
 
 	public ProductServiceImpl(ProductDao productDao) {
