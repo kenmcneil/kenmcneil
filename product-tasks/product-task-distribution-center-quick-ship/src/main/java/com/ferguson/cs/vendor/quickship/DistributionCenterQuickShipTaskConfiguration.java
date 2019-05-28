@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import com.ferguson.cs.vendor.quickship.model.DistributionCenterQuickShipSettings;
 
 @Configuration
-public class DistributionCetnerQuickShipTaskConfiguration {
+public class DistributionCenterQuickShipTaskConfiguration {
 	@Bean
 	@ConfigurationProperties(prefix = "distribution-center-quick-ship")
 	public DistributionCenterQuickShipSettings vendorQuickShipSettings() {
