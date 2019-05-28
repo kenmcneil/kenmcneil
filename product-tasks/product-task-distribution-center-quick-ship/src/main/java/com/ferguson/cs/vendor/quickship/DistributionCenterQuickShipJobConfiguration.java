@@ -26,11 +26,11 @@ import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 @EnableRetry
 public class DistributionCenterQuickShipJobConfiguration {
 	private final TaskBatchJobFactory taskBatchJobFactory;
-	private final DistributionCetnerQuickShipTaskConfiguration taskConfiguration;
+	private final DistributionCenterQuickShipTaskConfiguration taskConfiguration;
 	private final VendorService vendorService;
 	private final ProductService productService;
 
-	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory, DistributionCetnerQuickShipTaskConfiguration taskConfiguration,
+	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory, DistributionCenterQuickShipTaskConfiguration taskConfiguration,
 	                                                   VendorService vendorService, ProductService productService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.taskConfiguration = taskConfiguration;
