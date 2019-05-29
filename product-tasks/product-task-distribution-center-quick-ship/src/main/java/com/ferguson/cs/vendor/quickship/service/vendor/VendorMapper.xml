@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.vendor.quickship.service.vendor.VendorMapper">
+
+	<resultMap id="distributionCenterMap" type="com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter">
+		<id property="id" column="vendor_id" />
+		<result property="code" column="vendor_vendorId" />
+	</resultMap>
+
+	<select id="getFergusonQuickShipDistributionCenterList" parameterType="string" resultMap="distributionCenterMap">
+		SELECT
+			v.uid vendor_id,
+			v.vendorId vendor_vendorId
+		FROM
+			omc.dbo.Master_Vendor_Inventory mvi
+			INNER JOIN omc.dbo.vendor v
+				ON v.vendorId = mvi.vendor
+			INNER JOIN omc.dbo.vendorDC vdc
+				ON vdc.dcVendorUid = v.uid AND vdc.parentVendorUid = 112
+			INNER JOIN omc.dbo.vendorShipmentLeadTime vslt
+				<!-- Vendor lead time is = 0 (Same Day Shipping Eligible) -->
+				ON vslt.vendorUid = v.uid AND inStockLowDays = 0
+		WHERE
+			mvi.productId = #{criteria.productId}
+		AND
+			mvi.manufacturer = #{criteria.manufacturerName}
+		AND
+			mvi.finish = #{criteria.finishDescription}
+		AND
+			<!-- Inventory > 0 -->
+			mvi.Quantity > 0
+		AND
+			mvi.vendor like 'Ferguson_%' <!-- Inventory > 0 -->
+	</select>
+
+	<resultMap id="distributionCenterProductQuickShipMap" type="com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip">
+		<id property="id" column="id" />
+		<association property="distributionCenter" resultMap="distributionCenterMap" />
+		<association property="product" resultMap="productMap" />
+	</resultMap>
+
+	<resultMap id="productMap" type="com.ferguson.cs.vendor.quickship.model.product.Product">
+		<id property="id" column="product_id" />
+	</resultMap>
+
+	<select id="getDistributionCenterProductQuickShip" parameterType="int" resultMap="distributionCenterProductQuickShipMap">
+		SELECT
+			id,
+			productUniqueId product_id,
+			vendorUid vendor_id,
+			createdDate
+		FROM
+			omc.dbo.vendorProductQuickShip
+		WHERE
+			id = id
+	</select>
+
+	<insert id="insertDistributionCenterProductQuickShip" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO omc.dbo.vendorProductQuickShip (
+			vendorUid,
+			productUniqueId
+		) VALUES (
+			#{distributionCenter.id},
+			#{product.id}
+		)
+	</insert>
+
+	<delete id="truncateVendorProductQuickShipTable">
+		DELETE FROM omc.dbo.vendorProductQuickShip
+	</delete>
+
+</mapper>

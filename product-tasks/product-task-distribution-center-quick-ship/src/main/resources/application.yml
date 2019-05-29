@@ -1,0 +1,13 @@
+logging:
+  level:
+    ROOT: error
+    com.ferguson.cs: debug
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+spring:
+  main:
+    allow-bean-definition-overriding: true

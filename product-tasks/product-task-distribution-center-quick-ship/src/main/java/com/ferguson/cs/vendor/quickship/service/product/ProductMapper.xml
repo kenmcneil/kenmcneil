@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.vendor.quickship.service.product.ProductMapper">
+
+	<resultMap id="productMap" type="com.ferguson.cs.vendor.quickship.model.product.Product">
+		<id property="id" column="product_id" />
+		<association property="family" resultMap="productFamilyMap" />
+		<association property="finish" resultMap="productFinishMap" />
+	</resultMap>
+
+	<resultMap id="productFamilyMap" type="com.ferguson.cs.vendor.quickship.model.product.ProductFamily">
+		<id property="id" column="family_id" />
+		<result property="productId" column="family_productId" />
+		<association property="manufacturer" resultMap="manufacturerMap" />
+	</resultMap>
+
+	<resultMap id="productFinishMap" type="com.ferguson.cs.vendor.quickship.model.product.ProductFinish">
+		<id property="id" column="finish_id" />
+		<result property="description" column="finish_description" />
+	</resultMap>
+
+	<resultMap id="manufacturerMap" type="com.ferguson.cs.vendor.quickship.model.product.Manufacturer">
+		<id property="id" column="manufacturer_id" />
+		<result property="name" column="manufacturer_name" />
+	</resultMap>
+
+	<select id="getQuickShipEligibleProduct" parameterType="string" resultMap="productMap">
+		SELECT
+			p.uniqueid product_id,
+			f.id family_id,
+			f.productId family_productId,
+			m.id manufacturer_id,
+			m.name manufacturer_name,
+			fi.id finish_id,
+			fi.finish finish_description
+		FROM
+			mmc.dbo.Product_Most_Used_Vendor pmuv
+			INNER JOIN mmc.product.product p
+				ON p.uniqueId = pmuv.ProductUID
+			INNER JOIN mmc.product.shippingDetail sd
+				<!-- Parcel (NOT LTL) and Free Shipping -->
+				ON sd.uniqueId = p.uniqueId AND (sd.LTL IS NULL OR sd.LTL = 0) AND (sd.freeShipping = 1)
+			INNER JOIN mmc.product.family f
+				ON f.id = p.familyId
+			INNER JOIN mmc.product.finish fi
+				ON fi.id = p.finishId
+			INNER JOIN mmc.dbo.Manufacturer m
+				ON m.ID = f.manufacturerId
+		WHERE
+			<!-- Product status Stock -->
+			p.statusId = ${@com.ferguson.cs.vendor.quickship.model.product.ProductStatus@STOCK.getIntValue()}
+			<!-- Primary Vendor List -->
+			<if test="criteria.getVendorIdList != null">
+				AND
+					pmuv.VendorUID IN
+				<foreach collection="criteria.getVendorIdList" item="id" open="(" close=")" separator=",">
+					#{id}
+				</foreach>
+			</if>
+		ORDER BY
+			p.uniqueid ASC
+		OFFSET #{criteria.offset} ROWS FETCH NEXT #{criteria.pageSize} ROWS ONLY
+	</select>
+
+	<resultMap id="productLeadTimeOverrideMap" type="com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule">
+		<id property="id" column="productLeadTimeOverrideRule_id" />
+		<result property="type" column="productLeadTimeOverrideType_id" javaType="com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType" typeHandler="com.ferguson.cs.vendor.quickship.service.IntMappedEnumTypeHandler" />
+	</resultMap>
+
+	<select id="getProductLeadTimeOverrideRule" resultMap="productLeadTimeOverrideMap">
+		SELECT
+			pltor.id productLeadTimeOverrideRule_id,
+			pltor.productLeadTimeOverrideTypeId productLeadTimeOverrideType_id
+		FROM
+			mmc.dbo.productLeadTimeOverrideRuleMapping pltorm
+			INNER JOIN mmc.dbo.productLeadTimeOverrideRule pltor
+				ON pltor.id = pltorm.productLeadTimeOverrideRuleId
+		<where>
+			<if test="criteria.productId != null">
+				pltorm.productUniqueId = #{criteria.productId}
+			</if>
+			<if test="criteria.getTypeList != null">
+				AND pltor.productLeadTimeOverrideTypeId IN
+				<foreach collection="criteria.getTypeList" item="type" open="(" close=")" separator=",">
+					#{type,jdbcType=INTEGER,javaType=com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType,typeHandler=com.ferguson.cs.vendor.quickship.service.IntMappedEnumTypeHandler}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+</mapper>
