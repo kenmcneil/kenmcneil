@@ -3,14 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<modules>
 		<module>inventory-import</module>
-		<module>stylyze-product-export</module>
-		<module>supply-product-data-feed</module>
+		<module>product-task-stylyze-export</module>
 		<module>brand-product-ingestion</module>
+		<module>product-task-supply-image-import</module>
+		<module>product-task-distribution-center-quick-ship</module>
 	</modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
-		<version>1.0.7-SNAPSHOT</version>
+		<version>1.0.20-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>product-tasks</artifactId>
@@ -25,7 +26,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-		</dependencies>		
+		</dependencies>
 	</dependencyManagement>
  
 </project>

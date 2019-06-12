@@ -1,0 +1,9 @@
+[
+	{
+		"appName": "product-task-supply-image-import",
+		"name": "product-task-supply-image-import",
+		"jobName": "supplyImageImportJob",
+		"heapSize": "512m"
+	}
+	
+]
