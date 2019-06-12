@@ -13,6 +13,7 @@ public class ManhattanIntakeJob implements Serializable {
 	private Integer currentCount;
 	private ManhattanIntakeJobStatus manhattanIntakeJobStatus;
 	private Date createdDateTime;
+	private String manhattanBusinessUnit;
 
 	public ManhattanIntakeJob() {
 	}
@@ -63,5 +64,13 @@ public class ManhattanIntakeJob implements Serializable {
 
 	public void setManhattanIntakeJobStatus(ManhattanIntakeJobStatus manhattanIntakeJobStatus) {
 		this.manhattanIntakeJobStatus = manhattanIntakeJobStatus;
+	}
+
+	public String getManhattanBusinessUnit() {
+		return manhattanBusinessUnit;
+	}
+
+	public void setManhattanBusinessUnit(String manhattanBusinessUnit) {
+		this.manhattanBusinessUnit = manhattanBusinessUnit;
 	}
 }

@@ -83,7 +83,6 @@ public class InventoryImportCommonConfiguration {
 		}
 
 		@Bean
-		@Primary
 		public DataSourceTransactionManager pdmTransactionManager() {
 			return new DataSourceTransactionManager(pdmDataSource());
 		}
