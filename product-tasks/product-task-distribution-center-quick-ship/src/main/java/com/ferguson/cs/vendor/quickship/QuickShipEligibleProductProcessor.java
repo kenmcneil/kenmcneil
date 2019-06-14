@@ -30,8 +30,8 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 		List<DistributionCenterProductQuickShip> distributionCenterProductQuickShipList = new ArrayList<>();
 
 		for (Product product : productList) {
-			//Does not have a lead time override (Made To Order, PreOrder)
-			if (!isQuickShipLeadTime(product.getId())) {
+			//Ensure that product does not have a lead time override (Made To Order, PreOrder) and that it ships free
+			if (!isQuickShipLeadTime(product.getId()) || !productService.productIsFreeShipping(product)) {
 				continue;
 			}
 

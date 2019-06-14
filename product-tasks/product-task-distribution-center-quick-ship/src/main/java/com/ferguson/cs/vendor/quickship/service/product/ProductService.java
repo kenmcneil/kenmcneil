@@ -23,4 +23,5 @@ public interface ProductService {
 	List<ProductLeadTimeOverrideRule> getLeadTimeOverrideRuleList(
 			ProductLeadTimeOverrideRuleSearchCriteria criteria);
 
+	boolean productIsFreeShipping(Product product);
 }

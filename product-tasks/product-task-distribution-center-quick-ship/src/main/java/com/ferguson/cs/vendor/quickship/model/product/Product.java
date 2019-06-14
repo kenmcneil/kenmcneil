@@ -6,12 +6,14 @@ import java.util.List;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
 
 public class Product implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private Integer id;
 	private ProductFamily family;
 	private ProductFinish finish;
 	private List<DistributionCenter> distributionCenterList;
+	private Boolean isFreeShipping;
+	private Double defaultPriceBookCost;
 
 	public Integer getId() {
 		return id;
@@ -43,5 +45,21 @@ public class Product implements Serializable {
 
 	public void setDistributionCenterList(List<DistributionCenter> distributionCenterList) {
 		this.distributionCenterList = distributionCenterList;
+	}
+
+	public Boolean getFreeShipping() {
+		return isFreeShipping;
+	}
+
+	public void setFreeShipping(Boolean freeShipping) {
+		isFreeShipping = freeShipping;
+	}
+
+	public Double getDefaultPriceBookCost() {
+		return defaultPriceBookCost;
+	}
+
+	public void setDefaultPriceBookCost(Double defaultPriceBookCost) {
+		this.defaultPriceBookCost = defaultPriceBookCost;
 	}
 }

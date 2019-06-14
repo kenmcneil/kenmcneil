@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.vendor.quickship.service.category.CategoryMapper">
+
+	<resultMap id="shippingCategoryMap" type="ShippingCategory">
+		<id property="genericCategoryId" column="genericCategoryId" />
+		<result property="shippingCalculationId" column="shippingCalculationId" />
+		<result property="shippingCalculationNameId" column="shippingCalculationNameId" />
+		<result property="hasFreeShippingPromo" column="hasFreeShippingPromo" />
+		<result property="freeShippingPrice" column="freeShippingPrice" />
+	</resultMap>
+
+	<select id="getGenericShippingCategory" parameterType="map" resultMap="shippingCategoryMap">
+		SELECT
+		gcr.generic_category_root_id genericCategoryId,
+		gcsc.shipping_calculation_id shippingCalculationId,
+		sc.shipping_calculation_name_id shippingCalculationNameId,
+		sc.free_shipping_promo hasFreeShippingPromo,
+		sc.free_shipping_price freeShippingPrice
+		FROM
+		mmc.dbo.generic_category_root gcr WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category gc WITH(NOLOCK)
+		ON gcr.generic_category_id = gc.generic_category_id
+		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc WITH(NOLOCK)
+		ON gc.generic_category_id = gcsc.generic_category_id
+		INNER JOIN mmc.dbo.shipping_calculation sc WITH(NOLOCK)
+		ON gcsc.shipping_calculation_id = sc.shipping_calculation_id
+		WHERE
+		gcr.siteId = #{siteId}
+		AND (gcr.storeId = #{storeId} OR gcr.storeId = 0)
+		AND gcr.generic_category_root_purpose_id = 1
+		AND sc.shipping_calculation_name_id = #{shippingCalculationNameId}
+	</select>
+
+	<select id="getUniqueIdShippingCategory" parameterType="map" resultMap="shippingCategoryMap">
+		SELECT
+		gcpu.generic_category_root_id genericCategoryId,
+		gcsc.shipping_calculation_id shippingCalculationId,
+		sc.shipping_calculation_name_id shippingCalculationNameId,
+		sc.free_shipping_promo hasFreeShippingPromo,
+		sc.free_shipping_price freeShippingPrice
+		FROM
+		mmc.dbo.generic_category_product_uniqueid gcpu WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category gc WITH(NOLOCK)
+		ON gcpu.generic_category_id = gc.generic_category_id
+		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc WITH(NOLOCK)
+		ON gc.generic_category_id= gcsc.generic_category_id
+		INNER JOIN mmc.dbo.shipping_calculation sc WITH(NOLOCK)
+		ON gcsc.shipping_calculation_id =sc.shipping_calculation_id
+		WHERE
+		gcpu.generic_category_root_id = #{genericCategoryId}
+		AND gcpu.uniqueId = #{productUniqueId}
+		AND sc.shipping_calculation_name_id = #{shippingCalculationNameId}
+		AND gc.active = 1
+	</select>
+
+</mapper>
