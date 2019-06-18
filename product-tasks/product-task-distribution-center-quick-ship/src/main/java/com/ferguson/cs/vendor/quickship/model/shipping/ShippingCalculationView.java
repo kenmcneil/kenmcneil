@@ -1,23 +1,16 @@
-package com.ferguson.cs.vendor.quickship.model.category;
+package com.ferguson.cs.vendor.quickship.model.shipping;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
-public class ShippingCategory implements Serializable {
+public class ShippingCalculationView implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private Integer genericCategoryId;
 	private Integer shippingCalculationId;
 	private Integer shippingCalculationNameId;
 	private Boolean hasFreeShippingPromo;
 	private BigDecimal freeShippingPrice;
-
-	public Integer getGenericCategoryId() {
-		return genericCategoryId;
-	}
-
-	public void setGenericCategoryId(Integer genericCategoryId) {
-		this.genericCategoryId = genericCategoryId;
-	}
+	private Integer genericCategoryRootId;
 
 	public Integer getShippingCalculationId() {
 		return shippingCalculationId;
@@ -43,11 +36,19 @@ public class ShippingCategory implements Serializable {
 		this.hasFreeShippingPromo = hasFreeShippingPromo;
 	}
 
-	public Double getFreeShippingPrice() {
+	public BigDecimal getFreeShippingPrice() {
 		return freeShippingPrice;
 	}
 
-	public void setFreeShippingPrice(Double freeShippingPrice) {
+	public void setFreeShippingPrice(BigDecimal freeShippingPrice) {
 		this.freeShippingPrice = freeShippingPrice;
+	}
+
+	public Integer getGenericCategoryRootId() {
+		return genericCategoryRootId;
+	}
+
+	public void setGenericCategoryRootId(Integer genericCategoryRootId) {
+		this.genericCategoryRootId = genericCategoryRootId;
 	}
 }

@@ -1,6 +1,7 @@
 package com.ferguson.cs.vendor.quickship.model.product;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
@@ -55,11 +56,11 @@ public class Product implements Serializable {
 		isFreeShipping = freeShipping;
 	}
 
-	public Double getDefaultPriceBookCost() {
+	public BigDecimal getDefaultPriceBookCost() {
 		return defaultPriceBookCost;
 	}
 
-	public void setDefaultPriceBookCost(Double defaultPriceBookCost) {
+	public void setDefaultPriceBookCost(BigDecimal defaultPriceBookCost) {
 		this.defaultPriceBookCost = defaultPriceBookCost;
 	}
 }
