@@ -13,7 +13,7 @@ public class Product implements Serializable {
 	private ProductFinish finish;
 	private List<DistributionCenter> distributionCenterList;
 	private Boolean isFreeShipping;
-	private Double defaultPriceBookCost;
+	private BigDecimal defaultPriceBookCost;
 
 	public Integer getId() {
 		return id;

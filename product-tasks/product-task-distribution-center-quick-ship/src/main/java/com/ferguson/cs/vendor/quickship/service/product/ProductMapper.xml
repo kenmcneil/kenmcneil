@@ -37,14 +37,14 @@
 			m.name manufacturer_name,
 			fi.id finish_id,
 			fi.finish finish_description,
-			sd.freeShipping isFreeShipping,
+			sd.freeShipping isFreeShipping, <!-- this is one of many ways of determining if a product has free shipping -->
 			pbc.cost defaultPriceBookCost
 		FROM
 			mmc.dbo.Product_Most_Used_Vendor pmuv
 			INNER JOIN mmc.product.product p
 				ON p.uniqueId = pmuv.ProductUID
 			INNER JOIN mmc.product.shippingDetail sd
-				<!-- Parcel (NOT LTL) and Free Shipping -->
+				<!-- Parcel (NOT LTL) -->
 				ON sd.uniqueId = p.uniqueId AND (sd.LTL IS NULL OR sd.LTL = 0)
 			INNER JOIN mmc.product.family f
 				ON f.id = p.familyId

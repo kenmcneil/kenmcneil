@@ -9,7 +9,7 @@ public class ShippingCategory implements Serializable {
 	private Integer shippingCalculationId;
 	private Integer shippingCalculationNameId;
 	private Boolean hasFreeShippingPromo;
-	private Double freeShippingPrice;
+	private BigDecimal freeShippingPrice;
 
 	public Integer getGenericCategoryId() {
 		return genericCategoryId;
