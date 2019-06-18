@@ -75,10 +75,6 @@ public class ProductServiceImpl implements ProductService {
 				if (productShippingCalculationView != null) {
 					isFreeShipping = isPriceOverFreeThreshold(productShippingCalculationView, product
 							.getDefaultPriceBookCost());
-
-					if(isFreeShipping) {
-						System.out.println("foo");
-					}
 				}
 			}
 		}
