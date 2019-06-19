@@ -16,6 +16,7 @@ public interface ShippingService {
 	/**
 	 * Gets a shipping calculation view related to a specific product related to a generic category root id, if such a
 	 * shipping calculation view exists.
+	 *
 	 * @param genericCategoryRootId
 	 * @param productUniqueId
 	 * @param shippingCalculationNameId

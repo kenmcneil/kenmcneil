@@ -16,11 +16,12 @@ public class ShippingDaoImpl implements ShippingDao {
 	@Override
 	public ShippingCalculationView getStoreShippingCalculationView(Integer siteId, Integer storeId, Integer shippingCalculationNameId) {
 		return shippingMapper
-				.getStoreShippingCalculationView(siteId, storeId,shippingCalculationNameId);
+				.getStoreShippingCalculationView(siteId, storeId, shippingCalculationNameId);
 	}
 
 	@Override
 	public ShippingCalculationView getUniqueIdShippingCalculationView(Integer genericCategoryRootId, Integer productUniqueId, Integer shippingCalculationNameId) {
-		return shippingMapper.getUniqueIdShippingCalculationView(genericCategoryRootId,productUniqueId,shippingCalculationNameId);
+		return shippingMapper
+				.getUniqueIdShippingCalculationView(genericCategoryRootId, productUniqueId, shippingCalculationNameId);
 	}
 }

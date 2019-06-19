@@ -36,7 +36,7 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 	}
 
 	@BeforeStep
-	public void beforStep(StepExecution stepExecution) {
+	public void beforeStep(StepExecution stepExecution) {
 		buildShippingCalculationView = shippingService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
 	}
 

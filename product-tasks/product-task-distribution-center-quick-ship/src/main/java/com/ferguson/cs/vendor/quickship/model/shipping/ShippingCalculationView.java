@@ -10,7 +10,6 @@ public class ShippingCalculationView implements Serializable {
 	private Integer shippingCalculationNameId;
 	private Boolean hasFreeShippingPromo;
 	private BigDecimal freeShippingPrice;
-	private Integer genericCategoryRootId;
 
 	public Integer getShippingCalculationId() {
 		return shippingCalculationId;
@@ -44,11 +43,4 @@ public class ShippingCalculationView implements Serializable {
 		this.freeShippingPrice = freeShippingPrice;
 	}
 
-	public Integer getGenericCategoryRootId() {
-		return genericCategoryRootId;
-	}
-
-	public void setGenericCategoryRootId(Integer genericCategoryRootId) {
-		this.genericCategoryRootId = genericCategoryRootId;
-	}
 }

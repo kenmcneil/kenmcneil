@@ -87,7 +87,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	@StepScope
 	public ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> quickShipEligibleProductProcessor() {
-		return new QuickShipEligibleProductProcessor(productService, vendorService,shippingService);
+		return new QuickShipEligibleProductProcessor(productService, vendorService, shippingService);
 	}
 
 	@Bean

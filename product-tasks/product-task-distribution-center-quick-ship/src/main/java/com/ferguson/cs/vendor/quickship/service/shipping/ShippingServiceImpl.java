@@ -15,11 +15,12 @@ public class ShippingServiceImpl implements ShippingService {
 
 	@Override
 	public ShippingCalculationView getStoreShippingCalculationView(Integer siteId, Integer storeId, Integer shippingCalculationNameId) {
-		return shippingDao.getStoreShippingCalculationView(siteId,storeId,shippingCalculationNameId);
+		return shippingDao.getStoreShippingCalculationView(siteId, storeId, shippingCalculationNameId);
 	}
 
 	@Override
 	public ShippingCalculationView getUniqueIdShippingCalculationView(Integer genericCategoryRootId, Integer productUniqueId, Integer shippingCalculationNameId) {
-		return shippingDao.getUniqueIdShippingCalculationView(genericCategoryRootId,productUniqueId,shippingCalculationNameId);
+		return shippingDao
+				.getUniqueIdShippingCalculationView(genericCategoryRootId, productUniqueId, shippingCalculationNameId);
 	}
 }

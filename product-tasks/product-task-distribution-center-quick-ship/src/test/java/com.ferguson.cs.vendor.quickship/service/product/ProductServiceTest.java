@@ -14,24 +14,18 @@ import org.mockito.MockitoAnnotations;
 import com.ferguson.cs.test.utilities.ValueUtils;
 import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.service.product.ProductDao;
-import com.ferguson.cs.vendor.quickship.service.product.ProductServiceImpl;
 import com.ferguson.cs.vendor.quickship.service.shipping.ShippingService;
 
 public class ProductServiceTest {
 
-	private static final int BUILD_SITE_ID = 82;
-	private static final int BUILD_STORE_ID = 248;
 	private static final int STANDARD_DELIVERY_CALCULATION_NAME_ID = 68;
+	private static final int DEFAULT_GENERIC_CATEGORY_ROOT_ID = 2;
 
 	@Mock
-	ShippingService shippingService;
-
-	@Mock
-	ProductDao productDao;
+	private ShippingService shippingService;
 
 	@InjectMocks
-	ProductServiceImpl productService;
+	private ProductServiceImpl productService;
 
 
 	@Before
@@ -50,7 +44,6 @@ public class ProductServiceTest {
 		storeShippingCalculationView.setHasFreeShippingPromo(true);
 		storeShippingCalculationView.setShippingCalculationId(22);
 		storeShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 		boolean freeShipping = productService.isFreeShipping(product,storeShippingCalculationView);
 
 		assertThat(freeShipping).isTrue();
@@ -66,7 +59,6 @@ public class ProductServiceTest {
 		storeShippingCalculationView.setHasFreeShippingPromo(true);
 		storeShippingCalculationView.setShippingCalculationId(22);
 		storeShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 
 		when(shippingService.getStoreShippingCalculationView(any(), any(), any())).thenReturn(storeShippingCalculationView);
 
@@ -86,17 +78,15 @@ public class ProductServiceTest {
 		storeShippingCalculationView.setHasFreeShippingPromo(true);
 		storeShippingCalculationView.setShippingCalculationId(22);
 		storeShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 
 		ShippingCalculationView productShippingCalculationView = new ShippingCalculationView();
 		productShippingCalculationView.setFreeShippingPrice(BigDecimal.valueOf(6.66));
 		productShippingCalculationView.setHasFreeShippingPromo(true);
 		productShippingCalculationView.setShippingCalculationId(222);
 		productShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 
 		when(shippingService.getStoreShippingCalculationView(any(), any(), any())).thenReturn(storeShippingCalculationView);
-		when(shippingService.getUniqueIdShippingCalculationView(storeShippingCalculationView.getGenericCategoryRootId(), product
+		when(shippingService.getUniqueIdShippingCalculationView(DEFAULT_GENERIC_CATEGORY_ROOT_ID, product
 				.getId(), storeShippingCalculationView
 				.getShippingCalculationNameId())).thenReturn(productShippingCalculationView);
 
@@ -116,17 +106,15 @@ public class ProductServiceTest {
 		storeShippingCalculationView.setHasFreeShippingPromo(true);
 		storeShippingCalculationView.setShippingCalculationId(22);
 		storeShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 
 		ShippingCalculationView productShippingCalculationView = new ShippingCalculationView();
 		productShippingCalculationView.setFreeShippingPrice(BigDecimal.valueOf(7.86));
 		productShippingCalculationView.setHasFreeShippingPromo(true);
 		productShippingCalculationView.setShippingCalculationId(222);
 		productShippingCalculationView.setShippingCalculationNameId(STANDARD_DELIVERY_CALCULATION_NAME_ID);
-		storeShippingCalculationView.setGenericCategoryRootId(2);
 
 		when(shippingService.getStoreShippingCalculationView(any(), any(), any())).thenReturn(storeShippingCalculationView);
-		when(shippingService.getUniqueIdShippingCalculationView(storeShippingCalculationView.getGenericCategoryRootId(), product
+		when(shippingService.getUniqueIdShippingCalculationView(DEFAULT_GENERIC_CATEGORY_ROOT_ID, product
 				.getId(), storeShippingCalculationView
 				.getShippingCalculationNameId())).thenReturn(productShippingCalculationView);
 

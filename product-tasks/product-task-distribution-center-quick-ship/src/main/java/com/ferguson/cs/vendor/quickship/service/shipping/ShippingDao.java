@@ -17,7 +17,8 @@ public interface ShippingDao {
 	/**
 	 * Gets a shipping calculation view related to a specific product related to a generic category root id, if such a
 	 * shipping calculation view exists.
-	 * @param genericCategoryRootId	generic category root id, as of writing this a 1:1 relationship to stores
+	 *
+	 * @param genericCategoryRootId     generic category root id, as of writing this a 1:1 relationship to stores
 	 * @param productUniqueId
 	 * @param shippingCalculationNameId
 	 * @return shipping calculation override for a given product, null if that doesn't exist

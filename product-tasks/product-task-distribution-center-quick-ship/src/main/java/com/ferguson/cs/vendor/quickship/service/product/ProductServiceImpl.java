@@ -27,6 +27,9 @@ public class ProductServiceImpl implements ProductService {
 	@Value("${distribution-center-quick-ship.vendor-id:112}")
 	private int vendorId;
 
+	//This is the generic category root id for build. It's not expected to change...
+	private static final int DEFAULT_GENERIC_CATEGORY_ROOT_ID = 2;
+
 	public ProductServiceImpl(ProductDao productDao, ShippingService shippingService) {
 		this.productDao = productDao;
 		this.shippingService = shippingService;
@@ -70,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
 
 			if (!isFreeShipping) {
 				ShippingCalculationView productShippingCalculationView = shippingService
-						.getUniqueIdShippingCalculationView(storeShippingCalculationView.getGenericCategoryRootId(), product.getId(),storeShippingCalculationView.getShippingCalculationNameId());
+						.getUniqueIdShippingCalculationView(DEFAULT_GENERIC_CATEGORY_ROOT_ID, product.getId(),storeShippingCalculationView.getShippingCalculationNameId());
 
 				if (productShippingCalculationView != null) {
 					isFreeShipping = isPriceOverFreeThreshold(productShippingCalculationView, product
