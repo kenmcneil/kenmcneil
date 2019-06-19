@@ -1,11 +1,11 @@
-package com.ferguson.cs.vendor.quickship.service.shipping;
+package com.ferguson.cs.vendor.quickship.service.category;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 
 @Mapper
-public interface ShippingMapper {
+public interface CategoryMapper {
 
 	ShippingCalculationView getStoreShippingCalculationView(@Param("siteId") Integer siteId, @Param("storeId") Integer storeId, @Param("shippingCalculationNameId") Integer shippingCalculationNameId);
 

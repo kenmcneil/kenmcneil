@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.ferguson.cs.vendor.quickship.service.shipping.ShippingMapper">
+<mapper namespace="com.ferguson.cs.vendor.quickship.service.category.CategoryMapper">
 
 	<resultMap id="shippingCalculationViewMap" type="ShippingCalculationView">
 		<id property="shippingCalculationId" column="shippingCalculationId"/>
@@ -19,12 +19,12 @@
 		sc.free_shipping_promo hasFreeShippingPromo,
 		sc.free_shipping_price freeShippingPrice
 		FROM
-		mmc.dbo.shipping_calculation sc WITH(NOLOCK)
-		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc WITH(NOLOCK)
+		mmc.dbo.shipping_calculation sc
+		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc
 		ON sc.shipping_calculation_id = gcsc.shipping_calculation_id
-		INNER JOIN mmc.dbo.generic_category gc WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category gc
 		ON gcsc.generic_category_id = gc.generic_category_id
-		INNER JOIN mmc.dbo.generic_category_root gcr WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category_root gcr
 		ON gc.generic_category_id = gcr.generic_category_id
 		WHERE
 		gcr.siteId = #{siteId}
@@ -40,12 +40,12 @@
 		sc.free_shipping_promo hasFreeShippingPromo,
 		sc.free_shipping_price freeShippingPrice
 		FROM
-		mmc.dbo.shipping_calculation sc WITH(NOLOCK)
-		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc WITH(NOLOCK)
+		mmc.dbo.shipping_calculation sc
+		INNER JOIN mmc.dbo.generic_category_shipping_calculation gcsc
 		ON sc.shipping_calculation_id = gcsc.shipping_calculation_id
-		INNER JOIN mmc.dbo.generic_category gc WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category gc
 		ON gcsc.generic_category_id = gc.generic_category_id
-		INNER JOIN mmc.dbo.generic_category_product_uniqueid gcpu WITH(NOLOCK)
+		INNER JOIN mmc.dbo.generic_category_product_uniqueid gcpu
 		ON gcsc.generic_category_id = gcpu.generic_category_id
 		WHERE
 		gcpu.generic_category_root_id = #{genericCategoryRootId}

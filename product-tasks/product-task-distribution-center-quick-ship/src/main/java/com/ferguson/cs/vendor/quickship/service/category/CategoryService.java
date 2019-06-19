@@ -1,8 +1,8 @@
-package com.ferguson.cs.vendor.quickship.service.shipping;
+package com.ferguson.cs.vendor.quickship.service.category;
 
-import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 
-public interface ShippingService {
+public interface CategoryService {
 	/**
 	 * Gets shipping calculation view for a given store and shipping calculation name
 	 *

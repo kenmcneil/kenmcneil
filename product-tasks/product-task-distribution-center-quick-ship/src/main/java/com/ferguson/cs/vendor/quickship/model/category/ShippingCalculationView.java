@@ -1,4 +1,4 @@
-package com.ferguson.cs.vendor.quickship.model.shipping;
+package com.ferguson.cs.vendor.quickship.model.category;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

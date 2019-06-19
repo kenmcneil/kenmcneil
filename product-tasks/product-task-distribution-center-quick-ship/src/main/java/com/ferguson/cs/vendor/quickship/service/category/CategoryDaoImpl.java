@@ -1,27 +1,27 @@
-package com.ferguson.cs.vendor.quickship.service.shipping;
+package com.ferguson.cs.vendor.quickship.service.category;
 
 import org.springframework.stereotype.Repository;
-import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 
 @Repository
-public class ShippingDaoImpl implements ShippingDao {
+public class CategoryDaoImpl implements CategoryDao {
 
-	private final ShippingMapper shippingMapper;
+	private final CategoryMapper categoryMapper;
 
-	public ShippingDaoImpl(ShippingMapper shippingMapper) {
-		this.shippingMapper = shippingMapper;
+	public CategoryDaoImpl(CategoryMapper categoryMapper) {
+		this.categoryMapper = categoryMapper;
 	}
 
 
 	@Override
 	public ShippingCalculationView getStoreShippingCalculationView(Integer siteId, Integer storeId, Integer shippingCalculationNameId) {
-		return shippingMapper
+		return categoryMapper
 				.getStoreShippingCalculationView(siteId, storeId, shippingCalculationNameId);
 	}
 
 	@Override
 	public ShippingCalculationView getUniqueIdShippingCalculationView(Integer genericCategoryRootId, Integer productUniqueId, Integer shippingCalculationNameId) {
-		return shippingMapper
+		return categoryMapper
 				.getUniqueIdShippingCalculationView(genericCategoryRootId, productUniqueId, shippingCalculationNameId);
 	}
 }

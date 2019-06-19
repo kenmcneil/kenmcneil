@@ -12,32 +12,32 @@ import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType;
-import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
 import com.ferguson.cs.vendor.quickship.model.vendor.QuickShipDistributionCenterSearchCriteria;
 import com.ferguson.cs.vendor.quickship.service.product.ProductService;
-import com.ferguson.cs.vendor.quickship.service.shipping.ShippingService;
+import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
 import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 
 public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> {
 	private final ProductService productService;
 	private final VendorService vendorService;
-	private final ShippingService shippingService;
+	private final CategoryService categoryService;
 	private ShippingCalculationView buildShippingCalculationView;
 	private static final int BUILD_SITE_ID = 82;
 	private static final int BUILD_STORE_ID = 248;
 	private static final int STANDARD_DELIVERY_CALCULATION_NAME_ID = 68;
 
-	public QuickShipEligibleProductProcessor(ProductService productService, VendorService vendorService, ShippingService shippingService) {
+	public QuickShipEligibleProductProcessor(ProductService productService, VendorService vendorService, CategoryService categoryService) {
 		this.productService = productService;
 		this.vendorService = vendorService;
-		this.shippingService = shippingService;
+		this.categoryService = categoryService;
 	}
 
 	@BeforeStep
 	public void beforeStep(StepExecution stepExecution) {
-		buildShippingCalculationView = shippingService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
+		buildShippingCalculationView = categoryService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
 	}
 
 	@Override

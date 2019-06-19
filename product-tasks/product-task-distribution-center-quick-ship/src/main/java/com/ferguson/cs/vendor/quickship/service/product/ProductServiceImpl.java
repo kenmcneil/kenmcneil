@@ -8,18 +8,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.ferguson.cs.vendor.quickship.model.shipping.ShippingCalculationView;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.QuickshipEligibleProductSearchCriteria;
-import com.ferguson.cs.vendor.quickship.service.shipping.ShippingService;
+import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
 	private final ProductDao productDao;
-	private final ShippingService shippingService;
+	private final CategoryService categoryService;
 
 	@Value("${distribution-center-quick-ship.batch-size:1000}")
 	private int batchSize;
@@ -30,9 +30,9 @@ public class ProductServiceImpl implements ProductService {
 	//This is the generic category root id for build. It's not expected to change...
 	private static final int DEFAULT_GENERIC_CATEGORY_ROOT_ID = 2;
 
-	public ProductServiceImpl(ProductDao productDao, ShippingService shippingService) {
+	public ProductServiceImpl(ProductDao productDao, CategoryService categoryService) {
 		this.productDao = productDao;
-		this.shippingService = shippingService;
+		this.categoryService = categoryService;
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
 
 
 			if (!isFreeShipping) {
-				ShippingCalculationView productShippingCalculationView = shippingService
+				ShippingCalculationView productShippingCalculationView = categoryService
 						.getUniqueIdShippingCalculationView(DEFAULT_GENERIC_CATEGORY_ROOT_ID, product.getId(),storeShippingCalculationView.getShippingCalculationNameId());
 
 				if (productShippingCalculationView != null) {

@@ -19,7 +19,7 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
 import com.ferguson.cs.vendor.quickship.service.product.ProductService;
-import com.ferguson.cs.vendor.quickship.service.shipping.ShippingService;
+import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
 import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 
 @Configuration
@@ -30,15 +30,15 @@ public class DistributionCenterQuickShipJobConfiguration {
 	private final DistributionCenterQuickShipTaskConfiguration taskConfiguration;
 	private final VendorService vendorService;
 	private final ProductService productService;
-	private final ShippingService shippingService;
+	private final CategoryService categoryService;
 
 	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory, DistributionCenterQuickShipTaskConfiguration taskConfiguration,
-	                                                   VendorService vendorService, ProductService productService, ShippingService shippingService) {
+	                                                   VendorService vendorService, ProductService productService, CategoryService categoryService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.taskConfiguration = taskConfiguration;
 		this.vendorService = vendorService;
 		this.productService = productService;
-		this.shippingService = shippingService;
+		this.categoryService = categoryService;
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	@StepScope
 	public ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> quickShipEligibleProductProcessor() {
-		return new QuickShipEligibleProductProcessor(productService, vendorService, shippingService);
+		return new QuickShipEligibleProductProcessor(productService, vendorService, categoryService);
 	}
 
 	@Bean
