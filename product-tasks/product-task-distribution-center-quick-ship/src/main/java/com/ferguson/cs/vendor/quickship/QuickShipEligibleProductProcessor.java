@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemProcessor;
 
 import com.ferguson.cs.vendor.quickship.model.product.Product;
@@ -33,10 +31,6 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 		this.productService = productService;
 		this.vendorService = vendorService;
 		this.categoryService = categoryService;
-	}
-
-	@BeforeStep
-	public void beforeStep(StepExecution stepExecution) {
 		buildShippingCalculationView = categoryService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
 	}
 
