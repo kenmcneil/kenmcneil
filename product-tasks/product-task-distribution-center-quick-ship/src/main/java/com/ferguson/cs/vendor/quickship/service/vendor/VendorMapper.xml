@@ -54,7 +54,7 @@
 		FROM
 			omc.dbo.vendorProductQuickShip
 		WHERE
-			id = id
+			id = #{id}
 	</select>
 
 	<insert id="insertDistributionCenterProductQuickShip" useGeneratedKeys="true" keyProperty="id">

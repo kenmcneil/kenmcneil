@@ -6,6 +6,8 @@
 
 	<resultMap id="productMap" type="com.ferguson.cs.vendor.quickship.model.product.Product">
 		<id property="id" column="product_id" />
+		<result property="isFreeShipping" column="isFreeShipping" />
+		<result property="defaultPriceBookCost" column="defaultPriceBookCost" />
 		<association property="family" resultMap="productFamilyMap" />
 		<association property="finish" resultMap="productFinishMap" />
 	</resultMap>
@@ -34,20 +36,25 @@
 			m.id manufacturer_id,
 			m.name manufacturer_name,
 			fi.id finish_id,
-			fi.finish finish_description
+			fi.finish finish_description,
+			sd.freeShipping isFreeShipping, <!-- this is one of many ways of determining if a product has free shipping -->
+			pbc.cost defaultPriceBookCost
 		FROM
 			mmc.dbo.Product_Most_Used_Vendor pmuv
 			INNER JOIN mmc.product.product p
 				ON p.uniqueId = pmuv.ProductUID
 			INNER JOIN mmc.product.shippingDetail sd
-				<!-- Parcel (NOT LTL) and Free Shipping -->
-				ON sd.uniqueId = p.uniqueId AND (sd.LTL IS NULL OR sd.LTL = 0) AND (sd.freeShipping = 1)
+				<!-- Parcel (NOT LTL) -->
+				ON sd.uniqueId = p.uniqueId AND (sd.LTL IS NULL OR sd.LTL = 0)
 			INNER JOIN mmc.product.family f
 				ON f.id = p.familyId
 			INNER JOIN mmc.product.finish fi
 				ON fi.id = p.finishId
 			INNER JOIN mmc.dbo.Manufacturer m
 				ON m.ID = f.manufacturerId
+			INNER JOIN mmc.dbo.PriceBook_Cost pbc
+				ON p.uniqueId = pbc.uniqueId
+				AND pbc.priceBookId = 1
 		WHERE
 			<!-- Product status Stock -->
 			p.statusId = ${@com.ferguson.cs.vendor.quickship.model.product.ProductStatus@STOCK.getIntValue()}

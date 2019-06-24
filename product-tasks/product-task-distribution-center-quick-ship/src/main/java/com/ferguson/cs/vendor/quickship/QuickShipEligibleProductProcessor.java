@@ -10,19 +10,28 @@ import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType;
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
 import com.ferguson.cs.vendor.quickship.model.vendor.QuickShipDistributionCenterSearchCriteria;
 import com.ferguson.cs.vendor.quickship.service.product.ProductService;
+import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
 import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 
 public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> {
 	private final ProductService productService;
 	private final VendorService vendorService;
+	private final CategoryService categoryService;
+	private ShippingCalculationView buildShippingCalculationView;
+	private static final int BUILD_SITE_ID = 82;
+	private static final int BUILD_STORE_ID = 248;
+	private static final int STANDARD_DELIVERY_CALCULATION_NAME_ID = 68;
 
-	public QuickShipEligibleProductProcessor(ProductService productService, VendorService vendorService) {
+	public QuickShipEligibleProductProcessor(ProductService productService, VendorService vendorService, CategoryService categoryService) {
 		this.productService = productService;
 		this.vendorService = vendorService;
+		this.categoryService = categoryService;
+		buildShippingCalculationView = categoryService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
 	}
 
 	@Override
@@ -30,8 +39,8 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 		List<DistributionCenterProductQuickShip> distributionCenterProductQuickShipList = new ArrayList<>();
 
 		for (Product product : productList) {
-			//Does not have a lead time override (Made To Order, PreOrder)
-			if (!isQuickShipLeadTime(product.getId())) {
+			//Ensure that product does not have a lead time override (Made To Order, PreOrder) and that it ships free
+			if (!isQuickShipLeadTime(product.getId()) || !productService.isFreeShipping(product,buildShippingCalculationView)) {
 				continue;
 			}
 
