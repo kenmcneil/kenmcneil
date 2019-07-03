@@ -3,7 +3,6 @@ package com.ferguson.cs.product.task.inventory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.ferguson.cs.product.task.inventory.service.InventoryImportService;
 import com.ferguson.cs.task.test.EnableTaskIntegrationTesting;
 import com.ferguson.cs.test.BaseTest;

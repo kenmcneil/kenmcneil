@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.brand;
 
 import javax.sql.DataSource;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;

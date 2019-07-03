@@ -2,14 +2,12 @@ package com.ferguson.cs.product.task.inventory;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactoryLocator;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
-
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
 class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {

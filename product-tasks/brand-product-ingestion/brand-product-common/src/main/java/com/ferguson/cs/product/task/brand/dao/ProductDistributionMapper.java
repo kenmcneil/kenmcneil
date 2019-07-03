@@ -1,14 +1,11 @@
 package com.ferguson.cs.product.task.brand.dao;
 
 import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import com.ferguson.cs.product.task.brand.model.JsonReference;
-import com.ferguson.cs.product.task.brand.model.JsonType;
-import com.ferguson.cs.product.task.brand.model.ProductJson;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
+import com.ferguson.cs.product.task.brand.model.JsonReference;
+import com.ferguson.cs.product.task.brand.model.ProductJson;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 
 

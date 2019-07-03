@@ -4,7 +4,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
 import com.ferguson.cs.task.test.EnableTaskIntegrationTesting;
 import com.ferguson.cs.test.BaseTest;
 

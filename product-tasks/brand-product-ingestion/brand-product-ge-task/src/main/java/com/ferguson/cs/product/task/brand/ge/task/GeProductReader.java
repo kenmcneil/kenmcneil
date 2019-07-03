@@ -3,7 +3,6 @@ package com.ferguson.cs.product.task.brand.ge.task;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
@@ -11,7 +10,6 @@ import org.springframework.batch.item.database.AbstractPagingItemReader;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import com.ferguson.cs.product.task.brand.ge.services.GeProductApiService;
 import com.ge_products.api.GeProduct;
 import com.ge_products.api.GeProductSearchCriteria;

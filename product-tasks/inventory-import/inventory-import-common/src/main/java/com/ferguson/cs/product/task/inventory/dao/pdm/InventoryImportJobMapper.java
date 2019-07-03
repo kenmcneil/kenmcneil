@@ -2,7 +2,6 @@ package com.ferguson.cs.product.task.inventory.dao.pdm;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobEmailAttachment;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobError;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobLog;

@@ -5,14 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
 import com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobDao;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;

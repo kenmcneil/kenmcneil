@@ -2,7 +2,6 @@ package com.ferguson.cs.product.task.inventory.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.mail.MailReceiver;
 import org.springframework.stereotype.Component;

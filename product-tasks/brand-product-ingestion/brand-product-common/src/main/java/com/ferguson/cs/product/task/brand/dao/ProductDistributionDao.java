@@ -1,9 +1,6 @@
 package com.ferguson.cs.product.task.brand.dao;
 
 import java.util.List;
-import java.util.Map;
-
-import com.ferguson.cs.product.task.brand.model.JsonReference;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 

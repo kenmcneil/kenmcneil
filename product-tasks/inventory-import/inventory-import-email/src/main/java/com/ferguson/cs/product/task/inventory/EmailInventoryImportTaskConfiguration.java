@@ -1,10 +1,8 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.util.Properties;
-
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

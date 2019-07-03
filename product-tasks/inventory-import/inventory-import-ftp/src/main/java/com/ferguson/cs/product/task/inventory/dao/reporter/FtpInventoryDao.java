@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.inventory.dao.reporter;
 
 import java.util.List;
-
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
 public interface FtpInventoryDao {
