@@ -28,7 +28,7 @@
 	</select>
 
 	<select id="getManhattanVendorInventoryZeroes" resultMap="vendorInventoryMap" parameterType="String">
-		SELECT DISTINCT TOP 1000 0 AS quantity,vm.MPN,dcVendor.vendorid location,manhattanJob.id manhattanInventoryJobId
+		SELECT DISTINCT 0 AS quantity,vm.MPN,dcVendor.vendorid location,manhattanJob.id manhattanInventoryJobId
 		FROM omc.dbo.vendor dcVendor
 		INNER JOIN omc.dbo.vendorDC dc with(NOLOCK)
 		ON dcVendor.uid = dc.dcVendorUid

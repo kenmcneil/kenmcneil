@@ -46,11 +46,6 @@ public class InventoryImportCommonConfiguration {
 		}
 
 		@Bean
-		public DataSourceTransactionManager reporterTransactionManager() {
-			return new DataSourceTransactionManager(reporterDataSource());
-		}
-
-		@Bean
 		public SqlSessionFactory reporterSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(reporterDataSource());
@@ -80,11 +75,6 @@ public class InventoryImportCommonConfiguration {
 		@ConfigurationProperties(prefix = "datasource.pdm")
 		public DataSource pdmDataSource() {
 			return pdmDataSourceProperties().initializeDataSourceBuilder().build();
-		}
-
-		@Bean
-		public DataSourceTransactionManager pdmTransactionManager() {
-			return new DataSourceTransactionManager(pdmDataSource());
 		}
 
 		@Bean
@@ -119,11 +109,6 @@ public class InventoryImportCommonConfiguration {
 		}
 
 		@Bean
-		public DataSourceTransactionManager batchTransactionManager() {
-			return new DataSourceTransactionManager(batchDataSource());
-		}
-
-		@Bean
 		public SqlSessionFactory batchSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(batchDataSource());
@@ -151,11 +136,6 @@ public class InventoryImportCommonConfiguration {
 		@ConfigurationProperties(prefix = "datasource.core")
 		public DataSource coreDataSource() {
 			return coreDataSourceProperties().initializeDataSourceBuilder().build();
-		}
-
-		@Bean
-		public DataSourceTransactionManager coreTransactionManager() {
-			return new DataSourceTransactionManager(coreDataSource());
 		}
 
 		@Bean
