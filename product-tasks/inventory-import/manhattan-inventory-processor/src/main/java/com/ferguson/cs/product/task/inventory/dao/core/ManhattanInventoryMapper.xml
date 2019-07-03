@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryMapper">
+	<resultMap id="vendorInventoryMap" type="VendorInventory">
+		<result column="mpn" property="mpn" />
+		<result column="location" property="location" />
+		<result column="quantity" property="quantity" />
+		<result column="manhattanInventoryJobId" property="manhattanInventoryJobId" />
+	</resultMap>
+
+	<select id="getManhattanVendorInventory" resultMap="vendorInventoryMap" parameterType="String">
+		SELECT DISTINCT manhattanData.quantity, manhattanData.mpn, manhattanData.location,manhattanJob.id manhattanInventoryJobId
+		FROM omc.vendor.manhattanInventoryData manhattanData WITH(NOLOCK)
+		INNER JOIN omc.vendor.manhattanInventoryJob manhattanJob WITH(NOLOCK)
+		ON manhattanData.manhattanInventoryJobId = manhattanJob.id
+		INNER JOIN omc.dbo.vendor dcVendor WITH(NOLOCK)
+		ON manhattanData.location = dcVendor.vendorid
+		INNER JOIN omc.dbo.vendorDC dc WITH(NOLOCK)
+		ON dcVendor.uid = dc.dcVendorUid
+		INNER JOIN omc.dbo.vendor vendorParent WITH(NOLOCK)
+		ON dc.parentVendorUid = vendorParent.uid
+		INNER JOIN omc.dbo.Vendor_Mapping vendorMapping WITH(NOLOCK)
+		ON manhattanData.mpn = vendorMapping.MPN
+		AND vendorParent.vendorid = vendorMapping.Vendor
+		WHERE manhattanJob.transactionNumber = #{transactionNumber}
+		AND vendorParent.vendorId != 'Ferguson_039'
+	</select>
+
+	<select id="getManhattanVendorInventoryZeroes" resultMap="vendorInventoryMap" parameterType="String">
+		SELECT DISTINCT TOP 1000 0 AS quantity,vm.MPN,dcVendor.vendorid location,manhattanJob.id manhattanInventoryJobId
+		FROM omc.dbo.vendor dcVendor
+		INNER JOIN omc.dbo.vendorDC dc with(NOLOCK)
+		ON dcVendor.uid = dc.dcVendorUid
+		INNER JOIN omc.dbo.vendor vp with(NOLOCK)
+		ON dc.parentVendorUid = vp.uid
+		INNER JOIN omc.dbo.Vendor_Mapping vm
+		ON vp.vendorid = vm.Vendor
+		INNER JOIN omc.vendor.manhattanInventoryJob manhattanJob
+		ON manhattanJob.transactionNumber = #{transactionNumber}
+		LEFT JOIN omc.vendor.manhattanInventoryData manhattanData with(NOLOCK)
+		ON dcVendor.vendorid = manhattanData.location
+		AND vm.MPN = manhattanData.mpn
+		AND manhattanJob.id = manhattanData.manhattanInventoryJobId
+		WHERE vp.vendorid LIKE 'Ferguson%'
+		AND vp.vendorid != 'Ferguson_039'
+		AND dcVendor.vendorid NOT IN('Ferguson_Freight','Ferguson','Ferguson_SOD')
+		AND manhattanData.id IS NULL
+		AND vm.MPN IS NOT NULL
+		AND vm.MPN != ''
+	</select>
+
+	<resultMap id="manhattanInventoryJobMap" type="ManhattanInventoryJob">
+		<id property="id" column="id" />
+		<result property="transactionNumber" column="transactionNumber" />
+		<result property="totalCount" column="totalCount" />
+		<result property="currentCount" column="currentCount" />
+		<result column="manhattanInventoryJobStatusId" property="manhattanInventoryJobStatus" javaType="ManhattanInventoryJobStatus" typeHandler="com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler"/>
+		<result column="createdDateTime" property="createdDateTime" />
+		<result column="manhattanChannelId" property="manhattanChannel" javaType="ManhattanChannel" typeHandler="com.ferguson.cs.product.task.inventory.dao.IntMappedEnumTypeHandler"/>
+	</resultMap>
+
+	<select id="getLoadingManhattanInventoryJobs" resultMap="manhattanInventoryJobMap">
+		SELECT job.id,job.transactionNumber,job.totalCount,job.currentCount,job.manhattanInventoryJobStatusId,job.createdDateTime,job.manhattanChannelId AS manhattanChannelId
+		FROM omc.vendor.manhattanInventoryJob job WITH(NOLOCK)
+		WHERE manhattanInventoryJobStatusId = 1
+		AND manhattanChannelId = #{manhattanChannel.intValue}
+	</select>
+
+	<update id="updateManhattanInventoryJobStatus" parameterType="ManhattanInventoryJob">
+		UPDATE omc.vendor.manhattanInventoryJob
+		SET manhattanInventoryJobStatusId = #{manhattanInventoryJobStatus.intValue}
+		WHERE id = #{id}
+	</update>
+
+	<delete id="deleteManhattanInventoryJobData" parameterType="int">
+		DELETE omc.vendor.manhattanInventoryData
+		WHERE manhattanInventoryJobId = #{manhattanInventoryJobId}
+	</delete>
+</mapper>

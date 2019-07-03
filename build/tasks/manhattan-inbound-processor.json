@@ -1,8 +1,0 @@
-[
-  {
-    "appName": "manhattan-inbound-processor",
-    "name": "product-manhattan-inbound-processor",
-    "jobName": "manhattanInboundProcessorJob",
-    "heapSize": "512m"
-  }
-]

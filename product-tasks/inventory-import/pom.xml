@@ -15,7 +15,7 @@
 		<module>inventory-import-common</module>
 		<module>inventory-import-ftp</module>
 		<module>inventory-import-email</module>
-		<module>manhattan-inbound-processor</module>
+		<module>manhattan-inventory-processor</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
