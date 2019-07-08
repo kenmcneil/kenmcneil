@@ -44,7 +44,9 @@ public class ManhattanVendorInventoryJobListener implements JobExecutionListener
 			this.manhattanInventoryJob.setCurrentCount(manhattanInventoryJob.getCurrentCount());
 			this.manhattanInventoryJob.setTotalCount(manhattanInventoryJob.getTotalCount());
 			this.manhattanInventoryJob.setTransactionNumber(manhattanInventoryJob.getTransactionNumber());
-			this.manhattanInventoryJob.setManhattanInventoryJobStatus(manhattanInventoryJob.getManhattanInventoryJobStatus());
+			this.manhattanInventoryJob.setManhattanInventoryJobStatus(ManhattanInventoryJobStatus.PROCESSING);
+			this.manhattanInventoryJob.setManhattanChannel(manhattanInventoryJob.getManhattanChannel());
+			manhattanInventoryProcessorService.updateManhattanInventoryJob(manhattanInventoryJob);
 		}
 	}
 

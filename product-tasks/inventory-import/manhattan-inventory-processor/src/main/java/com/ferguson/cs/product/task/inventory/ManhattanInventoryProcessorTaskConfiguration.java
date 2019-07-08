@@ -1,5 +1,7 @@
 package com.ferguson.cs.product.task.inventory;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -7,7 +9,9 @@ import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.file.FlatFileHeaderCallback;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import com.ferguson.cs.product.task.inventory.batch.FileUploadTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanJobInitializationTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryJobListener;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryProcessor;
@@ -53,7 +58,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	public FlatFileItemWriter<VendorInventory> vendorInventoryFlatFileItemWriter(ManhattanInventoryJob manhattanInventoryJob) {
 
 
-		return createVendorInventoryWriter(manhattanInventoryJob.getTransactionNumber());
+		return createVendorInventoryWriter(manhattanInventoryJob);
 	}
 
 	@Bean
@@ -66,6 +71,15 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventory")
 				.<VendorInventory, VendorInventory>chunk(1000)
 				.reader(manhattanVendorInventoryReader(null))
+				.writer(vendorInventoryFlatFileItemWriter(null))
+				.build();
+	}
+
+	@Bean
+	public Step writeManhattanBuildVendorInventory() {
+		return taskBatchJobFactory.getStepBuilder("writeManhattanBuildVendorInventory")
+				.<VendorInventory, VendorInventory>chunk(1000)
+				.reader(manhattanBuildVendorInventoryReader(null))
 				.writer(vendorInventoryFlatFileItemWriter(null))
 				.build();
 	}
@@ -86,20 +100,39 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.build();
 	}
 
+	@Bean
+	public Step uploadFile() {
+		return taskBatchJobFactory.getStepBuilder("uploadFile")
+				.tasklet(fileUploadTasklet(null))
+				.build();
+	}
 
 	@Bean
-	public Job manhattanInboundInventoryProcessorJob() {
-		return taskBatchJobFactory.getJobBuilder("manhattanInboundInventoryProcessorJob")
+	public Job manhattanBuildInboundInventoryProcessorJob() {
+		return taskBatchJobFactory.getJobBuilder("manhattanBuildInboundInventoryProcessorJob")
 				.listener(manhattanBuildVendorInventoryJobListener())
 				.start(initializeManhattanJob())
 				.on(ExitStatus.NOOP.getExitCode()).end()
 				.on(ExitStatus.COMPLETED.getExitCode())
-				.to(writeManhattanVendorInventory())
+				.to(writeManhattanBuildVendorInventory())
 				.next(manhattanZeroesDecider())
 				.on(ExitStatus.COMPLETED.getExitCode())
 				.end()
 				.on("ZEROES")
 				.to(writeManhattanVendorInventoryZeroes())
+				.end()
+				.build();
+	}
+
+	@Bean
+	public Job manhattanSupplyInboundInventoryProcessorJob() {
+		return taskBatchJobFactory.getJobBuilder("manhattanSupplyInboundInventoryProcessorJob")
+				.listener(manhattanSupplyVendorInventoryJobListener())
+				.start(initializeManhattanJob())
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(writeManhattanVendorInventory())
+				.next(uploadFile())
 				.end()
 				.build();
 	}
@@ -112,14 +145,27 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public MyBatisCursorItemReader<VendorInventory> manhattanBuildVendorInventoryReader(ManhattanInventoryJob manhattanInventoryJob) {
+		return createVendorInventoryReader("getFilteredManhattanVendorInventory", manhattanInventoryJob
+				.getTransactionNumber());
+	}
+
+	@Bean
+	@StepScope
 	public MyBatisCursorItemReader<VendorInventory> manhattanVendorInventoryZeroesReader(ManhattanInventoryJob manhattanInventoryJob) {
-		return createVendorInventoryReader("getManhattanVendorInventoryZeroes", manhattanInventoryJob.getTransactionNumber());
+		return createVendorInventoryReader("getManhattanVendorInventoryZeroes", manhattanInventoryJob
+				.getTransactionNumber());
 	}
 
 
 	@Bean
 	public ManhattanVendorInventoryJobListener manhattanBuildVendorInventoryJobListener() {
 		return new ManhattanVendorInventoryJobListener(ManhattanChannel.BUILD);
+	}
+
+	@Bean
+	public ManhattanVendorInventoryJobListener manhattanSupplyVendorInventoryJobListener() {
+		return new ManhattanVendorInventoryJobListener(ManhattanChannel.SUPPLY);
 	}
 
 	@Bean
@@ -137,6 +183,12 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		return new ManhattanJobInitializationTasklet();
 	}
 
+	@Bean
+	@StepScope
+	public FileUploadTasklet fileUploadTasklet(ManhattanInventoryJob manhattanInventoryJob) {
+		return new FileUploadTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob));
+	}
+
 	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
 		MyBatisCursorItemReader<VendorInventory> reader = new MyBatisCursorItemReader<>();
 		reader.setQueryId(queryName);
@@ -151,14 +203,31 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 
 	}
 
-	private FlatFileItemWriter<VendorInventory> createVendorInventoryWriter(String transactionNumber) {
+	private FlatFileItemWriter<VendorInventory> createVendorInventoryWriter(ManhattanInventoryJob manhattanInventoryJob) {
+
+
 		return new FlatFileItemWriterBuilder<VendorInventory>()
 				.delimited()
 				.delimiter(",")
-				.names(new String[]{"mpn", "location", "quantity"})
+				.names(new String[]{"mpid", "location", "quantity"})
 				.name("vendorInventoryFlatFileItemWriter")
-				.resource(new FileSystemResource(manhattanInboundSettings.getManhattanOutputFilePath() + "_" + transactionNumber + ".csv"))
+				.headerCallback(writer -> writer.write("MPID,LOCATION,QTY"))
+				.resource(new FileSystemResource(getFilePathFromManhattanJob(manhattanInventoryJob)))
 				.append(true)
 				.build();
+	}
+
+	private String getFilePathFromManhattanJob(ManhattanInventoryJob manhattanInventoryJob) {
+		String completionStatus;
+
+		if (manhattanInventoryJob.getCurrentCount() >= manhattanInventoryJob.getTotalCount()) {
+			completionStatus = "full";
+		} else {
+			completionStatus = "partial";
+		}
+
+		return String.format("%s/%s-%s-sync-inventory.csv", manhattanInboundSettings
+				.getManhattanOutputFilePath(), manhattanInventoryJob.getManhattanChannel()
+				.getStringValue(), completionStatus);
 	}
 }

@@ -3,13 +3,13 @@
 
 <mapper namespace="com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryMapper">
 	<resultMap id="vendorInventoryMap" type="VendorInventory">
-		<result column="mpn" property="mpn" />
+		<result column="mpn" property="mpid" />
 		<result column="location" property="location" />
 		<result column="quantity" property="quantity" />
 		<result column="manhattanInventoryJobId" property="manhattanInventoryJobId" />
 	</resultMap>
 
-	<select id="getManhattanVendorInventory" resultMap="vendorInventoryMap" parameterType="String">
+	<select id="getFilteredManhattanVendorInventory" resultMap="vendorInventoryMap" parameterType="String">
 		SELECT DISTINCT manhattanData.quantity, manhattanData.mpn, manhattanData.location,manhattanJob.id manhattanInventoryJobId
 		FROM omc.vendor.manhattanInventoryData manhattanData WITH(NOLOCK)
 		INNER JOIN omc.vendor.manhattanInventoryJob manhattanJob WITH(NOLOCK)
@@ -25,6 +25,14 @@
 		AND vendorParent.vendorid = vendorMapping.Vendor
 		WHERE manhattanJob.transactionNumber = #{transactionNumber}
 		AND vendorParent.vendorId != 'Ferguson_039'
+	</select>
+
+	<select id="getManhattanVendorInventory" resultMap="vendorInventoryMap" parameterType="String">
+		SELECT DISTINCT manhattanData.quantity, manhattanData.mpn, manhattanData.location,manhattanJob.id manhattanInventoryJobId
+		FROM omc.vendor.manhattanInventoryData manhattanData WITH(NOLOCK)
+		INNER JOIN omc.vendor.manhattanInventoryJob manhattanJob WITH(NOLOCK)
+		ON manhattanData.manhattanInventoryJobId = manhattanJob.id
+		WHERE manhattanJob.transactionNumber = #{transactionNumber}
 	</select>
 
 	<select id="getManhattanVendorInventoryZeroes" resultMap="vendorInventoryMap" parameterType="String">
