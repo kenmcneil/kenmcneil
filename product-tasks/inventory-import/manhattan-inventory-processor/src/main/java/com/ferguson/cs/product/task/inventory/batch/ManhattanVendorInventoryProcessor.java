@@ -24,7 +24,7 @@ public class ManhattanVendorInventoryProcessor implements ItemProcessor<VendorIn
 
 	private boolean validate(VendorInventory vendorInventory) {
 		return vendorInventory != null &&
-				vendorInventory.getMpn() != null &&
+				vendorInventory.getMpid() != null &&
 				vendorInventory.getLocation() != null;
 	}
 }

@@ -11,6 +11,7 @@ import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventory
 public interface ManhattanInventoryMapper {
 	List<VendorInventory> getManhattanVendorInventory(@Param("transactionNumber") String transactionNumber);
 	List<VendorInventory> getManhattanVendorInventoryZeroes(@Param("transactionNumber") String transactionNumber);
+	List<VendorInventory> getFilteredManhattanVendorInventory(@Param("transactionNumber") String transactionNumber);
 	List<ManhattanInventoryJob> getLoadingManhattanInventoryJobs(@Param("manhattanChannel") ManhattanChannel manhattanChannel);
 	void updateManhattanInventoryJobStatus(ManhattanInventoryJob manhattanInventoryJob);
 	void deleteManhattanInventoryJobData(int manhattanInventoryJobId);

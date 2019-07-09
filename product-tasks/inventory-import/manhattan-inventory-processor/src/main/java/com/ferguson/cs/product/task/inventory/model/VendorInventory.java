@@ -3,19 +3,19 @@ package com.ferguson.cs.product.task.inventory.model;
 import java.io.Serializable;
 
 public class VendorInventory implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
-	private String mpn;
+	private String mpid;
 	private String location;
 	private Integer quantity;
 	private Integer manhattanInventoryJobId;
 
-	public String getMpn() {
-		return mpn;
+	public String getMpid() {
+		return mpid;
 	}
 
-	public void setMpn(String mpn) {
-		this.mpn = mpn;
+	public void setMpid(String mpid) {
+		this.mpid = mpid;
 	}
 
 	public String getLocation() {
