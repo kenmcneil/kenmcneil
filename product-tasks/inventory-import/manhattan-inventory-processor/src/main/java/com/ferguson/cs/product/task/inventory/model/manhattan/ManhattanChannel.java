@@ -5,7 +5,7 @@ import com.ferguson.cs.utilities.IntMappedEnum;
 import com.ferguson.cs.utilities.StringMappedEnum;
 
 public enum ManhattanChannel implements IntMappedEnum, StringMappedEnum {
-	BUILD(1,"build"), SUPPLY(2,"supply");
+	BUILD(1,"build"), SUPPLY(2,"supply"), HMWALLACE(3,"hmwallace");
 
 	final int intValue;
 	final String stringValue;

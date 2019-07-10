@@ -20,6 +20,7 @@ import com.jcraft.jsch.ChannelSftp;
 public class ManhattanInventoryProcessorConfiguration {
 
 	private static final String MANHATTAN_SUPPLY_SFTP_CHANNEL = "ManhattanSupplySftpChannel";
+	private static final String MANHATTAN_HMWALLACE_SFTP_CHANNEL = "ManhattanHmWallaceSftpChannel";
 
 	private ManhattanInboundSettings manhattanInboundSettings;
 
@@ -52,9 +53,35 @@ public class ManhattanInventoryProcessorConfiguration {
 		return handler;
 	}
 
+	@Bean(name = "hmWallaceFtpSessionFactory")
+	public SessionFactory<ChannelSftp.LsEntry> hmWallaceFtpSessionFactory() {
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
+
+		factory.setHost(manhattanInboundSettings.getFtpServers().get("hmwallace").getHost());
+		factory.setPort(manhattanInboundSettings.getFtpServers().get("hmwallace").getPort());
+		factory.setUser(manhattanInboundSettings.getFtpServers().get("hmwallace").getUsername());
+		factory.setPassword(manhattanInboundSettings.getFtpServers().get("hmwallace").getPassword());
+		factory.setAllowUnknownKeys(true);
+
+		return factory;
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = MANHATTAN_HMWALLACE_SFTP_CHANNEL)
+	public MessageHandler hmWallaceSftpHandler() {
+		SftpMessageHandler handler = new SftpMessageHandler((supplyFtpSessionFactory()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFtpServers().get("hmwallace").getRemotePath()));
+		handler.setUseTemporaryFileName(false);
+		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		return handler;
+	}
+
 	@MessagingGateway
 	public interface ManhattanOutboundGateway {
 		@Gateway(requestChannel = MANHATTAN_SUPPLY_SFTP_CHANNEL)
 		void sendManhattanSupplyFileSftp(File file);
+
+		@Gateway(requestChannel = MANHATTAN_HMWALLACE_SFTP_CHANNEL)
+		void sendManhattanHmWallaceFileSftp(File file);
 	}
 }
