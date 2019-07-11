@@ -5,11 +5,17 @@
     "jobName": "manhattanBuildInboundInventoryProcessorJob",
     "heapSize": "512m"
   },
-
   {
     "appName": "manhattan-inventory-processor",
     "name": "product-manhattan-supply-inbound-inventory-processor",
     "jobName": "manhattanSupplyInboundInventoryProcessorJob",
     "heapSize": "512m"
+  },
+  {
+    "appName": "manhattan-inventory-processor",
+    "name": "product-manhattan-hmwallace-inbound-inventory-processor",
+    "jobName": "manhattanHmWallaceInboundInventoryProcessorJob",
+    "heapSize": "512m"
   }
+
 ]

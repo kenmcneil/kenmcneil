@@ -1,7 +1,5 @@
 package com.ferguson.cs.product.task.inventory;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -9,9 +7,7 @@ import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.file.FlatFileHeaderCallback;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import com.ferguson.cs.product.task.inventory.batch.FileUploadTasklet;
+import com.ferguson.cs.product.task.inventory.batch.FileHandlingTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanJobInitializationTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryJobListener;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryProcessor;
@@ -33,6 +29,7 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 public class ManhattanInventoryProcessorTaskConfiguration {
 
 	private ManhattanInboundSettings manhattanInboundSettings;
+	private InventoryImportSettings inventoryImportSettings;
 	private TaskBatchJobFactory taskBatchJobFactory;
 	private SqlSessionFactory coreSqlSessionFactory;
 
@@ -45,6 +42,11 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Autowired
 	public void setTaskBatchJobFactory(TaskBatchJobFactory taskBatchJobFactory) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
+	}
+
+	@Autowired
+	public void setInventoryImportSettings(InventoryImportSettings inventoryImportSettings) {
+		this.inventoryImportSettings = inventoryImportSettings;
 	}
 
 	@Autowired
@@ -101,9 +103,9 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public Step uploadFile() {
-		return taskBatchJobFactory.getStepBuilder("uploadFile")
-				.tasklet(fileUploadTasklet(null))
+	public Step handleFile() {
+		return taskBatchJobFactory.getStepBuilder("handleFile")
+				.tasklet(fileHandlingTasklet(null))
 				.build();
 	}
 
@@ -120,6 +122,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.end()
 				.on("ZEROES")
 				.to(writeManhattanVendorInventoryZeroes())
+				.next(handleFile())
 				.end()
 				.build();
 	}
@@ -132,7 +135,20 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.on(ExitStatus.NOOP.getExitCode()).end()
 				.on(ExitStatus.COMPLETED.getExitCode())
 				.to(writeManhattanVendorInventory())
-				.next(uploadFile())
+				.next(handleFile())
+				.end()
+				.build();
+	}
+
+	@Bean
+	public Job manhattanHmWallaceInboundInventoryProcessorJob() {
+		return taskBatchJobFactory.getJobBuilder("manhattanHmWallaceInboundInventoryProcessorJob")
+				.listener(manhattanHmWallaceVendorInventoryJobListener())
+				.start(initializeManhattanJob())
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(writeManhattanVendorInventory())
+				.next(handleFile())
 				.end()
 				.build();
 	}
@@ -169,6 +185,11 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
+	public ManhattanVendorInventoryJobListener manhattanHmWallaceVendorInventoryJobListener() {
+		return new ManhattanVendorInventoryJobListener(ManhattanChannel.HMWALLACE);
+	}
+
+	@Bean
 	public ManhattanZeroesDecider manhattanZeroesDecider() {
 		return new ManhattanZeroesDecider();
 	}
@@ -185,8 +206,8 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public FileUploadTasklet fileUploadTasklet(ManhattanInventoryJob manhattanInventoryJob) {
-		return new FileUploadTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob));
+	public FileHandlingTasklet fileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob) {
+		return new FileHandlingTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob),inventoryImportSettings);
 	}
 
 	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
