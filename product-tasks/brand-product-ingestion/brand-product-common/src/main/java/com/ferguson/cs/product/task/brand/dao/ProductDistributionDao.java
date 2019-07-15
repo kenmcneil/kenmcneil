@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.brand.dao;
 
 import java.util.List;
+
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 

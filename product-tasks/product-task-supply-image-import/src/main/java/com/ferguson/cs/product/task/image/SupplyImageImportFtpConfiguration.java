@@ -12,7 +12,6 @@ public class SupplyImageImportFtpConfiguration {
 	private String baseFilePath;
 	private Integer maxFilesToSync;
 	private String errorFilePath;
-	
 
 	public Boolean getFtpEnabled() {
 		return ftpEnabled;
@@ -70,7 +69,6 @@ public class SupplyImageImportFtpConfiguration {
 		this.maxFilesToSync = maxFilesToSync;
 	}
 
-	
 	public String getErrorFilePath() {
 		return errorFilePath;
 	}

@@ -15,8 +15,6 @@ import com.ferguson.cs.product.task.image.decider.DeciderDirectoryHasImportFiles
 import com.ferguson.cs.product.task.image.integration.webservices.WebservicesClient;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
-
-
 @Configuration
 public class JobConfiguration {
 
@@ -80,7 +78,6 @@ public class JobConfiguration {
 	public Flow getJobFlow() {
 
 		LOGGER.info("Creating job flow bean ..");
-
 
 		Flow flow;
 

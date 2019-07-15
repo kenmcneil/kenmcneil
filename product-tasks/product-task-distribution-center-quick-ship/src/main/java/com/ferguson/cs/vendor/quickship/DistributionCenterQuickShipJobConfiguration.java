@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -18,8 +17,8 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
-import com.ferguson.cs.vendor.quickship.service.product.ProductService;
 import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
+import com.ferguson.cs.vendor.quickship.service.product.ProductService;
 import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 
 @Configuration
@@ -32,8 +31,9 @@ public class DistributionCenterQuickShipJobConfiguration {
 	private final ProductService productService;
 	private final CategoryService categoryService;
 
-	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory, DistributionCenterQuickShipTaskConfiguration taskConfiguration,
-	                                                   VendorService vendorService, ProductService productService, CategoryService categoryService) {
+	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory,
+			DistributionCenterQuickShipTaskConfiguration taskConfiguration, VendorService vendorService,
+			ProductService productService, CategoryService categoryService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.taskConfiguration = taskConfiguration;
 		this.vendorService = vendorService;
@@ -99,7 +99,6 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
-				.incrementer(new RunIdIncrementer())
 				.start(truncateDistributionCenterProductQuickShipTable())
 				.next(populateDistributionCenterProductQuickShipTable())
 				.build();

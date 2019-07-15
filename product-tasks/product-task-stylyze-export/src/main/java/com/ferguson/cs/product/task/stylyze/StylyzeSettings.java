@@ -1,7 +1,5 @@
 package com.ferguson.cs.product.task.stylyze;
 
-import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
-
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -9,6 +7,8 @@ import javax.annotation.PostConstruct;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import com.ferguson.cs.product.task.stylyze.model.StylyzeInputProduct;
 
 public class StylyzeSettings {
 

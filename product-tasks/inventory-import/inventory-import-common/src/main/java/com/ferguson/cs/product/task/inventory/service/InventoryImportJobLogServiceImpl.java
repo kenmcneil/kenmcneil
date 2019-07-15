@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.inventory.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.ferguson.cs.product.task.inventory.dao.pdm.InventoryImportJobDao;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;

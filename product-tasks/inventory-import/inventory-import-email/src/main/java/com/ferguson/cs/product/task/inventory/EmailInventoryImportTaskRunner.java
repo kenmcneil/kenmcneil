@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.inventory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import com.ferguson.cs.task.SimpleTaskRunner;
 
 @Component

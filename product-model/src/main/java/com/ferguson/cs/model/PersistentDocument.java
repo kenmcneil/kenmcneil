@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  *
  * @author tyler.vangorder
  */
- @Document
+@Document
 public interface PersistentDocument extends Serializable {
 
 	/**

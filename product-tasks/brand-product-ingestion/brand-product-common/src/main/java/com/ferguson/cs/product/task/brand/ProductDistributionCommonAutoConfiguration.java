@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.brand;
 
 import javax.sql.DataSource;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -14,15 +15,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
-
 @Configuration
 @MapperScan(basePackages=ProductDistributionCommonAutoConfiguration.INTEGRATION_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef="integrationSqlSessionFactory")
 public class ProductDistributionCommonAutoConfiguration {
-	
+
 	protected static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.brand.dao";
 	protected static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.brand";
-	
-	
+
 	@Bean
 	@Primary
 	@ConfigurationProperties(prefix = "datasource.integration")
@@ -52,7 +51,5 @@ public class ProductDistributionCommonAutoConfiguration {
 		factory.setTypeHandlersPackage(typeHandlerPackage);
 		return factory.getObject();
 	}
-	
-	
 
 }

@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class ManhattanInboundSettings {
 	private String manhattanOutputFilePath;
 	private Long jobCompletionTimeOutInMilliseconds;
-	private Map<String,FtpServerProperties> ftpServers;
+	private Map<String, FtpServerProperties> ftpServers;
 
 	public String getManhattanOutputFilePath() {
 		return manhattanOutputFilePath;

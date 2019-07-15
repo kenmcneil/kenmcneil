@@ -6,18 +6,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
 import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.ferguson.cs.product.task.inventory.InventoryImportException;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
@@ -27,6 +30,7 @@ import com.ferguson.cs.product.task.inventory.model.InventoryImportJobErrorMessa
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobType;
 import com.ferguson.cs.product.task.inventory.utility.ZipUtil;
+
 import net.freeutils.tnef.TNEF;
 import net.freeutils.tnef.TNEFInputStream;
 
@@ -84,15 +88,14 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 			emailInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 			emailInventoryImportJobLog.setStatus(InventoryImportJobStatus.FAILED);
 			inventoryImportJobLogService.saveInventoryImportJobLog(emailInventoryImportJobLog);
-			throw new InventoryImportException("Unable to create attachment directory: " + attachmentDir
-					.getAbsolutePath());
+			throw new InventoryImportException("Unable to create attachment directory: " + attachmentDir.getAbsolutePath());
 		}
 
 		for (Message message : messages) {
 			boolean hasError = false;
 			try {
 				Folder folder = message.getFolder();
-				if(!folder.isOpen()) {
+				if (!folder.isOpen()) {
 					folder.open(Folder.READ_WRITE);
 				}
 				Object content = message.getDataHandler().getContent();
@@ -101,8 +104,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 					int numberOfParts = multiPart.getCount();
 
 					for (int partCount = 0; partCount < numberOfParts; partCount++) {
-						BodyPart part =  multiPart.getBodyPart(partCount);
-
+						BodyPart part = multiPart.getBodyPart(partCount);
 
 						if (!Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())
 								&& !StringUtils.isNotBlank(part.getFileName())) {
@@ -120,13 +122,9 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 						String attachFilePath = attachmentDir.getAbsolutePath().concat("/").concat(part.getFileName());
 						InventoryImportJobEmailAttachment inventoryImportJobEmailAttachment = new InventoryImportJobEmailAttachment();
 						inventoryImportJobEmailAttachment.setFilename(part.getFileName());
-						try (
-								InputStream inputStream = (InputStream)part.getContent();
-								FileOutputStream fos = new FileOutputStream(new File(attachFilePath))
-						) {
-
-							IOUtils.copy(inputStream,fos);
-
+						try (InputStream inputStream = (InputStream)part.getContent();
+								FileOutputStream fos = new FileOutputStream(new File(attachFilePath))) {
+							IOUtils.copy(inputStream, fos);
 						} catch (Exception e) {
 							addAttachmentError(InventoryImportJobErrorMessage.EMAIL_ATTACHMENT_DOWNLOAD_ERROR, emailInventoryImportJobLog, inventoryImportJobEmailAttachment, e);
 							hasError = true;
@@ -157,12 +155,11 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 							addAttachmentError(InventoryImportJobErrorMessage.EMAIL_ATTACHMENT_DAT_READ_ERROR, emailInventoryImportJobLog, inventoryImportJobEmailAttachment, e);
 							hasError = true;
 						}
-						if(!hasError) {
+						if (!hasError) {
 							inventoryImportJobEmailAttachment.setWasSuccessful(true);
 							emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().add(inventoryImportJobEmailAttachment);
 						}
 					}
-
 
 				} else if (content instanceof InputStream) {
 					String contentType = message.getContentType();
@@ -197,7 +194,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 						addAttachmentError(InventoryImportJobErrorMessage.EMAIL_ATTACHMENT_DAT_READ_ERROR, emailInventoryImportJobLog, inventoryImportJobEmailAttachment, e);
 						hasError = true;
 					}
-					if(!hasError) {
+					if (!hasError) {
 						inventoryImportJobEmailAttachment.setWasSuccessful(true);
 						emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().add(inventoryImportJobEmailAttachment);
 					}
@@ -216,9 +213,9 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		}
 		List<InventoryImportJobEmailAttachment> attachmentLogList = emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList();
 		boolean hasSuccesses = attachmentLogList.stream().anyMatch(InventoryImportJobEmailAttachment::getWasSuccessful);
-		if(hasSuccesses && !emailInventoryImportJobLog.getErrors().isEmpty()) {
+		if (hasSuccesses && !emailInventoryImportJobLog.getErrors().isEmpty()) {
 			emailInventoryImportJobLog.setStatus(InventoryImportJobStatus.PARTIAL_FAILURE);
-		} else if(hasSuccesses || emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().isEmpty()) {
+		} else if (hasSuccesses || emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().isEmpty()) {
 			emailInventoryImportJobLog.setStatus(InventoryImportJobStatus.COMPLETE);
 		} else {
 			emailInventoryImportJobLog.setStatus(InventoryImportJobStatus.FAILED);
@@ -241,12 +238,10 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		if (e == null) {
 			inventoryImportJobError.setErrorMessage(errorMessage.getStringValue());
 		} else {
-			inventoryImportJobError.setErrorMessage(String
-					.format(errorMessage.getStringValue(), StringUtils.truncate(e.getCause().toString(), 255)));
+			inventoryImportJobError.setErrorMessage(String.format(errorMessage.getStringValue(), StringUtils.truncate(e.getCause().toString(), 255)));
 		}
 		inventoryImportJobEmailAttachment.setWasSuccessful(false);
-		emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList()
-				.add(inventoryImportJobEmailAttachment);
+		emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().add(inventoryImportJobEmailAttachment);
 		emailInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 	}
 }

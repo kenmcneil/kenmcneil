@@ -5,7 +5,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +19,6 @@ import com.ferguson.cs.product.task.image.SupplyProductImageFileNameHelper;
 import com.ferguson.cs.product.task.image.integration.ClientConfiguration;
 import com.ferguson.cs.product.task.image.integration.IntegrationClient;
 import com.ferguson.cs.utilities.ArgumentAssert;
-
-
 
 /**
  * A client for the build-api app to request resources and functionality from
@@ -98,11 +95,10 @@ public class WebservicesClient extends IntegrationClient {
 				requestEntity, ProductImageUploadResult.class,
 				SupplyProductImageFileNameHelper.BUSINESS_UNIT_ID_SUPPLY);
 		if (result != null) {
-			LOGGER.info("Cloudinary Uploaded FileName "+result.getBody().getUploadFileName());
-			LOGGER.info("Cloudinary PublicId is "+result.getBody().getPublicId());
-			LOGGER.info("Cloudinary URI is "+result.getBody().getUriList());
-		
-		}	
+			LOGGER.info("Cloudinary Uploaded FileName {}", result.getBody().getUploadFileName());
+			LOGGER.info("Cloudinary PublicId is {}", result.getBody().getPublicId());
+			LOGGER.info("Cloudinary URI is {}", result.getBody().getUriList());
+		}
 		return result.getBody();
 	}
 

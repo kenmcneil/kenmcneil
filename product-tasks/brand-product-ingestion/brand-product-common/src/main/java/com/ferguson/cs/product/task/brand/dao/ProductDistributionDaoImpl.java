@@ -2,28 +2,27 @@ package com.ferguson.cs.product.task.brand.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.JsonReference;
 import com.ferguson.cs.product.task.brand.model.ProductJson;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 
-
 @Repository
 @Transactional("integrationTransactionManager")
-public class ProductDistributionDaoImpl  implements ProductDistributionDao{
-	
+public class ProductDistributionDaoImpl implements ProductDistributionDao {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProductDistributionDaoImpl.class);
 	@Autowired
 	ProductDistributionMapper mapper;
-	
-	
-	
+
 	@Override
 	public void upsertSystemSource(SystemSource systemSource) {
 		Assert.hasText(systemSource.getSourceName(), "SystemSourceName is required field.");
@@ -36,13 +35,12 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 			systemSource.setId(id);
 			mapper.updateSystemSource(systemSource);
 		}
-		
-		
+
 	}
-	
+
 	@Override
 	public void upsertProducts(List<BrandProduct> products) {
-		for (BrandProduct product:products) {
+		for (BrandProduct product : products) {
 			try {
 				Assert.notNull(product.getSystemSourceId(), "The systemSourceId cannot be null.");
 				Assert.hasText(product.getProductId(), "The productId is required.");
@@ -58,31 +56,31 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 					mapper.updateProduct(product);
 				}
 				upsertJsonReferences(product);
-				
+
 			} catch (Exception e) {
-				LOGGER.error("The product " +product.getProductId()+" could be inserted/updated: "  + e.getStackTrace());
+				LOGGER.error("The product {} could be inserted/updated: ", product.getProductId(), e);
 			}
-		}	
-		
+		}
+
 	}
-	
+
 	private void upsertJsonReferences(BrandProduct product) {
 		if (product.getJsonReferences() != null && !product.getJsonReferences().isEmpty()) {
-			for (JsonReference jsonReference: product.getJsonReferences()) {
+			for (JsonReference jsonReference : product.getJsonReferences()) {
 				Integer jsonId = mapper.getJson(jsonReference.getJsonType().getIntValue(), product.getId());
 				if (jsonId == null) {
-					//Insert in json and productjson tables
+					// Insert in json and productjson tables
 					mapper.insertJson(jsonReference);
 					mapper.insertProductJson(product.getId(), jsonReference.getId());
-					
+
 				} else {
-					//update in json table
+					// update in json table
 					mapper.updateJson(jsonId, jsonReference.getJsonString());
 				}
-			}	
+			}
 		}
 	}
-	
+
 	@Override
 	public void deleteStaleProducts(Integer systemSourceId) {
 		List<ProductJson> productJsons = mapper.listStaleProducts(systemSourceId);
@@ -90,7 +88,7 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 			List<Integer> productJsonIds = new ArrayList<>();
 			List<Integer> productIds = new ArrayList<>();
 			List<Integer> jsonIds = new ArrayList<>();
-			for (ProductJson productJson: productJsons) {
+			for (ProductJson productJson : productJsons) {
 				if (!productJsonIds.contains(productJson.getId())) {
 					productJsonIds.add(productJson.getId());
 				}
@@ -105,8 +103,7 @@ public class ProductDistributionDaoImpl  implements ProductDistributionDao{
 			mapper.deleteJson(jsonIds);
 			mapper.deleteProducts(systemSourceId, productIds);
 		}
-		
-		
+
 	}
 
 }

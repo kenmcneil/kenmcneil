@@ -4,8 +4,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.ferguson.cs.product.task.inventory.ManhattanInboundSettings;
 import com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
@@ -16,7 +18,6 @@ public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventor
 
 	private ManhattanInventoryDao manhattanInventoryDao;
 	private ManhattanInboundSettings manhattanInboundSettings;
-
 
 	@Autowired
 	public void setManhattanInventoryDao(ManhattanInventoryDao manhattanInventoryDao) {
@@ -36,7 +37,7 @@ public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventor
 					Date now = new Date();
 					Long millisecondsBetween = (now.getTime() - j.getCreatedDateTime().getTime());
 					return j.getCurrentCount() >= j.getTotalCount()
-							||  millisecondsBetween > manhattanInboundSettings
+							|| millisecondsBetween > manhattanInboundSettings
 							.getJobCompletionTimeOutInMilliseconds();
 
 				}).collect(Collectors.toList());

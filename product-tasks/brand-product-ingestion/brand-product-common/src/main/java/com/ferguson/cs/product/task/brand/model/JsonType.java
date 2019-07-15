@@ -21,13 +21,11 @@ public enum JsonType implements IntMappedEnum {
 
 	JsonType(int v) {
 		intValue = v;
-    }
+	}
 
-    
 	@Override
 	public int getIntValue() {
 		return intValue;
 	}
 
-    
 }
