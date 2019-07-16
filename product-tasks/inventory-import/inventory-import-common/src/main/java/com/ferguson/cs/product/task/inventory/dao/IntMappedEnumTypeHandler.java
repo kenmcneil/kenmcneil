@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
+
 import com.ferguson.cs.utilities.IntMappedEnum;
 
 
@@ -69,7 +71,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 
 	@Override
 	public void setNonNullParameter(PreparedStatement ps, int paramIndex,
-									IntMappedEnum enumValue, JdbcType jdbcType) throws SQLException {
+			IntMappedEnum enumValue, JdbcType jdbcType) throws SQLException {
 		ps.setInt(paramIndex, enumValue.getIntValue());
 	}
 

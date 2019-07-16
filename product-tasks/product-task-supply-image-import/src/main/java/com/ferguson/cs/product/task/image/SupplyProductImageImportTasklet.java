@@ -13,7 +13,6 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 
@@ -24,7 +23,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
- * This tasklet is used to upload the supply product images from ftp server to 
+ * This tasklet is used to upload the supply product images from ftp server to
  * Cloudinary and update database.
  * 
  * @author c-chandra
@@ -39,8 +38,8 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 	private Integer numberOfFilesToProcess = 10;
 	private final String errorFtpDirectory;
 
-	public SupplyProductImageImportTasklet(SessionFactory<ChannelSftp.LsEntry> sessionFactroy, SupplyImageImportFtpConfiguration supplyImageImportFtpConfiguration,
-			WebservicesClient wsClient) {
+	public SupplyProductImageImportTasklet(SessionFactory<ChannelSftp.LsEntry> sessionFactroy,
+			SupplyImageImportFtpConfiguration supplyImageImportFtpConfiguration, WebservicesClient wsClient) {
 		this.sessionFactroy = sessionFactroy;
 		this.ftpDirectory = supplyImageImportFtpConfiguration.getBaseFilePath();
 		this.wsClient = wsClient;
@@ -52,15 +51,15 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		
-		//Before proceeding check connection to webservices
+
+		// Before proceeding check connection to webservices
 		if (!this.wsClient.serverUp()) {
 			throw new RuntimeException(String.format("Webservices can not be communicated with. Processing stoped. %s",
 					this.wsClient.getClientConfiguration() != null
 							? this.wsClient.getClientConfiguration().getRemoteServerAddress()
 							: "remote server not configured"));
 		}
-		
+
 		final UUID uploadUUID = UUID.randomUUID();
 		LOGGER.info(String.format("FileRenamingTasklet executing ... %s", uploadUUID));
 
@@ -126,7 +125,7 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 					inputStream = ftpSession
 							.readRaw(this.ftpDirectory + "/" + supplyProductImageFileName.getUploadFileName());
 				} catch (Exception e) {
-					//  move to an error directory
+					// move to an error directory
 					moveFileToErrorDir(ftpSession, supplyProductImageFileName.getUploadFileName());
 					LOGGER.error("Exception occured while reading file from ftp location: {} ",
 							supplyProductImageFileName.getNameWithExtension());
@@ -182,18 +181,17 @@ public class SupplyProductImageImportTasklet implements Tasklet {
 		return RepeatStatus.FINISHED;
 
 	}
-	
+
 	private void moveFileToErrorDir(Session<LsEntry> ftpSession, String fileName) {
 		try {
-			//Check is error dir exists - if not create in under ftpDirectory
+			// Check is error dir exists - if not create in under ftpDirectory
 			if (!ftpSession.exists(this.errorFtpDirectory)) {
 				ftpSession.mkdir(this.errorFtpDirectory);
 			}
-			ftpSession.rename(this.ftpDirectory + "/" + fileName, 
-					this.errorFtpDirectory + "/" + fileName);
+			ftpSession.rename(this.ftpDirectory + "/" + fileName, this.errorFtpDirectory + "/" + fileName);
 		} catch (IOException e) {
 			throw new RuntimeException(
-					String.format("Error moving image file %s to error dir %s ",fileName, this.errorFtpDirectory),e);
+					String.format("Error moving image file %s to error dir %s ", fileName, this.errorFtpDirectory), e);
 		}
 	}
 

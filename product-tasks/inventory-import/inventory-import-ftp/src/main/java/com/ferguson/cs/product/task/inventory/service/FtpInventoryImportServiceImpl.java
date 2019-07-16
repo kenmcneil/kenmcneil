@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.inventory.service;
 
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+
 import com.ferguson.cs.product.task.inventory.FtpInventoryImportConfiguration.InventoryGateway;
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
 import com.ferguson.cs.product.task.inventory.dao.reporter.FtpInventoryDao;

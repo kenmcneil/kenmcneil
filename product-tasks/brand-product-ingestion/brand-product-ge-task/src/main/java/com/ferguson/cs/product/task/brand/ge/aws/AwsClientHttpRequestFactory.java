@@ -10,6 +10,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +24,6 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.InterceptingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-
-
 
 public class AwsClientHttpRequestFactory extends InterceptingClientHttpRequestFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(AwsClientHttpRequestFactory.class);
@@ -61,13 +60,13 @@ public class AwsClientHttpRequestFactory extends InterceptingClientHttpRequestFa
 		}
 	}
 
-	
 	private static final class LoggingAwsClientHttpRequestInterceptor extends AwsClientHttpRequestInterceptor {
 		public static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
-		
+
 		private LoggingAwsClientHttpRequestInterceptor(AwsRequestSigner requestSigner) {
 			super(requestSigner);
 		}
+
 		public static Charset getCharset(HttpHeaders headers) {
 			if (headers == null) {
 				return DEFAULT_CHARSET;
@@ -79,7 +78,6 @@ public class AwsClientHttpRequestFactory extends InterceptingClientHttpRequestFa
 			Charset charset = mediaType.getCharset();
 			return charset == null ? DEFAULT_CHARSET : charset;
 		}
-
 
 		@Override
 		public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
@@ -109,12 +107,12 @@ public class AwsClientHttpRequestFactory extends InterceptingClientHttpRequestFa
 					+ response.getRawStatusCode() + " (" + response.getStatusCode().getReasonPhrase() + ")";
 			// Try to read the body
 			try {
-				try(Reader reader = new InputStreamReader(response.getBody(), getCharset(response.getHeaders()))) {
+				try (Reader reader = new InputStreamReader(response.getBody(), getCharset(response.getHeaders()))) {
 					String responseBody = IOUtils.toString(reader);
-					LOG.debug(messageStart + " with body: " + responseBody);
+					LOG.debug("{} with body: {}",messageStart, responseBody);
 				}
-			} catch(Exception ex){
-				LOG.debug(messageStart + " with error reading body", ex);
+			} catch (Exception ex) {
+				LOG.debug("{} with error reading body", messageStart, ex);
 			}
 			return response;
 		}
@@ -128,7 +126,6 @@ public class AwsClientHttpRequestFactory extends InterceptingClientHttpRequestFa
 		private BufferedClientHttpResponse(ClientHttpResponse response) {
 			this.response = response;
 		}
-
 
 		@Override
 		public HttpStatus getStatusCode() throws IOException {

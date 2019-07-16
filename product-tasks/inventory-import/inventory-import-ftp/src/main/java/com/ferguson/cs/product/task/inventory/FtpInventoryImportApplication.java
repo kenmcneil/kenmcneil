@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.task.inventory;
 
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.integration.config.EnableIntegration;
@@ -12,4 +11,3 @@ public class FtpInventoryImportApplication {
 		SpringApplication.run(FtpInventoryImportApplication.class, args).close();
 	}
 }
-

@@ -20,14 +20,15 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.http.HttpRequest;
 import org.springframework.web.util.UriUtils;
 
 public class AwsVersion4RequestSigner implements AwsRequestSigner {
-
 
 	private static final byte[] DEFAULT_BODY = new byte[0];
 	private static final Charset UTF8;
@@ -49,7 +50,7 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 	static {
 		try {
 			UTF8 = Charset.forName("UTF-8");
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
 
@@ -80,6 +81,7 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 
 	/**
 	 * Encode string per RFC3986 standard
+	 * 
 	 * @param input
 	 * @return - encoded string
 	 */
@@ -89,6 +91,7 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 
 	/**
 	 * Update URI query to encode parameter values
+	 * 
 	 * @param uri - URI containing query to encode
 	 * @return - Updated query string
 	 */
@@ -132,8 +135,8 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 		}
 
 		/*
-		 * STEP 1: Define all of your request requirements - HTTP method, URL/URI, request body,
-		 * etc.
+		 * STEP 1: Define all of your request requirements - HTTP method, URL/URI,
+		 * request body, etc.
 		 */
 
 		/*
@@ -166,8 +169,8 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 		}
 
 		/*
-		 * Step 4: based on the request requirement construct the canonical query string. This is
-		 * derived from the URI object provided.
+		 * Step 4: based on the request requirement construct the canonical query
+		 * string. This is derived from the URI object provided.
 		 */
 		String canonicalQueryString = getQuery(uri);
 
@@ -191,7 +194,6 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 			 * request it should be an empty string.
 			 */
 			String payloadHash = hash256(body);
-
 
 			/*
 			 * Step 8: Combine elements to create create canonical request.
@@ -219,7 +221,7 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 			 */
 			String authorizationHeader = buildAuthorizationHeader(apiKey, credentialScope, signedHeaders, signature);
 			request.getHeaders().put("Authorization", Collections.singletonList(authorizationHeader));
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			throw new IOException("Unable to authorize request", ex);
 		}
 	}
@@ -263,7 +265,7 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 		StringBuilder canonicalHeaders = new StringBuilder();
 		// The headers have to be sorted alphabetically so we use a tree map
 		Map<String, List<String>> canonical = new TreeMap<>();
-		for(Map.Entry<String, List<String>> entry : headers.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String key = entry.getKey();
 			if (IGNORED_HEADERS.contains(key)) {
 				continue;
@@ -272,9 +274,9 @@ public class AwsVersion4RequestSigner implements AwsRequestSigner {
 		}
 
 		// Now we can
-		for (Map.Entry<String, List<String>> entry: canonical.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : canonical.entrySet()) {
 			String key = entry.getKey();
-			for(String value : entry.getValue()) {
+			for (String value : entry.getValue()) {
 				canonicalHeaders.append(key).append(":").append(trimAll(value)).append(LINE_BREAK);
 			}
 		}

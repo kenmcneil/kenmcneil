@@ -15,6 +15,8 @@ public interface VendorMapper {
 			@Param("criteria") QuickShipDistributionCenterSearchCriteria criteria);
 
 	void insertDistributionCenterProductQuickShip(DistributionCenterProductQuickShip distributionCenterProductQuickShip);
+
 	DistributionCenterProductQuickShip getDistributionCenterProductQuickShip(int id);
+
 	void truncateVendorProductQuickShipTable();
 }

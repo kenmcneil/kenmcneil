@@ -39,8 +39,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 	}
 
 	@Override
-	public E getNullableResult(ResultSet rs, String columnName)
-			throws SQLException {
+	public E getNullableResult(ResultSet rs, String columnName) throws SQLException {
 		int intValue = rs.getInt(columnName);
 		if (rs.wasNull()) {
 			return null;
@@ -49,8 +48,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 	}
 
 	@Override
-	public E getNullableResult(ResultSet rs, int columnIndex)
-			throws SQLException {
+	public E getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
 		int intValue = rs.getInt(columnIndex);
 		if (rs.wasNull()) {
 			return null;
@@ -59,8 +57,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 	}
 
 	@Override
-	public E getNullableResult(CallableStatement cs, int columnIndex)
-			throws SQLException {
+	public E getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
 		int intValue = cs.getInt(columnIndex);
 		if (cs.wasNull()) {
 			return null;
@@ -69,8 +66,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 	}
 
 	@Override
-	public void setNonNullParameter(PreparedStatement ps, int paramIndex,
-	                                IntMappedEnum enumValue, JdbcType jdbcType) throws SQLException {
+	public void setNonNullParameter(PreparedStatement ps, int paramIndex, IntMappedEnum enumValue, JdbcType jdbcType) throws SQLException {
 		ps.setInt(paramIndex, enumValue.getIntValue());
 	}
 

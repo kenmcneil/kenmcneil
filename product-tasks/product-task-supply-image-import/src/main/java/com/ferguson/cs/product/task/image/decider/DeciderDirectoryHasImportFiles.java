@@ -30,7 +30,7 @@ public class DeciderDirectoryHasImportFiles implements JobExecutionDecider {
 		this.sessionFactroy = sessionFactroy;
 		this.ftpDirectory = ftpDirectory;
 	}
- 
+
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
 

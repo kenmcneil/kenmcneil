@@ -2,6 +2,7 @@ package com.ferguson.cs.vendor.quickship.service.category;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
 import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 
 @Mapper

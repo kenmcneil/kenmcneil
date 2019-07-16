@@ -22,8 +22,7 @@ public class StylyzeItemProcessor implements ItemProcessor<StylyzeInputProduct, 
 	private final ProductService productService;
 	private final StylyzeSettings stylyzeSettings;
 
-	StylyzeItemProcessor(ProductService productService,
-	                     StylyzeSettings stylyzeSettings) {
+	StylyzeItemProcessor(ProductService productService, StylyzeSettings stylyzeSettings) {
 
 		this.productService = productService;
 		this.stylyzeSettings = stylyzeSettings;

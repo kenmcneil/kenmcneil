@@ -15,7 +15,6 @@ import org.springframework.web.client.RestClientException;
 
 import com.ferguson.cs.utilities.JsonUtils;
 
-
 /**
  * Defines a default client error handler which can be used in implementations
  * of a ClientConfiguration to set an errorHandler for a given client
@@ -48,13 +47,13 @@ public class DefaultClientErrorHandler extends DefaultResponseErrorHandler {
 	 */
 	@Override
 	public void handleError(ClientHttpResponse response) throws IOException {
-		
+
 		if (response == null) {
 			throw new IllegalArgumentException("Passed response can not be null.");
 		}
-		
-		List<ResponseError> responseErrors = new ArrayList<>(); 
-		if (response.getBody() != null) {			
+
+		List<ResponseError> responseErrors = new ArrayList<>();
+		if (response.getBody() != null) {
 			byte[] bodyBytes = null;
 			try {
 				bodyBytes = FileCopyUtils.copyToByteArray(response.getBody());
@@ -77,9 +76,9 @@ public class DefaultClientErrorHandler extends DefaultResponseErrorHandler {
 				}
 			}
 		}
-		
+
 		throw new RestClientException(responseErrors.get(0).getMessage());
-	
+
 	}
 
 }

@@ -1,8 +1,10 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.util.Properties;
+
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +15,6 @@ import org.springframework.integration.mail.MailReceiver;
 @Configuration
 @IntegrationComponentScan(basePackages = "com.ferguson.cs.product.task.inventory")
 public class EmailInventoryImportTaskConfiguration {
-
 
 	private EmailInventoryImportSettings emailInventoryImportSettings;
 
@@ -36,7 +37,7 @@ public class EmailInventoryImportTaskConfiguration {
 		mailProperties.setProperty("mail.imap.socketFactory.fallback", "false");
 		mailProperties.setProperty("mail.imap.socketFactory.port", emailInventoryImportSettings.getEmailPort().toString());
 
-		mailProperties.setProperty("mail.debug","true");
+		mailProperties.setProperty("mail.debug", "true");
 
 		Authenticator javaMailAuthenticator = new Authenticator() {
 			@Override
@@ -49,7 +50,7 @@ public class EmailInventoryImportTaskConfiguration {
 						.getEmailPassword(), emailInventoryImportSettings.getEmailHostName(), emailInventoryImportSettings
 						.getEmailPort());
 		ImapMailReceiver imapMailReceiver = new ImapMailReceiver(url);
-		//If safe mode is enabled, don't mark emails as read or delete them
+		// If safe mode is enabled, don't mark emails as read or delete them
 		imapMailReceiver.setShouldMarkMessagesAsRead(!emailInventoryImportSettings.getSafeMode());
 		imapMailReceiver.setShouldDeleteMessages(!emailInventoryImportSettings.getSafeMode());
 		imapMailReceiver.setJavaMailProperties(mailProperties);
@@ -60,6 +61,5 @@ public class EmailInventoryImportTaskConfiguration {
 		return imapMailReceiver;
 
 	}
-
 
 }

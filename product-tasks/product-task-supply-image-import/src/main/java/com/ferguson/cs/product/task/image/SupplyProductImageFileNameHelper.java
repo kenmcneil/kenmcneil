@@ -8,8 +8,6 @@ import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.utilities.ArgumentAssert;
 
-
-
 public final class SupplyProductImageFileNameHelper {
 
 	private static final String PRODUCT_LEVEL_FAMILY = "FAMILY";
@@ -24,7 +22,7 @@ public final class SupplyProductImageFileNameHelper {
 	private static final Integer PRODUCT_EXTENTION_FILE_EXTENTION_PART_INDEX = 1;
 	private static final Integer PRODUCT_EXTENTION_ARRAY_SIZE = 2;
 	public static final Integer BUSINESS_UNIT_ID_SUPPLY = 3;
-	
+
 	public static SupplyProductImageFileName toSupplyProductImageFileName(String fileName) {
 		return toSupplyProductImageFileName(fileName, null);
 	}

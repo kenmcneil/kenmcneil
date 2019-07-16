@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.image.integration;
 
 import org.springframework.util.StringUtils;
+
 import com.ferguson.cs.utilities.ArgumentAssert;
 
 /**

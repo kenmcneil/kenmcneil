@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.messaging.MessagingException;
+
 import com.ferguson.cs.product.task.inventory.FtpInventoryImportConfiguration;
 import com.ferguson.cs.product.task.inventory.InventoryImportCommonConfiguration;
 import com.ferguson.cs.product.task.inventory.dao.reporter.FtpInventoryDao;

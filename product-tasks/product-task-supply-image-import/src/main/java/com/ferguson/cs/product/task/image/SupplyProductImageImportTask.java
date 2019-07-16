@@ -11,6 +11,4 @@ public class SupplyProductImageImportTask {
 		SpringApplication.run(SupplyProductImageImportTask.class, args).close();
 	}
 
-	
-
 }

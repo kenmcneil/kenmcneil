@@ -16,7 +16,6 @@ public class GeProductApiSettings {
 	private String service;
 	private String documentBaseUrl;
 	private String videoBaseUrl;
-	
 
 	public String getResults() {
 		return results;
@@ -81,7 +80,7 @@ public class GeProductApiSettings {
 	public void setDocumentBaseUrl(String documentBaseUrl) {
 		this.documentBaseUrl = documentBaseUrl;
 	}
-	
+
 	public String getVideoBaseUrl() {
 		return videoBaseUrl;
 	}

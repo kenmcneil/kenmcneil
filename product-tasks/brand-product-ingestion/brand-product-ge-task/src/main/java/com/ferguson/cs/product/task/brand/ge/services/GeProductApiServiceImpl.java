@@ -1,7 +1,9 @@
 package com.ferguson.cs.product.task.brand.ge.services;
 
 import java.io.IOException;
+
 import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsClientHttpRequestFactory;
@@ -31,15 +34,14 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 	private GeProductApiSettings settings;
 
 	private RestTemplate restTemplate;
-	
+
 	private ObjectMapper objectMapper;
-	
 
 	@PostConstruct
 	private void postConstruct() {
 		restTemplate = restTemplateBuilder.requestFactory(this::getClientHttpRequestFactory).build();
 		objectMapper = new ObjectMapper();
-		
+
 	}
 
 	private AwsClientHttpRequestFactory getClientHttpRequestFactory() {
@@ -52,6 +54,7 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		signer.setEnforceHost(true);
 		return new AwsClientHttpRequestFactory(signer);
 	}
+
 	private String executeQuery(String url, String query) throws RuntimeException {
 
 		String response = null;
@@ -73,16 +76,15 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		return response;
 	}
 
-	
 	/**
 	 * Convert a GE Product API response string into a JSON
 	 * node structure using Jackson objectMapper. 
 	 * 
-	 * @param response - GE Product API response string to convert 
+	 * @param response - GE Product API response string to convert
 	 * @return - JsonNode object
 	 */
 	private JsonNode convertResultsToJson(String response) {
-		
+
 		JsonNode node = null;
 		try {
 			node = objectMapper.readTree(response);
@@ -97,19 +99,17 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 	public GeProductSearchResult getResults(GeProductSearchCriteria criteria) {
 		// Get the search query string from the search criteria
 		String query = GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
-		String response =  executeQuery(settings.getResults(), query);
+		String response = executeQuery(settings.getResults(), query);
 		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
-		
+
 	}
 
 	@Override
 	public GeProductSearchResult getDimensions(GeProductSearchCriteria criteria) {
 		// Get the search query string from the search criteria
-		String query =  GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
+		String query = GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
 		String response = executeQuery(settings.getDimensions(), query);
 		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
 	}
-	
-	
-	
+
 }

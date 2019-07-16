@@ -13,6 +13,7 @@ import com.ferguson.cs.vendor.quickship.model.product.QuickshipEligibleProductSe
 @Mapper
 public interface ProductMapper {
 	List<Product> getQuickShipEligibleProduct(@Param("criteria") QuickshipEligibleProductSearchCriteria criteria);
+
 	List<ProductLeadTimeOverrideRule> getProductLeadTimeOverrideRule(
 			@Param("criteria") ProductLeadTimeOverrideRuleSearchCriteria criteria);
 }
