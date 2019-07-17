@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.inventory.batch;
 
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 

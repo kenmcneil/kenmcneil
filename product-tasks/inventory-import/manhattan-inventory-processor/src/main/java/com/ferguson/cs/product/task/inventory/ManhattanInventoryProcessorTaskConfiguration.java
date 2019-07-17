@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.inventory;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.ExitStatus;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+
 import com.ferguson.cs.product.task.inventory.batch.FileHandlingTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanJobInitializationTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryJobListener;

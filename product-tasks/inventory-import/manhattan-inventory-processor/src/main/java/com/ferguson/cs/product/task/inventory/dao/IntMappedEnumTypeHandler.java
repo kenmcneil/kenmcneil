@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
+
 import com.ferguson.cs.utilities.IntMappedEnum;
 
 public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeHandler<IntMappedEnum> {
