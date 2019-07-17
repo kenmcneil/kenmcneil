@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.inventory.dao.core;
 
 import java.util.List;
-
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 
@@ -16,14 +15,14 @@ public interface ManhattanInventoryDao {
 
 	/**
 	 * Updates manhattan inventory job status.
-	 * 
+	 *
 	 * @param manhattanInventoryJob
 	 */
 	void updateManhattanInventoryJobStatus(ManhattanInventoryJob manhattanInventoryJob);
 
 	/**
 	 * Deletes inventory data related to job
-	 * 
+	 *
 	 * @param manhattanInventoryJobId id of job to be cleaned up
 	 */
 	void deleteManhattanInventoryJobData(int manhattanInventoryJobId);

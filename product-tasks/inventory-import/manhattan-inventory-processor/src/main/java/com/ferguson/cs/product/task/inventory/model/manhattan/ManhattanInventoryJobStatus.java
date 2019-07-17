@@ -9,6 +9,7 @@ public enum ManhattanInventoryJobStatus implements IntMappedEnum {
 	FAILED(4);
 
 	private int intValue;
+
 	ManhattanInventoryJobStatus(int intValue) {
 		this.intValue = intValue;
 	}

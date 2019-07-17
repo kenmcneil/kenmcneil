@@ -4,10 +4,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.ferguson.cs.product.task.inventory.ManhattanInboundSettings;
 import com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
@@ -31,7 +29,8 @@ public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventor
 
 	@Override
 	public ManhattanInventoryJob getOldestReadyManhattanInventoryJob(ManhattanChannel manhattanChannel) {
-		List<ManhattanInventoryJob> manhattanInventoryJobs = manhattanInventoryDao.getLoadingManhattanInventoryJobs(manhattanChannel)
+		List<ManhattanInventoryJob> manhattanInventoryJobs = manhattanInventoryDao
+				.getLoadingManhattanInventoryJobs(manhattanChannel)
 				.stream()
 				.filter(j -> {
 					Date now = new Date();

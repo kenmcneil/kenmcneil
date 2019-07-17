@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.io.File;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.messaging.MessageHandler;
-
 import com.jcraft.jsch.ChannelSftp;
 
 @Configuration
@@ -48,9 +46,10 @@ public class ManhattanInventoryProcessorConfiguration {
 	@ServiceActivator(inputChannel = MANHATTAN_SUPPLY_SFTP_CHANNEL)
 	public MessageHandler supplySftpHandler() {
 		SftpMessageHandler handler = new SftpMessageHandler((supplyFtpSessionFactory()));
-		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties().get("supply").getRemotePath()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties()
+				.get("supply").getRemotePath()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName());
 		return handler;
 	}
 
@@ -71,9 +70,10 @@ public class ManhattanInventoryProcessorConfiguration {
 	@ServiceActivator(inputChannel = MANHATTAN_HMWALLACE_SFTP_CHANNEL)
 	public MessageHandler hmWallaceSftpHandler() {
 		SftpMessageHandler handler = new SftpMessageHandler((hmWallaceFtpSessionFactory()));
-		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties().get("hmwallace").getRemotePath()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties()
+				.get("hmwallace").getRemotePath()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName());
 		return handler;
 	}
 

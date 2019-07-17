@@ -5,7 +5,6 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJobStatus;
@@ -36,7 +35,8 @@ public class ManhattanVendorInventoryJobListener implements JobExecutionListener
 
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
-		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService.getOldestReadyManhattanInventoryJob(manhattanChannel);
+		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
+				.getOldestReadyManhattanInventoryJob(manhattanChannel);
 
 		if (manhattanInventoryJob != null) {
 			this.manhattanInventoryJob.setId(manhattanInventoryJob.getId());

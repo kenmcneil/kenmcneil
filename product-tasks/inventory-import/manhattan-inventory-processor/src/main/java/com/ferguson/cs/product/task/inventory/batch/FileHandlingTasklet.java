@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.inventory.batch;
 
 import java.io.File;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

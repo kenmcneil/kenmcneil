@@ -5,7 +5,6 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 
 public class ManhattanZeroesDecider implements JobExecutionDecider {
