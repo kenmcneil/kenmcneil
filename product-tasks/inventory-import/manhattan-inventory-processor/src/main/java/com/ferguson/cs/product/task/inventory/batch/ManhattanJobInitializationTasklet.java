@@ -8,6 +8,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 
 /**
@@ -33,7 +34,7 @@ public class ManhattanJobInitializationTasklet implements Tasklet {
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		if(manhattanInventoryJob.getId() == null) {
+		if (manhattanInventoryJob.getId() == null) {
 			contribution.setExitStatus(ExitStatus.NOOP);
 		} else {
 			//In the event that something went catastrophically wrong on a previous run, the old file will still exist

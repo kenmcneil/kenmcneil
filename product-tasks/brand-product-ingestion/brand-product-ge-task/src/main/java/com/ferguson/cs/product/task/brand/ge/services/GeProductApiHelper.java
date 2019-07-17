@@ -12,8 +12,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,23 +42,24 @@ import com.ge_products.api.GeProductSelectedDimension;
 import com.newrelic.api.agent.NewRelic;
 
 public final class GeProductApiHelper {
-	
-	private GeProductApiHelper() {}
-	
+
+	private GeProductApiHelper() {
+	}
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeProductApiHelper.class);
-	
+
 	private static final String GE_DATE_FORMAT = "yyyy/MM/dd HH:mm:ss";
 	private static final Integer FIRST_VALUE = 0;
-	
+
 	private static volatile ObjectMapper objectMapper;
 
 	/* *************************************************************************************************
 	 *  The following methods support converting results from JSON to Domain Objects
 	 * *************************************************************************************************/
-	
+
 	/**
 	 * De-serialize a JSON response into a GE Product Search Result structure.
-	 * 
+	 *
 	 * @param rootNode - raw JSON response returned by GE Product API
 	 * @return GeProductSearchResult - GE product data formatted for better use
 	 */
@@ -92,11 +96,11 @@ public final class GeProductApiHelper {
 
 	/**
 	 * De-serialize a given branch below the top "results" node down through each
-	 * JSON sub-branch below and update the structured result accordingly. 
-	 * 
+	 * JSON sub-branch below and update the structured result accordingly.
+	 *
 	 * @param branchName - name given for second tier JSON branch in GE Response
-	 * @param branch - JSON node to pass down for further de-serialization
-	 * @param result - Search result structure that is updated throughout
+	 * @param branch     - JSON node to pass down for further de-serialization
+	 * @param result     - Search result structure that is updated throughout
 	 */
 	private static void processBranch(String branchName, JsonNode branch, GeProductSearchResult result) {
 		switch (branchName) {
@@ -123,12 +127,12 @@ public final class GeProductApiHelper {
 
 	/**
 	 * De-serialize a JSON 'filter' branch from within the GE Product API response
-	 * and update the structured result accordingly. 
-	 * 
+	 * and update the structured result accordingly.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
+	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
@@ -163,15 +167,15 @@ public final class GeProductApiHelper {
 
 		result.setFilters(filters);
 	}
-	
+
 	/**
-	 * De-serialize a JSON 'selectedDimensions' branch from within the GE Product API response
-	 * and update the structured result accordingly. 
-	 * 
+	 * De-serialize a JSON 'selectedDimensions' branch from within the GE Product
+	 * API response and update the structured result accordingly.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
+	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
@@ -205,13 +209,13 @@ public final class GeProductApiHelper {
 
 	/**
 	 * De-serialize the JSON 'records' [products] branch from within the GE Product API response
-	 * and update the structured result accordingly. 
-	 * 
-	 * Due to non-standard use of JSON, each product record sub-branch is processed by getProductRecord() 
+	 * and update the structured result accordingly.
+	 *
+	 * Due to non-standard use of JSON, each product record sub-branch is processed by getProductRecord()
 	 * for further de-serialization.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered reported by getProductRecord()
-	 * 
+	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
@@ -221,7 +225,7 @@ public final class GeProductApiHelper {
 		result.setFirstRecordNumber(recordsBranch.get("firstRecNum").asInt());
 		result.setLastRecordNumber(recordsBranch.get("lastRecNum").asInt());
 		// Response sort options are currently ignored
-		
+
 		// Get the node holding the list of product records
 		JsonNode productsNode = recordsBranch.get("products");
 
@@ -246,13 +250,13 @@ public final class GeProductApiHelper {
 
 	/**
 	 * De-serialize a JSON 'benefitCopy' branch from within the GE Product API response
-	 * and add result to the input structured product domain object. 
-	 * 
+	 * and add result to the input structured product domain object.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
-	 * @param node - JSON node to de-serialization
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordBenefitCopy(JsonNode node, GeProduct record) {
@@ -265,7 +269,7 @@ public final class GeProductApiHelper {
 			JsonNode featureNode = childNodes.next();
 
 			GeProductFeature feature = new GeProductFeature();
-			
+
 			// Get the feature name
 			String featureJson = featureNode.toString();
 			try {
@@ -284,14 +288,14 @@ public final class GeProductApiHelper {
 	}
 
 	/**
-	 * De-serialize each JSON 'attributes' branch from within the GE Product API response
-	 * and add result to the input structured product domain object. 
-	 * 
+	 * De-serialize each JSON 'attributes' branch from within the GE Product API
+	 * response and add result to the input structured product domain object.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
-	 * @param node - JSON node to de-serialization
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordAttributes(JsonNode node, GeProduct record) {
@@ -324,14 +328,14 @@ public final class GeProductApiHelper {
 
 	/**
 	 * De-serialize a JSON 'images' branch from within the GE Product API response
-	 * and add result to the input structured product domain object.  
-	 * 
-	 * @param node - JSON node to de-serialization
+	 * and add result to the input structured product domain object.
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordImages(JsonNode node, GeProduct record) {
 		List<GeProductImage> images = new ArrayList<>();
-		
+
 		Iterator<String> fieldIterator = node.fieldNames();
 
 		while (fieldIterator.hasNext()) {
@@ -349,15 +353,15 @@ public final class GeProductApiHelper {
 	}
 
 	/**
-	 * De-serialize a JSON 'documents' branch from within the GE Product API response
-	 * and add result to the input structured product domain object. 
-	 * 
-	 * @param node - JSON node to de-serialization
+	 * De-serialize a JSON 'documents' branch from within the GE Product API
+	 * response and add result to the input structured product domain object.
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordDocument(JsonNode node, GeProduct record) {
 		List<GeProductDocument> documents = new ArrayList<>();
-		
+
 		Iterator<String> fieldIterator = node.fieldNames();
 
 		while (fieldIterator.hasNext()) {
@@ -384,14 +388,14 @@ public final class GeProductApiHelper {
 	}
 
 	/**
-	 * De-serialize a JSON 'binaryObject' branch from within the GE Product API response
-	 * and add result to the input structured product domain object. 
-	 * 
+	 * De-serialize a JSON 'binaryObject' branch from within the GE Product API
+	 * response and add result to the input structured product domain object.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
-	 * @param node - JSON node to de-serialization
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordBinaryObject(JsonNode node, GeProduct record) {
@@ -404,7 +408,7 @@ public final class GeProductApiHelper {
 			JsonNode binaryObjectNode = childNodes.next();
 
 			GeProductBinaryObject binaryObject = new GeProductBinaryObject();
-			
+
 			// Get the feature name
 			String binaryObjectJson = binaryObjectNode.toString();
 			try {
@@ -421,15 +425,16 @@ public final class GeProductApiHelper {
 
 		// record.setBinaryObjects(binaryObjectList);		// TODO:  pending add of List<GeBinaryObject> to build-external GeProduct.java
 	}
+
 	/**
-	 * De-serialize each JSON 'relationships' branch from within the GE Product API response
-	 * and add result to the input structured product domain object. 
-	 * 
+	 * De-serialize each JSON 'relationships' branch from within the GE Product API
+	 * response and add result to the input structured product domain object.
+	 *
 	 * Uses ObjectMapper to de-serialize based on JSON class definition.
-	 * 
+	 *
 	 * Catches/logs any ObjectMapper exception encountered
-	 * 
-	 * @param node - JSON node to de-serialization
+	 *
+	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
 	 */
 	private static void processProductRecordRelationships(JsonNode node, GeProduct record) {
@@ -448,7 +453,7 @@ public final class GeProductApiHelper {
 			Iterator<String> collectionItems = relationshipCollectionNode.fieldNames();
 
 			List<GeProductRelationship> relationshipCollection = new ArrayList<>();
-			
+
 			while (collectionItems.hasNext()) {
 				// Get the relationship entry
 				JsonNode relationshipItemNode = relationshipCollectionNode.get(collectionItems.next());
@@ -476,25 +481,25 @@ public final class GeProductApiHelper {
 	}
 
 	/**
-	 * De-serialize a JSON product branch from within the GE Product API response 
+	 * De-serialize a JSON product branch from within the GE Product API response
 	 * and returns a new Product data domain object.
-	 * 
-	 * This JSON branch is not well structured, so other methods are called to 
-	 * de-serialize each sub-branch.  ObjectMapper is called to de-serialize a list of 
-	 * finishes (colors) and to handle the remaining name/value pairs as product 
-	 * properties.. 
-	 * 
+	 *
+	 * This JSON branch is not well structured, so other methods are called to
+	 * de-serialize each sub-branch. ObjectMapper is called to de-serialize a list
+	 * of finishes (colors) and to handle the remaining name/value pairs as product
+	 * properties..
+	 *
 	 * Throws any ObjectMapper exception encountered
-	 * 
+	 *
 	 * @param productId - unique GE product identifier of JSON node to de-serialize
 	 * @param productNode - JSON product node to de-serialization
-	 * @param result - Search result structure that is updated
+	 * @param result      - Search result structure that is updated
 	 */
 	private static GeProduct getProductRecord(String productId, JsonNode productNode) throws IOException {
 		// We create the GE product record object
 		GeProduct record = new GeProduct();
 		record.setProductId(productId);
-		
+
 		Map<String, List<String>> properties = new HashMap<>();
 		record.setProperties(properties);
 
@@ -510,8 +515,8 @@ public final class GeProductApiHelper {
 			while (fieldIterator.hasNext()) {
 				String field = fieldIterator.next();
 
-				record.setManufacturer("GE");		// use GE for all products
-				
+				record.setManufacturer("GE"); // use GE for all products
+
 				// If the field name matches here, it is a property on the domain object
 				// If it does not match, it is a loose property, which is stored in a map
 				switch (field) {
@@ -580,7 +585,7 @@ public final class GeProductApiHelper {
 
 	/**
 	 * Converts list of elements of any type to list of strings representation
-	 * 
+	 *
 	 * @param list - input elements
 	 * @return string list of intput elements
 	 */
@@ -592,10 +597,9 @@ public final class GeProductApiHelper {
 		return stringList;
 	}
 
-	
 	/**
 	 * Format the search "range" content for use in a GE Product API query
-	 * 
+	 *
 	 * @param filter - domain class containing the filter range content
 	 * @return formatted query string fragment
 	 */
@@ -613,15 +617,15 @@ public final class GeProductApiHelper {
 
 	/**
 	 * Format the search key/value content for use in a GE Product API query
-	 * 
-	 *  Note: this method does not currently support multiple values ('+' delimited) 
-	 *  for a given key as specified in the API.
-	 *   
+	 *
+	 * Note: this method does not currently support multiple values ('+' delimited)
+	 * for a given key as specified in the API.
+	 *
 	 * @param terms - key/value terms
 	 * @return query string fragment
 	 */
 	private static String getSearchKeyValueText(Map<String, String> terms) {
-		
+
 		List<String> keys = new ArrayList<>();
 		List<String> values = new ArrayList<>();
 
@@ -631,7 +635,7 @@ public final class GeProductApiHelper {
 		}
 
 		String ntk = "Ntk=" + String.join("|", keys);
-		String ntt = "&Ntt=" + String.join("|", values) ;
+		String ntt = "&Ntt=" + String.join("|", values);
 
 		return ntk + ntt;
 	}
@@ -639,10 +643,11 @@ public final class GeProductApiHelper {
 	/**
 	 * Builds the query string portion of the HTTP URI per the GE Product API Rest
 	 * form specification based on input search criteria.
-	 * 
-	 * See https://docs.oracle.com/cd/E29584_01/webhelp/mdex_basicDev/src/cbdv_urlparams_root.html
+	 *
+	 * See
+	 * https://docs.oracle.com/cd/E29584_01/webhelp/mdex_basicDev/src/cbdv_urlparams_root.html
 	 * for a list of Endeca url variables. We implement the ones given to us by GE.
-	 * 
+	 *
 	 * @param criteria - domain class for identifying query search content
 	 * @return String - query
 	 */
@@ -666,7 +671,7 @@ public final class GeProductApiHelper {
 
 		// Ne - Exposed product refinements
 		if (criteria.getExposedRefinements() != null && !criteria.getExposedRefinements().isEmpty()) {
-			fragments.add("Ne=" + String.join("+",getStringList(criteria.getExposedRefinements())));
+			fragments.add("Ne=" + String.join("+", getStringList(criteria.getExposedRefinements())));
 		}
 
 		// Nf - Range filters
@@ -703,7 +708,7 @@ public final class GeProductApiHelper {
 
 		// D - Record Dimension search terms
 		if (criteria.getDimensionSearchTerms() != null && !criteria.getDimensionSearchTerms().isEmpty()) {
-			fragments.add("D=" + String.join( "+", criteria.getDimensionSearchTerms()));
+			fragments.add("D=" + String.join("+", criteria.getDimensionSearchTerms()));
 		}
 
 		// Dx - Record dimension search mode
@@ -714,86 +719,76 @@ public final class GeProductApiHelper {
 		return String.join("&", fragments);
 	}
 
-
-	
-	
-	
 	public static boolean isGeProductActive(GeProduct geProduct) {
 		Boolean isActive = false;
 		if (!getGeProperty(geProduct.getProperties(), "Product_Obsolete", FIRST_VALUE).isEmpty()) {
 			isActive = !getGePropertyAsBoolean(geProduct.getProperties(), "Product_Obsolete", FIRST_VALUE, true);
 		} else {
-			isActive = !getGePropertyAsBoolean(geProduct.getProperties(), "Obsolete", FIRST_VALUE, true);	
+			isActive = !getGePropertyAsBoolean(geProduct.getProperties(), "Obsolete", FIRST_VALUE, true);
 		}
 		return isActive;
 	}
-	
-
-	
-
-	
 
 	/**
-	 * Finds a specific property from a Mapped list of GE Property objects and returns 
-	 * a single property value based on named property and desired index location within 
-	 * the property values list. 
-	 * 
+	 * Finds a specific property from a Mapped list of GE Property objects and returns
+	 * a single property value based on named property and desired index location within
+	 * the property values list.
+	 *
 	 * This method is typically used to extract out a property value to include
 	 * in the constructed InboundProductProduct domain object or it's associated
 	 * InboundProductBrand or InboundProductFinish domain objects.  In such cases, the
 	 * property is typically found to have a single value, so index is often set to 0.
-	 * 
+	 *
 	 * If the property is not found, an empty string is returned.
-	 * 
-	 * @param properties - Mapped list of GE Property objects
+	 *
+	 * @param properties   - Mapped list of GE Property objects
 	 * @param propertyName - name of property for which value is requested
-	 * @param index - index into the list of property values
+	 * @param index        - index into the list of property values
 	 * @return value - requested property value as a string (or empty string if not found)
 	 */
 	private static String getGeProperty(Map<String, List<String>> properties, String propertyName, Integer index) {
 		String propertyValue = "";
-		
-		if (properties!= null && 
-				properties.get(propertyName) != null &&
-						properties.get(propertyName).size() > index) {
+
+		if (properties!= null
+				&& properties.get(propertyName) != null
+				&& properties.get(propertyName).size() > index) {
 			propertyValue= properties.get(propertyName).get(index);
-			
 		}
 		return propertyValue;
 	}
-	
+
 	/**
 	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
-	 * property value based on named property and desired index location within the property values list. 
+	 * property value based on named property and desired index location within the property values list.
 	 * The return value is converted to Double.  If the property is not found, 0D or NULL is returned
-	 * depending on the input missingAsNull parameter. 
-	 * 
-	 * @param properties - Mapped list of GE Property objects
-	 * @param propertyName - name of property for which value is requested
-	 * @param index - index into the list of property values
-	 * @param missingAsNull - dictates return value if property is not found 
-	 * 							(true returns NULL, false returns 0D)
+	 * depending on the input missingAsNull parameter.
+	 *
+	 * @param properties    - Mapped list of GE Property objects
+	 * @param propertyName  - name of property for which value is requested
+	 * @param index         - index into the list of property values
+	 * @param missingAsNull - dictates return value if property is not found
+	 *                        (true returns NULL, false returns 0D)
 	 * @return value - requested property value as Double (or NULL if missingAsNull=true)
 	 */
 	private static Double getGePropertyAsDouble(Map<String, List<String>> properties, String propertyName, Integer index, Boolean missingAsNull) {
-		
+
 		Double propertyValue = 0D;
-		
+
 		String propertyValueAsString = getGeProperty(properties, propertyName, index);
 		if (!propertyValueAsString.isEmpty()) {
 			propertyValue = new BigDecimal("" + propertyValueAsString).doubleValue();
 		}
 		return propertyValueAsString.isEmpty() && missingAsNull ? null : propertyValue;
 	}
-	
+
 	/**
 	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
-	 * property value based on named property and desired index location within the property values list. 
+	 * property value based on named property and desired index location within the property values list.
 	 * The return value is converted to Long.  If the property is not found, a NULL is returned.
-	 * 
-	 * @param properties - Mapped list of GE Property objects
+	 *
+	 * @param properties   - Mapped list of GE Property objects
 	 * @param propertyName - name of property for which value is requested
-	 * @param index - index into the list of property values
+	 * @param index        - index into the list of property values
 	 * @return value - requested property value as Long or NULL if property is not found
 	 */
 	private static Long getGePropertyAsLong(Map<String, List<String>> properties, String propertyName, Integer index) {
@@ -804,83 +799,84 @@ public final class GeProductApiHelper {
 
 	/**
 	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
-	 * property value based on named property and desired index location within the property values list. 
-	 * The return value is converted to Boolean.  If the property is not found, the input 
+	 * property value based on named property and desired index location within the property values list.
+	 * The return value is converted to Boolean.  If the property is not found, the input
 	 * missingAsTrue parameter identifies the value to return.
-	 * 
-	 * @param properties - Mapped list of GE Property objects
-	 * @param propertyName - name of property for which value is requested
-	 * @param index - index into the list of property values
-	 * @param missingAsTrue - value returned if property is not found 
+	 *
+	 * @param properties    - Mapped list of GE Property objects
+	 * @param propertyName  - name of property for which value is requested
+	 * @param index         - index into the list of property values
+	 * @param missingAsTrue - value returned if property is not found
 	 * @return value - requested property value as Boolean or value of missingAsTrue if property is not found
 	 */
 	private static Boolean getGePropertyAsBoolean(Map<String, List<String>> properties, String propertyName, Integer index, Boolean missingAsTrue) {
-		
+
 		String propertyValueAsString = getGeProperty(properties, propertyName, index);
 		if (propertyValueAsString.isEmpty()) {
 			return missingAsTrue;
 		}
 		return "TRUE".equalsIgnoreCase(propertyValueAsString);
 	}
-	
+
 	/**
 	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
-	 * property value based on named property and desired index location within the property values list. 
+	 * property value based on named property and desired index location within the property values list.
 	 * The return value is converted to java.util.Date.  If the property is not found, a NULL is returned.
-	 * 
-	 * @param properties - Mapped list of GE Property objects
+	 *
+	 * @param properties   - Mapped list of GE Property objects
 	 * @param propertyName - name of property for which value is requested
-	 * @param index - index into the list of property values
+	 * @param index        - index into the list of property values
 	 * @return value - requested property value as Date or NULL if property is not found
 	 */
 	private static Date getGePropertyAsDate(Map<String, List<String>> properties, String propertyName, Integer index) {
-		
+
 		String propertyValueAsString = getGeProperty(properties, propertyName, index);
 		return propertyValueAsString.isEmpty() ? null : DateUtils.stringToDate(propertyValueAsString, GE_DATE_FORMAT);
 	}
-	
+
 	/**
-	 * Logs information regarding GE content that was encountered but was not expected 
-	 * (and is not currently supported).
-	 * 
-	 * @param fieldIdentifier - name of GE field encountered
-	 * @param value - value of the GE Field encountered
-	 * @param referenceIdentifier - a string to provide reference context (e.g., product identifier)
+	 * Logs information regarding GE content that was encountered but was not
+	 * expected (and is not currently supported).
+	 *
+	 * @param fieldIdentifier     - name of GE field encountered
+	 * @param value               - value of the GE Field encountered
+	 * @param referenceIdentifier - a string to provide reference context (e.g.,
+	 *                            product identifier)
 	 */
 	private static void checkAndLogUnsupportedGeElement(String fieldIdentifier, String value, String referenceIdentifier) {
 		if (!StringUtils.isEmpty(value)) {
-			LOGGER.warn("*****WARNING: GE field '" + fieldIdentifier + "' found (value: " + value + ") referenced by: " + referenceIdentifier);
+			LOGGER.warn("*****WARNING: GE field '{}' found (value: {}) referenced by: {}", fieldIdentifier, value, referenceIdentifier);
 		}
 	}
-	
+
 	private static String correctFilename(String filename) {
-		
+
 		if (filename == null) {
 			return null;
 		}
 
-		if (!filename.contains("_")) {		// avoid unnecessary checks
+		if (!filename.contains("_")) { // avoid unnecessary checks
 			return filename;
 		}
-		
+
 		if (filename.contains("_jpg")) {
 			filename = filename.replaceFirst("(?s)(.*)_jpg", "$1.jpg");
 		} else if (filename.contains("_JPG")) {
 			filename = filename.replaceFirst("(?s)(.*)_JPG", "$1.JPG");
 		} else if (filename.contains("_gif")) {
 			filename = filename.replaceFirst("(?s)(.*)_gif", "$1.gif");
-	    } else if (filename.contains("_GIF")) {
+		} else if (filename.contains("_GIF")) {
 			filename = filename.replaceFirst("(?s)(.*)_GIF", "$1.GIF");
 		} else if (filename.contains("_png")) {
 			filename = filename.replaceFirst("(?s)(.*)_png", "$1.png");
-	    } else if (filename.contains("_PNG")) {
+		} else if (filename.contains("_PNG")) {
 			filename = filename.replaceFirst("(?s)(.*)_PNG", "$1.PNG");
-	    } 
+		}
 		return filename;
 	}
-	
+
 	public static JsonNode convertResultsToJson(String response) {
-		
+
 		JsonNode node = null;
 		try {
 			node = objectMapper.readTree(response);
@@ -889,11 +885,11 @@ public final class GeProductApiHelper {
 		}
 		return node;
 	}
-	
-	
+
+
 	private static void addToDeSerializedState(SortedMap<String, List<String>> deSerializedState, String key, String value) {
 		if (value != null) {
-			List<String> mapValues= null;
+			List<String> mapValues = null;
 			if (deSerializedState.containsKey(key)) {
 				mapValues = deSerializedState.get(key);
 			} else {
@@ -901,30 +897,30 @@ public final class GeProductApiHelper {
 				deSerializedState.put(key, mapValues);
 			}
 			mapValues.add(value);
-		}	
+		}
 	}
-	
+
 	private static void addToDeSerializedState(SortedMap<String, List<String>> deSerializedState, String key, List<String> values) {
 		if (values != null && !values.isEmpty()) {
-			List<String> mapValues= null;
+			List<String> mapValues = null;
 			if (deSerializedState.containsKey(key)) {
 				mapValues = deSerializedState.get(key);
-			}	else {
+			} else {
 				mapValues = new ArrayList<>();
 				deSerializedState.put(key, mapValues);
 			}
-			mapValues.addAll(values);	
-		}	
+			mapValues.addAll(values);
+		}
 	}
-	
+
 	public static BrandProduct convertToProductDistributionProduct(GeProduct geProduct, Integer sourceId, String documentBaseUrl) throws Exception {
-		
+
 		BrandProduct product = new BrandProduct();
 		product.setSystemSourceId(sourceId);
 		product.setProductId(geProduct.getProductId() == null ? geProduct.getProductSku() : geProduct.getProductId());
-		product.setProductName(geProduct.getProductSku() != null?geProduct.getProductSku():"Unknown");					// N/A for GE
-		//For GE put Title same as Short Description
-		product.setShortDescription(getGeProperty(geProduct.getProperties(), "Product_Short_Description", FIRST_VALUE));		
+		product.setProductName(geProduct.getProductSku() != null ? geProduct.getProductSku() : "Unknown"); // N/A for GE
+		// For GE put Title same as Short Description
+		product.setShortDescription(getGeProperty(geProduct.getProperties(), "Product_Short_Description", FIRST_VALUE));
 		product.setDescription(geProduct.getDescription());
 		product.setSku(geProduct.getProductSku());
 		product.setManufacturer(geProduct.getManufacturer() == null ? "GE" : geProduct.getManufacturer());
@@ -932,25 +928,25 @@ public final class GeProductApiHelper {
 		if (availableDate == null) {
 			availableDate = getGePropertyAsDate(geProduct.getProperties(), "Product_ADC_Availability_Date", FIRST_VALUE);
 		}
-		product.setDateAvailable(availableDate != null?availableDate:new Date());
+		product.setDateAvailable(availableDate != null ? availableDate : new Date());
 		Date updatedDate = getGePropertyAsDate(geProduct.getProperties(), "Product_Updated_Date", FIRST_VALUE);
 		if (updatedDate == null) {
-			updatedDate =new Date();
+			updatedDate = new Date();
 		}
 		product.setDateUpdated(updatedDate);
-		
+
 		List<JsonReference> jsonReferences = new ArrayList<>();
 		product.setJsonReferences(jsonReferences);
-		
+
 		String imageUrl = documentBaseUrl + "?RequestType=Image&Name=";
 		// Extract Finish information for product
-		String color = null; 
+		String color = null;
 		if (geProduct.getColors() != null && !geProduct.getColors().isEmpty()) {
 			color = geProduct.getColors().get(0);
-		} else {												// get from alternate property
-			color = getGeProperty(geProduct.getProperties(), "Color.Name", FIRST_VALUE);	
+		} else { // get from alternate property
+			color = getGeProperty(geProduct.getProperties(), "Color.Name", FIRST_VALUE);
 		}
-		product.setColor(StringUtils.isEmpty(color)?"Unknown":color);
+		product.setColor(StringUtils.isEmpty(color) ? "Unknown" : color);
 		SortedMap<String, List<String>> deSerializedState = new TreeMap<>();
 		if (!StringUtils.isEmpty(color)) {
 			addToDeSerializedState(deSerializedState,"Color.Name", color);
@@ -959,21 +955,19 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Color.Image", getGeProperty(geProduct.getProperties(), "Color.Image", FIRST_VALUE));
 			String imageName = getGeProperty(geProduct.getProperties(), "Color.ImageName", FIRST_VALUE);
 			if (!StringUtils.isEmpty(imageName)) {
-				addToDeSerializedState(deSerializedState,"Color.ImageName", imageUrl+imageName);
-			}	
-			addToDeSerializedState(deSerializedState,"Product_Color.Data_ID", getGeProperty(geProduct.getProperties(), "Product_Color.Data_ID", FIRST_VALUE));
-			
-		} 
+				addToDeSerializedState(deSerializedState, "Color.ImageName", imageUrl + imageName);
+			}
+			addToDeSerializedState(deSerializedState, "Product_Color.Data_ID", getGeProperty(geProduct.getProperties(), "Product_Color.Data_ID", FIRST_VALUE));
+
+		}
 		JsonReference jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.FINISH);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
-		
-		
+
 		// Extract Brand information for product
 		String brandName = getGeProperty(geProduct.getProperties(), "Brand", FIRST_VALUE);
-		product.setBrandName(StringUtils.isEmpty(brandName)?"Unknown":brandName);
+		product.setBrandName(StringUtils.isEmpty(brandName) ? "Unknown" : brandName);
 		deSerializedState = new TreeMap<>();
 		if (!StringUtils.isEmpty(brandName)) {
 			addToDeSerializedState(deSerializedState,"Brand",brandName);
@@ -983,22 +977,21 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Brand.Data_ID",getGeProperty(geProduct.getProperties(), "Product_Brand.Data_ID", FIRST_VALUE));
 			String imageName = getGeProperty(geProduct.getProperties(), "Brand.ImageName", FIRST_VALUE);
 			if (!StringUtils.isEmpty(imageName)) {
-				addToDeSerializedState(deSerializedState,"Brand.ImageName", imageUrl+imageName);
-			}	
-			addToDeSerializedState(deSerializedState,"Brand.Image",getGeProperty(geProduct.getProperties(), "Brand.Image", FIRST_VALUE));
-		} 
+				addToDeSerializedState(deSerializedState, "Brand.ImageName", imageUrl + imageName);
+			}
+			addToDeSerializedState(deSerializedState, "Brand.Image", getGeProperty(geProduct.getProperties(), "Brand.Image", FIRST_VALUE));
+		}
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.BRAND);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
-		
+
 		product.setRetailPrice(getGePropertyAsDouble(geProduct.getProperties(), "EstimatedRetailPrice", FIRST_VALUE, true));
 		product.setUpc(getGeProperty(geProduct.getProperties(), "UPC", FIRST_VALUE));
 		product.setIsActive(isGeProductActive(geProduct));
-		
+
 		// other product fields are N/A to GE Products
-		
+
 		// Extract Product dimensions product
 		String dimensions = getGeProperty(geProduct.getProperties(), "ProductDimensions", FIRST_VALUE);
 		deSerializedState = new TreeMap<>();
@@ -1008,27 +1001,26 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Carton_Length", getGeProperty(geProduct.getProperties(), "Product_Carton_Length", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Carton_Width", getGeProperty(geProduct.getProperties(), "Product_Carton_Width", FIRST_VALUE));
 		}
-			
+
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.DIMENSION);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
+
 		// Extract product attributes
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getAttributes() != null && !geProduct.getAttributes().isEmpty()) {
 			for (GeProductAttribute geAttribute : geProduct.getAttributes()) {
-				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDisplayName(),geAttribute.getValue());
-				addToDeSerializedState(deSerializedState,"Attribute_"+geAttribute.getDefinition()+"_"+geAttribute.getDisplayName()+"_UOM",geAttribute.getUOM());
-				
+				addToDeSerializedState(deSerializedState, "Attribute_" + geAttribute.getDefinition() + "_" + geAttribute.getDisplayName(), geAttribute.getValue());
+				addToDeSerializedState(deSerializedState, "Attribute_" + geAttribute.getDefinition() + "_" + geAttribute.getDisplayName() + "_UOM", geAttribute.getUOM());
 			}
 		}
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.ATTRIBUTE);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
-		// convert and save product custom properties 
+
+		// convert and save product custom properties
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getProperties() != null && !geProduct.getProperties().isEmpty()) {
 			addToDeSerializedState(deSerializedState,"Searchable", getGeProperty(geProduct.getProperties(), "Searchable", FIRST_VALUE));
@@ -1040,23 +1032,23 @@ public final class GeProductApiHelper {
 			addToDeSerializedState(deSerializedState,"Product_Is_Part-Accessory", getGeProperty(geProduct.getProperties(), "Product_Is_Part-Accessory", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_UPC_Check_Digit", getGeProperty(geProduct.getProperties(), "Product_UPC_Check_Digit", FIRST_VALUE));
 			addToDeSerializedState(deSerializedState,"Product_Package_Quantity", getGeProperty(geProduct.getProperties(), "Product_Package_Quantity", FIRST_VALUE));
-			
-		}	
+
+		}
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.CUSTOM_PROPERTY);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
+
 		// convert and save product categories from properties
 		deSerializedState = new TreeMap<>();
 		List<String> productCategories = geProduct.getProperties().get("Product_Category");
 		List<String> productCommercialCategories = geProduct.getProperties().get("Commercial Categories");
 		if (productCategories != null && !productCategories.isEmpty()) {
 			product.setCategoryName(productCategories.get(0));
-			addToDeSerializedState(deSerializedState,"Product_Category", productCategories);
+			addToDeSerializedState(deSerializedState, "Product_Category", productCategories);
 		}
 		if (productCommercialCategories != null && !productCommercialCategories.isEmpty()) {
-			addToDeSerializedState(deSerializedState,"Commercial_Categories", productCommercialCategories);
+			addToDeSerializedState(deSerializedState, "Commercial_Categories", productCommercialCategories);
 		}
 		if (StringUtils.isEmpty(product.getCategoryName())) {
 			product.setCategoryName("Unknown");
@@ -1065,16 +1057,15 @@ public final class GeProductApiHelper {
 		jsonReference.setJsonType(JsonType.CATEGORY);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
+
 		// convert and save product images
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getImages() != null && !geProduct.getImages().isEmpty()) {
 			for (GeProductImage geImage : geProduct.getImages()) {
 				String imageName = geImage.getName();
 				if (!StringUtils.isEmpty(imageName)) {
-					addToDeSerializedState(deSerializedState,"Image_"+geImage.getDataID()+"_"+geImage.getDataGroupID(), imageUrl+imageName);
+					addToDeSerializedState(deSerializedState, "Image_" + geImage.getDataID() + "_" + geImage.getDataGroupID(), imageUrl + imageName);
 				}
-				
 			}
 		}
 
@@ -1082,53 +1073,48 @@ public final class GeProductApiHelper {
 		jsonReference.setJsonType(JsonType.IMAGE);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
+
 		// convert and save product accessory documents
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getRelationships() != null && !geProduct.getRelationships().isEmpty()) {
 			List<GeProductRelationship> relationships = geProduct.getRelationships().get("Accessories_");
-			if (relationships != null && !relationships.isEmpty()) {
-				 int i = 0;
-				 for (GeProductRelationship relationship:relationships) {
-					 addToDeSerializedState(deSerializedState,"Accessory_"+i+"_SKU", relationship.getSKU());
-					 i++;
-					 
-				 }	 
-			 }
+			if (!CollectionUtils.isEmpty(relationships)) {
+				int i = 0;
+				for (GeProductRelationship relationship : relationships) {
+					addToDeSerializedState(deSerializedState, "Accessory_" + i + "_SKU", relationship.getSKU());
+					i++;
+				}
+			}
 			relationships = geProduct.getRelationships().get("Cross-Sell Colors_");
-			if (relationships != null && !relationships.isEmpty()) {
-				 int i = 0;
-				 for (GeProductRelationship relationship:relationships) {
-					 addToDeSerializedState(deSerializedState,"Cross-Sell Colors_"+i+"_SKU", relationship.getSKU());
-					 i++;
-					 
-				 }	 
-			 }
-			
+			if (!CollectionUtils.isEmpty(relationships)) {
+				int i = 0;
+				for (GeProductRelationship relationship : relationships) {
+					addToDeSerializedState(deSerializedState, "Cross-Sell Colors_" + i + "_SKU", relationship.getSKU());
+					i++;
+				}
+			}
+
 		}
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.ACCESSORY);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		 
-		//Add product features
+
+		// Add product features
 		deSerializedState = new TreeMap<>();
 		if (geProduct.getProperties() != null && !geProduct.getProperties().isEmpty()) {
 			Iterator<Entry<String, List<String>>> it = geProduct.getProperties().entrySet().iterator();
-		    while (it.hasNext()) {
-		    	Map.Entry<String, List<String>> entry = (Map.Entry<String, List<String>>)it.next();
-		    	if (entry.getKey().startsWith("ProductFeature")) {
-		    		addToDeSerializedState(deSerializedState,entry.getKey(), entry.getValue());
-		    	}
-		    	
-		    }
-		}	
+			while (it.hasNext()) {
+				Map.Entry<String, List<String>> entry = it.next();
+				if (entry.getKey().startsWith("ProductFeature")) {
+					addToDeSerializedState(deSerializedState, entry.getKey(), entry.getValue());
+				}
+			}
+		}
 		jsonReference = new JsonReference();
 		jsonReference.setJsonType(JsonType.FEATURE);
 		jsonReference.setJsonString(objectMapper.writeValueAsString(deSerializedState));
 		jsonReferences.add(jsonReference);
-		
-		
 
 		return product;
 	}

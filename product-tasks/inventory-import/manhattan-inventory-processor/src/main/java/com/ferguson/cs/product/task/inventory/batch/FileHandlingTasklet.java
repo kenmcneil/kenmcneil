@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.inventory.batch;
 
 import java.io.File;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class FileHandlingTasklet implements Tasklet {
 	private String filePath;
 
 
-	public FileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob, String filePath,ManhattanInboundSettings manhattanInboundSettings) {
+	public FileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob, String filePath, ManhattanInboundSettings manhattanInboundSettings) {
 		this.manhattanInventoryJob = manhattanInventoryJob;
 		this.filePath = filePath;
 		this.manhattanInboundSettings = manhattanInboundSettings;
@@ -35,15 +36,16 @@ public class FileHandlingTasklet implements Tasklet {
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		FileTransferProperties fileTransferProperties = manhattanInboundSettings.getFileTransferProperties().get(manhattanInventoryJob.getManhattanChannel().getStringValue());
+		FileTransferProperties fileTransferProperties = manhattanInboundSettings.getFileTransferProperties()
+				.get(manhattanInventoryJob.getManhattanChannel().getStringValue());
 
 		File file = new File(filePath);
-		if(fileTransferProperties.getUploadFile()) {
+		if (fileTransferProperties.getUploadFile()) {
 			ftpUploadFile(file);
 		}
 
-		if(fileTransferProperties.getStoreFile()) {
-			FileUtils.copyFileToDirectory(file,new File(fileTransferProperties.getStoragePath()));
+		if (fileTransferProperties.getStoreFile()) {
+			FileUtils.copyFileToDirectory(file, new File(fileTransferProperties.getStoragePath()));
 		}
 		FileUtils.deleteQuietly(file);
 		return RepeatStatus.FINISHED;
@@ -56,10 +58,11 @@ public class FileHandlingTasklet implements Tasklet {
 
 	@Retryable(maxAttempts = 5, backoff = @Backoff(delay = 5000))
 	private void ftpUploadFile(File file) {
-		log.debug("Started Uploading manhattan " + manhattanInventoryJob.getManhattanChannel().getStringValue() + " :" + file.getName());
-		if(ManhattanChannel.SUPPLY == manhattanInventoryJob.getManhattanChannel()) {
+		log.debug("Started Uploading manhattan {} :{}", manhattanInventoryJob.getManhattanChannel()
+				.getStringValue(), file.getName());
+		if (ManhattanChannel.SUPPLY == manhattanInventoryJob.getManhattanChannel()) {
 			manhattanOutboundGateway.sendManhattanSupplyFileSftp(file);
-		} else if(ManhattanChannel.HMWALLACE == manhattanInventoryJob.getManhattanChannel()){
+		} else if (ManhattanChannel.HMWALLACE == manhattanInventoryJob.getManhattanChannel()) {
 			manhattanOutboundGateway.sendManhattanHmWallaceFileSftp(file);
 		}
 		log.debug("Uploaded file");

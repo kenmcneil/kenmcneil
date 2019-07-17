@@ -8,12 +8,10 @@ public class ResponseError implements Serializable {
 	private String code;
 	private String message;
 	private String error;
-	
+
 	public ResponseError() {
 	}
-	
-	
-	
+
 	public ResponseError(String code, String message) {
 		this.code = code;
 		this.message = message;
@@ -26,13 +24,12 @@ public class ResponseError implements Serializable {
 		}
 	}
 
-	
 	public ResponseError(String code, String message, Throwable cause) {
 		this.code = code;
 		this.message = message;
 		setErrorFromThrowable(cause);
 	}
-	
+
 	public ResponseError(String code, Throwable cause) {
 		this.code = code;
 		if (cause != null) {

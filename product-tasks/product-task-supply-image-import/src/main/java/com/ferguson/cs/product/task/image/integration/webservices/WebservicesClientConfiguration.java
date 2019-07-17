@@ -18,8 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import com.ferguson.cs.product.task.image.integration.ClientConfiguration;
 import com.ferguson.cs.product.task.image.integration.DefaultClientErrorHandler;
 
-
-
 @ConfigurationProperties(prefix = "webservices-client")
 @Configuration()
 public class WebservicesClientConfiguration implements ClientConfiguration {

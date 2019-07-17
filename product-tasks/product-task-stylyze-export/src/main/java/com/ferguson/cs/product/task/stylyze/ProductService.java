@@ -28,4 +28,3 @@ public interface ProductService {
 	List<ProductVariation> getProductVariations(Integer familyId);
 
 }
-

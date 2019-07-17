@@ -3,6 +3,7 @@ package com.ferguson.cs.product.task.inventory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.aopalliance.aop.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.retry.annotation.EnableRetry;
+
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
 @Configuration
@@ -38,7 +40,7 @@ public class FtpInventoryImportConfiguration {
 	@Bean
 	@ServiceActivator(inputChannel = INBOUND_SFTP_CHANNEL)
 	public MessageHandler inboundSftpHandler() {
-		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(vendorFtpSessionFactory(),"get","payload.ftpPath + payload.ftpFilename");
+		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(vendorFtpSessionFactory(), "get", "payload.ftpPath + payload.ftpFilename");
 		sftpOutboundGateway.setLocalDirectory(new File(inventoryImportSettings.getInventoryDirectory()));
 		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.ftpFilename");
 		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
@@ -49,11 +51,10 @@ public class FtpInventoryImportConfiguration {
 		return sftpOutboundGateway;
 	}
 
-
 	@Bean
 	@ServiceActivator(inputChannel = INBOUND_FTP_CHANNEL)
-	public MessageHandler  inboundFtpHandler() {
-		FtpOutboundGateway ftpOutboundGateway = new FtpOutboundGateway(vendorFtpSessionFactory(),"get","payload.ftpFilename");
+	public MessageHandler inboundFtpHandler() {
+		FtpOutboundGateway ftpOutboundGateway = new FtpOutboundGateway(vendorFtpSessionFactory(), "get", "payload.ftpFilename");
 		ftpOutboundGateway.setLocalDirectory(new File(inventoryImportSettings.getInventoryDirectory()));
 		ftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.ftpFilename");
 		ftpOutboundGateway.setFileExistsMode(FileExistsMode.REPLACE);
@@ -64,7 +65,6 @@ public class FtpInventoryImportConfiguration {
 		ftpOutboundGateway.setAdviceChain(adviceChain);
 		return ftpOutboundGateway;
 	}
-
 
 	@Bean
 	public DelegatingSessionFactory vendorFtpSessionFactory() {

@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.task.inventory.service;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -9,12 +8,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+
 import com.ferguson.cs.product.task.inventory.ManhattanInboundSettings;
 import com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
@@ -42,8 +43,8 @@ public class ManhattanInventoryProcessorServiceTest {
 	@Test
 	public void testGetNewestReadyManhattanInventoryJob_readyForProcessingJob() {
 		Date now = new Date();
-		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS,-20);
-		Date lessRecentCreatedTime = DateUtils.addUnitToDate(now,ChronoUnit.SECONDS,-30);
+		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS, -20);
+		Date lessRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS, -30);
 
 		ManhattanInventoryJob mostRecentMatchingJob = new ManhattanInventoryJob();
 		mostRecentMatchingJob.setId(1);
@@ -88,8 +89,8 @@ public class ManhattanInventoryProcessorServiceTest {
 	@Test
 	public void testGetNewestReadyManhattanInventoryJob_jobPastTimeOut() {
 		Date now = new Date();
-		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS,-20);
-		Date lessRecentCreatedTime = DateUtils.addUnitToDate(now,ChronoUnit.SECONDS,-70);
+		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS, -20);
+		Date lessRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS, -70);
 
 		ManhattanInventoryJob mostRecentLoadingJob = new ManhattanInventoryJob();
 		mostRecentLoadingJob.setId(1);
@@ -109,7 +110,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		loadingJobPastTimeout.setTotalCount(3);
 		loadingJobPastTimeout.setManhattanChannel(ManhattanChannel.BUILD);
 
-
 		List<ManhattanInventoryJob> jobList = new ArrayList<>();
 		jobList.add(loadingJobPastTimeout);
 		jobList.add(mostRecentLoadingJob);
@@ -125,8 +125,7 @@ public class ManhattanInventoryProcessorServiceTest {
 	@Test
 	public void testGetNewestReadyManhattanInventoryJob_noMatchingJobs() {
 		Date now = new Date();
-		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS,-20);
-
+		Date mostRecentCreatedTime = DateUtils.addUnitToDate(now, ChronoUnit.SECONDS, -20);
 
 		ManhattanInventoryJob loadingJob = new ManhattanInventoryJob();
 		loadingJob.setId(2);
@@ -136,7 +135,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		loadingJob.setCurrentCount(2);
 		loadingJob.setTotalCount(3);
 		loadingJob.setManhattanChannel(ManhattanChannel.BUILD);
-
 
 		List<ManhattanInventoryJob> jobList = new ArrayList<>();
 		jobList.add(loadingJob);

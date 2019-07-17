@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.inventory;
 
 import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("inventory-import.manhattan")
 public class ManhattanInboundSettings {
 	private Long jobCompletionTimeOutInMilliseconds;
-	private Map<String,FileTransferProperties> fileTransferProperties;
+	private Map<String, FileTransferProperties> fileTransferProperties;
 
 
 	public Long getJobCompletionTimeOutInMilliseconds() {

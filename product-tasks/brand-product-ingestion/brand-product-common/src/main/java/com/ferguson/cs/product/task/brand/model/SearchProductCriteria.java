@@ -3,19 +3,19 @@ package com.ferguson.cs.product.task.brand.model;
 import java.io.Serializable;
 
 public class SearchProductCriteria implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	// Optional
-	private Boolean isActive; 
+	private Boolean isActive;
 	private Integer productId;
-	private String	productIdentifier; 		// can span different sources unless sourceId is provided; make sourceId required when used?
-	private String	sku;
-	private String	upc;
-	private String	status;
-	private String	manufacturer;
-	private String	sourceName;
-	private Integer	sourceId;
+	private String productIdentifier; // can span different sources unless sourceId is provided; make sourceId required when used?
+	private String sku;
+	private String upc;
+	private String status;
+	private String manufacturer;
+	private String sourceName;
+	private Integer sourceId;
 
 	public Boolean getIsActive() {
 		return isActive;
@@ -24,7 +24,7 @@ public class SearchProductCriteria implements Serializable {
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
 	}
-	
+
 	public Integer getProductId() {
 		return productId;
 	}
@@ -64,7 +64,7 @@ public class SearchProductCriteria implements Serializable {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	
+
 	public String getManufacturer() {
 		return manufacturer;
 	}

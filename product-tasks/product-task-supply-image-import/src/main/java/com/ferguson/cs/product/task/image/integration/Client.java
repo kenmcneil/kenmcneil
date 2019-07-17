@@ -3,10 +3,10 @@ package com.ferguson.cs.product.task.image.integration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Interface defining basic client contract.  
+ * Interface defining basic client contract.
  */
 public interface Client {
-	
+
 	/**
 	 * Gets the client's configuration.
 	 * @return
@@ -18,7 +18,7 @@ public interface Client {
 	 * @return
 	 */
 	RestTemplate getRestTemplate();
-	
+
 	/**
 	 * Builds the full server path to the the passed resource path.
 	 * 

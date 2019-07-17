@@ -18,8 +18,7 @@ public class QuickShipEligibleProductItemReader implements ItemReader<List<Produ
 	@Override
 	public List<Product> read() {
 		pageNumber++;
-		List<Product> quickShipEligibleProductList =
-				productService.getQuickShipProductList(pageNumber);
+		List<Product> quickShipEligibleProductList = productService.getQuickShipProductList(pageNumber);
 
 		if (quickShipEligibleProductList.isEmpty()) {
 			return null;

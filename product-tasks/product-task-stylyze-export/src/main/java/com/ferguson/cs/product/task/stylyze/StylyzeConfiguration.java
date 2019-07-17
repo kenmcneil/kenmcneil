@@ -58,7 +58,6 @@ public class StylyzeConfiguration {
 		}
 	}
 
-
 	@MapperScan(basePackages = StylyzeConfiguration.BASE_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "coreSqlSessionFactory")
 	@Configuration
 	protected static class CoreDataSourceConfiguration {

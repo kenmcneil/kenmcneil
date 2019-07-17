@@ -6,7 +6,7 @@ import org.springframework.web.client.RestTemplate;
  * Interface defining basic client configuration contract.
  */
 public interface ClientConfiguration {
-	
+
 	/**
 	 * Gets the value for the remote server address servicing client calls for this
 	 * configuration.

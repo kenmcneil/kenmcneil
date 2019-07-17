@@ -6,16 +6,16 @@ import java.util.List;
 
 import org.springframework.batch.item.ItemProcessor;
 
+import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType;
-import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
 import com.ferguson.cs.vendor.quickship.model.vendor.QuickShipDistributionCenterSearchCriteria;
-import com.ferguson.cs.vendor.quickship.service.product.ProductService;
 import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
+import com.ferguson.cs.vendor.quickship.service.product.ProductService;
 import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 
 public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> {
@@ -69,8 +69,7 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 	}
 
 	/**
-	 * Helper method to ensure that the provided product does not have a lead time override rule of types Made To Order
-	 * and PreOrder
+	 * Helper method to ensure that the provided product does not have a lead time override rule of types Made To Order and PreOrder
 	 * @param productId
 	 * @return
 	 */
