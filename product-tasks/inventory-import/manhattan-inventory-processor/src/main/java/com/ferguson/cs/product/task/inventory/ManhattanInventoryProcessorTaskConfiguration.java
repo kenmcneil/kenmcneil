@@ -92,7 +92,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Bean
 	public Step initializeManhattanJob() {
 		return taskBatchJobFactory.getStepBuilder("initializeManhattanJob")
-				.tasklet(manhattanJobInitializationTasklet())
+				.tasklet(manhattanJobInitializationTasklet(null))
 				.build();
 	}
 
@@ -194,8 +194,9 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public ManhattanJobInitializationTasklet manhattanJobInitializationTasklet() {
-		return new ManhattanJobInitializationTasklet();
+	@StepScope
+	public ManhattanJobInitializationTasklet manhattanJobInitializationTasklet(ManhattanInventoryJob manhattanInventoryJob) {
+		return new ManhattanJobInitializationTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob));
 	}
 
 	@Bean
@@ -233,6 +234,10 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	private String getFilePathFromManhattanJob(ManhattanInventoryJob manhattanInventoryJob) {
+		if(manhattanInventoryJob == null) {
+			return null;
+		}
+
 		String completionStatus;
 
 		if (manhattanInventoryJob.getCurrentCount() >= manhattanInventoryJob.getTotalCount()) {

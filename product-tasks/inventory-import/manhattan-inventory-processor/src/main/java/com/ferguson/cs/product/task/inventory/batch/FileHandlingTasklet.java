@@ -42,8 +42,8 @@ public class FileHandlingTasklet implements Tasklet {
 			ftpUploadFile(file);
 		}
 
-		if(fileTransferProperties.getArchiveFile()) {
-			FileUtils.copyFileToDirectory(file,new File(fileTransferProperties.getArchivePath()));
+		if(fileTransferProperties.getStoreFile()) {
+			FileUtils.copyFileToDirectory(file,new File(fileTransferProperties.getStoragePath()));
 		}
 		FileUtils.deleteQuietly(file);
 		return RepeatStatus.FINISHED;

@@ -7,9 +7,9 @@ public class FileTransferProperties {
 	private String password;
 	private String remotePath;
 	private String localPath;
-	private String archivePath;
+	private String storagePath;
 	private Boolean uploadFile;
-	private Boolean archiveFile;
+	private Boolean storeFile;
 
 	public String getHost() {
 		return host;
@@ -67,19 +67,19 @@ public class FileTransferProperties {
 		this.uploadFile = uploadFile;
 	}
 
-	public String getArchivePath() {
-		return archivePath;
+	public String getStoragePath() {
+		return storagePath;
 	}
 
-	public void setArchivePath(String archivePath) {
-		this.archivePath = archivePath;
+	public void setStoragePath(String storagePath) {
+		this.storagePath = storagePath;
 	}
 
-	public Boolean getArchiveFile() {
-		return archiveFile;
+	public Boolean getStoreFile() {
+		return storeFile;
 	}
 
-	public void setArchiveFile(Boolean archiveFile) {
-		this.archiveFile = archiveFile;
+	public void setStoreFile(Boolean storeFile) {
+		this.storeFile = storeFile;
 	}
 }
