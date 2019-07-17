@@ -7,17 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties("inventory-import.manhattan")
 public class ManhattanInboundSettings {
-	private String manhattanOutputFilePath;
 	private Long jobCompletionTimeOutInMilliseconds;
-	private Map<String,FtpServerProperties> ftpServers;
+	private Map<String,FileTransferProperties> fileTransferProperties;
 
-	public String getManhattanOutputFilePath() {
-		return manhattanOutputFilePath;
-	}
-
-	public void setManhattanOutputFilePath(String manhattanOutputFilePath) {
-		this.manhattanOutputFilePath = manhattanOutputFilePath;
-	}
 
 	public Long getJobCompletionTimeOutInMilliseconds() {
 		return jobCompletionTimeOutInMilliseconds;
@@ -27,11 +19,11 @@ public class ManhattanInboundSettings {
 		this.jobCompletionTimeOutInMilliseconds = jobCompletionTimeOutInMilliseconds;
 	}
 
-	public Map<String, FtpServerProperties> getFtpServers() {
-		return ftpServers;
+	public Map<String, FileTransferProperties> getFileTransferProperties() {
+		return fileTransferProperties;
 	}
 
-	public void setFtpServers(Map<String, FtpServerProperties> ftpServers) {
-		this.ftpServers = ftpServers;
+	public void setFileTransferProperties(Map<String, FileTransferProperties> fileTransferProperties) {
+		this.fileTransferProperties = fileTransferProperties;
 	}
 }

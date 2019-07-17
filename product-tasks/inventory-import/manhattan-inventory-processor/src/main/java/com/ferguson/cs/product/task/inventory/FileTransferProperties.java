@@ -1,11 +1,15 @@
 package com.ferguson.cs.product.task.inventory;
 
-public class FtpServerProperties {
+public class FileTransferProperties {
 	private String host;
 	private Integer port;
 	private String username;
 	private String password;
 	private String remotePath;
+	private String localPath;
+	private String archivePath;
+	private Boolean uploadFile;
+	private Boolean archiveFile;
 
 	public String getHost() {
 		return host;
@@ -45,5 +49,37 @@ public class FtpServerProperties {
 
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
+	}
+
+	public String getLocalPath() {
+		return localPath;
+	}
+
+	public void setLocalPath(String localPath) {
+		this.localPath = localPath;
+	}
+
+	public Boolean getUploadFile() {
+		return uploadFile;
+	}
+
+	public void setUploadFile(Boolean uploadFile) {
+		this.uploadFile = uploadFile;
+	}
+
+	public String getArchivePath() {
+		return archivePath;
+	}
+
+	public void setArchivePath(String archivePath) {
+		this.archivePath = archivePath;
+	}
+
+	public Boolean getArchiveFile() {
+		return archiveFile;
+	}
+
+	public void setArchiveFile(Boolean archiveFile) {
+		this.archiveFile = archiveFile;
 	}
 }

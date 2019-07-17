@@ -29,7 +29,6 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 public class ManhattanInventoryProcessorTaskConfiguration {
 
 	private ManhattanInboundSettings manhattanInboundSettings;
-	private InventoryImportSettings inventoryImportSettings;
 	private TaskBatchJobFactory taskBatchJobFactory;
 	private SqlSessionFactory coreSqlSessionFactory;
 
@@ -42,11 +41,6 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Autowired
 	public void setTaskBatchJobFactory(TaskBatchJobFactory taskBatchJobFactory) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
-	}
-
-	@Autowired
-	public void setInventoryImportSettings(InventoryImportSettings inventoryImportSettings) {
-		this.inventoryImportSettings = inventoryImportSettings;
 	}
 
 	@Autowired
@@ -207,7 +201,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Bean
 	@StepScope
 	public FileHandlingTasklet fileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob) {
-		return new FileHandlingTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob),inventoryImportSettings);
+		return new FileHandlingTasklet(manhattanInventoryJob, getFilePathFromManhattanJob(manhattanInventoryJob), manhattanInboundSettings);
 	}
 
 	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
@@ -246,9 +240,10 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		} else {
 			completionStatus = "partial";
 		}
+		String localPath = manhattanInboundSettings.getFileTransferProperties()
+				.get(manhattanInventoryJob.getManhattanChannel().getStringValue()).getLocalPath();
 
-		return String.format("%s/%s-%s-sync-inventory.csv", manhattanInboundSettings
-				.getManhattanOutputFilePath(), manhattanInventoryJob.getManhattanChannel()
+		return String.format("%s/%s-%s-sync-inventory.csv", localPath, manhattanInventoryJob.getManhattanChannel()
 				.getStringValue(), completionStatus);
 	}
 }
