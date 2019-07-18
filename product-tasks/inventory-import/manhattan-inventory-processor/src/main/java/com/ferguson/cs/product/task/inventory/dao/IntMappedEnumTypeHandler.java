@@ -75,6 +75,7 @@ public class IntMappedEnumTypeHandler<E extends IntMappedEnum> extends BaseTypeH
 		if (enumValue != null) {
 			return enumValue;
 		}
-		throw new IllegalArgumentException(intValue + " is not a valid mapped integer value for " + type.getSimpleName());
+		throw new IllegalArgumentException(intValue + " is not a valid mapped integer value for " + type
+				.getSimpleName());
 	}
 }

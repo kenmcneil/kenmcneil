@@ -80,7 +80,8 @@ public class ManhattanInventoryProcessorServiceTest {
 
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
 
-		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
+		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
+				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
 
 		assertThat(manhattanInventoryJob).isNotNull();
 		assertThat(manhattanInventoryJob).isSameAs(lessRecentMatchingJob);
@@ -116,7 +117,8 @@ public class ManhattanInventoryProcessorServiceTest {
 
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
 
-		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
+		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
+				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
 
 		assertThat(manhattanInventoryJob).isNotNull();
 		assertThat(manhattanInventoryJob).isSameAs(loadingJobPastTimeout);
@@ -141,7 +143,8 @@ public class ManhattanInventoryProcessorServiceTest {
 
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
 
-		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
+		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
+				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
 
 		assertThat(manhattanInventoryJob).isNull();
 	}

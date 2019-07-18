@@ -31,7 +31,8 @@ public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventor
 
 	@Override
 	public ManhattanInventoryJob getOldestReadyManhattanInventoryJob(ManhattanChannel manhattanChannel) {
-		List<ManhattanInventoryJob> manhattanInventoryJobs = manhattanInventoryDao.getLoadingManhattanInventoryJobs(manhattanChannel)
+		List<ManhattanInventoryJob> manhattanInventoryJobs = manhattanInventoryDao
+				.getLoadingManhattanInventoryJobs(manhattanChannel)
 				.stream()
 				.filter(j -> {
 					Date now = new Date();

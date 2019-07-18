@@ -31,7 +31,6 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 public class ManhattanInventoryProcessorTaskConfiguration {
 
 	private ManhattanInboundSettings manhattanInboundSettings;
-	private InventoryImportSettings inventoryImportSettings;
 	private TaskBatchJobFactory taskBatchJobFactory;
 	private SqlSessionFactory coreSqlSessionFactory;
 
@@ -43,11 +42,6 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Autowired
 	public void setTaskBatchJobFactory(TaskBatchJobFactory taskBatchJobFactory) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
-	}
-
-	@Autowired
-	public void setInventoryImportSettings(InventoryImportSettings inventoryImportSettings) {
-		this.inventoryImportSettings = inventoryImportSettings;
 	}
 
 	@Autowired
@@ -99,7 +93,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Bean
 	public Step initializeManhattanJob() {
 		return taskBatchJobFactory.getStepBuilder("initializeManhattanJob")
-				.tasklet(manhattanJobInitializationTasklet())
+				.tasklet(manhattanJobInitializationTasklet(null))
 				.build();
 	}
 
@@ -200,14 +194,15 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public ManhattanJobInitializationTasklet manhattanJobInitializationTasklet() {
-		return new ManhattanJobInitializationTasklet();
+	@StepScope
+	public ManhattanJobInitializationTasklet manhattanJobInitializationTasklet(ManhattanInventoryJob manhattanInventoryJob) {
+		return new ManhattanJobInitializationTasklet(manhattanInventoryJob, getFilePathFromManhattanJob(manhattanInventoryJob));
 	}
 
 	@Bean
 	@StepScope
 	public FileHandlingTasklet fileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob) {
-		return new FileHandlingTasklet(manhattanInventoryJob,getFilePathFromManhattanJob(manhattanInventoryJob),inventoryImportSettings);
+		return new FileHandlingTasklet(manhattanInventoryJob, getFilePathFromManhattanJob(manhattanInventoryJob), manhattanInboundSettings);
 	}
 
 	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
@@ -238,6 +233,10 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	private String getFilePathFromManhattanJob(ManhattanInventoryJob manhattanInventoryJob) {
+		if (manhattanInventoryJob == null) {
+			return null;
+		}
+
 		String completionStatus;
 
 		if (manhattanInventoryJob.getCurrentCount() >= manhattanInventoryJob.getTotalCount()) {
@@ -245,9 +244,10 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		} else {
 			completionStatus = "partial";
 		}
+		String localPath = manhattanInboundSettings.getFileTransferProperties()
+				.get(manhattanInventoryJob.getManhattanChannel().getStringValue()).getLocalPath();
 
-		return String.format("%s/%s-%s-sync-inventory.csv", manhattanInboundSettings
-				.getManhattanOutputFilePath(), manhattanInventoryJob.getManhattanChannel()
+		return String.format("%s/%s-%s-sync-inventory.csv", localPath, manhattanInventoryJob.getManhattanChannel()
 				.getStringValue(), completionStatus);
 	}
 }

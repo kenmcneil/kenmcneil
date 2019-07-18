@@ -36,7 +36,8 @@ public class ManhattanVendorInventoryJobListener implements JobExecutionListener
 
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
-		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService.getOldestReadyManhattanInventoryJob(manhattanChannel);
+		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
+				.getOldestReadyManhattanInventoryJob(manhattanChannel);
 
 		if (manhattanInventoryJob != null) {
 			this.manhattanInventoryJob.setId(manhattanInventoryJob.getId());

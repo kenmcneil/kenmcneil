@@ -16,14 +16,14 @@ public interface ManhattanInventoryDao {
 
 	/**
 	 * Updates manhattan inventory job status.
-	 * 
+	 *
 	 * @param manhattanInventoryJob
 	 */
 	void updateManhattanInventoryJobStatus(ManhattanInventoryJob manhattanInventoryJob);
 
 	/**
 	 * Deletes inventory data related to job
-	 * 
+	 *
 	 * @param manhattanInventoryJobId id of job to be cleaned up
 	 */
 	void deleteManhattanInventoryJobData(int manhattanInventoryJobId);

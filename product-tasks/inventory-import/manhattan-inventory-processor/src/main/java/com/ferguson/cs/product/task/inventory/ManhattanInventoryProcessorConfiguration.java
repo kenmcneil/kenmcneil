@@ -35,10 +35,10 @@ public class ManhattanInventoryProcessorConfiguration {
 	public SessionFactory<ChannelSftp.LsEntry> supplyFtpSessionFactory() {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
 
-		factory.setHost(manhattanInboundSettings.getFtpServers().get("supply").getHost());
-		factory.setPort(manhattanInboundSettings.getFtpServers().get("supply").getPort());
-		factory.setUser(manhattanInboundSettings.getFtpServers().get("supply").getUsername());
-		factory.setPassword(manhattanInboundSettings.getFtpServers().get("supply").getPassword());
+		factory.setHost(manhattanInboundSettings.getFileTransferProperties().get("supply").getHost());
+		factory.setPort(manhattanInboundSettings.getFileTransferProperties().get("supply").getPort());
+		factory.setUser(manhattanInboundSettings.getFileTransferProperties().get("supply").getUsername());
+		factory.setPassword(manhattanInboundSettings.getFileTransferProperties().get("supply").getPassword());
 		factory.setAllowUnknownKeys(true);
 
 		return factory;
@@ -48,9 +48,10 @@ public class ManhattanInventoryProcessorConfiguration {
 	@ServiceActivator(inputChannel = MANHATTAN_SUPPLY_SFTP_CHANNEL)
 	public MessageHandler supplySftpHandler() {
 		SftpMessageHandler handler = new SftpMessageHandler((supplyFtpSessionFactory()));
-		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFtpServers().get("supply").getRemotePath()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties()
+				.get("supply").getRemotePath()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName());
 		return handler;
 	}
 
@@ -58,10 +59,10 @@ public class ManhattanInventoryProcessorConfiguration {
 	public SessionFactory<ChannelSftp.LsEntry> hmWallaceFtpSessionFactory() {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
 
-		factory.setHost(manhattanInboundSettings.getFtpServers().get("hmwallace").getHost());
-		factory.setPort(manhattanInboundSettings.getFtpServers().get("hmwallace").getPort());
-		factory.setUser(manhattanInboundSettings.getFtpServers().get("hmwallace").getUsername());
-		factory.setPassword(manhattanInboundSettings.getFtpServers().get("hmwallace").getPassword());
+		factory.setHost(manhattanInboundSettings.getFileTransferProperties().get("hmwallace").getHost());
+		factory.setPort(manhattanInboundSettings.getFileTransferProperties().get("hmwallace").getPort());
+		factory.setUser(manhattanInboundSettings.getFileTransferProperties().get("hmwallace").getUsername());
+		factory.setPassword(manhattanInboundSettings.getFileTransferProperties().get("hmwallace").getPassword());
 		factory.setAllowUnknownKeys(true);
 
 		return factory;
@@ -70,10 +71,11 @@ public class ManhattanInventoryProcessorConfiguration {
 	@Bean
 	@ServiceActivator(inputChannel = MANHATTAN_HMWALLACE_SFTP_CHANNEL)
 	public MessageHandler hmWallaceSftpHandler() {
-		SftpMessageHandler handler = new SftpMessageHandler((supplyFtpSessionFactory()));
-		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFtpServers().get("hmwallace").getRemotePath()));
+		SftpMessageHandler handler = new SftpMessageHandler((hmWallaceFtpSessionFactory()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(manhattanInboundSettings.getFileTransferProperties()
+				.get("hmwallace").getRemotePath()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName());
 		return handler;
 	}
 
