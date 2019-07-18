@@ -10,9 +10,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType;
 import com.ferguson.cs.vendor.quickship.model.product.QuickshipEligibleProductSearchCriteria;
 import com.ferguson.cs.vendor.quickship.service.BaseVendorQuickShipTest;
 

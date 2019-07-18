@@ -10,8 +10,6 @@ import org.springframework.util.Assert;
 
 import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.QuickshipEligibleProductSearchCriteria;
 import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
 
