@@ -1,16 +1,12 @@
 package com.ferguson.cs.vendor.quickship;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.batch.item.ItemProcessor;
 
 import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenter;
 import com.ferguson.cs.vendor.quickship.model.vendor.DistributionCenterProductQuickShip;
 import com.ferguson.cs.vendor.quickship.model.vendor.QuickShipDistributionCenterSearchCriteria;
@@ -39,8 +35,8 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 		List<DistributionCenterProductQuickShip> distributionCenterProductQuickShipList = new ArrayList<>();
 
 		for (Product product : productList) {
-			//Ensure that product does not have a lead time override (Made To Order, PreOrder) and that it ships free
-			if (!isQuickShipLeadTime(product.getId()) || !productService.isFreeShipping(product,buildShippingCalculationView)) {
+			//Ensure that product ships free
+			if (!productService.isFreeShipping(product,buildShippingCalculationView)) {
 				continue;
 			}
 
@@ -66,26 +62,5 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 		}
 
 		return distributionCenterProductQuickShipList;
-	}
-
-	/**
-	 * Helper method to ensure that the provided product does not have a lead time override rule of types Made To Order and PreOrder
-	 * @param productId
-	 * @return
-	 */
-	private boolean isQuickShipLeadTime(int productId) {
-		List<ProductLeadTimeOverrideType> quickShipTypeList = Arrays.asList(ProductLeadTimeOverrideType.MADE_TO_ORDER,
-				ProductLeadTimeOverrideType.PRE_ORDER);
-
-		ProductLeadTimeOverrideRuleSearchCriteria leadTimeCriteria = new ProductLeadTimeOverrideRuleSearchCriteria();
-		leadTimeCriteria.setProductId(productId);
-		leadTimeCriteria.setTypeList(quickShipTypeList);
-
-		List<ProductLeadTimeOverrideRule> ruleList = productService.getLeadTimeOverrideRuleList(leadTimeCriteria);
-		if (!ruleList.isEmpty()) {
-			return false;
-		}
-
-		return true;
 	}
 }

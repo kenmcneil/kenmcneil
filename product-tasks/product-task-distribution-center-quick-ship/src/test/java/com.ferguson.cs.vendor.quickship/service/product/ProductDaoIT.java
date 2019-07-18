@@ -35,29 +35,4 @@ public class ProductDaoIT extends BaseVendorQuickShipTest {
 		assertTrue(!retrievedList.isEmpty());
 		assertTrue(retrievedList.size() > 0 && retrievedList.size() <= pageSize);
 	}
-
-	@Test
-	@Ignore("Refactor to use seeded data")
-	public void testGetLeadTimeOverrideRuleList() {
-		ProductLeadTimeOverrideRuleSearchCriteria criteria = new ProductLeadTimeOverrideRuleSearchCriteria();
-		criteria.setProductId(971757);
-		criteria.setTypeList(Arrays.asList(ProductLeadTimeOverrideType.MADE_TO_ORDER));
-
-		List<ProductLeadTimeOverrideRule> retrievedList = productDao.getProductLeadTimeOverrideRule(criteria);
-
-		assertTrue(!retrievedList.isEmpty());
-		assertTrue(retrievedList.size() > 0);
-	}
-
-	@Test
-	@Ignore("Refactor to use seeded data")
-	public void testGetLeadTimeOverrideRuleList_noResults() {
-		ProductLeadTimeOverrideRuleSearchCriteria criteria = new ProductLeadTimeOverrideRuleSearchCriteria();
-		criteria.setProductId(971757);
-		criteria.setTypeList(Arrays.asList(ProductLeadTimeOverrideType.PRE_ORDER));
-
-		List<ProductLeadTimeOverrideRule> retrievedList = productDao.getProductLeadTimeOverrideRule(criteria);
-
-		assertTrue(retrievedList.isEmpty());
-	}
 }

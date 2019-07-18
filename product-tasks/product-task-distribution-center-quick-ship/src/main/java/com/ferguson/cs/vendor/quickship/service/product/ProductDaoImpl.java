@@ -22,10 +22,4 @@ public class ProductDaoImpl implements ProductDao {
 		return productMapper.getQuickShipEligibleProduct(criteria);
 	}
 
-	@Override
-	public List<ProductLeadTimeOverrideRule> getProductLeadTimeOverrideRule(
-			ProductLeadTimeOverrideRuleSearchCriteria criteria) {
-		return productMapper.getProductLeadTimeOverrideRule(criteria);
-	}
-
 }

@@ -50,12 +50,6 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public List<ProductLeadTimeOverrideRule> getLeadTimeOverrideRuleList(
-			ProductLeadTimeOverrideRuleSearchCriteria criteria) {
-		return productDao.getProductLeadTimeOverrideRule(criteria);
-	}
-
-	@Override
 	public boolean isFreeShipping(Product product, ShippingCalculationView storeShippingCalculationView) {
 		//Free shipping flag overrides all other logic if set to true
 		if (product.getFreeShipping()) {

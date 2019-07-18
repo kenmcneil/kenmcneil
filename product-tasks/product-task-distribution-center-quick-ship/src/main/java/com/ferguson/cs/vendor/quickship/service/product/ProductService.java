@@ -17,14 +17,6 @@ public interface ProductService {
 	List<Product> getQuickShipProductList(int pageNumber);
 
 	/**
-	 * Get list of product lead time override rules
-	 * @param criteria
-	 * @return
-	 */
-	List<ProductLeadTimeOverrideRule> getLeadTimeOverrideRuleList(
-			ProductLeadTimeOverrideRuleSearchCriteria criteria);
-
-	/**
 	 * Determines if a product has free shipping, based on a store shipping calculation view and product level overrides
 	 *
 	 * @param product

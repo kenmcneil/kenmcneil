@@ -16,11 +16,4 @@ public interface ProductDao {
 	 */
 	List<Product> getQuickShipEligibleProduct(QuickshipEligibleProductSearchCriteria criteria);
 
-	/**
-	 * Get list of product lead time override rules
-	 * @param criteria
-	 * @return
-	 */
-	List<ProductLeadTimeOverrideRule> getProductLeadTimeOverrideRule(ProductLeadTimeOverrideRuleSearchCriteria criteria);
-
 }

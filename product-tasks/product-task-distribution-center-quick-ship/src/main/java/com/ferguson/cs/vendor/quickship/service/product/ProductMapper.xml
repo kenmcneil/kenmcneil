@@ -71,30 +71,4 @@
 		OFFSET #{criteria.offset} ROWS FETCH NEXT #{criteria.pageSize} ROWS ONLY
 	</select>
 
-	<resultMap id="productLeadTimeOverrideMap" type="com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule">
-		<id property="id" column="productLeadTimeOverrideRule_id" />
-		<result property="type" column="productLeadTimeOverrideType_id" javaType="com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType" typeHandler="com.ferguson.cs.vendor.quickship.service.IntMappedEnumTypeHandler" />
-	</resultMap>
-
-	<select id="getProductLeadTimeOverrideRule" resultMap="productLeadTimeOverrideMap">
-		SELECT
-			pltor.id productLeadTimeOverrideRule_id,
-			pltor.productLeadTimeOverrideTypeId productLeadTimeOverrideType_id
-		FROM
-			mmc.dbo.productLeadTimeOverrideRuleMapping pltorm
-			INNER JOIN mmc.dbo.productLeadTimeOverrideRule pltor
-				ON pltor.id = pltorm.productLeadTimeOverrideRuleId
-		<where>
-			<if test="criteria.productId != null">
-				pltorm.productUniqueId = #{criteria.productId}
-			</if>
-			<if test="criteria.getTypeList != null">
-				AND pltor.productLeadTimeOverrideTypeId IN
-				<foreach collection="criteria.getTypeList" item="type" open="(" close=")" separator=",">
-					#{type,jdbcType=INTEGER,javaType=com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideType,typeHandler=com.ferguson.cs.vendor.quickship.service.IntMappedEnumTypeHandler}
-				</foreach>
-			</if>
-		</where>
-	</select>
-
 </mapper>
