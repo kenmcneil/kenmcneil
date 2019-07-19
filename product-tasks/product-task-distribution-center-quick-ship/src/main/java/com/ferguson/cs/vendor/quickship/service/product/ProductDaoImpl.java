@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 import com.ferguson.cs.vendor.quickship.model.product.QuickshipEligibleProductSearchCriteria;
 
 @Repository
@@ -20,12 +18,6 @@ public class ProductDaoImpl implements ProductDao {
 	@Override
 	public List<Product> getQuickShipEligibleProduct(QuickshipEligibleProductSearchCriteria criteria) {
 		return productMapper.getQuickShipEligibleProduct(criteria);
-	}
-
-	@Override
-	public List<ProductLeadTimeOverrideRule> getProductLeadTimeOverrideRule(
-			ProductLeadTimeOverrideRuleSearchCriteria criteria) {
-		return productMapper.getProductLeadTimeOverrideRule(criteria);
 	}
 
 }

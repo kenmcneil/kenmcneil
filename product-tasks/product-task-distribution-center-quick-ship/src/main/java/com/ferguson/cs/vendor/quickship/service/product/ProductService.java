@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRule;
-import com.ferguson.cs.vendor.quickship.model.product.ProductLeadTimeOverrideRuleSearchCriteria;
 
 public interface ProductService {
 
@@ -15,14 +13,6 @@ public interface ProductService {
 	 * @return
 	 */
 	List<Product> getQuickShipProductList(int pageNumber);
-
-	/**
-	 * Get list of product lead time override rules
-	 * @param criteria
-	 * @return
-	 */
-	List<ProductLeadTimeOverrideRule> getLeadTimeOverrideRuleList(
-			ProductLeadTimeOverrideRuleSearchCriteria criteria);
 
 	/**
 	 * Determines if a product has free shipping, based on a store shipping calculation view and product level overrides
