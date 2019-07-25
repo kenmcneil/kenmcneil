@@ -3,7 +3,6 @@ package com.ferguson.cs.product.task.inventory.service;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import com.ferguson.cs.product.task.inventory.ManhattanInboundSettings;
 import com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryLocationData;
 
 @Service
 public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventoryProcessorService {
@@ -32,23 +32,59 @@ public class ManhattanInventoryProcessorServiceImpl implements ManhattanInventor
 	@Override
 	public ManhattanInventoryJob getOldestReadyManhattanInventoryJob(ManhattanChannel manhattanChannel) {
 		List<ManhattanInventoryJob> manhattanInventoryJobs = manhattanInventoryDao
-				.getLoadingManhattanInventoryJobs(manhattanChannel)
-				.stream()
-				.filter(j -> {
-					Date now = new Date();
-					Long millisecondsBetween = (now.getTime() - j.getCreatedDateTime().getTime());
-					return j.getCurrentCount() >= j.getTotalCount()
-							|| millisecondsBetween > manhattanInboundSettings
-							.getJobCompletionTimeOutInMilliseconds();
+				.getLoadingManhattanInventoryJobs(manhattanChannel);
 
-				}).collect(Collectors.toList());
 		if (manhattanInventoryJobs.size() > 1) {
 			manhattanInventoryJobs.sort(Comparator.comparing(ManhattanInventoryJob::getCreatedDateTime));
 		}
-		if (manhattanInventoryJobs.isEmpty()) {
-			return null;
+
+		ManhattanInventoryJob oldestReadyJob = null;
+		Date now = new Date();
+		for (ManhattanInventoryJob manhattanInventoryJob : manhattanInventoryJobs) {
+			List<ManhattanInventoryLocationData> manhattanInventoryLocationDataList = manhattanInventoryDao
+					.getManhattanInventoryLocationDataForJob(manhattanInventoryJob.getId());
+
+			//No location data means the job is not a ready job
+			if (manhattanInventoryLocationDataList == null || manhattanInventoryLocationDataList.isEmpty()) {
+				continue;
+			}
+
+
+			if (manhattanInventoryLocationDataList.size() >= manhattanInventoryJob.getTotalCount()) {
+				//Count the number of locations that are ready, if all are, this is our oldest ready job
+				int readyLocations = 0;
+				for (ManhattanInventoryLocationData manhattanInventoryLocationData : manhattanInventoryLocationDataList) {
+					if (manhattanInventoryLocationData.getCurrentItemPageCount() >= manhattanInventoryLocationData
+							.getTotalItemPageCount()) {
+						readyLocations++;
+					} else {
+						//If any locations aren't ready, the job is not ready
+						break;
+					}
+				}
+				if (readyLocations >= manhattanInventoryJob.getTotalCount()) {
+					manhattanInventoryJob.setDataIsComplete(true);
+					oldestReadyJob = manhattanInventoryJob;
+					break;
+				}
+			}
+
+			//Sort location data by modified date time in descending order
+			manhattanInventoryLocationDataList
+					.sort((o1, o2) -> o2.getModifiedDateTime().compareTo(o1.getModifiedDateTime()));
+
+			//If the newest modified date is longer from now than the timeout, this job is the "oldest ready job".
+			if (now.getTime() - manhattanInventoryLocationDataList.get(0).getModifiedDateTime()
+					.getTime() > manhattanInboundSettings.getJobCompletionTimeOutInMilliseconds()) {
+				manhattanInventoryJob.setDataIsComplete(false);
+				oldestReadyJob = manhattanInventoryJob;
+				break;
+			}
+
+
 		}
-		return manhattanInventoryJobs.get(0);
+
+		return oldestReadyJob;
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryLocationData;
 
 @Repository
 public class ManhattanInventoryDaoImpl implements ManhattanInventoryDao {
@@ -31,5 +32,10 @@ public class ManhattanInventoryDaoImpl implements ManhattanInventoryDao {
 	@Override
 	public void deleteManhattanInventoryJobData(int manhattanInventoryJobId) {
 		manhattanInventoryMapper.deleteManhattanInventoryJobData(manhattanInventoryJobId);
+	}
+
+	@Override
+	public List<ManhattanInventoryLocationData> getManhattanInventoryLocationDataForJob(Integer manhattanInventoryJobId) {
+		return manhattanInventoryMapper.getManhattanInventoryLocationDataForJob(manhattanInventoryJobId);
 	}
 }

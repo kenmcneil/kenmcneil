@@ -21,6 +21,7 @@ import com.ferguson.cs.product.task.inventory.dao.core.ManhattanInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJobStatus;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryLocationData;
 import com.ferguson.cs.utilities.DateUtils;
 
 public class ManhattanInventoryProcessorServiceTest {
@@ -52,7 +53,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		mostRecentMatchingJob.setTransactionNumber("foo1");
 		mostRecentMatchingJob.setCreatedDateTime(mostRecentCreatedTime);
 		mostRecentMatchingJob.setManhattanChannel(ManhattanChannel.BUILD);
-		mostRecentMatchingJob.setCurrentCount(3);
 		mostRecentMatchingJob.setTotalCount(3);
 
 		ManhattanInventoryJob lessRecentMatchingJob = new ManhattanInventoryJob();
@@ -61,8 +61,7 @@ public class ManhattanInventoryProcessorServiceTest {
 		lessRecentMatchingJob.setTransactionNumber("foo2");
 		lessRecentMatchingJob.setCreatedDateTime(lessRecentCreatedTime);
 		lessRecentMatchingJob.setManhattanChannel(ManhattanChannel.BUILD);
-		lessRecentMatchingJob.setCurrentCount(3);
-		lessRecentMatchingJob.setTotalCount(3);
+		lessRecentMatchingJob.setTotalCount(2);
 
 		ManhattanInventoryJob nonMatchingControl = new ManhattanInventoryJob();
 		nonMatchingControl.setId(3);
@@ -70,7 +69,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		nonMatchingControl.setTransactionNumber("foo3");
 		nonMatchingControl.setCreatedDateTime(mostRecentCreatedTime);
 		nonMatchingControl.setManhattanChannel(ManhattanChannel.BUILD);
-		nonMatchingControl.setCurrentCount(2);
 		nonMatchingControl.setTotalCount(3);
 
 		List<ManhattanInventoryJob> jobList = new ArrayList<>();
@@ -78,7 +76,32 @@ public class ManhattanInventoryProcessorServiceTest {
 		jobList.add(mostRecentMatchingJob);
 		jobList.add(nonMatchingControl);
 
+		ManhattanInventoryLocationData manhattanInventoryLocationData1 = new ManhattanInventoryLocationData();
+		manhattanInventoryLocationData1.setCreatedDateTime(new Date());
+		manhattanInventoryLocationData1.setModifiedDateTime(new Date());
+		manhattanInventoryLocationData1.setCurrentCount(0);
+		manhattanInventoryLocationData1.setCurrentItemPageCount(2);
+		manhattanInventoryLocationData1.setTotalItemPageCount(2);
+		manhattanInventoryLocationData1.setManhattanInventoryJobId(2);
+		manhattanInventoryLocationData1.setId(1);
+
+		ManhattanInventoryLocationData manhattanInventoryLocationData2 = new ManhattanInventoryLocationData();
+		manhattanInventoryLocationData2.setCreatedDateTime(new Date());
+		manhattanInventoryLocationData2.setModifiedDateTime(new Date());
+		manhattanInventoryLocationData2.setCurrentCount(1);
+		manhattanInventoryLocationData2.setCurrentItemPageCount(2);
+		manhattanInventoryLocationData2.setTotalItemPageCount(2);
+		manhattanInventoryLocationData2.setManhattanInventoryJobId(2);
+		manhattanInventoryLocationData2.setId(2);
+
+		List<ManhattanInventoryLocationData> manhattanInventoryLocationDataList = new ArrayList<>();
+		manhattanInventoryLocationDataList.add(manhattanInventoryLocationData1);
+		manhattanInventoryLocationDataList.add(manhattanInventoryLocationData2);
+
+
+
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
+		when(manhattanInventoryDao.getManhattanInventoryLocationDataForJob(2)).thenReturn(manhattanInventoryLocationDataList);
 
 		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
 				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
@@ -98,7 +121,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		mostRecentLoadingJob.setManhattanInventoryJobStatus(ManhattanInventoryJobStatus.LOADING);
 		mostRecentLoadingJob.setTransactionNumber("foo1");
 		mostRecentLoadingJob.setCreatedDateTime(mostRecentCreatedTime);
-		mostRecentLoadingJob.setCurrentCount(2);
 		mostRecentLoadingJob.setTotalCount(3);
 		mostRecentLoadingJob.setManhattanChannel(ManhattanChannel.BUILD);
 
@@ -107,7 +129,6 @@ public class ManhattanInventoryProcessorServiceTest {
 		loadingJobPastTimeout.setManhattanInventoryJobStatus(ManhattanInventoryJobStatus.LOADING);
 		loadingJobPastTimeout.setTransactionNumber("foo2");
 		loadingJobPastTimeout.setCreatedDateTime(lessRecentCreatedTime);
-		loadingJobPastTimeout.setCurrentCount(2);
 		loadingJobPastTimeout.setTotalCount(3);
 		loadingJobPastTimeout.setManhattanChannel(ManhattanChannel.BUILD);
 
@@ -115,7 +136,20 @@ public class ManhattanInventoryProcessorServiceTest {
 		jobList.add(loadingJobPastTimeout);
 		jobList.add(mostRecentLoadingJob);
 
+		ManhattanInventoryLocationData manhattanInventoryLocationData1 = new ManhattanInventoryLocationData();
+		manhattanInventoryLocationData1.setCreatedDateTime(new Date());
+		manhattanInventoryLocationData1.setModifiedDateTime(lessRecentCreatedTime);
+		manhattanInventoryLocationData1.setCurrentCount(0);
+		manhattanInventoryLocationData1.setCurrentItemPageCount(1);
+		manhattanInventoryLocationData1.setTotalItemPageCount(2);
+		manhattanInventoryLocationData1.setManhattanInventoryJobId(2);
+		manhattanInventoryLocationData1.setId(1);
+
+		List<ManhattanInventoryLocationData> manhattanInventoryLocationDataList = new ArrayList<>();
+		manhattanInventoryLocationDataList.add(manhattanInventoryLocationData1);
+
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
+		when(manhattanInventoryDao.getManhattanInventoryLocationDataForJob(2)).thenReturn(manhattanInventoryLocationDataList);
 
 		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
 				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);
@@ -134,14 +168,26 @@ public class ManhattanInventoryProcessorServiceTest {
 		loadingJob.setManhattanInventoryJobStatus(ManhattanInventoryJobStatus.LOADING);
 		loadingJob.setTransactionNumber("foo2");
 		loadingJob.setCreatedDateTime(mostRecentCreatedTime);
-		loadingJob.setCurrentCount(2);
 		loadingJob.setTotalCount(3);
 		loadingJob.setManhattanChannel(ManhattanChannel.BUILD);
 
 		List<ManhattanInventoryJob> jobList = new ArrayList<>();
 		jobList.add(loadingJob);
 
+		ManhattanInventoryLocationData manhattanInventoryLocationData1 = new ManhattanInventoryLocationData();
+		manhattanInventoryLocationData1.setCreatedDateTime(new Date());
+		manhattanInventoryLocationData1.setModifiedDateTime(new Date());
+		manhattanInventoryLocationData1.setCurrentCount(0);
+		manhattanInventoryLocationData1.setCurrentItemPageCount(1);
+		manhattanInventoryLocationData1.setTotalItemPageCount(2);
+		manhattanInventoryLocationData1.setManhattanInventoryJobId(2);
+		manhattanInventoryLocationData1.setId(1);
+
+		List<ManhattanInventoryLocationData> manhattanInventoryLocationDataList = new ArrayList<>();
+		manhattanInventoryLocationDataList.add(manhattanInventoryLocationData1);
+
 		when(manhattanInventoryDao.getLoadingManhattanInventoryJobs(any())).thenReturn(jobList);
+		when(manhattanInventoryDao.getManhattanInventoryLocationDataForJob(2)).thenReturn(manhattanInventoryLocationDataList);
 
 		ManhattanInventoryJob manhattanInventoryJob = manhattanInventoryProcessorService
 				.getOldestReadyManhattanInventoryJob(ManhattanChannel.BUILD);

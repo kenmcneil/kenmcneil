@@ -19,8 +19,7 @@ public class ManhattanZeroesDecider implements JobExecutionDecider {
 
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
-		if (manhattanInventoryJob.getId() != null
-				&& manhattanInventoryJob.getCurrentCount() >= manhattanInventoryJob.getTotalCount()) {
+		if (Boolean.TRUE.equals(manhattanInventoryJob.getDataIsComplete())) {
 			return new FlowExecutionStatus("ZEROES");
 		}
 
