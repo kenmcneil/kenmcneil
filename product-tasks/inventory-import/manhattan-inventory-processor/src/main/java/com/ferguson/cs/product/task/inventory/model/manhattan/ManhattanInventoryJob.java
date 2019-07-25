@@ -5,15 +5,15 @@ import java.util.Date;
 
 public class ManhattanInventoryJob implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private Integer id;
 	private String transactionNumber;
 	private Integer totalCount;
-	private Integer currentCount;
 	private ManhattanInventoryJobStatus manhattanInventoryJobStatus;
 	private Date createdDateTime;
 	private ManhattanChannel manhattanChannel;
+	private Boolean dataIsComplete;
 
 	public ManhattanInventoryJob() {
 	}
@@ -42,14 +42,6 @@ public class ManhattanInventoryJob implements Serializable {
 		this.totalCount = totalCount;
 	}
 
-	public Integer getCurrentCount() {
-		return currentCount;
-	}
-
-	public void setCurrentCount(Integer currentCount) {
-		this.currentCount = currentCount;
-	}
-
 	public Date getCreatedDateTime() {
 		return createdDateTime;
 	}
@@ -72,5 +64,13 @@ public class ManhattanInventoryJob implements Serializable {
 
 	public void setManhattanChannel(ManhattanChannel manhattanChannel) {
 		this.manhattanChannel = manhattanChannel;
+	}
+
+	public Boolean getDataIsComplete() {
+		return dataIsComplete;
+	}
+
+	public void setDataIsComplete(Boolean dataIsComplete) {
+		this.dataIsComplete = dataIsComplete;
 	}
 }

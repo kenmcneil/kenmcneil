@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryLocationData;
 
 public interface ManhattanInventoryDao {
 	/**
@@ -27,4 +28,11 @@ public interface ManhattanInventoryDao {
 	 * @param manhattanInventoryJobId id of job to be cleaned up
 	 */
 	void deleteManhattanInventoryJobData(int manhattanInventoryJobId);
+
+	/**
+	 * Gets manhattan inventory location data related to job id
+	 * @param manhattanInventoryJobId
+	 * @return manhattan inventory location data for job id and current count
+	 */
+	List<ManhattanInventoryLocationData> getManhattanInventoryLocationDataForJob(Integer manhattanInventoryJobId);
 }

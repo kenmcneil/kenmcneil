@@ -35,7 +35,7 @@ public class ManhattanJobInitializationTasklet implements Tasklet {
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		if (manhattanInventoryJob.getId() == null) {
+		if (manhattanInventoryJob == null || manhattanInventoryJob.getId() == null) {
 			contribution.setExitStatus(ExitStatus.NOOP);
 		} else {
 			//In the event that something went catastrophically wrong on a previous run, the old file will still exist

@@ -110,11 +110,13 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.listener(manhattanBuildVendorInventoryJobListener())
 				.start(initializeManhattanJob())
 				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(initializeManhattanJob())
 				.on(ExitStatus.COMPLETED.getExitCode())
 				.to(writeManhattanBuildVendorInventory())
 				.next(manhattanZeroesDecider())
 				.on(ExitStatus.COMPLETED.getExitCode())
-				.end()
+				.to(handleFile())
+				.from(manhattanZeroesDecider())
 				.on("ZEROES")
 				.to(writeManhattanVendorInventoryZeroes())
 				.next(handleFile())
@@ -233,13 +235,13 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	private String getFilePathFromManhattanJob(ManhattanInventoryJob manhattanInventoryJob) {
-		if (manhattanInventoryJob == null) {
+		if (manhattanInventoryJob == null || manhattanInventoryJob.getId() == null) {
 			return null;
 		}
 
 		String completionStatus;
 
-		if (manhattanInventoryJob.getCurrentCount() >= manhattanInventoryJob.getTotalCount()) {
+		if (manhattanInventoryJob.getDataIsComplete()) {
 			completionStatus = "full";
 		} else {
 			completionStatus = "partial";

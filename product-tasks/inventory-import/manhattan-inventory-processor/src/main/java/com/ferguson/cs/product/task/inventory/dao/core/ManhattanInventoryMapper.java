@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
+import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryLocationData;
 
 @Mapper
 public interface ManhattanInventoryMapper {
@@ -22,4 +23,6 @@ public interface ManhattanInventoryMapper {
 	void updateManhattanInventoryJobStatus(ManhattanInventoryJob manhattanInventoryJob);
 
 	void deleteManhattanInventoryJobData(int manhattanInventoryJobId);
+
+	List<ManhattanInventoryLocationData> getManhattanInventoryLocationDataForJob(@Param("manhattanInventoryJobId") Integer manhattanInventoryJobId);
 }
