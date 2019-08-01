@@ -10,18 +10,12 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationDao;
-import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationMapper;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
-import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
-import com.ferguson.cs.task.data.TaskControlData;
-import com.ferguson.cs.task.data.TaskControlDataDao;
-import com.ferguson.cs.task.data.TaskControlDataItem;
 import com.ferguson.cs.utilities.DateUtils;
 
 @Service

@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 public class SetItemWriter<T> implements ItemWriter<T> {
 

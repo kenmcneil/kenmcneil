@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
-import java.io.File;
 import java.util.Date;
 
 import org.springframework.batch.core.JobExecution;

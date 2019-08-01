@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
-import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 public interface WiserService {
