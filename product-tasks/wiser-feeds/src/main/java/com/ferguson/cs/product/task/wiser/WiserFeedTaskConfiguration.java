@@ -281,9 +281,9 @@ public class WiserFeedTaskConfiguration {
 	 * the entire product catalog/all product data hashes.
 	 */
 	@Bean
-	@Qualifier("wiserProductCatalogIncrementalUploadJob")
-	public Job wiserProductCatalogIncrementalUploadJob(Step writeProductDataHashUniqueIds,Step writeWiserItems, Step uploadCsv) {
-		return taskBatchJobFactory.getJobBuilder("wiserProductCatalogIncrementalUploadJob")
+	@Qualifier("productCatalogIncrementalUploadJob")
+	public Job productCatalogIncrementalUploadJob(Step writeProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
+		return taskBatchJobFactory.getJobBuilder("productCatalogIncrementalUploadJob")
 				.start(writeProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
@@ -295,9 +295,9 @@ public class WiserFeedTaskConfiguration {
 	 * Writes product data matching all product hashes, meaning the entire product catalog.
 	 */
 	@Bean
-	@Qualifier("wiserProductCatalogFullUploadJob")
-	public Job wiserProductCatalogFullUploadJob(Step writeAllProductDataHashUniqueIds,Step writeWiserItems,Step uploadCsv) {
-		return taskBatchJobFactory.getJobBuilder("wiserProductCatalogFullUploadJob")
+	@Qualifier("productCatalogFullUploadJob")
+	public Job productCatalogFullUploadJob(Step writeAllProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
+		return taskBatchJobFactory.getJobBuilder("productCatalogFullUploadJob")
 				.start(writeAllProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
@@ -311,9 +311,9 @@ public class WiserFeedTaskConfiguration {
 	 * data is deleted, this will send the entire product catalog/all products related to data hashes.
 	 */
 	@Bean
-	@Qualifier("wiserItemMasterPreviousDayFeedJob")
-	public Job wiserItemMasterPreviousDayFeedJob(Step writePreviousDayProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
-		return taskBatchJobFactory.getJobBuilder("wiserItemMasterPreviousDayFeedJob")
+	@Qualifier("productCatalogPreviousDayFeedJob")
+	public Job productCatalogPreviousDayFeedJob(Step writePreviousDayProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
+		return taskBatchJobFactory.getJobBuilder("productCatalogPreviousDayFeedJob")
 				.start(writePreviousDayProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
