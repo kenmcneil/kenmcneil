@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.wiser.dao.batch.WiserBatchMapper">
+
+	<insert id="upsertProductDataHash" parameterType="ProductDataHash">
+		MERGE INTO Integration.wiser.productDataHash AS target
+		USING (VALUES(#{productUniqueId}, #{hashCode}, #{lastModifiedDate})) AS source (productUniqueId,hashCode,lastModifiedDate)
+		ON (target.productUniqueId = source.productUniqueId)
+		WHEN MATCHED THEN
+			UPDATE SET hashCode = source.hashCode,
+			lastModifiedDate = GETDATE()
+		WHEN NOT MATCHED THEN
+			INSERT (productUniqueId,hashCode,lastModifiedDate)
+			VALUES (source.productUniqueId,source.hashCode,GETDATE());
+	</insert>
+	<insert id="insertProductDataHash" parameterType="ProductDataHash">
+		INSERT INTO Integration.wiser.productDataHash (productUniqueId,hashCode,lastModifiedDate)
+		VALUES(#{productUniqueId},#{hashCode},#{lastModifiedDate})
+	</insert>
+
+	<delete id="deleteProductDataHash" parameterType="ProductDataHash">
+		DELETE FROM Integration.wiser.productDataHash
+		WHERE productUniqueId = #{productUniqueId}
+	</delete>
+</mapper>

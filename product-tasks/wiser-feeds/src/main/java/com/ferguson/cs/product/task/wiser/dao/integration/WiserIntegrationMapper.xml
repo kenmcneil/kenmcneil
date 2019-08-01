@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationMapper">
+
+	<resultMap id="wiserSaleMap" type="WiserSale">
+		<id property="id" column="id" />
+		<result property="productUniqueId" column="productUniqueId" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+		<result property="modifiedDate" column="modifiedDate" />
+	</resultMap>
+
+	<select id="getActiveOrModifiedWiserSales" resultMap="wiserSaleMap">
+		DECLARE @date DATETIME = #{date};
+
+		DECLARE @startDate DATETIME = DATEADD(day, DATEDIFF(day, 0, @date), 0);
+		DECLARE @endDate DATETIME = DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0);
+
+		SELECT id,productUniqueId,startDate,endDate,modifiedDate
+		FROM Integration.wiser.sale WITH(NOLOCK)
+		WHERE modifiedDate &gt;= @startDate AND modifiedDate &lt; @endDate
+		OR (@startDate &lt;= endDate AND @endDate &gt;= startDate)
+	</select>
+
+
+
+	<resultMap id="productDataHashMap" type="ProductDataHash">
+		<result property="productUniqueId" column="productUniqueId"/>
+		<result property="hashCode" column="hashCode"/>
+		<result property="lastModifiedDate" column="lastModifiedDate"/>
+	</resultMap>
+
+	<select id="getAllProductDataHashes" resultMap="productDataHashMap">
+		SELECT productUniqueId,hashCode,lastModifiedDate
+		FROM Integration.wiser.productDataHash
+	</select>
+
+	<select id="getProductDataHashUniqueIds" resultType="int">
+		<if test="date != null">
+			DECLARE @date DATETIME = #{date};
+			DECLARE @startDate DATETIME = DATEADD(day, DATEDIFF(day, 0, @date), 0);
+		</if>
+		SELECT productUniqueId
+		FROM Integration.wiser.productDataHash
+		<if test="date != null">
+			WHERE lastModifiedDate &gt;= @startDate
+		</if>
+	</select>
+
+	<delete id="truncateProductDataHashes" >
+		DELETE Integration.wiser.productDataHash
+	</delete>
+
+</mapper>
