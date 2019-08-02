@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
+import com.ferguson.cs.product.task.wiser.batch.DownloadFileTasklet;
 import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
@@ -50,6 +51,7 @@ public class WiserFeedTaskConfiguration {
 	private SqlSessionFactory coreSqlSessionFactory;
 	private SqlSessionFactory integrationSqlSessionFactory;
 	private SqlSessionFactory batchSqlSessionFactory;
+	private WiserFeedSettings wiserFeedSettings;
 
 
 	public static final String LOCAL_FILE_NAME_KEY = "localFileName";
@@ -83,6 +85,11 @@ public class WiserFeedTaskConfiguration {
 	@Autowired
 	public void setTaskBatchJobFactory(TaskBatchJobFactory taskBatchJobFactory) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
+	}
+
+	@Autowired
+	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
+		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
 	@Bean
@@ -179,8 +186,14 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['filePath']}") String filePath) {
-		return new UploadFileTasklet(filePath);
+	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		return new UploadFileTasklet(wiserFeedSettings.getLocalFilePath() + fileName);
+	}
+
+	@Bean
+	@StepScope
+	DownloadFileTasklet downloadFileTasklet() {
+		return new DownloadFileTasklet();
 	}
 
 	@Bean
@@ -203,7 +216,7 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	ItemStreamWriter<WiserProductData> wiserCsvCatalogItemWriter(@Value("#{jobExecutionContext['filePath']}") String filePath) {
+	ItemStreamWriter<WiserProductData> wiserCsvCatalogItemWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
 		String[] header = new String[]{"sku",
 				"product_name",
 				"product_url",
@@ -243,13 +256,19 @@ public class WiserFeedTaskConfiguration {
 				"cost",
 				"hctCategory",
 				"conversionCategory"});
-		return getFlatFileItemWriter(header, filePath, extractor);
+		return getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
 	}
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserProductCatalogFeedListener() {
 		return new WiserFeedListener(WiserFeedType.PRODUCT_CATALOG_FEED);
+	}
+
+	@Bean
+	@JobScope
+	public WiserFeedListener wiserCompetitorFeedListener() {
+		return new WiserFeedListener(WiserFeedType.COMPETITOR_FEED);
 	}
 
 	/**
@@ -318,6 +337,16 @@ public class WiserFeedTaskConfiguration {
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
+				.build();
+	}
+
+	@Bean
+	@Qualifier("competitorDataFeedJob")
+	public Job competitorDataFeedJob(Step downloadCsv,Step uploadCsv) {
+		return taskBatchJobFactory.getJobBuilder("competitorDataFeedJob")
+				.start(downloadCsv)
+				.next(uploadCsv)
+				.listener(wiserCompetitorFeedListener())
 				.build();
 	}
 
@@ -405,6 +434,13 @@ public class WiserFeedTaskConfiguration {
 	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("uploadCsv")
 				.tasklet(uploadFileTasklet)
+				.build();
+	}
+
+	@Bean
+	public Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
+		return taskBatchJobFactory.getStepBuilder("downloadCsv")
+				.tasklet(downloadFileTasklet)
 				.build();
 	}
 
