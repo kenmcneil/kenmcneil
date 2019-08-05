@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.wiser.dao.core.WiserMapper">
+	<resultMap id="productDataMap" type="ProductData">
+		<result column="productId" property="productId"/>
+		<result column="compositeId" property="compositeId"/>
+		<result column="uniqueId" property="uniqueId" />
+		<result column="productTitle" property="productTitle" />
+		<result column="finish" property="finish" />
+		<result column="image" property="image" />
+		<result column="description" property="description" />
+		<result column="upc" property="upc" />
+		<result column="manufacturer" property="manufacturer" />
+		<result column="type" property="type" />
+		<result column="mpn" property="mpn" />
+		<result column="baseCategory" property="baseCategory" />
+		<result column="businessCategoryName" property="businessCategoryName" />
+		<result column="mapPrice" property="mapPrice"/>
+		<result column="isMap" property="isMap" />
+		<result column="inStock" property="inStock" />
+		<result column="price" property="price" />
+		<result column="cost" property="cost" />
+	</resultMap>
+
+	<select id="getProductData" resultMap="productDataMap">
+		SELECT DISTINCT
+		fa.productId as 'productId',
+		fa.id as 'compositeId',
+		p.uniqueId as 'uniqueId',
+		ti.title as 'productTitle',
+		f.finish as 'finish',
+		i.image as 'image',
+		ISNULL(mvi.upc,u.upc ) as 'upc',
+		m.Name as 'manufacturer',
+		ty.type as 'type',
+		mvi.MPN as 'mpn',
+		bc.base_category as 'baseCategory',
+		bsc.name as 'businessCategoryName',
+		pm.map_price as 'mapPrice',
+		IIF(pm.uniqueId IS NOT NULL, 1, 0) AS 'isMap',
+		IIF(s.status = 'stock', 1, 0) AS 'inStock',
+		pbco.cost AS 'price',
+		vc.cost AS 'cost'
+
+		FROM mmc.product.product p WITH (NOLOCK)
+		INNER JOIN mmc.product.family fa WITH(NOLOCK)
+		ON p.familyId = fa.id
+		INNER JOIN mmc.product.title ti WITH(NOLOCK)
+		ON fa.titleId = ti.id
+		INNER JOIN mmc.product.finish f WITH(NOLOCK)
+		ON p.finishId = f.id
+		INNER JOIN mmc.dbo.Manufacturer m WITH(NOLOCK)
+		ON fa.manufacturerId = m.ID
+		INNER JOIN mmc.product.typeApplicationHandletype taht WITH(NOLOCK)
+		ON fa.typeApplicationHandletypeId = taht.id
+		INNER JOIN mmc.product.typeApplication ta WITH(NOLOCK)
+		ON taht.typeApplicationId = ta.id
+		INNER JOIN mmc.product.type ty WITH(NOLOCK)
+		ON ta.typeId = ty.id
+		INNER JOIN mmc.product.status s WITH(NOLOCK)
+		ON p.statusId = s.id
+		INNER JOIN mmc.product.modified mo WITH(NOLOCK)
+		ON p.uniqueId = mo.uniqueId
+		INNER JOIN mmc.product.containerType ct WITH(NOLOCK)
+		ON fa.containerTypeId = ct.id
+		LEFT JOIN mmc.product.shippingDetail sd
+		ON p.uniqueId = sd.uniqueId
+		LEFT JOIN mmc.product.image i WITH(NOLOCK)
+		ON p.imageId = i.id
+		LEFT JOIN mmc.product.upcSku us WITH(NOLOCK)
+		ON p.uniqueId = us.uniqueId
+		LEFT JOIN mmc.product.upc u WITH(NOLOCK)
+		ON us.upcId = u.id
+		OUTER APPLY
+		(
+		SELECT TOP 1 productId, finish, Manufacturer, mvi.mpn, upc
+		FROM omc.dbo.vendor_mapping mvi WITH (NOLOCK)
+		WHERE mvi.mpn IS NOT NULL AND fa.productid = mvi.ProductID AND m.Name = mvi.Manufacturer AND f.finish = mvi.finish
+		GROUP BY productId, finish, Manufacturer, mvi.mpn, upc
+		) mvi
+		LEFT JOIN mmc.dbo.product_base_category pbc WITH (NOLOCK)
+		ON pbc.uniqueId = p.uniqueId
+		LEFT JOIN mmc.dbo.base_category bc WITH (NOLOCK)
+		ON bc.id = pbc.base_category_id
+		LEFT JOIN omc.dbo.businessCategoryProduct bcp WITH (NOLOCK)
+		ON bcp.productUniqueId = p.uniqueId
+		LEFT JOIN omc.dbo.businessCategory bsc WITH (NOLOCK)
+		ON bcp.businessCategoryId = bsc.id
+		LEFT JOIN mmc.dbo.product_imap_flag pm WITH (NOLOCK)
+		ON pm.uniqueId = p.uniqueId
+		INNER JOIN mmc.dbo.PriceBook_Cost pbco WITH (NOLOCK)
+		ON pbco.uniqueId = p.uniqueId
+		AND pbco.priceBookId = 1
+		INNER JOIN mmc.dbo.productPreferredVendor ppv WITH(NOLOCK)
+		ON ppv.productUniqueId = p.uniqueId
+		INNER JOIN omc.dbo.vendor_cost vc WITH(NOLOCK)
+		ON vc.uniqueId = p.uniqueId
+		AND vc.vendorUid = ppv.vendorUid
+		AND vc.pricedOptionId IS NULL
+		WHERE ct.type = 'Product'
+		ORDER BY p.uniqueId ASC
+	</select>
+</mapper>
