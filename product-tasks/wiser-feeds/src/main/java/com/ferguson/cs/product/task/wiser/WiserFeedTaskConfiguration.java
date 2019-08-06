@@ -295,20 +295,20 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	ItemStreamWriter<List<WiserPriceData>> wiserCsvPriceDataItemWriter(@Value("#{jobExecutionContext['filePath']}") String filePath) {
-		String[] header = new String[] {"sku",
+		String[] header = new String[]{"sku",
 				"channel",
 				"effective_date",
 				"list_price",
 				"reg_price"};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
-		extractor.setNames(new String[] { "sku",
+		extractor.setNames(new String[]{"sku",
 				"channel",
 				"effectiveDate",
 				"listPrice",
 				"regularPrice"});
 
-		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header,filePath,extractor);
+		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, filePath, extractor);
 
 		return new FlatteningItemStreamWriter<>(innerWriter);
 	}
@@ -322,11 +322,13 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserPriceFeedListener() {
-				return new WiserFeedListener(WiserFeedType.PRICE_FEED);
-			}
+		return new WiserFeedListener(WiserFeedType.PRICE_FEED);
+	}
 
+	@Bean
+	@JobScope
 	public WiserFeedListener wiserCompetitorFeedListener() {
-				return new WiserFeedListener(WiserFeedType.COMPETITOR_FEED);
+		return new WiserFeedListener(WiserFeedType.COMPETITOR_FEED);
 	}
 
 	/**
@@ -344,7 +346,7 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("repopulateProductDataHashJob")
-	public Job repopulateProductDataHashJob(Step truncateProductDataHashes,Step insertProductDataHash) {
+	public Job repopulateProductDataHashJob(Step truncateProductDataHashes, Step insertProductDataHash) {
 		return taskBatchJobFactory.getJobBuilder("repopulateProductDataHashJob")
 				.start(truncateProductDataHashes)
 				.next(insertProductDataHash)
@@ -420,7 +422,7 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("competitorDataFeedJob")
-	public Job competitorDataFeedJob(Step downloadCsv,Step uploadCsv) {
+	public Job competitorDataFeedJob(Step downloadCsv, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("competitorDataFeedJob")
 				.start(downloadCsv)
 				.next(uploadCsv)
@@ -515,9 +517,9 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("writeWiserPriceData")
-	public Step writeWiserPriceData(MyBatisCursorItemReader<WiserPriceData> wiserIncrementalPriceDataReader,ItemStreamWriter<List<WiserPriceData>> wiserCsvPriceDataItemWriter) {
+	public Step writeWiserPriceData(MyBatisCursorItemReader<WiserPriceData> wiserIncrementalPriceDataReader, ItemStreamWriter<List<WiserPriceData>> wiserCsvPriceDataItemWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeWiserPriceData")
-					.<WiserPriceData,List<WiserPriceData>>chunk(1000)
+				.<WiserPriceData, List<WiserPriceData>>chunk(1000)
 				.faultTolerant()
 				.reader(wiserIncrementalPriceDataReader)
 				.processor(wiserPriceDataProcessor())
@@ -529,7 +531,7 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("writeFullWiserPriceData")
 	public Step writeFullWiserPriceData(ItemStreamWriter<List<WiserPriceData>> wiserCsvPriceDataItemWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeFullWiserPriceData")
-				.<WiserPriceData,List<WiserPriceData>>chunk(1000)
+				.<WiserPriceData, List<WiserPriceData>>chunk(1000)
 				.faultTolerant()
 				.reader(wiserFullPriceDataReader())
 				.processor(wiserPriceDataProcessor())
@@ -547,6 +549,7 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Bean
+	@Qualifier("downloadCsv")
 	public Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("downloadCsv")
 				.tasklet(downloadFileTasklet)
