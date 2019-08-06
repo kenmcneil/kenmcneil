@@ -29,8 +29,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import com.ferguson.cs.product.task.wiser.batch.FlatteningItemStreamWriter;
 import com.ferguson.cs.product.task.wiser.batch.DownloadFileTasklet;
+import com.ferguson.cs.product.task.wiser.batch.FlatteningItemStreamWriter;
 import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
