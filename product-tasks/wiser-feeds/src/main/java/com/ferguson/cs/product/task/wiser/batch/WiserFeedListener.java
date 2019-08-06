@@ -36,6 +36,9 @@ public class WiserFeedListener implements JobExecutionListener {
 			case PRODUCT_CATALOG_FEED:
 				filePrefix = "Customer_catalog_";
 				break;
+			case PRICE_FEED:
+				filePrefix = "Price_";
+				break;
 			default:
 				filePrefix = "";
 		}

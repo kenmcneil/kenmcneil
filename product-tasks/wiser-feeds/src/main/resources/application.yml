@@ -1,7 +1,8 @@
 ---
+---
 logging:
   level:
-    ROOT: error
+    ROOT: info
     com.ferguson.cs: info
 
 

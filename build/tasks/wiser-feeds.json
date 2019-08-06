@@ -28,5 +28,17 @@
     "name" : "wiser-write-product-data-hash-job",
     "jobName" : "writeProductDataHashJob",
     "heapSize" : "512m"
+  },
+  {
+    "appName" : "wiser-feeds",
+    "name" : "wiser-price-data-incremental-upload-job",
+    "jobName" : "priceDataIncrementalUploadJob",
+    "heapSize" : "512m"
+  },
+  {
+    "appName" : "wiser-feeds",
+    "name" : "wiser-price-data-full-upload-job",
+    "jobName" : "priceDataFullUploadJob",
+    "heapSize" : "512m"
   }
 ]
