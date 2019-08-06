@@ -22,10 +22,12 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.messaging.MessageHandler;
 
+import com.ferguson.cs.product.task.wiser.model.FileDownloadRequest;
 import com.jcraft.jsch.ChannelSftp;
 
 @Configuration
@@ -36,12 +38,19 @@ public class WiserFeedConfiguration {
 	protected static final String BATCH_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.batch";
 	private static final String BASE_ALIAS_PAKCAGE = "com.ferguson.cs.product.task.wiser.model";
 	private static final String WISER_OUTBOUND_SFTP_CHANNEL = "wiserOutboundSftpChannel";
+	private static final String THREE_SIXTY_PI_SFTP_CHANNEL = "threeSixtyPiSftpChannel";
 
 	private WiserFeedSettings wiserFeedSettings;
+	private ThreeSixtyPiSettings threeSixtyPiSettings;
 
 	@Autowired
 	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
 		this.wiserFeedSettings = wiserFeedSettings;
+	}
+
+	@Autowired
+	public void setThreeSixtyPiSettings(ThreeSixtyPiSettings threeSixtyPiSettings) {
+		this.threeSixtyPiSettings = threeSixtyPiSettings;
 	}
 
 	@Bean(name = "wiserFtpSession")
@@ -56,14 +65,38 @@ public class WiserFeedConfiguration {
 		return factory;
 	}
 
+	@Bean(name = "360piFtpSession")
+	public SessionFactory<ChannelSftp.LsEntry> threeSixtyPiSessionFactory() {
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
+
+		factory.setHost(threeSixtyPiSettings.getFtpUrl());
+		factory.setPort(threeSixtyPiSettings.getFtpPort());
+		factory.setUser(threeSixtyPiSettings.getFtpUsername());
+		factory.setPassword(threeSixtyPiSettings.getFtpPassword());
+		factory.setAllowUnknownKeys(true);
+
+		return factory;
+	}
+
+
 	@Bean
 	@ServiceActivator(inputChannel = WISER_OUTBOUND_SFTP_CHANNEL)
-	public MessageHandler boomerangSftpHandler() {
+	public MessageHandler wiserSftpHandler() {
 		SftpMessageHandler handler = new SftpMessageHandler((sftpSessionFactory()));
 		handler.setRemoteDirectoryExpression(new LiteralExpression(wiserFeedSettings.getFtpFolder()));
 		handler.setUseTemporaryFileName(false);
 		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
 		return handler;
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = THREE_SIXTY_PI_SFTP_CHANNEL)
+	public MessageHandler threeSixtyPiSftpHandler() {
+		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(threeSixtyPiSessionFactory(),"get","payload.remoteFilePath");
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getLocalFilePath()));
+		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.localFilePath");
+		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
+		return  sftpOutboundGateway;
 	}
 
 	@MapperScan(basePackages= WiserFeedConfiguration.BATCH_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "batchSqlSessionFactory")
@@ -163,5 +196,8 @@ public class WiserFeedConfiguration {
 	public interface WiserGateway {
 		@Gateway(requestChannel = WISER_OUTBOUND_SFTP_CHANNEL)
 		void sendWiserFileSftp(File file);
+
+		@Gateway(requestChannel = THREE_SIXTY_PI_SFTP_CHANNEL)
+		File receive360piFileSftp(FileDownloadRequest fileDownloadRequest);
 	}
 }

@@ -31,6 +31,12 @@
   },
   {
     "appName" : "wiser-feeds",
+    "name" : "wiser-competitor-data-feed-job",
+    "jobName" : "competitorDataFeedJob",
+    "heapSize" : "512m"
+  },
+  {
+    "appName" : "wiser-feeds",
     "name" : "wiser-price-data-incremental-upload-job",
     "jobName" : "priceDataIncrementalUploadJob",
     "heapSize" : "512m"

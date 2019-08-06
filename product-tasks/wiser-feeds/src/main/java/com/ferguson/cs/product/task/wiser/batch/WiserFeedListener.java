@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.springframework.batch.core.JobExecution;
@@ -39,16 +40,23 @@ public class WiserFeedListener implements JobExecutionListener {
 			case PRICE_FEED:
 				filePrefix = "Price_";
 				break;
+			case COMPETITOR_FEED:
+				filePrefix = "Competitor_data_";
+				DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat());
+				Date yesterday = DateUtils.addDaysToDate(new Date(),-1);
+				String dateString = DateUtils.dateToString(yesterday,dateTimeFormatter);
+				String remoteFileName = "buildcom_product-level_all-products_" + dateString + "_*.csv";
+				jobExecution.getExecutionContext().putString("remoteFileName",remoteFileName);
+				break;
 			default:
 				filePrefix = "";
 		}
 
 		String fileName = filePrefix + DateUtils
-				.dateToString(today, DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat()));
+				.dateToString(today, DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat())) + ".csv";
 
-		String filePath = wiserFeedSettings.getLocalFilePath() + fileName + ".csv";
 
-		jobExecution.getExecutionContext().putString("filePath",filePath);
+		jobExecution.getExecutionContext().putString("fileName",fileName);
 		jobExecution.getExecutionContext().putString("jobName",jobExecution.getJobInstance().getJobName());
 	}
 
