@@ -48,6 +48,9 @@ public class WiserFeedListener implements JobExecutionListener {
 				String remoteFileName = "buildcom_product-level_all-products_" + dateString + "_*.csv";
 				jobExecution.getExecutionContext().putString("remoteFileName",remoteFileName);
 				break;
+			case PERFORMANCE_FEED:
+				filePrefix = "Performance_";
+				break;
 			default:
 				filePrefix = "";
 		}
