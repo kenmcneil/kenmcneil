@@ -340,24 +340,24 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	ItemStreamWriter<WiserPerformanceData> wiserCsvPerformanceDataItemWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		String[] header = new String[]{"transaction_id",
-				"sku",
+		String[] header = new String[] { "sku",
 				"transaction_date",
-				"units",
-				"unit_price",
-				"ship_price",
-				"revenue",
-				"channel"};
+				"gross_units",
+				"gross_orders",
+				"gross_revenue",
+				"channel",
+				"ncr",
+				"marketplace_id"};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
-		extractor.setNames(new String[] {"transactionId",
-				"sku",
+		extractor.setNames(new String[] {"sku",
 				"transactionDate",
-				"units",
-				"unitPrice",
-				"shipPrice",
-				"revenue",
-				"channel"});
+				"grossUnits",
+				"grossOrders",
+				"grossRevenue",
+				"channel",
+				"ncr",
+				"marketplaceId"});
 
 		return getFlatFileItemWriter(header,wiserFeedSettings.getLocalFilePath() + fileName,extractor);
 	}

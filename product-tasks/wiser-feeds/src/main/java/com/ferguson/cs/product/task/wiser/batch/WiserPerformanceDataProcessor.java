@@ -11,9 +11,9 @@ public class WiserPerformanceDataProcessor implements ItemProcessor<WiserPerform
 			return null;
 		}
 
-		if(item.getMarketPlaceId() == 6) {
+		if(item.getMarketplaceId() == 6) {
 			item.setChannel(100);
-		} else if(item.getMarketPlaceId() != 0) {
+		} else if(item.getMarketplaceId() != 0) {
 			item.setChannel(101);
 		}
 		return item;
@@ -22,8 +22,8 @@ public class WiserPerformanceDataProcessor implements ItemProcessor<WiserPerform
 	private boolean isValid(WiserPerformanceData item) {
 		return item != null &&
 				item.getSku() != null &&
-				item.getTransactionId() != null &&
-				item.getUnits() != null &&
-				item.getUnits() > 0;
+				item.getChannel() != null &&
+				item.getGrossUnits() != null &&
+				item.getGrossUnits() > 0;
 	}
 }

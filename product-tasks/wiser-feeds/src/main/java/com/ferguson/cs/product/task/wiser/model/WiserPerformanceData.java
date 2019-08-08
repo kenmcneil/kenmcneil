@@ -6,23 +6,14 @@ import java.util.Date;
 public class WiserPerformanceData implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private Integer transactionId;
 	private Integer sku;
 	private Date transactionDate;
-	private Integer units;
-	private Double unitPrice;
-	private Double shipPrice;
-	private Double revenue;
+	private Integer grossUnits;
+	private Integer grossOrders;
+	private Double grossRevenue;
 	private Integer channel;
-	private Integer marketPlaceId;
-
-	public Integer getTransactionId() {
-		return transactionId;
-	}
-
-	public void setTransactionId(Integer transactionId) {
-		this.transactionId = transactionId;
-	}
+	private Boolean ncr;
+	private Integer marketplaceId;
 
 	public Integer getSku() {
 		return sku;
@@ -40,36 +31,20 @@ public class WiserPerformanceData implements Serializable {
 		this.transactionDate = transactionDate;
 	}
 
-	public Integer getUnits() {
-		return units;
+	public Integer getGrossUnits() {
+		return grossUnits;
 	}
 
-	public void setUnits(Integer units) {
-		this.units = units;
+	public void setGrossUnits(Integer grossUnits) {
+		this.grossUnits = grossUnits;
 	}
 
-	public Double getUnitPrice() {
-		return unitPrice;
+	public Double getGrossRevenue() {
+		return grossRevenue;
 	}
 
-	public void setUnitPrice(Double unitPrice) {
-		this.unitPrice = unitPrice;
-	}
-
-	public Double getShipPrice() {
-		return shipPrice;
-	}
-
-	public void setShipPrice(Double shipPrice) {
-		this.shipPrice = shipPrice;
-	}
-
-	public Double getRevenue() {
-		return revenue;
-	}
-
-	public void setRevenue(Double revenue) {
-		this.revenue = revenue;
+	public void setGrossRevenue(Double grossRevenue) {
+		this.grossRevenue = grossRevenue;
 	}
 
 	public Integer getChannel() {
@@ -80,11 +55,27 @@ public class WiserPerformanceData implements Serializable {
 		this.channel = channel;
 	}
 
-	public Integer getMarketPlaceId() {
-		return marketPlaceId;
+	public Integer getMarketplaceId() {
+		return marketplaceId;
 	}
 
-	public void setMarketPlaceId(Integer marketPlaceId) {
-		this.marketPlaceId = marketPlaceId;
+	public void setMarketplaceId(Integer marketplaceId) {
+		this.marketplaceId = marketplaceId;
+	}
+
+	public Integer getGrossOrders() {
+		return grossOrders;
+	}
+
+	public void setGrossOrders(Integer grossOrders) {
+		this.grossOrders = grossOrders;
+	}
+
+	public Boolean getNcr() {
+		return ncr;
+	}
+
+	public void setNcr(Boolean ncr) {
+		this.ncr = ncr;
 	}
 }
