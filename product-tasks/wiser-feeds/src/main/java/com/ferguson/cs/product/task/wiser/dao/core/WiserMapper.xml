@@ -102,4 +102,51 @@
 		WHERE ct.type = 'Product'
 		ORDER BY p.uniqueId ASC
 	</select>
+
+	<resultMap id="wiserPriceDataMap" type="WiserPriceData">
+		<result property="sku" column="sku" />
+		<result property="channel" column="channel"/>
+		<result property="effectiveDate" column="effectiveDate"/>
+		<result property="listPrice" column="listPrice"/>
+		<result property="regularPrice" column="regularPrice"/>
+	</resultMap>
+
+	<select id="getWiserPriceData" resultMap="wiserPriceDataMap">
+		<if test="date != null">
+			DECLARE @startDate DATETIME = DATEADD(day, DATEDIFF(day, 0, #{date}), 0);
+		</if>
+		/*At Boomerang's request, we send all prices for these PBs every day, but if there is no
+		effective_data avail, we write today's date instead.*/
+		SELECT
+		pbc.UniqueId AS 'sku',
+		pbc.PriceBookId AS 'channel',
+		COALESCE(results.inner_effective_date, GETDATE()) AS 'effectiveDate',
+		results.inner_list_price AS 'listPrice',
+		pbc.Cost AS 'regularPrice'
+		FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
+		LEFT JOIN (
+		SELECT
+		pbcl.UniqueId AS 'inner_sku',
+		pbcl.PriceBookId AS 'inner_channel_id',
+		pbcl.Update_DateTime AS 'inner_effective_date',
+		p.msrp AS 'inner_list_price',
+		ROW_NUMBER() OVER (PARTITION BY pbcl.uniqueId, pbcl.priceBookId ORDER BY pbcl.Update_DateTime DESC) as 'rank'
+		FROM mmc.dbo.PriceBook_Cost_Log pbcl WITH (NOLOCK)
+		INNER JOIN mmc.product.product p WITH (NOLOCK)
+		ON pbcl.UniqueId = p.uniqueId
+		INNER JOIN mmc.product.family f WITH(NOLOCK)
+		ON p.familyId = f.id
+		INNER JOIN mmc.product.containerType ct WITH(NOLOCK)
+		ON f.containerTypeId = ct.id
+		WHERE pbcl.PriceBookId IN (1, 22, 25)
+		AND ct.type = 'Product'
+		<if test="date != null">
+			AND pbcl.Update_DateTime &gt;= @startDate
+		</if>
+		) results
+		ON pbc.UniqueId = results.inner_sku
+		AND pbc.PriceBookId = results.inner_channel_id
+		AND results.rank = 1
+		WHERE pbc.PricebookId IN (1,22,25)
+	</select>
 </mapper>
