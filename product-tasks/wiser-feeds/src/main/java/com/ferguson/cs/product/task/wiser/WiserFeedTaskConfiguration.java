@@ -332,7 +332,7 @@ public class WiserFeedTaskConfiguration {
 				"listPrice",
 				"regularPrice"});
 
-		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, fileName, extractor);
+		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
 
 		return new FlatteningItemStreamWriter<>(innerWriter);
 	}
