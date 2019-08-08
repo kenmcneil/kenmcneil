@@ -57,7 +57,7 @@ ansiColor('gnome-terminal') { timestamps {
                                     unstash "${repositoryName}-${BUILD_NUMBER}"
 
                                     //provide maven install on the PATH
-                                    withMaven(maven: 'MavenAuto')
+                                    withMaven(maven: 'MavenAuto', mavenSettingsConfig: 'org.jenkinsci.plugins.configfiles.maven.MavenSettingsConfig1426267345601')
                                             {
                                                 try
                                                 {
