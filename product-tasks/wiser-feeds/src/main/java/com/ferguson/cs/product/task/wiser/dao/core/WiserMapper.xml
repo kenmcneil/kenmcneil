@@ -149,4 +149,90 @@
 		AND results.rank = 1
 		WHERE pbc.PricebookId IN (1,22,25)
 	</select>
+
+	<resultMap id="wiserPerformanceDataMap" type="WiserPerformanceData">
+		<result property="sku" column="sku" />
+		<result property="transactionDate" column="transactionDate" />
+		<result property="grossUnits" column="grossUnits" />
+		<result property="grossOrders" column="grossOrders" />
+		<result property="grossRevenue" column="grossRevenue" />
+		<result property="channel" column="channel" />
+		<result property="ncr" column="ncr" />
+		<result property="marketplaceId" column="marketplaceId" />
+	</resultMap>
+
+	<select id="getWiserPerformanceData" resultMap="wiserPerformanceDataMap">
+		DECLARE @date DATETIME = #{date};
+
+		DECLARE @startDate DATETIME = DATEADD(day, DATEDIFF(day, 0, @date), 0);
+		DECLARE @endDate DATETIME = DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0);
+
+		SELECT
+			c.uniqueId AS 'sku',
+			DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0) AS 'transactionDate',
+			SUM(c.quantity) AS 'grossUnits',
+			COUNT(*) AS 'grossOrders',
+			SUM(ROUND(c.unitPrice, 2) * quantity) AS 'grossRevenue',
+			ISNULL(u.priceBookId, 1) AS 'channel',
+			IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0) AS 'ncr',
+			IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0) as 'marketplaceId'
+		FROM omc.dbo.cart c WITH (NOLOCK)
+		INNER JOIN mmc.dbo.product p WITH (NOLOCK)
+		ON c.uniqueId = p.uniqueId
+		INNER JOIN omc.dbo.orders o WITH (NOLOCK)
+		ON c.cart_orderNumber = o.ordernumber
+		INNER JOIN omc.dbo.userdb u WITH (NOLOCK)
+		ON o.userDBID = u.userDBID
+		LEFT JOIN omc.dbo.NoChargeReplacement_Log ncr WITH (NOLOCK)
+		ON ncr.New_OrderNumber = o.ordernumber
+		LEFT JOIN omc.dbo.marketplace_order mo WITH (NOLOCK)
+		ON mo.orderNumber = o.ordernumber
+        WHERE o.placedDate &gt;= @startDate
+        AND o.placedDate &lt; @endDate
+		AND ISNULL(u.priceBookId, 1) IN (1, 22, 25)
+		AND p.containerType = 'Product'
+		AND o.status != 'cancelled'
+		GROUP BY c.uniqueId, ISNULL(u.priceBookId, 1), DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0), IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0), IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0)
+
+		UNION ALL
+
+		-- Cancelled Items: only items that were placed previously and got cancelled today
+		-- Exclude items from orders that are placed and cancelled on the same date since we do not grab them from the select above
+
+		SELECT
+			c.uniqueId AS 'sku',
+			DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0) AS 'transactionDate',
+			SUM(c.quantity * -1) AS 'grossUnits',
+			(COUNT(*) * -1) AS 'grossOrders',
+			SUM(ROUND(c.unitPrice, 2) * quantity * -1) AS 'grossRevenue',
+			ISNULL(u.priceBookId, 1) AS 'channel',
+			IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0) AS 'ncr',
+			IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0) as 'marketplaceId'
+		FROM omc.dbo.cart c WITH (NOLOCK)
+		INNER JOIN mmc.dbo.product p WITH (NOLOCK)
+		ON c.uniqueId = p.uniqueId
+		INNER JOIN omc.dbo.orders o WITH (NOLOCK)
+		ON c.cart_orderNumber = o.ordernumber
+		INNER JOIN omc.dbo.userdb u WITH (NOLOCK)
+		ON o.userDBID = u.userDBID
+		LEFT JOIN omc.dbo.NoChargeReplacement_Log ncr WITH (NOLOCK)
+		ON ncr.New_OrderNumber = o.ordernumber
+		LEFT JOIN omc.dbo.marketplace_order mo WITH (NOLOCK)
+		ON mo.orderNumber = o.ordernumber
+		LEFT JOIN omc.dbo.purchaseorders po WITH (NOLOCK)
+		ON o.ordernumber = po.ordernumber
+		LEFT JOIN omc.dbo.orderstatushistory h
+		ON o.ordernumber = h.ordernumber
+		WHERE
+		o.status = 'cancelled'
+		AND h.status = 'cancelled'
+		AND (DATEADD(day, DATEDIFF(day, 0, po.cancelledDateTime), 0) &gt;= @startDate OR DATEADD(day, DATEDIFF(day, 0, h.ChangeDate), 0) &gt;= @startDate)
+		AND (DATEADD(day, DATEDIFF(day, 0, po.cancelledDateTime), 0) &lt; @endDate OR DATEADD(day, DATEDIFF(day, 0, h.ChangeDate), 0) &lt; @endDate)
+		AND (DATEADD(day, DATEDIFF(day, 0, po.cancelledDateTime), 0) != DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0) OR DATEADD(day, DATEDIFF(day, 0, h.ChangeDate), 0) != DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0))
+		AND ISNULL(u.priceBookId, 1) IN (1, 22, 25)
+		AND p.containerType = 'Product'
+		GROUP BY c.uniqueId, ISNULL(u.priceBookId, 1), DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0), IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0), IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0)
+	</select>
+
+
 </mapper>

@@ -10,13 +10,11 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.task.wiser.WiserFeedConfiguration;
-import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 
 public class UploadFileTasklet implements Tasklet {
 
 	private String filePath;
 	private WiserFeedConfiguration.WiserGateway wiserGateway;
-	private WiserFeedSettings wiserFeedSettings;
 
 	public UploadFileTasklet(String filePath) {
 		this.filePath = filePath;
@@ -25,11 +23,6 @@ public class UploadFileTasklet implements Tasklet {
 	@Autowired
 	public void setWiserGateway(WiserFeedConfiguration.WiserGateway wiserGateway) {
 		this.wiserGateway = wiserGateway;
-	}
-
-	@Autowired
-	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
-		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
 	@Override
