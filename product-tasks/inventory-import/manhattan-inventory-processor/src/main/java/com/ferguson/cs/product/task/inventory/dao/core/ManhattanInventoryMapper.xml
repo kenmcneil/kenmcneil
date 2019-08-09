@@ -21,9 +21,6 @@
 		ON dcVendor.uid = dc.dcVendorUid
 		INNER JOIN omc.dbo.vendor vendorParent WITH(NOLOCK)
 		ON dc.parentVendorUid = vendorParent.uid
-		INNER JOIN omc.dbo.Vendor_Mapping vendorMapping WITH(NOLOCK)
-		ON manhattanData.mpn = vendorMapping.MPN
-		AND vendorParent.vendorid = vendorMapping.Vendor
 		WHERE manhattanJob.transactionNumber = #{transactionNumber}
 		AND vendorParent.vendorId != 'Ferguson_039'
 	</select>

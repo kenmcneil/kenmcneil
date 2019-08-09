@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 
-public class ManhattanVendorInventoryProcessor implements ItemProcessor<VendorInventory, VendorInventory> {
+public class ManhattanBuildVendorInventoryProcessor implements ItemProcessor<VendorInventory, VendorInventory> {
 
 	private ManhattanInventoryJob manhattanInventoryJob;
 
@@ -17,8 +17,16 @@ public class ManhattanVendorInventoryProcessor implements ItemProcessor<VendorIn
 
 	@Override
 	public VendorInventory process(VendorInventory vendorInventory) throws Exception {
+
 		if (validate(vendorInventory)) {
-			return vendorInventory;
+			String[] locationParts = vendorInventory.getLocation().split("_");
+			String location = locationParts.length > 1 ? locationParts[1] : vendorInventory.getLocation();
+			VendorInventory copy = new VendorInventory();
+			copy.setMpid(vendorInventory.getMpid());
+			copy.setManhattanInventoryJobId(vendorInventory.getManhattanInventoryJobId());
+			copy.setQuantity(vendorInventory.getQuantity());
+			copy.setLocation(location);
+			return copy;
 		}
 		return null;
 	}

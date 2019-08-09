@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
 import com.ferguson.cs.product.task.inventory.batch.FileHandlingTasklet;
+import com.ferguson.cs.product.task.inventory.batch.ManhattanBuildVendorInventoryProcessor;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanJobInitializationTasklet;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryJobListener;
-import com.ferguson.cs.product.task.inventory.batch.ManhattanVendorInventoryProcessor;
 import com.ferguson.cs.product.task.inventory.batch.ManhattanZeroesDecider;
 import com.ferguson.cs.product.task.inventory.model.VendorInventory;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
@@ -59,8 +59,8 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public ManhattanVendorInventoryProcessor manhattanVendorInventoryProcessor() {
-		return new ManhattanVendorInventoryProcessor();
+	public ManhattanBuildVendorInventoryProcessor manhattanVendorInventoryProcessor() {
+		return new ManhattanBuildVendorInventoryProcessor();
 	}
 
 	@Bean
@@ -77,6 +77,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanBuildVendorInventory")
 				.<VendorInventory, VendorInventory>chunk(1000)
 				.reader(manhattanBuildVendorInventoryReader(null))
+				.processor(manhattanVendorInventoryProcessor())
 				.writer(vendorInventoryFlatFileItemWriter(null))
 				.build();
 	}
@@ -113,12 +114,6 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.from(initializeManhattanJob())
 				.on(ExitStatus.COMPLETED.getExitCode())
 				.to(writeManhattanBuildVendorInventory())
-				.next(manhattanZeroesDecider())
-				.on(ExitStatus.COMPLETED.getExitCode())
-				.to(handleFile())
-				.from(manhattanZeroesDecider())
-				.on("ZEROES")
-				.to(writeManhattanVendorInventoryZeroes())
 				.next(handleFile())
 				.end()
 				.build();
