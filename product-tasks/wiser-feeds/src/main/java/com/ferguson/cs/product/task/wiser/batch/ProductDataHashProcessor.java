@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +47,21 @@ public class ProductDataHashProcessor implements ItemProcessor<ProductData,Produ
 		List<WiserSale> wiserSaleList = wiserService.getWiserSales(date);
 
 		List<ProductDataHash> previousHashList = wiserService.getAllProductDataHashes();
-		for(WiserSale sale : wiserSaleList) {
-			wiserSaleMap.put(sale.getProductUniqueId(),sale);
+		for (Iterator<WiserSale> it = wiserSaleList.iterator(); it.hasNext(); ) {
+			WiserSale e = it.next();
+			it.remove();
+			wiserSaleMap.put(e.getProductUniqueId(),e);
 		}
 
 		previousHashMap = new HashMap<>();
 		for(ProductDataHash hash : previousHashList) {
 			previousHashMap.put(hash.getProductUniqueId(),hash);
+		}
+
+		for (Iterator<ProductDataHash> it = previousHashList.iterator(); it.hasNext(); ) {
+			ProductDataHash e = it.next();
+			it.remove();
+			previousHashMap.put(e.getProductUniqueId(),e);
 		}
 	}
 
