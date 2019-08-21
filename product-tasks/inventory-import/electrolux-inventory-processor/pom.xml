@@ -13,14 +13,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.mybatis.spring.boot</groupId>
-			<artifactId>mybatis-spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.ferguson.cs.product</groupId>
 			<artifactId>inventory-import-common</artifactId>
 		</dependency>
