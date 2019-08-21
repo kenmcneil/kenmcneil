@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.inventory.dao.core.ElectroluxInventoryMapper">
+
+	<resultMap id="electroluxSkuVendorDataMap" type="ElectroluxSkuVendorData">
+		<result property="sku" column="sku" />
+		<result property="vendorUid" column="vendorUid" />
+	</resultMap>
+	<select id="getElectroluxSkus" resultMap="electroluxSkuVendorDataMap">
+		SELECT vm.sku,v.uid vendorUid FROM omc.dbo.Vendor_Mapping vm
+		INNER JOIN mmc.product.family fa
+		ON vm.ProductID = fa.productId
+		INNER JOIN mmc.product.finish f
+		ON vm.Finish = f.finish
+		INNER JOIN mmc.dbo.Manufacturer m
+		ON m.Name = vm.Manufacturer
+		INNER JOIN mmc.product.product p
+		ON p.finishId = f.id
+		AND p.familyId = fa.id
+		INNER JOIN omc.dbo.vendor v
+		ON vm.Vendor = v.vendorid
+		WHERE v.uid = #{vendorUid}
+		AND p.statusId = 6
+	</select>
+</mapper>

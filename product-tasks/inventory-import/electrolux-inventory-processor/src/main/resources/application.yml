@@ -1,0 +1,12 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.ferguson.cs: info
+    org.springframework.ws.client: DEBUG
+
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"

@@ -1,0 +1,7 @@
+[
+  {
+    "appName" : "electrolux-inventory-processor",
+    "name" : "electrolux-inventory-processor",
+    "heapSize" : "512m"
+  }
+]

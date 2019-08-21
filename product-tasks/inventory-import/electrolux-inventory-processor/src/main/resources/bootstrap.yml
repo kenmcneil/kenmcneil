@@ -1,12 +1,12 @@
 spring:
   application:
-    name: wiser-feeds
+    name: electrolux-inventory-processor
   profiles:
     active: localdev
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      name: api-task, api-integration, product-services-wiser-feeds
+      name: api-task, api-integration, product-services-inventory-import
       label: master
       fail-fast: true
       uri: http://config
