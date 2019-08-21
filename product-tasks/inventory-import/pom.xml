@@ -16,6 +16,7 @@
 		<module>inventory-import-ftp</module>
 		<module>inventory-import-email</module>
 		<module>manhattan-inventory-processor</module>
+		<module>electrolux-inventory-processor</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>
