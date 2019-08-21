@@ -10,3 +10,51 @@ info:
   build:
     artifact: "@project.artifactId@"
     version: "@project.version@"
+
+---
+
+spring:
+  profiles: localreporter
+
+datasource:
+  core:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://reporter.sys.id.build.com:1433;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
+    username: 'wbsrvr_mmc'
+    password: 'F@nta2yP3@ch!'
+    # Hikari specific settings are flattened because we use your own mechanism to populate the data sources.
+    pool-name: reporter
+  reporter:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://reporter.sys.id.build.com:1433;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
+    username: 'wbsrvr_mmc'
+    password: 'F@nta2yP3@ch!'
+    # Hikari specific settings are flattened because we use your own mechanism to populate the data sources.
+    pool-name: reporter
+  task:
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=integration;sendStringParametersAsUnicode=false
+    username: 'task'
+    password: 'Abc123#$'
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    # Hikari specific settings are flattened because we use your own mechanism to populate the data sources.
+    pool-name: task
+  integration:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=Integration;sendStringParametersAsUnicode=false
+    username: integration
+    password: 'N0f$d$2dWU$2d'
+    # Hikari specific settings are flattened because we use your own mechanism to populate the data sources.
+    pool-name: integration
+  batch:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=Integration;sendStringParametersAsUnicode=false
+    username: integration
+    password: 'N0f$d$2dWU$2d'
+    # Hikari specific settings are flattened because we use your own mechanism to populate the data sources.
+    pool-name: integration
+
+wiser:
+  ftp-username: 'build'
+  ftp-password: '7DF72AAEAB0B'
+  ftp-url: sftp.prod.wiser.com
+  ftp-port: 22
