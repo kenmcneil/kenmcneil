@@ -39,6 +39,7 @@ public class WiserFeedConfiguration {
 	private static final String BASE_ALIAS_PAKCAGE = "com.ferguson.cs.product.task.wiser.model";
 	private static final String WISER_OUTBOUND_SFTP_CHANNEL = "wiserOutboundSftpChannel";
 	private static final String THREE_SIXTY_PI_SFTP_CHANNEL = "threeSixtyPiSftpChannel";
+	private static final String THREE_SIXTY_PI_DELETE_SFTP_CHANNEL = "threeSixtyPiDeleteSftpChannel";
 
 	private WiserFeedSettings wiserFeedSettings;
 	private ThreeSixtyPiSettings threeSixtyPiSettings;
@@ -95,6 +96,15 @@ public class WiserFeedConfiguration {
 		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(threeSixtyPiSessionFactory(),"get","payload.remoteFilePath");
 		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getLocalFilePath()));
 		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.localFilePath");
+		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
+		return  sftpOutboundGateway;
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = THREE_SIXTY_PI_DELETE_SFTP_CHANNEL)
+	public MessageHandler threeSixtyPiDeleteSftpHandler() {
+		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(threeSixtyPiSessionFactory(),"rm","payload");
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getLocalFilePath()));
 		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
 		return  sftpOutboundGateway;
 	}
@@ -199,5 +209,8 @@ public class WiserFeedConfiguration {
 
 		@Gateway(requestChannel = THREE_SIXTY_PI_SFTP_CHANNEL)
 		File receive360piFileSftp(FileDownloadRequest fileDownloadRequest);
+
+		@Gateway(requestChannel = THREE_SIXTY_PI_DELETE_SFTP_CHANNEL)
+		void deleteWiserFileSftp(String remoteFilePath);
 	}
 }
