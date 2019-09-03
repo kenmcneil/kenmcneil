@@ -53,5 +53,8 @@ public class DownloadFileTasklet implements Tasklet {
 		LOG.debug("Started downloading file: {} - To local file: {}",fileDownloadRequest.getRemoteFilePath(),fileDownloadRequest.getLocalFilePath());
 		wiserGateway.receive360piFileSftp(fileDownloadRequest);
 		LOG.debug("Downloaded file");
+		LOG.debug("Cleaning up remote file");
+		wiserGateway.deleteWiserFileSftp(fileDownloadRequest.getRemoteFilePath());
+		LOG.debug("Cleaned up remote file");
 	}
 }

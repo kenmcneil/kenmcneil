@@ -45,7 +45,7 @@ public class WiserFeedListener implements JobExecutionListener {
 				DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat());
 				Date yesterday = DateUtils.addDaysToDate(new Date(),-1);
 				String dateString = DateUtils.dateToString(yesterday,dateTimeFormatter);
-				String remoteFileName = "buildcom_product-level_all-products_" + dateString + "_*.csv";
+				String remoteFileName = "buildcom_product-level-uniqueid_all-products_" + dateString + "_*.csv";
 				jobExecution.getExecutionContext().putString("remoteFileName",remoteFileName);
 				break;
 			case PERFORMANCE_FEED:
