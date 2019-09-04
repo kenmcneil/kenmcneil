@@ -211,6 +211,6 @@ public class WiserFeedConfiguration {
 		File receive360piFileSftp(FileDownloadRequest fileDownloadRequest);
 
 		@Gateway(requestChannel = THREE_SIXTY_PI_DELETE_SFTP_CHANNEL)
-		void deleteWiserFileSftp(String remoteFilePath);
+		Object deleteWiserFileSftp(String remoteFilePath);
 	}
 }
