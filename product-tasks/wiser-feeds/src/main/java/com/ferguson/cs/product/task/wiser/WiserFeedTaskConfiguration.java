@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.wiser;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
 import com.ferguson.cs.product.task.wiser.batch.TruncateProductDataHashTasklet;
+import com.ferguson.cs.product.task.wiser.batch.UploadCostTasklet;
 import com.ferguson.cs.product.task.wiser.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.wiser.batch.WiserFeedListener;
 import com.ferguson.cs.product.task.wiser.batch.WiserPerformanceDataProcessor;
@@ -57,6 +59,7 @@ public class WiserFeedTaskConfiguration {
 	private SqlSessionFactory integrationSqlSessionFactory;
 	private SqlSessionFactory batchSqlSessionFactory;
 	private WiserFeedSettings wiserFeedSettings;
+	private WiserFeedConfiguration.WiserGateway wiserGateway;
 
 
 	public static final String LOCAL_FILE_NAME_KEY = "localFileName";
@@ -95,6 +98,11 @@ public class WiserFeedTaskConfiguration {
 	@Autowired
 	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
 		this.wiserFeedSettings = wiserFeedSettings;
+	}
+
+	@Autowired
+	public void setWiserGateway(WiserFeedConfiguration.WiserGateway wiserGateway) {
+		this.wiserGateway = wiserGateway;
 	}
 
 	@Bean
@@ -243,20 +251,36 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		return new UploadFileTasklet(wiserFeedSettings.getLocalFilePath() + fileName);
+		return new UploadFileTasklet(wiserFeedSettings.getTemporaryLocalFilePath() + fileName);
 	}
 
 
 	@Bean
 	@StepScope
-	DownloadFileTasklet downloadFileTasklet() {
-		return new DownloadFileTasklet();
+	DownloadFileTasklet threeSixtyPiDownloadFileTasklet() {
+		return new DownloadFileTasklet(f->{
+			File file = wiserGateway.receive360piFileSftp(f);
+			wiserGateway.deleteWiserFileSftp(f.getRemoteFilePath());
+			return file;
+		});
+	}
+
+	@Bean
+	@StepScope
+	DownloadFileTasklet wiserDownloadFileTasklet() {
+		return new DownloadFileTasklet(f -> wiserGateway.receiveWiserFileSftp(f));
 	}
 
 	@Bean
 	@StepScope
 	TruncateProductDataHashTasklet truncateProductDataHashTasklet() {
 		return new TruncateProductDataHashTasklet();
+	}
+
+	@Bean
+	@StepScope
+	UploadCostTasklet uploadCostTasklet() {
+		return new UploadCostTasklet();
 	}
 
 	@Bean
@@ -313,7 +337,7 @@ public class WiserFeedTaskConfiguration {
 				"cost",
 				"hctCategory",
 				"conversionCategory"});
-		return getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
+		return getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 	}
 
 	@Bean
@@ -332,7 +356,7 @@ public class WiserFeedTaskConfiguration {
 				"listPrice",
 				"regularPrice"});
 
-		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
+		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 
 		return new FlatteningItemStreamWriter<>(innerWriter);
 	}
@@ -359,7 +383,7 @@ public class WiserFeedTaskConfiguration {
 				"ncr",
 				"marketplaceId"});
 
-		return getFlatFileItemWriter(header,wiserFeedSettings.getLocalFilePath() + fileName,extractor);
+		return getFlatFileItemWriter(header,wiserFeedSettings.getTemporaryLocalFilePath() + fileName,extractor);
 	}
 
 	@Bean
@@ -384,6 +408,12 @@ public class WiserFeedTaskConfiguration {
 	@JobScope
 	public WiserFeedListener wiserPerformanceFeedListener() {
 		return new WiserFeedListener(WiserFeedType.PERFORMANCE_FEED);
+	}
+
+	@Bean
+	@JobScope
+	public WiserFeedListener wiserRecommendationFeedListener() {
+		return new WiserFeedListener(WiserFeedType.RECOMMENDATION_FEED);
 	}
 
 	/**
@@ -477,7 +507,8 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("competitorDataFeedJob")
-	public Job competitorDataFeedJob(Step downloadCsv, Step uploadCsv) {
+	public Job competitorDataFeedJob(Step uploadCsv) {
+		Step downloadCsv = downloadCsv(threeSixtyPiDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("competitorDataFeedJob")
 				.start(downloadCsv)
 				.next(uploadCsv)
@@ -492,6 +523,17 @@ public class WiserFeedTaskConfiguration {
 				.start(writeWiserPerformanceData)
 				.next(uploadCsv)
 				.listener(wiserPerformanceFeedListener())
+				.build();
+	}
+
+	@Bean
+	@Qualifier("recommendationDataDownloadJob")
+	public Job recommendationDataDownloadJob(Step uploadCost) {
+		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
+		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
+				.start(downloadCsv)
+				.next(uploadCost)
+				.listener(wiserRecommendationFeedListener())
 				.build();
 	}
 
@@ -626,7 +668,13 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("downloadCsv")
+	@Qualifier("uploadCost")
+	public Step uploadCost(UploadCostTasklet uploadCostTasklet) {
+		return taskBatchJobFactory.getStepBuilder("uploadCost")
+				.tasklet(uploadCostTasklet)
+				.build();
+	}
+
 	public Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("downloadCsv")
 				.tasklet(downloadFileTasklet)

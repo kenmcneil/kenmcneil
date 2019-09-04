@@ -22,6 +22,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
@@ -37,7 +38,8 @@ public class WiserFeedConfiguration {
 	public static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.integration";
 	protected static final String BATCH_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.batch";
 	private static final String BASE_ALIAS_PAKCAGE = "com.ferguson.cs.product.task.wiser.model";
-	private static final String WISER_OUTBOUND_SFTP_CHANNEL = "wiserOutboundSftpChannel";
+	private static final String WISER_UPLOAD_SFTP_CHANNEL = "wiserUploadSftpChannel";
+	private static final String WISER_DOWNLOAD_SFTP_CHANNEL = "wiserDownloadSftpChannel";
 	private static final String THREE_SIXTY_PI_SFTP_CHANNEL = "threeSixtyPiSftpChannel";
 	private static final String THREE_SIXTY_PI_DELETE_SFTP_CHANNEL = "threeSixtyPiDeleteSftpChannel";
 
@@ -81,7 +83,7 @@ public class WiserFeedConfiguration {
 
 
 	@Bean
-	@ServiceActivator(inputChannel = WISER_OUTBOUND_SFTP_CHANNEL)
+	@ServiceActivator(inputChannel = WISER_UPLOAD_SFTP_CHANNEL)
 	public MessageHandler wiserSftpHandler() {
 		SftpMessageHandler handler = new SftpMessageHandler((sftpSessionFactory()));
 		handler.setRemoteDirectoryExpression(new LiteralExpression(wiserFeedSettings.getFtpFolder()));
@@ -91,22 +93,33 @@ public class WiserFeedConfiguration {
 	}
 
 	@Bean
+	@ServiceActivator(inputChannel = WISER_DOWNLOAD_SFTP_CHANNEL)
+	public MessageHandler wiserDownloadSftpHandler() {
+		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(sftpSessionFactory(),"get","payload.remoteFilePath");
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getFileDownloadLocation()));
+		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.localFilePath");
+		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
+		sftpOutboundGateway.setFileExistsMode(FileExistsMode.REPLACE);
+		return sftpOutboundGateway;
+	}
+
+	@Bean
 	@ServiceActivator(inputChannel = THREE_SIXTY_PI_SFTP_CHANNEL)
 	public MessageHandler threeSixtyPiSftpHandler() {
 		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(threeSixtyPiSessionFactory(),"get","payload.remoteFilePath");
-		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getLocalFilePath()));
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getTemporaryLocalFilePath()));
 		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.localFilePath");
 		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
-		return  sftpOutboundGateway;
+		return sftpOutboundGateway;
 	}
 
 	@Bean
 	@ServiceActivator(inputChannel = THREE_SIXTY_PI_DELETE_SFTP_CHANNEL)
 	public MessageHandler threeSixtyPiDeleteSftpHandler() {
 		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(threeSixtyPiSessionFactory(),"rm","payload");
-		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getLocalFilePath()));
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getTemporaryLocalFilePath()));
 		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
-		return  sftpOutboundGateway;
+		return sftpOutboundGateway;
 	}
 
 	@MapperScan(basePackages= WiserFeedConfiguration.BATCH_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "batchSqlSessionFactory")
@@ -204,8 +217,11 @@ public class WiserFeedConfiguration {
 
 	@MessagingGateway
 	public interface WiserGateway {
-		@Gateway(requestChannel = WISER_OUTBOUND_SFTP_CHANNEL)
+		@Gateway(requestChannel = WISER_UPLOAD_SFTP_CHANNEL)
 		void sendWiserFileSftp(File file);
+
+		@Gateway(requestChannel = WISER_DOWNLOAD_SFTP_CHANNEL)
+		File receiveWiserFileSftp(FileDownloadRequest fileDownloadRequest);
 
 		@Gateway(requestChannel = THREE_SIXTY_PI_SFTP_CHANNEL)
 		File receive360piFileSftp(FileDownloadRequest fileDownloadRequest);

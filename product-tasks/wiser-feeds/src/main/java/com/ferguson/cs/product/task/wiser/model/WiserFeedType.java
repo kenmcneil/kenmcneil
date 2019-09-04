@@ -2,8 +2,12 @@ package com.ferguson.cs.product.task.wiser.model;
 
 import com.ferguson.cs.utilities.StringMappedEnum;
 
-public enum WiserFeedType implements StringMappedEnum{
-	PRODUCT_CATALOG_FEED("wiserProductCatalogFeed"), COMPETITOR_FEED("wiserCompetitorFeed"), PRICE_FEED("wiserPriceFeed"), PERFORMANCE_FEED("wiserPerformanceFeed");
+public enum WiserFeedType implements StringMappedEnum {
+	PRODUCT_CATALOG_FEED("wiserProductCatalogFeed"),
+	COMPETITOR_FEED("wiserCompetitorFeed"),
+	PRICE_FEED("wiserPriceFeed"),
+	PERFORMANCE_FEED("wiserPerformanceFeed"),
+	RECOMMENDATION_FEED("wiserRecommendationFeed");
 
 	private String stringValue;
 

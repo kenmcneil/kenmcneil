@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("wiser")
 @Component
 public class WiserFeedSettings {
-	private String localFilePath;
+	private String temporaryLocalFilePath;
 	private String dateTimeFormat;
 	private String ftpUrl;
 	private Integer ftpPort;
@@ -14,13 +14,14 @@ public class WiserFeedSettings {
 	private String ftpPassword;
 	private String ftpFolder;
 	private String ftpOutputFolder;
+	private String fileDownloadLocation;
 
-	public String getLocalFilePath() {
-		return localFilePath;
+	public String getTemporaryLocalFilePath() {
+		return temporaryLocalFilePath;
 	}
 
-	public void setLocalFilePath(String localFilePath) {
-		this.localFilePath = localFilePath;
+	public void setTemporaryLocalFilePath(String temporaryLocalFilePath) {
+		this.temporaryLocalFilePath = temporaryLocalFilePath;
 	}
 
 	public String getDateTimeFormat() {
@@ -77,5 +78,13 @@ public class WiserFeedSettings {
 
 	public void setFtpOutputFolder(String ftpOutputFolder) {
 		this.ftpOutputFolder = ftpOutputFolder;
+	}
+
+	public String getFileDownloadLocation() {
+		return fileDownloadLocation;
+	}
+
+	public void setFileDownloadLocation(String fileDownloadLocation) {
+		this.fileDownloadLocation = fileDownloadLocation;
 	}
 }

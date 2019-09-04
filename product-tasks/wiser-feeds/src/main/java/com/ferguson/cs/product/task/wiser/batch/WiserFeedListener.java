@@ -7,6 +7,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.task.wiser.ThreeSixtyPiSettings;
 import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
 import com.ferguson.cs.utilities.DateUtils;
@@ -16,6 +17,7 @@ public class WiserFeedListener implements JobExecutionListener {
 
 	private WiserFeedType wiserFeedType;
 	private WiserFeedSettings wiserFeedSettings;
+	private ThreeSixtyPiSettings threeSixtyPiSettings;
 
 	public WiserFeedListener(WiserFeedType wiserFeedType) {
 		this.wiserFeedType = wiserFeedType;
@@ -27,11 +29,20 @@ public class WiserFeedListener implements JobExecutionListener {
 		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
+	@Autowired
+	public void setThreeSixtyPiSettings(ThreeSixtyPiSettings threeSixtyPiSettings) {
+		this.threeSixtyPiSettings = threeSixtyPiSettings;
+	}
+
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
 		Date today = new Date();
 
 		String filePrefix;
+		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat());
+
+		String dateString;
+		String remoteFilePath;
 
 		switch (wiserFeedType) {
 			case PRODUCT_CATALOG_FEED:
@@ -42,14 +53,19 @@ public class WiserFeedListener implements JobExecutionListener {
 				break;
 			case COMPETITOR_FEED:
 				filePrefix = "Competitor_data_";
-				DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter(wiserFeedSettings.getDateTimeFormat());
 				Date yesterday = DateUtils.addDaysToDate(new Date(),-1);
-				String dateString = DateUtils.dateToString(yesterday,dateTimeFormatter);
-				String remoteFileName = "buildcom_product-level-uniqueid_all-products_" + dateString + "_*.csv";
-				jobExecution.getExecutionContext().putString("remoteFileName",remoteFileName);
+				dateString = DateUtils.dateToString(yesterday,dateTimeFormatter);
+				remoteFilePath = threeSixtyPiSettings.getFtpFolder() + "buildcom_product-level-uniqueid_all-products_" + dateString + "_*.csv";
+				jobExecution.getExecutionContext().putString("remoteDownloadFilePath",remoteFilePath);
 				break;
 			case PERFORMANCE_FEED:
 				filePrefix = "Performance_";
+				break;
+			case RECOMMENDATION_FEED:
+				filePrefix = "Recommendation_data_";
+				dateString = DateUtils.dateToString(new Date(),dateTimeFormatter);
+				remoteFilePath = wiserFeedSettings.getFtpOutputFolder() + "TEST_Wiser_output_" + dateString + ".csv";
+				jobExecution.getExecutionContext().putString("remoteDownloadFilePath",remoteFilePath);
 				break;
 			default:
 				filePrefix = "";
