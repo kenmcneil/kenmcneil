@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+  <context id="context1" targetRuntime="MyBatis3Simple">
+    <jdbcConnection connectionURL="jdbc:postgresql://localhost:5432/product" driverClass="org.postgresql.Driver" password="product" userId="product" />
+    <javaModelGenerator targetPackage="com.ferguson.cs.mybatis.model" targetProject="product-api" />
+    <sqlMapGenerator targetPackage="com.ferguson.cs.mybatis.dao" targetProject="product-api" />
+    <javaClientGenerator targetPackage="com.ferguson.cs.mybatis.dao" targetProject="product-api" type="XMLMAPPER" />
+    <table schema="" tableName="unit_of_measure"/>
+    <table schema="" tableName="attribute_definition"/>
+    <table schema="" tableName="attribute_definition_value"/>
+  </context>
+</generatorConfiguration>

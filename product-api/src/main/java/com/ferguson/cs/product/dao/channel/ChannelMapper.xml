@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.dao.channel.ChannelMapper">
+  
+  <resultMap id="channelResultMap" type="com.ferguson.cs.model.channel.Channel">
+    <id column="id" jdbcType="INTEGER"  property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="datatype" jdbcType="VARCHAR" property="datatype" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+    <result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+    <result column="version" jdbcType="SMALLINT" property="version" />
+	<association property="businessUnit">
+	    <result column="uom_id" jdbcType="INTEGER" property="" />
+	    <result column="uom_code" jdbcType="VARCHAR" property="code" />
+	    <result column="uom_name" jdbcType="VARCHAR" property="name" />
+	    <result column="uom_description" jdbcType="VARCHAR" property="description" />	
+	</association>
+  </resultMap>
+
+  <select id="findChannelList"  resultMap="channelResultMap">
+    select
+    	attr.id as id,
+    	attr.code as code,
+    	attr.datatype as datatype,
+    	attr.description as description,
+    	attr.created_timestamp as created_timestamp,
+    	attr.last_modified_timestamp as last_modified_timestamp,
+    	attr.version as version,
+    	uom.id as uom_id,
+    	uom.code as uom_code,
+    	uom.name as uom_name,
+        uom.description as uom_description,
+        value.id as enumeratedValueId,
+        value.value as enumeratedValue
+    from attribute_definition attr
+    left outer join unit_of_measure uom on attr.unit_of_measure_id = uom.id 
+    left outer join attribute_definition_value value on value.attribute_definition_id = attr.id
+    <where>
+		<if test="channelId != null">
+		attr.id = #{attributeDefinitionId}
+		</if>    
+		<if test="channelCode != null">
+		and attr.code = #{attributeDefinitionCode}
+		</if>    
+		<if test="businessUnit != null">
+		and uom.code = #{unitOfMeasureCode}
+		</if>
+    </where>    
+  </select>
+
+</mapper>

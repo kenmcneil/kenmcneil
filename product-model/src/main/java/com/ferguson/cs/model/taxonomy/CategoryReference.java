@@ -15,5 +15,6 @@ import lombok.Value;
 @Builder
 public class CategoryReference implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private final String id;
+	private final Long id;
+
 }

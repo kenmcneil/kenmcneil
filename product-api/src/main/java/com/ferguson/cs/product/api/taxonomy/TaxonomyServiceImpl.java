@@ -17,10 +17,8 @@ import com.ferguson.cs.utilities.ArgumentAssert;
 @Service
 public class TaxonomyServiceImpl implements TaxonomyService {
 
-	private final TaxonomyRepository taxonomyRepository;
 
-	public TaxonomyServiceImpl(TaxonomyRepository taxonomyRepository) {
-		this.taxonomyRepository = taxonomyRepository;
+	public TaxonomyServiceImpl() {
 	}
 
 	@Override
@@ -32,7 +30,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 
 		Set<String> taxonomyIds = taxonomyReferenceList.stream().map(TaxonomyReference::getId).collect(Collectors.toSet());
 		List<Taxonomy> results = new ArrayList<>();
-		taxonomyRepository.findAllById(taxonomyIds).forEach(results::add);
+//		taxonomyRepository.findAllById(taxonomyIds).forEach(results::add);
 		return results;
 	}
 
@@ -41,27 +39,30 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		if (taxonomyReference == null || StringUtils.hasText(taxonomyReference.getId())) {
 			return Optional.empty();
 		}
-		return taxonomyRepository.findById(taxonomyReference.getId());
+//		return taxonomyRepository.findById(taxonomyReference.getId());
+		return null;
 	}
 
 	@Override
 	public Optional<Taxonomy> getTaxonomy(String code) {
 		ArgumentAssert.notNullOrEmpty(code, "code");
-		return taxonomyRepository.findByCode(code);
+		//return taxonomyRepository.findByCode(code);
+		return null;
 	}
 
 	@Override
 	public Taxonomy saveTaxonomy(Taxonomy taxonomy) {
 		ArgumentAssert.notNull(taxonomy, "taxonomy");
 		ArgumentAssert.notNullOrEmpty(taxonomy.getCode(), "code");
-		return taxonomyRepository.save(taxonomy);
+		return null;
+		//return taxonomyRepository.save(taxonomy);
 	}
 
 	@Override
 	public void deleteTaxonomy(Taxonomy taxonomy) {
 		ArgumentAssert.notNull(taxonomy, "taxonomy");
 		ArgumentAssert.notNullOrEmpty(taxonomy.getId(), "ID");
-		taxonomyRepository.delete(taxonomy);
+		//taxonomyRepository.delete(taxonomy);
 	}
 
 }

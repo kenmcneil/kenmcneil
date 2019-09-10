@@ -24,7 +24,7 @@ public class AttributeController {
 
 	@GetMapping(value = "/unit-of-measure/{code}")
 	public UnitOfMeasure getUnitOfMeasure(@PathVariable("code") String code) {
-		return OptionalResourceHelper.handle(attributeService.getUnitOfMeasure(code), "unit of measure", code);
+		return OptionalResourceHelper.handle(attributeService.getUnitOfMeasureByCode(code), "unit of measure", code);
 	}
 
 	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)
@@ -41,7 +41,7 @@ public class AttributeController {
 
 	@GetMapping(value = "/attribute-definition/{code}")
 	public AttributeDefinition getAttributeDefinition(@PathVariable("code") String code) {
-		return OptionalResourceHelper.handle(attributeService.getAttributeDefinition(code), "attribute definition", code);
+		return OptionalResourceHelper.handle(attributeService.getAttributeDefinitionByCode(code), "attribute definition", code);
 	}
 
 	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)

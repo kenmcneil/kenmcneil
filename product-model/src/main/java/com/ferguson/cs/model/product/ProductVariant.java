@@ -32,7 +32,7 @@ public class ProductVariant implements Serializable {
 	/**
 	 * The product unique persistence ID that acts as a parent for this variant.
 	 */
-	private String productId;
+	private ProductReference productReference;
 
 	/**
 	 * The description of the variant. There must not be any styling embedded in the description.

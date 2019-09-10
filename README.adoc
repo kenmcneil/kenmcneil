@@ -31,7 +31,8 @@ The following are useful links to help clarify domain terminology and design dec
 
 == Assertions
 
-- This service must provide the ability to support a multi-tenant view of the data. This means that product data can be ingested and mutated based on a given business unit or channel.
+- This service will have limited multi-tenant capabilities. A per-channel taxonomy can be used to filter which products are available on a given channel. If product data must be altered prior to sydnication to downstream systems, either multiple instances of this service must be used or the downstream listener must apply the mutations.
+- The product data ingested into this service is assumed to already have been through the enrichment process. 
 - The storage mechanism for product data will not be visible to any systems external to the product service. This requirements means that the service must provide an API for getting data in/out of the underlying storage mechanism.
 - The domain terminology defined by this service will be based off of industry standards.
 
@@ -50,9 +51,15 @@ The core product data is used to represent products that will be sold within an 
 A manufacturer and the manufacturer's assigned product ID are enough to identify a product family but a more specific identifier must be used to identify a product variant. The global identifier that is used by ferguson to reference a product variant is called an MPN (Master Product Number) ID. Additionally, there are alternate identifiers that can be assigned to a product variant and these identifiers are modeled as an identifier type ((GTIN, SKU, UPC, etc) and the actual identifier value.
 
 === Product Attributes
-A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through the attribute definition. An attribute that does not change across variants will have its value defined at the product level, while an attribute that does change between variants will have its value defined within each variant.
- 
-IMPORTANT: The collection of product attributes can be validated with a taxonomy's category traits to insure a product has the traits required to be added to that category. The commonality between attributes and traits is they must both be linked to the same attribute definition.
+A product attribute is a characteristic of the product. The attribute's datatype, validation rules, and enumerated values are defined via a reusable, codified attribute definition. 
+
+IMPORTANT: The use of codified attribute definitions is important as those definitions can be used in both category and product attributes. This commonality provides the ability to define search facets from the category attributes and match those to products that have the same attribute definition.
+
+=== Product Attribute Values
+The product attibutes are used to define characteristics (The "material" for a shirt might be "cotton" or "nylon"). The assigned value of that attribute that does not change, regardless of which variant might be selected is called a "product attribute value".
+
+=== Variant Attribute Values
+Any product attributes that are specific to the variants of that product are stored at the variant level. (The "size" attribute is assigned to a shirt, and the value for that size "small", "medium", or "large" is associated with a product variant.)
 
 === Product Options
 A product option is represented almost identically to a product attribute but represents a "customization" that can be made to a product variant that does NOT change the variant's SKU. The best way to distinguish between an attribute and an option is to think of a simple use case:
@@ -61,32 +68,36 @@ A Shirt has a size and a color and also allows a customer to select a name that 
 
 == Product Taxonomy
 
-A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories.
-
-IMPORTANT: There is a strong need to provide multiple, different taxonomy systems for the product data: Business units may have very different ideas for the categorization of products, a third-party market place may have its own taxonomy structure, and in fact a single business unit may have more than one taxonomy structure.
-
-=== Taxonomy
-
-A taxonomy has a set of "top level" categories that representing the first hierachy of product categorization. A taxonomy structure can stand on its own without being associated to a business unit or channel. Conversely, a taxonomy may be built for a specific business unit and then shared across that business unit's sales channels. 
+A product taxonomy is a hierarchical classification system (also sometimes referred to as a product catalog) where products are grouped into categories/sub-categories. A taxonomy is codified and can be linked to one or more channels.
 
 [IMPORTANT]
 ====
-A taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" taxonomy allows a product to be placed within multiple categories within the classification hierarchy. A "strict" taxonomy is more appropriate for defining SEO strategies while a "non-strict" taxonomy can be used for site navigation.  It is important to understand that more than one taxonomy can be defined for a given sales channel where one taxonomy may reflect an SEO classification and another may reflect the a site's navigation system.
+A product taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" catalog allows a product to be placed in multiple categories within the hierarchy. A "strict" taxonomy is more appropriate for defining a master catalog/SEO strategies while a "non-strict" taxonomy can be used for site navigation.
 ==== 
 
 === Category
 
-A category is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A category also has a set of "traits" that define what types of products can be added to that category. 
+Categories are arranged in a hierarchy where the top-level category is associated with the product taxonomy. The top-level category is called the "root category" and acts as the "parent" for the entire category hierarchy.
 
-=== Category Traits
+The root category contains a set of sub-categories that can be used to drill-down into more specific groupings and each sub-category can also have sub-categories. The hierarchy can be arbitrarily nested but is typically 3 or 4 levels deep.
 
-A category within a taxonomy's hierarchy can have one or more "traits" associated with it. These traits represent characteristics common to products thats belong (or will be added) to the category. The category attributes can be used to derive search facets and enforce validation rules when products are added to the category (or its sub-categories).
+Each category may contain an optional set of products references allowing products to be grouped into that category.
+
+
+=== Category Attributes
+
+A category can have one or more "atributes" associated with it. These attributes represent characteristics common to products that can be associated (or will be added) to the category. A category attribute is linked to codified attribute definitions that can be reused by both categories and products.
+
+IMPORTANT: The use of codified attribute definitions is important as those definitions can be used in both category and product attributes. This commonality provides the ability to define search facets from the category attributes and match those to products that have the same attribute definition.
+
 
 == Product Pricing
 
 IMPORTANT: We have not yet started modeling pricing.
 
-A pricing "profile" represents the retail pricing for products and allows for different pricing across stores and/or for professionals or end consumers.
+The pricing of products is really a marketing/merchandising function, however, it is important to provide price syndication such that down stream systems are notified of any price changes. 
+
+A pricing "profile" represents the retail pricing for products and allows for different pricing across stores and/or for consumer groups (Example: pros vs non-pros).
 
 - Pricing Profiles/Pricebooks
 
@@ -110,16 +121,14 @@ NOTE: Each "brand" (Build, Supply, etc) will be represented as a business unit.
 
 === Channels
 
-A channel represents a distinct distribution channel, within a given business unit, through which products are sold. A channel can represent a product inventory sold through a web store front or through a third-party marketplace.
+A channel represents a distinct distribution channel, within a given business unit, through which products are sold and/or syndicated. A channel can represent a product inventory sold through a web store front, a third-party marketplace, or an SEO classification system.
 
 Important Notes About Channels:
 
 - Two channels within a business unit can represent a different "tenant" in a multi-tenant environment. This is important when you consider that a business unit may have two store fronts that serve different classes of users (Example: buid.com vs faucetsdirect.com).
-- A business unit may have a channel for the web store front and a second channel for selling that store front's inventory through a third-party marketplace such as Amazon.
-- Each channel may have different product catalogs, taxonomies, pricing, and available vendors.
-- Each channel may require the product data to be mutated from the "master" data to apply branding, follow specific marketplace rules, or to implement a specific SEO strategy.
-- A channel may have more than one taxonomy associated with it. A prime example of this might be that one taxonomy is used to map that channel's product inventory into a strict classification for the purposes of SEO. A second taxonomy can be used to model a web store's site navigation system that allows a product to be placed into multiple catagories.
-- A taxonomy classification system can be holistically defined for the entire "master" product catalog and that taxonomy can be associated with one or more channels. A channel's "view" of a taxonomy structure will be filtered to only those products sold on that channel! 
+- A business unit may have a channel for the web store front and a second channel for selling that storefront's inventory through a third-party marketplace such as Amazon.
+- Each channel may have different product taxonomies, pricing, and available vendors.
+- A channel can have exactly one product taxonomy associated with it. One channel might be used to defined a web storefront's master product data. A second channel can be used to model a web store's site navigation system that allows a product to be placed into multiple catagories.
 
 === Manufacturers
 
@@ -137,7 +146,11 @@ There are established tools and processes used by our "brands" and it is importa
 
 === Type, Application, and Handletype
 
-Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary selling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used to by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems. This structure will be imported into the product domain service's taxonomy system. This will serve two purposes: It will validate that the new taxonomy structure supports the validation rules of the data team's existing process and it can later be used in the product ingestion process to validate product data.
+Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary selling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems.
+
+This structure will be imported into the product domain service as a "master" product catalog where the classification structure is type->application->handletype.
+
+IMPORTANT: If you hear the term "tah", this is referring to a product's classification within the type->application->handle type in the master product catalog. Every product sold by build.com is assinged a "tah" value. 
 
 === Build Terms to Product Domain Terms
 
