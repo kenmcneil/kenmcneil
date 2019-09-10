@@ -291,7 +291,11 @@ public class WiserFeedTaskConfiguration {
 				"product_price",
 				"cost",
 				"hct_category",
-				"conversion_category"
+				"conversion_category",
+				"application",
+				"is_ltl",
+				"sale_id",
+				"date_added"
 		};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
@@ -312,7 +316,12 @@ public class WiserFeedTaskConfiguration {
 				"productPrice",
 				"cost",
 				"hctCategory",
-				"conversionCategory"});
+				"conversionCategory",
+				"application",
+				"isLtl",
+				"saleId",
+				"dateAdded"
+		});
 		return getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
 	}
 
