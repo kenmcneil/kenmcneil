@@ -22,6 +22,10 @@
 		<result column="inStock" property="inStock" />
 		<result column="price" property="price" />
 		<result column="cost" property="cost" />
+		<result column="application" property="application" />
+		<result column="isLtl" property="isLtl" />
+		<result column="saleId" property="saleId" />
+		<result column="dateAdded" property="dateAdded" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -42,8 +46,11 @@
 		IIF(pm.uniqueId IS NOT NULL, 1, 0) AS 'isMap',
 		IIF(s.status = 'stock', 1, 0) AS 'inStock',
 		pbco.cost AS 'price',
-		vc.cost AS 'cost'
-
+		vc.cost AS 'cost',
+		a.application as 'application',
+		IIF(sd.ltl IS NOT NULL, 1, 0) as 'isLtl',
+		sa.saleId as 'saleId',
+		p.dateAdded as 'dateAdded'
 		FROM mmc.product.product p WITH (NOLOCK)
 		INNER JOIN mmc.product.family fa WITH(NOLOCK)
 		ON p.familyId = fa.id
@@ -59,6 +66,8 @@
 		ON taht.typeApplicationId = ta.id
 		INNER JOIN mmc.product.type ty WITH(NOLOCK)
 		ON ta.typeId = ty.id
+		INNER JOIN mmc.product.application a WITH(NOLOCK)
+		ON ta.applicationId = a.id
 		INNER JOIN mmc.product.status s WITH(NOLOCK)
 		ON p.statusId = s.id
 		INNER JOIN mmc.product.modified mo WITH(NOLOCK)
@@ -99,6 +108,8 @@
 		ON vc.uniqueId = p.uniqueId
 		AND vc.vendorUid = ppv.vendorUid
 		AND vc.pricedOptionId IS NULL
+		LEFT JOIN mmc.product.sale sa WITH(NOLOCK)
+		ON p.uniqueId = sa.uniqueId
 		WHERE ct.type = 'Product'
 		ORDER BY p.uniqueId ASC
 	</select>

@@ -92,6 +92,11 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData,Wise
 		wiserProductData.setMapPrice(item.getMapPrice());
 		wiserProductData.setProductPrice(item.getPrice());
 		wiserProductData.setCost(item.getCost());
+		wiserProductData.setApplication(item.getApplication());
+		wiserProductData.setIsLtl(item.getLtl());
+		wiserProductData.setSaleId(item.getSaleId());
+		wiserProductData.setDateAdded(item.getDateAdded());
+
 
 		return wiserProductData;
 	}
