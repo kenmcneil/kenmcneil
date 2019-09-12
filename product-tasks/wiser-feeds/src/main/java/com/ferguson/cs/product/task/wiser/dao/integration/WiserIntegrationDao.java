@@ -2,7 +2,9 @@ package com.ferguson.cs.product.task.wiser.dao.integration;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
@@ -26,4 +28,11 @@ public interface WiserIntegrationDao {
 	 * Delete all product data hashes
 	 */
 	void truncateProductDataHashes();
+
+	/**
+	 * Get conversion buckets for products
+	 *
+	 * @return map of uniqueids to conversion buckets
+	 */
+	Map<Integer,ProductConversionBucket> getProductConversionBuckets();
 }

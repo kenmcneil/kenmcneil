@@ -31,6 +31,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import com.ferguson.cs.product.task.wiser.batch.DownloadFileTasklet;
 import com.ferguson.cs.product.task.wiser.batch.FlatteningItemStreamWriter;
+import com.ferguson.cs.product.task.wiser.batch.PopulateProductMetadataTasklet;
 import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
@@ -40,8 +41,10 @@ import com.ferguson.cs.product.task.wiser.batch.WiserFeedListener;
 import com.ferguson.cs.product.task.wiser.batch.WiserPerformanceDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserPriceDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserProductDataProcessor;
+import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
+import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
 import com.ferguson.cs.product.task.wiser.model.WiserPerformanceData;
 import com.ferguson.cs.product.task.wiser.model.WiserPriceData;
@@ -261,6 +264,12 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
+	PopulateProductMetadataTasklet populateProductRevenueCategorizationMapTasklet() {
+		return new PopulateProductMetadataTasklet();
+	}
+
+	@Bean
+	@StepScope
 	SetItemWriter<Integer> setItemWriter() {
 		return new SetItemWriter<>();
 	}
@@ -269,6 +278,18 @@ public class WiserFeedTaskConfiguration {
 	@JobScope
 	Set<Integer> getProductDataHashUniqueIds() {
 		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
+		return new HashMap<>();
+	}
+
+	@Bean
+	@JobScope
+	Map<Integer, ProductConversionBucket> getProductConversionBuckets() {
+		return new HashMap<>();
 	}
 
 	@Bean
@@ -283,19 +304,21 @@ public class WiserFeedTaskConfiguration {
 				"mpn/model",
 				"L1 category",
 				"L2 category",
+				"application",
 				"product_type",
 				"on_map",
+				"map_price",
 				"on_promo",
 				"in_stock",
-				"map_price",
 				"product_price",
 				"cost",
+				"list_price",
 				"hct_category",
 				"conversion_category",
-				"application",
 				"is_ltl",
 				"sale_id",
-				"date_added"
+				"date_added",
+
 		};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
@@ -308,19 +331,21 @@ public class WiserFeedTaskConfiguration {
 				"mpnModelNumber",
 				"l1Category",
 				"l2Category",
+				"application",
 				"productType",
 				"onMap",
+				"mapPrice",
 				"onPromo",
 				"inStock",
-				"mapPrice",
 				"productPrice",
 				"cost",
+				"listPrice",
 				"hctCategory",
 				"conversionCategory",
-				"application",
 				"isLtl",
 				"saleId",
 				"dateAdded"
+
 		});
 		return getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
 	}
@@ -331,14 +356,12 @@ public class WiserFeedTaskConfiguration {
 		String[] header = new String[]{"sku",
 				"channel",
 				"effective_date",
-				"list_price",
 				"reg_price"};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
 		extractor.setNames(new String[]{"sku",
 				"channel",
 				"effectiveDate",
-				"listPrice",
 				"regularPrice"});
 
 		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
@@ -404,7 +427,8 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("writeProductDataHashJob")
 	public Job writeProductDataHashJob(Step upsertProductDataHash) {
 		return taskBatchJobFactory.getJobBuilder("writeProductDataHashJob")
-				.start(upsertProductDataHash)
+				.start(populateProductMetadata())
+				.next(upsertProductDataHash)
 				.build();
 	}
 
@@ -413,6 +437,7 @@ public class WiserFeedTaskConfiguration {
 	public Job repopulateProductDataHashJob(Step truncateProductDataHashes, Step insertProductDataHash) {
 		return taskBatchJobFactory.getJobBuilder("repopulateProductDataHashJob")
 				.start(truncateProductDataHashes)
+				.next(populateProductMetadata())
 				.next(insertProductDataHash)
 				.build();
 	}
@@ -427,7 +452,8 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("productCatalogIncrementalUploadJob")
 	public Job productCatalogIncrementalUploadJob(Step writeProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogIncrementalUploadJob")
-				.start(writeProductDataHashUniqueIds)
+				.start(populateProductMetadata())
+				.next(writeProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
@@ -441,7 +467,8 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("productCatalogFullUploadJob")
 	public Job productCatalogFullUploadJob(Step writeAllProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogFullUploadJob")
-				.start(writeAllProductDataHashUniqueIds)
+				.start(populateProductMetadata())
+				.next(writeAllProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
@@ -457,7 +484,8 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("productCatalogPreviousDayFeedJob")
 	public Job productCatalogPreviousDayFeedJob(Step writePreviousDayProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogPreviousDayFeedJob")
-				.start(writePreviousDayProductDataHashUniqueIds)
+				.start(populateProductMetadata())
+				.next(writePreviousDayProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
@@ -539,6 +567,14 @@ public class WiserFeedTaskConfiguration {
 	public Step truncateProductDataHashes() {
 		return taskBatchJobFactory.getStepBuilder("truncateProductDataHashes")
 				.tasklet(truncateProductDataHashTasklet())
+				.build();
+	}
+
+	@Bean
+	@Qualifier("populateProductMetadata")
+	public Step populateProductMetadata() {
+		return taskBatchJobFactory.getStepBuilder("populateProductMetadata")
+				.tasklet(populateProductRevenueCategorizationMapTasklet())
 				.build();
 	}
 
@@ -641,7 +677,6 @@ public class WiserFeedTaskConfiguration {
 				.tasklet(downloadFileTasklet)
 				.build();
 	}
-
 
 	private FlatFileItemWriter getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor fieldExtractor) {
 		FlatFileItemWriter<?> fileItemWriter = new FlatFileItemWriter<>();

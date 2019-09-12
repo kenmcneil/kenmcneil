@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -12,8 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
+import com.ferguson.cs.product.task.wiser.dao.core.WiserDao;
 import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationDao;
+import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
+import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 import com.ferguson.cs.utilities.DateUtils;
@@ -21,6 +25,7 @@ import com.ferguson.cs.utilities.DateUtils;
 @Service
 public class WiserServiceImpl implements WiserService {
 	private WiserIntegrationDao wiserIntegrationDao;
+	private WiserDao wiserDao;
 	private JobRepositoryHelper jobRepositoryHelper;
 	WiserFeedSettings wiserFeedSettings;
 	private static final String LAST_RAN_DATE_KEY = "lastRanDate";
@@ -28,6 +33,11 @@ public class WiserServiceImpl implements WiserService {
 	@Autowired
 	public void setWiserIntegrationDao(WiserIntegrationDao wiserIntegrationDao) {
 		this.wiserIntegrationDao = wiserIntegrationDao;
+	}
+
+	@Autowired
+	public void setWiserDao(WiserDao wiserDao) {
+		this.wiserDao = wiserDao;
 	}
 
 	@Autowired
@@ -57,6 +67,16 @@ public class WiserServiceImpl implements WiserService {
 	@Override
 	public List<WiserSale> getWiserSales(Date date) {
 		return wiserIntegrationDao.getActiveOrModifiedWiserSales(date);
+	}
+
+	@Override
+	public Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
+		return wiserDao.getProductRevenueCategorization();
+	}
+
+	@Override
+	public Map<Integer, ProductConversionBucket> getProductConversionBuckets() {
+		return wiserIntegrationDao.getProductConversionBuckets();
 	}
 
 	@Override
