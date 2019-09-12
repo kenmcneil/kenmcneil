@@ -26,6 +26,7 @@
 		<result column="isLtl" property="isLtl" />
 		<result column="saleId" property="saleId" />
 		<result column="dateAdded" property="dateAdded" />
+		<result column="listPrice" property="listPrice" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -48,9 +49,10 @@
 		pbco.cost AS 'price',
 		vc.cost AS 'cost',
 		a.application as 'application',
-		IIF(sd.ltl IS NOT NULL, 1, 0) as 'isLtl',
+		IIF(sd.ltl IS NULL, 0, sd.ltl) as 'isLtl',
 		sa.saleId as 'saleId',
-		p.dateAdded as 'dateAdded'
+		p.dateAdded as 'dateAdded',
+		p.msrp as 'listPrice'
 		FROM mmc.product.product p WITH (NOLOCK)
 		INNER JOIN mmc.product.family fa WITH(NOLOCK)
 		ON p.familyId = fa.id
@@ -114,11 +116,71 @@
 		ORDER BY p.uniqueId ASC
 	</select>
 
+
+
+	<resultMap id="productRevenueCategoryMap" type="ProductRevenueCategory">
+		<result property="productUniqueId" column="productUniqueId"/>
+		<result column="revenueCategory" property="revenueCategory"
+				javaType="RevenueCategory"
+				typeHandler="com.ferguson.cs.product.task.wiser.dao.IntMappedEnumTypeHandler"/>
+	</resultMap>
+
+	<select id="getProductRevenueCategorization" resultMap="productRevenueCategoryMap">
+		with last_month as (select c.uniqueid, cast(round(sum(c.quantity*c.unitprice),2) as decimal(18,2)) as sales
+		from omc.dbo.orders o (nolock)
+		join omc.dbo.cart c (nolock) on c.cartid = o.cartnumber and c.siteid = o.siteid
+		where o.orderdate between dateadd(day,-29,cast(getdate() as date)) and cast(getdate() as date)
+		and o.status is not null
+		and o.status not in ('amending','cancelled','paymenthold','risk')
+		group by c.uniqueid),
+
+		last_year as (select c.uniqueid, cast(round(sum(c.quantity*c.unitprice),2) as decimal(18,2)) as sales
+		from omc.dbo.orders o (nolock)
+		join omc.dbo.cart c (nolock) on c.cartid = o.cartnumber and c.siteid = o.siteid
+		where o.orderdate between dateadd(day,-365,cast(getdate() as date)) and dateadd(day,-30,cast(getdate() as date))
+		and o.status is not null
+		and o.status not in ('amending','cancelled','paymenthold','risk')
+		group by c.uniqueid),
+
+		hct as (select p.uniqueid, p.manufacturer, bsc.name as business_cat, ly.sales as last_year_sales, lm.sales as last_month_sales,
+		case when ly.sales is null and lm.sales is not null then lm.sales
+		when ly.sales is not null and lm.sales is null then ly.sales/11
+		when ly.sales is not null and lm.sales is not null then (ly.sales/11)+lm.sales
+		else '0' end as hct_builder
+		from mmc.dbo.product p (nolock)
+		left join last_month lm on lm.uniqueid = p.uniqueId
+		left join last_year ly on ly.uniqueid = p.uniqueId
+		JOIN OMC.DBO.BUSINESSCATEGORYPRODUCT AS BSCP (NOLOCK) ON BSCP.PRODUCTUNIQUEID = P.UNIQUEID
+		LEFT JOIN OMC.DBO.BUSINESSCATEGORY AS BSC (NOLOCK) ON BSC.ID = BSCP.BUSINESSCATEGORYID
+		where bsc.name is not null),
+
+		hct_calc as (select uniqueid, manufacturer, business_cat, cast(last_year_sales as decimal(18,2)) as last_year_sales, cast(last_month_sales as decimal(18,2)) as last_month_sales, cast(hct_builder as decimal(18,2)) as hct_calculation,
+		rank() over(partition by business_cat, manufacturer order by hct_builder desc) as rank_hct,
+		cast(sum(hct_builder) over (partition by business_cat, manufacturer) as decimal(18,2)) as sum_hct_calc,
+		cast(sum(hct_builder) over(partition by manufacturer, business_cat order by manufacturer, business_cat, hct_builder desc rows between unbounded preceding and current row) as decimal(18,2)) as running_total
+		from hct),
+
+		hct_calc_lag as (
+		select uniqueid, manufacturer, business_cat, last_year_sales, last_month_sales, hct_calculation, rank_hct, sum_hct_calc, running_total,
+		cast(lag(running_total) over(partition by manufacturer, business_cat order by hct_calculation desc) as decimal (18,2)) as lag_running_total
+		from hct_calc)
+
+		select DISTINCT uniqueId productUniqueId, case when rank_hct = 1 and hct_calculation &gt; 0 then 3
+		when rank_hct = 1 and hct_calculation = 0 then 1
+		when rank_hct = 2 and hct_calculation &gt; 0 and lag_running_total/sum_hct_calc &gt; .66 then 2
+		when rank_hct &gt; 1 and hct_calculation &gt; 0 and lag_running_total/sum_hct_calc &lt;= .33 then 3
+		when rank_hct &gt; 1 and hct_calculation &gt; 0 and lag_running_total/sum_hct_calc &lt;= .66 and running_total/sum_hct_calc &gt; .33 then 2
+		when rank_hct &gt; 1 and hct_calculation &gt; 0 and lag_running_total/sum_hct_calc &gt; .66 then 1
+		when rank_hct &gt; 1 and hct_calculation = 0 then 1
+		else 1
+		end as revenueCategory
+		from hct_calc_lag
+	</select>
+
 	<resultMap id="wiserPriceDataMap" type="WiserPriceData">
 		<result property="sku" column="sku" />
 		<result property="channel" column="channel"/>
 		<result property="effectiveDate" column="effectiveDate"/>
-		<result property="listPrice" column="listPrice"/>
 		<result property="regularPrice" column="regularPrice"/>
 	</resultMap>
 
@@ -126,24 +188,22 @@
 		<if test="date != null">
 			DECLARE @startDate DATETIME = DATEADD(day, DATEDIFF(day, 0, #{date}), 0);
 		</if>
-		/*At Boomerang's request, we send all prices for these PBs every day, but if there is no
-		effective_data avail, we write today's date instead.*/
 		SELECT
 		pbc.UniqueId AS 'sku',
 		pbc.PriceBookId AS 'channel',
 		COALESCE(results.inner_effective_date, GETDATE()) AS 'effectiveDate',
-		results.inner_list_price AS 'listPrice',
 		pbc.Cost AS 'regularPrice'
 		FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
+		INNER JOIN mmc.product.product p WITH (NOLOCK)
+		ON pbc.UniqueId = p.uniqueId
 		LEFT JOIN (
 		SELECT
 		pbcl.UniqueId AS 'inner_sku',
 		pbcl.PriceBookId AS 'inner_channel_id',
 		pbcl.Update_DateTime AS 'inner_effective_date',
-		p.msrp AS 'inner_list_price',
 		ROW_NUMBER() OVER (PARTITION BY pbcl.uniqueId, pbcl.priceBookId ORDER BY pbcl.Update_DateTime DESC) as 'rank'
 		FROM mmc.dbo.PriceBook_Cost_Log pbcl WITH (NOLOCK)
-		INNER JOIN mmc.product.product p WITH (NOLOCK)
+		INNER JOIN mmc.product.product p WITH(NOLOCK)
 		ON pbcl.UniqueId = p.uniqueId
 		INNER JOIN mmc.product.family f WITH(NOLOCK)
 		ON p.familyId = f.id

@@ -13,22 +13,37 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.task.wiser.model.ConversionBucket;
+import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
+import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserProductData;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.product.task.wiser.service.WiserService;
 import com.ferguson.cs.product.task.wiser.utility.CloudinaryHelper;
 
-public class WiserProductDataProcessor implements ItemProcessor<ProductData,WiserProductData>,StepExecutionListener {
+public class WiserProductDataProcessor implements ItemProcessor<ProductData, WiserProductData>, StepExecutionListener {
 
 	private WiserService wiserService;
-	private Map<Integer,WiserSale> wiserSaleMap;
+	private Map<Integer, WiserSale> wiserSaleMap;
+	private Map<Integer, ProductRevenueCategory> productRevenueCategorization;
+	private Map<Integer, ProductConversionBucket> productConversionBuckets;
 	private Set<Integer> productUniqueIds;
 	private Date date;
 
 	@Autowired
 	public void setProductUniqueIds(Set<Integer> productUniqueIds) {
 		this.productUniqueIds = productUniqueIds;
+	}
+
+	@Autowired
+	public void setProductRevenueCategorization(Map<Integer, ProductRevenueCategory> productRevenueCategorization) {
+		this.productRevenueCategorization = productRevenueCategorization;
+	}
+
+	@Autowired
+	public void setProductConversionBuckets(Map<Integer, ProductConversionBucket> productConversionBuckets) {
+		this.productConversionBuckets = productConversionBuckets;
 	}
 
 	@Autowired
@@ -54,12 +69,12 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData,Wise
 	@Override
 	public WiserProductData process(ProductData item) throws Exception {
 
-		if(!isValidAndIncluded(item)) {
+		if (!isValidAndIncluded(item)) {
 			return null;
 		}
 
-		if(wiserSaleMap.containsKey(item.getUniqueId())) {
-			item.setPromo(wiserService.isItemPromo(wiserSaleMap.get(item.getUniqueId()),date));
+		if (wiserSaleMap.containsKey(item.getUniqueId())) {
+			item.setPromo(wiserService.isItemPromo(wiserSaleMap.get(item.getUniqueId()), date));
 		} else {
 			item.setPromo(false);
 		}
@@ -69,12 +84,13 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData,Wise
 		if (item.getManufacturer() != null && item.getProductId() != null && item
 				.getCompositeId() != null && item.getUniqueId() != null) {
 			String productUrl = ("www.build.com/" + item.getManufacturer() + '-' + item.getProductId() + "/s" + item
-					.getCompositeId() + "?uid=" + item.getUniqueId()).replace(" ","-");
+					.getCompositeId() + "?uid=" + item.getUniqueId()).replace(" ", "-");
 			wiserProductData.setProductUrl(productUrl);
 		}
 
 		if (item.getManufacturer() != null && item.getImage() != null) {
-			wiserProductData.setImageUrl(CloudinaryHelper.createCloudinaryProductUrl(item.getManufacturer(), item.getImage()));
+			wiserProductData
+					.setImageUrl(CloudinaryHelper.createCloudinaryProductUrl(item.getManufacturer(), item.getImage()));
 		}
 
 		wiserProductData.setSku(item.getUniqueId());
@@ -96,6 +112,18 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData,Wise
 		wiserProductData.setIsLtl(item.getLtl());
 		wiserProductData.setSaleId(item.getSaleId());
 		wiserProductData.setDateAdded(item.getDateAdded());
+		wiserProductData.setListPrice(item.getListPrice());
+		ProductRevenueCategory productRevenueCategory = productRevenueCategorization.get(item.getUniqueId());
+		if (productRevenueCategory != null) {
+			wiserProductData.setHctCategory(productRevenueCategory.getRevenueCategory()
+					.getStringValue());
+		}
+		ProductConversionBucket productConversionBucket = productConversionBuckets.get(item.getUniqueId());
+		if (productConversionBucket != null) {
+			wiserProductData.setConversionCategory(productConversionBucket.getConversionBucket().getStringValue());
+		} else {
+			wiserProductData.setConversionCategory(ConversionBucket.MEDIUM.getStringValue());
+		}
 
 
 		return wiserProductData;

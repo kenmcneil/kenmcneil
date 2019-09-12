@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class WiserProductData implements Serializable {
 
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 4L;
 
 	private Integer sku;
 	private String productName;
@@ -29,6 +29,7 @@ public class WiserProductData implements Serializable {
 	private String application;
 	private Integer saleId;
 	private Date dateAdded;
+	private Double listPrice;
 
 	public Integer getSku() {
 		return sku;
@@ -204,5 +205,13 @@ public class WiserProductData implements Serializable {
 
 	public void setDateAdded(Date dateAdded) {
 		this.dateAdded = dateAdded;
+	}
+
+	public Double getListPrice() {
+		return listPrice;
+	}
+
+	public void setListPrice(Double listPrice) {
+		this.listPrice = listPrice;
 	}
 }

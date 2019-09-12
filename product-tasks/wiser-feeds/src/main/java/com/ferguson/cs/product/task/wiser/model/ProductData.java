@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 4L;
 
 	private String productId;
 	private Integer compositeId;
@@ -29,6 +29,9 @@ public class ProductData implements Serializable {
 	private Boolean isLtl;
 	private Integer saleId;
 	private Date dateAdded;
+	private String hctCategory;
+	private String conversionCategory;
+	private Double listPrice;
 
 	public String getProductId() {
 		return productId;
@@ -212,5 +215,29 @@ public class ProductData implements Serializable {
 
 	public void setDateAdded(Date dateAdded) {
 		this.dateAdded = dateAdded;
+	}
+
+	public String getHctCategory() {
+		return hctCategory;
+	}
+
+	public void setHctCategory(String hctCategory) {
+		this.hctCategory = hctCategory;
+	}
+
+	public String getConversionCategory() {
+		return conversionCategory;
+	}
+
+	public void setConversionCategory(String conversionCategory) {
+		this.conversionCategory = conversionCategory;
+	}
+
+	public Double getListPrice() {
+		return listPrice;
+	}
+
+	public void setListPrice(Double listPrice) {
+		this.listPrice = listPrice;
 	}
 }
