@@ -20,4 +20,9 @@ public class ProductDaoImpl implements ProductDao {
 		return productMapper.getQuickShipEligibleProduct(criteria);
 	}
 
+	@Override
+	public void updateProductModified(Product product) {
+		productMapper.updateProductModified(product);
+	}
+
 }

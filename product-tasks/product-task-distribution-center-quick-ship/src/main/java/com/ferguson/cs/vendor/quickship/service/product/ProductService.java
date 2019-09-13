@@ -23,4 +23,11 @@ public interface ProductService {
 	 */
 	boolean isFreeShipping(Product product, ShippingCalculationView storeShippingCalculationView);
 
+	/**
+	 * This method will update an existing modified row for an existing product.
+	 *
+	 * @param product
+	 */
+	void updateProductModified(Product product);
+
 }
