@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.inventory.service;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,9 +65,12 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 
 		for(Map.Entry<Integer,String> warehouse : warehouseMap.entrySet()) {
 			List<ElectroluxSkuVendorData> electroluxSkuVendorDataList = electroluxInventoryDao.getElectroluxSkus(warehouse.getKey());
+			File outputFile = new File(inventoryImportSettings
+					.getInventoryDirectory() + "/electrolux/" + electroluxInventorySettings.getFileNamePrefix() + warehouse.getValue() + ".csv");
+			outputFile.getParentFile().mkdirs();
+			File inventoryDirectory = new File(inventoryImportSettings.getInventoryDirectory());
 			try (
-					FileOutputStream fos = new FileOutputStream(inventoryImportSettings
-							.getInventoryDirectory() + "/" + electroluxInventorySettings.getFileNamePrefix() + warehouse.getValue() + ".csv");
+					FileOutputStream fos = new FileOutputStream(outputFile);
 					BufferedOutputStream bos = new BufferedOutputStream(fos);
 					OutputStreamWriter outputStreamWriter = new OutputStreamWriter(bos, StandardCharsets.UTF_8
 							.newEncoder());
@@ -95,6 +100,7 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 									.getVendorUid().toString(), response.getAvailableQuantity().toString()};
 
 							writer.writeNext(row);
+							break;
 						}
 					}
 				}
@@ -102,6 +108,11 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 				log.error("Failed to write Electrolux inventory file: {}",e.toString());
 			}
 
+			try {
+				FileUtils.moveFileToDirectory(outputFile,inventoryDirectory,false);
+			} catch (IOException e) {
+				log.error("Failed to move Electrolux inventory file {} to inventory directory {}",outputFile.getName(),e);
+			}
 		}
 
 	}
