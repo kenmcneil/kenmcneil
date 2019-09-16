@@ -12,7 +12,6 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 import com.ferguson.cs.product.task.wiser.dao.core.WiserDao;
 import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationDao;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
@@ -27,8 +26,6 @@ public class WiserServiceImpl implements WiserService {
 	private WiserIntegrationDao wiserIntegrationDao;
 	private WiserDao wiserDao;
 	private JobRepositoryHelper jobRepositoryHelper;
-	WiserFeedSettings wiserFeedSettings;
-	private static final String LAST_RAN_DATE_KEY = "lastRanDate";
 
 	@Autowired
 	public void setWiserIntegrationDao(WiserIntegrationDao wiserIntegrationDao) {
@@ -43,11 +40,6 @@ public class WiserServiceImpl implements WiserService {
 	@Autowired
 	public void setJobRepositoryHelper(JobRepositoryHelper jobRepositoryHelper) {
 		this.jobRepositoryHelper = jobRepositoryHelper;
-	}
-
-	@Autowired
-	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
-		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
 	@Override
