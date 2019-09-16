@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>electrolux-inventory-export</artifactId>
+	<artifactId>electrolux-inventory-processor</artifactId>
 
 	<dependencies>
 		<dependency>
