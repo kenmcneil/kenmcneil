@@ -117,10 +117,12 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 		if (productRevenueCategory != null) {
 			wiserProductData.setHctCategory(productRevenueCategory.getRevenueCategory()
 					.getStringValue());
+			productRevenueCategorization.remove(item.getUniqueId());
 		}
 		ProductConversionBucket productConversionBucket = productConversionBuckets.get(item.getUniqueId());
 		if (productConversionBucket != null) {
 			wiserProductData.setConversionCategory(productConversionBucket.getConversionBucket().getStringValue());
+			productConversionBuckets.remove(item.getUniqueId());
 		} else {
 			wiserProductData.setConversionCategory(ConversionBucket.MEDIUM.getStringValue());
 		}
@@ -136,6 +138,6 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 				&& productData.getManufacturer() != null
 				&& productData.getCompositeId() != null
 				&& productData.getFinish() != null
-				&& productUniqueIds.contains(productData.getUniqueId()));
+				&& (productUniqueIds.isEmpty() || productUniqueIds.contains(productData.getUniqueId())));
 	}
 }

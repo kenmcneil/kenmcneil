@@ -57,5 +57,8 @@ public interface WiserService {
 	 */
 	boolean isItemPromo(WiserSale wiserSale, Date date);
 
+	/**
+	 * Delete all product data hashes
+	 */
 	void truncateProductDataHashes();
 }

@@ -61,10 +61,6 @@ public class WiserFeedTaskConfiguration {
 	private SqlSessionFactory batchSqlSessionFactory;
 	private WiserFeedSettings wiserFeedSettings;
 
-
-	public static final String LOCAL_FILE_NAME_KEY = "localFileName";
-	public static final String REMOTE_FILE_NAME_KEY = "remoteFileName";
-	public static final String SFTP_SOURCE_KEY = "sftpSource";
 	private TaskBatchJobFactory taskBatchJobFactory;
 
 	@Autowired
@@ -465,10 +461,9 @@ public class WiserFeedTaskConfiguration {
 	 */
 	@Bean
 	@Qualifier("productCatalogFullUploadJob")
-	public Job productCatalogFullUploadJob(Step writeAllProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
+	public Job productCatalogFullUploadJob(Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogFullUploadJob")
 				.start(populateProductMetadata())
-				.next(writeAllProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
