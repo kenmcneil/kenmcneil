@@ -81,4 +81,8 @@ public class ProductServiceImpl implements ProductService {
 				price != null &&
 				price.compareTo(shippingCalculationView.getFreeShippingPrice()) > 0;
 	}
+
+	public void updateProductModified(Product product) {
+		productDao.updateProductModified(product);
+	}
 }
