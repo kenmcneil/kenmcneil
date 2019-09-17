@@ -53,4 +53,17 @@
 		DELETE Integration.wiser.productDataHash
 	</delete>
 
+	<resultMap id="productConversionBucketMap" type="ProductConversionBucket">
+		<result column="productUniqueId" property="productUniqueId"/>
+		<result column="conversionBucketId" property="conversionBucket"
+				javaType="ConversionBucket"
+				typeHandler="com.ferguson.cs.product.task.wiser.dao.IntMappedEnumTypeHandler"/>
+	</resultMap>
+
+	<select id="getProductConversionBuckets" resultMap="productConversionBucketMap">
+		SELECT DISTINCT pcb.productUniqueId,pcb.conversionBucketId
+		FROM Integration.wiser.productConversionBucket pcb
+	</select>
+
+
 </mapper>

@@ -2,8 +2,11 @@ package com.ferguson.cs.product.task.wiser.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
+import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 public interface WiserService {
@@ -32,6 +35,20 @@ public interface WiserService {
 	List<WiserSale> getWiserSales(Date date);
 
 	/**
+	 * Get a map of all product revenue categorizations
+	 *
+	 * @return
+	 */
+	Map<Integer, ProductRevenueCategory> getProductRevenueCategorization();
+
+	/**
+	 * Get a map of all product conversion buckets
+	 *
+	 * @return
+	 */
+	Map<Integer, ProductConversionBucket> getProductConversionBuckets();
+
+	/**
 	 * Determines if a given wiser sale object indicates that a product is on sale starting from a given date
 	 *
 	 * @param wiserSale	wiser sale object
@@ -40,5 +57,8 @@ public interface WiserService {
 	 */
 	boolean isItemPromo(WiserSale wiserSale, Date date);
 
+	/**
+	 * Delete all product data hashes
+	 */
 	void truncateProductDataHashes();
 }

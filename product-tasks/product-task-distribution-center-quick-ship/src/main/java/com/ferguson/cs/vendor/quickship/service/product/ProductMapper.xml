@@ -71,4 +71,12 @@
 		OFFSET #{criteria.offset} ROWS FETCH NEXT #{criteria.pageSize} ROWS ONLY
 	</select>
 
+	<update id="updateProductModified">
+		UPDATE mmc.product.modified SET
+			modifiedBy=SUSER_SNAME(),
+			modifiedDate = getDate()
+		WHERE
+			uniqueId = #{id}
+	</update>
+
 </mapper>

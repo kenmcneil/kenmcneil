@@ -1,10 +1,11 @@
 package com.ferguson.cs.product.task.wiser.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class WiserProductData implements Serializable {
 
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 4L;
 
 	private Integer sku;
 	private String productName;
@@ -25,6 +26,10 @@ public class WiserProductData implements Serializable {
 	private Double cost;
 	private String hctCategory;
 	private String conversionCategory;
+	private String application;
+	private Integer saleId;
+	private Date dateAdded;
+	private Double listPrice;
 
 	public Integer getSku() {
 		return sku;
@@ -176,5 +181,37 @@ public class WiserProductData implements Serializable {
 
 	public void setConversionCategory(String conversionCategory) {
 		this.conversionCategory = conversionCategory;
+	}
+
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	public Integer getSaleId() {
+		return saleId;
+	}
+
+	public void setSaleId(Integer saleId) {
+		this.saleId = saleId;
+	}
+
+	public Date getDateAdded() {
+		return dateAdded;
+	}
+
+	public void setDateAdded(Date dateAdded) {
+		this.dateAdded = dateAdded;
+	}
+
+	public Double getListPrice() {
+		return listPrice;
+	}
+
+	public void setListPrice(Double listPrice) {
+		this.listPrice = listPrice;
 	}
 }

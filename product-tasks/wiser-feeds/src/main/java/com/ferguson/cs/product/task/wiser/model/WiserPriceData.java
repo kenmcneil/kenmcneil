@@ -9,7 +9,6 @@ public class WiserPriceData implements Serializable {
 	private Integer sku;
 	private Integer channel;
 	private Date effectiveDate;
-	private Double listPrice;
 	private Double regularPrice;
 
 	public WiserPriceData() {
@@ -20,7 +19,6 @@ public class WiserPriceData implements Serializable {
 		this.sku = source.sku;
 		this.channel = source.channel;
 		this.effectiveDate = source.effectiveDate;
-		this.listPrice = source.listPrice;
 		this.regularPrice = source.regularPrice;
 
 	}
@@ -47,14 +45,6 @@ public class WiserPriceData implements Serializable {
 
 	public void setEffectiveDate(Date effectiveDate) {
 		this.effectiveDate = effectiveDate;
-	}
-
-	public Double getListPrice() {
-		return listPrice;
-	}
-
-	public void setListPrice(Double listPrice) {
-		this.listPrice = listPrice;
 	}
 
 	public Double getRegularPrice() {

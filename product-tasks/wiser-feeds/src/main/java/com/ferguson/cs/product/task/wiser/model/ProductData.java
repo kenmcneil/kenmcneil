@@ -1,9 +1,10 @@
 package com.ferguson.cs.product.task.wiser.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 4L;
 
 	private String productId;
 	private Integer compositeId;
@@ -24,6 +25,13 @@ public class ProductData implements Serializable {
 	private Boolean isPromo;
 	private Double price;
 	private Double cost;
+	private String application;
+	private Boolean isLtl;
+	private Integer saleId;
+	private Date dateAdded;
+	private String hctCategory;
+	private String conversionCategory;
+	private Double listPrice;
 
 	public String getProductId() {
 		return productId;
@@ -175,5 +183,61 @@ public class ProductData implements Serializable {
 
 	public void setCost(Double cost) {
 		this.cost = cost;
+	}
+
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	public Boolean getLtl() {
+		return isLtl;
+	}
+
+	public void setLtl(Boolean ltl) {
+		isLtl = ltl;
+	}
+
+	public Integer getSaleId() {
+		return saleId;
+	}
+
+	public void setSaleId(Integer saleId) {
+		this.saleId = saleId;
+	}
+
+	public Date getDateAdded() {
+		return dateAdded;
+	}
+
+	public void setDateAdded(Date dateAdded) {
+		this.dateAdded = dateAdded;
+	}
+
+	public String getHctCategory() {
+		return hctCategory;
+	}
+
+	public void setHctCategory(String hctCategory) {
+		this.hctCategory = hctCategory;
+	}
+
+	public String getConversionCategory() {
+		return conversionCategory;
+	}
+
+	public void setConversionCategory(String conversionCategory) {
+		this.conversionCategory = conversionCategory;
+	}
+
+	public Double getListPrice() {
+		return listPrice;
+	}
+
+	public void setListPrice(Double listPrice) {
+		this.listPrice = listPrice;
 	}
 }

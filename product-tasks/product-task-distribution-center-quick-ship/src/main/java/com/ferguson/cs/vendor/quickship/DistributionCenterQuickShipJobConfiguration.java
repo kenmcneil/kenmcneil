@@ -93,7 +93,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	@StepScope
 	public ItemWriter<? super List<DistributionCenterProductQuickShip>> distributionCenterProductQuickShipItemWriter() {
-		return new DistributionCenterProductQuickShipItemWriter(vendorService);
+		return new DistributionCenterProductQuickShipItemWriter(vendorService, productService);
 	}
 
 	@Bean
