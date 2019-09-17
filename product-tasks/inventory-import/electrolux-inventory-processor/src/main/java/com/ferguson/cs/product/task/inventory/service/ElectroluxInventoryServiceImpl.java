@@ -100,7 +100,6 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 									.getVendorUid().toString(), response.getAvailableQuantity().toString()};
 
 							writer.writeNext(row);
-							break;
 						}
 					}
 				}
