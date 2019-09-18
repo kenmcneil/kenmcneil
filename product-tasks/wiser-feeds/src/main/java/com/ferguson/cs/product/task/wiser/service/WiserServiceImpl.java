@@ -12,8 +12,8 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ferguson.cs.product.task.wiser.dao.reporter.WiserDao;
 import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationDao;
+import com.ferguson.cs.product.task.wiser.dao.reporter.WiserDao;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
