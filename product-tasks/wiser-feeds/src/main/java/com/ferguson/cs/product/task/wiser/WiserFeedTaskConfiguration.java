@@ -56,7 +56,7 @@ import com.ferguson.cs.utilities.DateUtils;
 @Configuration
 public class WiserFeedTaskConfiguration {
 	private WiserService wiserService;
-	private SqlSessionFactory coreSqlSessionFactory;
+	private SqlSessionFactory reporterSqlSessionFactory;
 	private SqlSessionFactory integrationSqlSessionFactory;
 	private SqlSessionFactory batchSqlSessionFactory;
 	private WiserFeedSettings wiserFeedSettings;
@@ -69,9 +69,9 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Autowired
-	@Qualifier("coreSqlSessionFactory")
-	public void setCoreSqlSessionFactory(SqlSessionFactory coreSqlSessionFactory) {
-		this.coreSqlSessionFactory = coreSqlSessionFactory;
+	@Qualifier("reporterSqlSessionFactory")
+	public void setReporterSqlSessionFactory(SqlSessionFactory reporterSqlSessionFactory) {
+		this.reporterSqlSessionFactory = reporterSqlSessionFactory;
 	}
 
 	@Autowired
@@ -101,7 +101,7 @@ public class WiserFeedTaskConfiguration {
 	public MyBatisCursorItemReader<ProductData> productDataReader() {
 		MyBatisCursorItemReader<ProductData> productDataReader = new MyBatisCursorItemReader<>();
 		productDataReader.setQueryId("getProductData");
-		productDataReader.setSqlSessionFactory(coreSqlSessionFactory);
+		productDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return productDataReader;
 	}
 
@@ -151,7 +151,7 @@ public class WiserFeedTaskConfiguration {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("date",date);
 		wiserPerformanceDataReader.setParameterValues(parameters);
-		wiserPerformanceDataReader.setSqlSessionFactory(coreSqlSessionFactory);
+		wiserPerformanceDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return wiserPerformanceDataReader;
 	}
 
@@ -171,7 +171,7 @@ public class WiserFeedTaskConfiguration {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("date", date);
 		wiserPriceDataReader.setParameterValues(parameters);
-		wiserPriceDataReader.setSqlSessionFactory(coreSqlSessionFactory);
+		wiserPriceDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return wiserPriceDataReader;
 	}
 
@@ -193,6 +193,7 @@ public class WiserFeedTaskConfiguration {
 		MyBatisBatchItemWriter<ProductDataHash> writer = new MyBatisBatchItemWriter<>();
 		writer.setSqlSessionFactory(batchSqlSessionFactory);
 		writer.setStatementId("upsertProductDataHash");
+		writer.setAssertUpdates(false);
 		return writer;
 	}
 

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.ferguson.cs.product.task.wiser.dao.core.WiserMapper">
+<mapper namespace="com.ferguson.cs.product.task.wiser.dao.reporter.WiserMapper">
 	<resultMap id="productDataMap" type="ProductData">
 		<result column="productId" property="productId"/>
 		<result column="compositeId" property="compositeId"/>

@@ -33,7 +33,7 @@ import com.jcraft.jsch.ChannelSftp;
 @Configuration
 @IntegrationComponentScan
 public class WiserFeedConfiguration {
-	protected static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.core";
+	protected static final String REPORTER_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.reporter";
 	public static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.integration";
 	protected static final String BATCH_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.batch";
 	private static final String BASE_ALIAS_PAKCAGE = "com.ferguson.cs.product.task.wiser.model";
@@ -113,7 +113,7 @@ public class WiserFeedConfiguration {
 	@Configuration
 	public static class BatchDataSourceConfiguration {
 		//--------------------------------------------------------------------------------------------------
-		// Setup the core data source and then wire up a mybatis sql map. We have to alias the data source
+		// Setup the reporter data source and then wire up a mybatis sql map. We have to alias the data source
 		// so that the task batch auto configuration works properly.
 		//--------------------------------------------------------------------------------------------------
 		@Bean
@@ -139,32 +139,32 @@ public class WiserFeedConfiguration {
 		}
 	}
 
-	@MapperScan(basePackages= WiserFeedConfiguration.CORE_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "coreSqlSessionFactory")
+	@MapperScan(basePackages= WiserFeedConfiguration.REPORTER_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "reporterSqlSessionFactory")
 	@Configuration
-	public static class CoreDataSourceConfiguration {
+	public static class ReporterDataSourceConfiguration {
 		//--------------------------------------------------------------------------------------------------
-		// Setup the core data source and then wire up a mybatis sql map. We have to alias the data source
+		// Setup the reporter data source and then wire up a mybatis sql map. We have to alias the data source
 		// so that the task batch auto configuration works properly.
 		//--------------------------------------------------------------------------------------------------
 		@Bean
-		@ConfigurationProperties(prefix = "datasource.core")
+		@ConfigurationProperties(prefix = "datasource.reporter")
 		@Primary
-		public DataSourceProperties coreDataSourceProperties() {
+		public DataSourceProperties reporterDataSourceProperties() {
 			return new DataSourceProperties();
 		}
 
 		@Bean
-		@ConfigurationProperties(prefix = "datasource.core")
+		@ConfigurationProperties(prefix = "datasource.reporter")
 		@Primary
-		public DataSource coreDataSource() {
-			return coreDataSourceProperties().initializeDataSourceBuilder().build();
+		public DataSource reporterDataSource() {
+			return reporterDataSourceProperties().initializeDataSourceBuilder().build();
 		}
 
 		@Bean
 		@Primary
-		public SqlSessionFactory coreSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
+		public SqlSessionFactory reporterSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
-			factory.setDataSource(coreDataSource());
+			factory.setDataSource(reporterDataSource());
 			factory.setVfs(SpringBootVFS.class);
 			factory.setTypeAliasesPackage(BASE_ALIAS_PAKCAGE);
 			factory.setTypeHandlersPackage(typeHandlerPackage);
