@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
 import java.io.File;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.slf4j.Logger;

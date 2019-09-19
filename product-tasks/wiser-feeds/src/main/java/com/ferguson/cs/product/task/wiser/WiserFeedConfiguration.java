@@ -96,7 +96,7 @@ public class WiserFeedConfiguration {
 	@ServiceActivator(inputChannel = WISER_DOWNLOAD_SFTP_CHANNEL)
 	public MessageHandler wiserDownloadSftpHandler() {
 		SftpOutboundGateway sftpOutboundGateway = new SftpOutboundGateway(sftpSessionFactory(),"get","payload.remoteFilePath");
-		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getFileDownloadLocation()));
+		sftpOutboundGateway.setLocalDirectory(new File(wiserFeedSettings.getTemporaryLocalFilePath()));
 		sftpOutboundGateway.setLocalFilenameGeneratorExpressionString("payload.localFilePath");
 		sftpOutboundGateway.setAutoCreateLocalDirectory(true);
 		sftpOutboundGateway.setFileExistsMode(FileExistsMode.REPLACE);

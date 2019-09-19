@@ -12,16 +12,23 @@ import java.util.Set;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
+import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,8 +70,9 @@ public class WiserFeedTaskConfiguration {
 	private SqlSessionFactory batchSqlSessionFactory;
 	private WiserFeedSettings wiserFeedSettings;
 	private WiserFeedConfiguration.WiserGateway wiserGateway;
-
 	private TaskBatchJobFactory taskBatchJobFactory;
+
+	private static final Logger LOG = LoggerFactory.getLogger(WiserFeedTaskConfiguration.class);
 
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
@@ -151,13 +159,13 @@ public class WiserFeedTaskConfiguration {
 	@StepScope
 	public MyBatisCursorItemReader<WiserPerformanceData> wiserPerformanceDataReader(@Value("#{jobExecutionContext['jobName']}") String jobName) {
 		Date date = wiserService.getLastRanDate(jobName);
-		if(date == null) {
-			date = DateUtils.addDaysToDate(new Date(),-1);
+		if (date == null) {
+			date = DateUtils.addDaysToDate(new Date(), -1);
 		}
 		MyBatisCursorItemReader<WiserPerformanceData> wiserPerformanceDataReader = new MyBatisCursorItemReader<>();
 		wiserPerformanceDataReader.setQueryId("getWiserPerformanceData");
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("date",date);
+		parameters.put("date", date);
 		wiserPerformanceDataReader.setParameterValues(parameters);
 		wiserPerformanceDataReader.setSqlSessionFactory(coreSqlSessionFactory);
 		return wiserPerformanceDataReader;
@@ -257,7 +265,7 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	DownloadFileTasklet threeSixtyPiDownloadFileTasklet() {
-		return new DownloadFileTasklet(f->{
+		return new DownloadFileTasklet(f -> {
 			File file = wiserGateway.receive360piFileSftp(f);
 			wiserGateway.deleteWiserFileSftp(f.getRemoteFilePath());
 			return file;
@@ -384,7 +392,8 @@ public class WiserFeedTaskConfiguration {
 				"effectiveDate",
 				"regularPrice"});
 
-		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
+		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings
+				.getTemporaryLocalFilePath() + fileName, extractor);
 
 		return new FlatteningItemStreamWriter<>(innerWriter);
 	}
@@ -392,7 +401,7 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	ItemStreamWriter<WiserPerformanceData> wiserCsvPerformanceDataItemWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		String[] header = new String[] { "sku",
+		String[] header = new String[]{"sku",
 				"transaction_date",
 				"gross_units",
 				"gross_orders",
@@ -402,7 +411,7 @@ public class WiserFeedTaskConfiguration {
 				"marketplace_id"};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
-		extractor.setNames(new String[] {"sku",
+		extractor.setNames(new String[]{"sku",
 				"transactionDate",
 				"grossUnits",
 				"grossOrders",
@@ -411,8 +420,37 @@ public class WiserFeedTaskConfiguration {
 				"ncr",
 				"marketplaceId"});
 
-		return getFlatFileItemWriter(header,wiserFeedSettings.getTemporaryLocalFilePath() + fileName,extractor);
+		return getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 	}
+
+	@Bean
+	@StepScope
+	public ItemStreamReader<String> wiserRecommendationFileReader(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		return new FlatFileItemReaderBuilder<String>().resource(new FileSystemResource(wiserFeedSettings.getTemporaryLocalFilePath() + fileName))
+				.linesToSkip(1).name("wiserRecommendationFileReader").lineMapper(new PassThroughLineMapper()).build();
+
+	}
+
+	@Bean
+	@StepScope
+	ItemStreamWriter<String> wiserRecommendationFileWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		String[] header = new String[]{"UniqueId", "PricebookId", "Cost"};
+
+		FlatFileItemWriter<?> fileItemWriter = new FlatFileItemWriter<>();
+
+		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", header)));
+
+		fileItemWriter.setResource(new FileSystemResource(wiserFeedSettings.getFileDownloadLocation() + fileName));
+
+		return new FlatFileItemWriterBuilder<String>()
+				.headerCallback((writer -> writer.write(String.join(",", header))))
+				.resource(new FileSystemResource(wiserFeedSettings.getFileDownloadLocation() + fileName))
+				.name("wiserRecommendationFileWriter")
+				.lineAggregator(new PassThroughLineAggregator<>()).build();
+
+
+	}
+
 
 	@Bean
 	@JobScope
@@ -560,10 +598,11 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("recommendationDataDownloadJob")
-	public Job recommendationDataDownloadJob(Step uploadCost) {
+	public Job recommendationDataDownloadJob(Step uploadCost,Step changeRecommendationFeedHeader) {
 		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
 				.start(downloadCsv)
+				.next(changeRecommendationFeedHeader)
 				.next(uploadCost)
 				.listener(wiserRecommendationFeedListener())
 				.build();
@@ -704,6 +743,17 @@ public class WiserFeedTaskConfiguration {
 	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("uploadCsv")
 				.tasklet(uploadFileTasklet)
+				.build();
+	}
+
+	@Bean
+	@Qualifier("changeRecommendationFeedHeader")
+	public Step changeRecommendationFeedHeader(ItemStreamReader<String> wiserRecommendationFileReader,ItemStreamWriter<String> wiserRecommendationFileWriter) {
+		return taskBatchJobFactory.getStepBuilder("changeRecommendationFeedHeader")
+				.<String,String>chunk((1000))
+				.faultTolerant()
+				.reader(wiserRecommendationFileReader)
+				.writer(wiserRecommendationFileWriter)
 				.build();
 	}
 

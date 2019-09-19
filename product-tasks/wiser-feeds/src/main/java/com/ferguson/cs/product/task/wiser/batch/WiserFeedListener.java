@@ -1,8 +1,10 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +66,7 @@ public class WiserFeedListener implements JobExecutionListener {
 			case RECOMMENDATION_FEED:
 				filePrefix = "Recommendation_data_";
 				dateString = DateUtils.dateToString(new Date(),dateTimeFormatter);
-				remoteFilePath = wiserFeedSettings.getFtpOutputFolder() + "TEST_Wiser_output_" + dateString + ".csv";
+				remoteFilePath = wiserFeedSettings.getFtpOutputFolder() + "Wiser_output_" + dateString + ".csv";
 				jobExecution.getExecutionContext().putString("remoteDownloadFilePath",remoteFilePath);
 				break;
 			default:
@@ -81,6 +83,9 @@ public class WiserFeedListener implements JobExecutionListener {
 
 	@Override
 	public void afterJob(JobExecution jobExecution) {
-		//implementation not needed
+		if(wiserFeedType == WiserFeedType.RECOMMENDATION_FEED) {
+			File file = new File(wiserFeedSettings.getTemporaryLocalFilePath() + jobExecution.getExecutionContext().getString("fileName"));
+			FileUtils.deleteQuietly(file);
+		}
 	}
 }

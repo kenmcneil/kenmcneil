@@ -11,7 +11,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 import com.ferguson.cs.product.task.wiser.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.wiser.model.FileType;
 import com.ferguson.cs.utilities.DateUtils;
@@ -19,18 +18,12 @@ import com.ferguson.cs.utilities.DateUtils;
 public class UploadCostTasklet implements Tasklet {
 
 	private BuildWebServicesFeignClient client;
-	private WiserFeedSettings wiserFeedSettings;
 	private static final Integer UPLOAD_USER_ID = 835;
 	private static final Logger LOG = LoggerFactory.getLogger(UploadCostTasklet.class);
 
 	@Autowired
 	public void setClient(BuildWebServicesFeignClient client) {
 		this.client = client;
-	}
-
-	@Autowired
-	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
-		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
 	@Override
