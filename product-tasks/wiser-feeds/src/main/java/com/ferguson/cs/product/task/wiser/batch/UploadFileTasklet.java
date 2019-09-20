@@ -28,7 +28,7 @@ public class UploadFileTasklet implements Tasklet {
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		if(filePath != null) {
-//			uploadFile(filePath);
+			uploadFile(filePath);
 		}
 		return null;
 	}
