@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.wiser;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,16 +12,23 @@ import java.util.Set;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
+import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,6 +44,7 @@ import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
 import com.ferguson.cs.product.task.wiser.batch.TruncateProductDataHashTasklet;
+import com.ferguson.cs.product.task.wiser.batch.UploadCostTasklet;
 import com.ferguson.cs.product.task.wiser.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.wiser.batch.WiserFeedListener;
 import com.ferguson.cs.product.task.wiser.batch.WiserPerformanceDataProcessor;
@@ -60,8 +69,10 @@ public class WiserFeedTaskConfiguration {
 	private SqlSessionFactory integrationSqlSessionFactory;
 	private SqlSessionFactory batchSqlSessionFactory;
 	private WiserFeedSettings wiserFeedSettings;
-
+	private WiserFeedConfiguration.WiserGateway wiserGateway;
 	private TaskBatchJobFactory taskBatchJobFactory;
+
+	private static final Logger LOG = LoggerFactory.getLogger(WiserFeedTaskConfiguration.class);
 
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
@@ -94,6 +105,11 @@ public class WiserFeedTaskConfiguration {
 	@Autowired
 	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
 		this.wiserFeedSettings = wiserFeedSettings;
+	}
+
+	@Autowired
+	public void setWiserGateway(WiserFeedConfiguration.WiserGateway wiserGateway) {
+		this.wiserGateway = wiserGateway;
 	}
 
 	@Bean
@@ -143,13 +159,13 @@ public class WiserFeedTaskConfiguration {
 	@StepScope
 	public MyBatisCursorItemReader<WiserPerformanceData> wiserPerformanceDataReader(@Value("#{jobExecutionContext['jobName']}") String jobName) {
 		Date date = wiserService.getLastRanDate(jobName);
-		if(date == null) {
-			date = DateUtils.addDaysToDate(new Date(),-1);
+		if (date == null) {
+			date = DateUtils.addDaysToDate(new Date(), -1);
 		}
 		MyBatisCursorItemReader<WiserPerformanceData> wiserPerformanceDataReader = new MyBatisCursorItemReader<>();
 		wiserPerformanceDataReader.setQueryId("getWiserPerformanceData");
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("date",date);
+		parameters.put("date", date);
 		wiserPerformanceDataReader.setParameterValues(parameters);
 		wiserPerformanceDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return wiserPerformanceDataReader;
@@ -243,14 +259,24 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		return new UploadFileTasklet(wiserFeedSettings.getLocalFilePath() + fileName);
+		return new UploadFileTasklet(wiserFeedSettings.getTemporaryLocalFilePath() + fileName);
 	}
 
 
 	@Bean
 	@StepScope
-	DownloadFileTasklet downloadFileTasklet() {
-		return new DownloadFileTasklet();
+	DownloadFileTasklet threeSixtyPiDownloadFileTasklet() {
+		return new DownloadFileTasklet(f -> {
+			File file = wiserGateway.receive360piFileSftp(f);
+			wiserGateway.deleteWiserFileSftp(f.getRemoteFilePath());
+			return file;
+		});
+	}
+
+	@Bean
+	@StepScope
+	DownloadFileTasklet wiserDownloadFileTasklet() {
+		return new DownloadFileTasklet(f -> wiserGateway.receiveWiserFileSftp(f));
 	}
 
 	@Bean
@@ -263,6 +289,12 @@ public class WiserFeedTaskConfiguration {
 	@StepScope
 	PopulateProductMetadataTasklet populateProductRevenueCategorizationMapTasklet() {
 		return new PopulateProductMetadataTasklet();
+	}
+
+	@Bean
+	@StepScope
+	UploadCostTasklet uploadCostTasklet() {
+		return new UploadCostTasklet();
 	}
 
 	@Bean
@@ -344,7 +376,7 @@ public class WiserFeedTaskConfiguration {
 				"dateAdded"
 
 		});
-		return getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
+		return getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 	}
 
 	@Bean
@@ -361,7 +393,8 @@ public class WiserFeedTaskConfiguration {
 				"effectiveDate",
 				"regularPrice"});
 
-		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings.getLocalFilePath() + fileName, extractor);
+		ItemStreamWriter<WiserPriceData> innerWriter = getFlatFileItemWriter(header, wiserFeedSettings
+				.getTemporaryLocalFilePath() + fileName, extractor);
 
 		return new FlatteningItemStreamWriter<>(innerWriter);
 	}
@@ -369,7 +402,7 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	ItemStreamWriter<WiserPerformanceData> wiserCsvPerformanceDataItemWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		String[] header = new String[] { "sku",
+		String[] header = new String[]{"sku",
 				"transaction_date",
 				"gross_units",
 				"gross_orders",
@@ -379,7 +412,7 @@ public class WiserFeedTaskConfiguration {
 				"marketplace_id"};
 
 		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
-		extractor.setNames(new String[] {"sku",
+		extractor.setNames(new String[]{"sku",
 				"transactionDate",
 				"grossUnits",
 				"grossOrders",
@@ -388,8 +421,37 @@ public class WiserFeedTaskConfiguration {
 				"ncr",
 				"marketplaceId"});
 
-		return getFlatFileItemWriter(header,wiserFeedSettings.getLocalFilePath() + fileName,extractor);
+		return getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 	}
+
+	@Bean
+	@StepScope
+	public ItemStreamReader<String> wiserRecommendationFileReader(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		return new FlatFileItemReaderBuilder<String>().resource(new FileSystemResource(wiserFeedSettings.getTemporaryLocalFilePath() + fileName))
+				.linesToSkip(1).name("wiserRecommendationFileReader").lineMapper(new PassThroughLineMapper()).build();
+
+	}
+
+	@Bean
+	@StepScope
+	ItemStreamWriter<String> wiserRecommendationFileWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		String[] header = new String[]{"UniqueId", "PricebookId", "Cost"};
+
+		FlatFileItemWriter<?> fileItemWriter = new FlatFileItemWriter<>();
+
+		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", header)));
+
+		fileItemWriter.setResource(new FileSystemResource(wiserFeedSettings.getFileDownloadLocation() + fileName));
+
+		return new FlatFileItemWriterBuilder<String>()
+				.headerCallback((writer -> writer.write(String.join(",", header))))
+				.resource(new FileSystemResource(wiserFeedSettings.getFileDownloadLocation() + fileName))
+				.name("wiserRecommendationFileWriter")
+				.lineAggregator(new PassThroughLineAggregator<>()).build();
+
+
+	}
+
 
 	@Bean
 	@JobScope
@@ -413,6 +475,12 @@ public class WiserFeedTaskConfiguration {
 	@JobScope
 	public WiserFeedListener wiserPerformanceFeedListener() {
 		return new WiserFeedListener(WiserFeedType.PERFORMANCE_FEED);
+	}
+
+	@Bean
+	@JobScope
+	public WiserFeedListener wiserRecommendationFeedListener() {
+		return new WiserFeedListener(WiserFeedType.RECOMMENDATION_FEED);
 	}
 
 	/**
@@ -510,7 +578,8 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("competitorDataFeedJob")
-	public Job competitorDataFeedJob(Step downloadCsv, Step uploadCsv) {
+	public Job competitorDataFeedJob(Step uploadCsv) {
+		Step downloadCsv = downloadCsv(threeSixtyPiDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("competitorDataFeedJob")
 				.start(downloadCsv)
 				.next(uploadCsv)
@@ -525,6 +594,18 @@ public class WiserFeedTaskConfiguration {
 				.start(writeWiserPerformanceData)
 				.next(uploadCsv)
 				.listener(wiserPerformanceFeedListener())
+				.build();
+	}
+
+	@Bean
+	@Qualifier("recommendationDataDownloadJob")
+	public Job recommendationDataDownloadJob(Step uploadCost,Step changeRecommendationFeedHeader) {
+		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
+		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
+				.start(downloadCsv)
+				.next(changeRecommendationFeedHeader)
+				.next(uploadCost)
+				.listener(wiserRecommendationFeedListener())
 				.build();
 	}
 
@@ -667,7 +748,24 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("downloadCsv")
+	@Qualifier("changeRecommendationFeedHeader")
+	public Step changeRecommendationFeedHeader(ItemStreamReader<String> wiserRecommendationFileReader,ItemStreamWriter<String> wiserRecommendationFileWriter) {
+		return taskBatchJobFactory.getStepBuilder("changeRecommendationFeedHeader")
+				.<String,String>chunk((1000))
+				.faultTolerant()
+				.reader(wiserRecommendationFileReader)
+				.writer(wiserRecommendationFileWriter)
+				.build();
+	}
+
+	@Bean
+	@Qualifier("uploadCost")
+	public Step uploadCost(UploadCostTasklet uploadCostTasklet) {
+		return taskBatchJobFactory.getStepBuilder("uploadCost")
+				.tasklet(uploadCostTasklet)
+				.build();
+	}
+
 	public Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("downloadCsv")
 				.tasklet(downloadFileTasklet)

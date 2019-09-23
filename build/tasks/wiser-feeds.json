@@ -52,5 +52,11 @@
     "name" : "wiser-performance-data-upload-job",
     "jobName" : "performanceDataUploadJob",
     "heapSize" : "512m"
+  },
+  {
+    "appName" : "wiser-feeds",
+    "name" : "wiser-recommendation-data-download-job",
+    "jobName" : "recommendationDataDownloadJob",
+    "heapSize" : "512m"
   }
 ]

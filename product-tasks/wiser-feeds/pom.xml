@@ -66,6 +66,14 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-starter-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-feign-client</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
