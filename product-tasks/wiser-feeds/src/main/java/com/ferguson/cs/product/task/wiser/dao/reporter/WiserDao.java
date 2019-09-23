@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.task.wiser.dao.core;
+package com.ferguson.cs.product.task.wiser.dao.reporter;
 
 import java.util.Map;
 
