@@ -3,7 +3,9 @@ package com.ferguson.cs.model.taxonomy;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.ferguson.cs.model.PersistentDocument;
+import org.springframework.data.annotation.Id;
+
+import com.ferguson.cs.model.Auditable;
 import com.ferguson.cs.model.product.ProductReference;
 
 import lombok.Builder;
@@ -24,14 +26,15 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Category implements PersistentDocument {
+public class Category implements Auditable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Unique persistence ID assigned to the category
 	 */
-	private String id;
+	@Id
+	private Long id;
 
 	/**
 	 * The taxonomy to which this category belongs.
@@ -61,7 +64,7 @@ public class Category implements PersistentDocument {
 	/**
 	 * A list of traits that are common for products that are assigned to this category.
 	 */
-	private List<CategoryTrait> traitList;
+	private List<CategoryAttribute> traitList;
 
 	/**
 	 * A list of subcategories belonging to this category.

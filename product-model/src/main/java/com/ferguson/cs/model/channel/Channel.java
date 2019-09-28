@@ -1,11 +1,11 @@
 package com.ferguson.cs.model.channel;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.annotation.Id;
 
-import com.ferguson.cs.model.PersistentDocument;
+import com.ferguson.cs.model.Auditable;
 import com.ferguson.cs.model.taxonomy.TaxonomyReference;
 
 import lombok.Builder;
@@ -39,19 +39,19 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Channel  implements PersistentDocument {
+public class Channel  implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Unique ID of the channel.
 	 */
+	@Id
 	private String id;
 
 	/**
 	 * Unique business key for the channel.
 	 */
-	@Indexed(unique=true)
 	private String code;
 
 	/**
@@ -75,14 +75,10 @@ public class Channel  implements PersistentDocument {
 	private Boolean isActive;
 
 	/**
-	 * A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories. A product category
-	 * is a grouping of products and can, optionally, have a set of sub-categories that can be used to drill-down into more-specific groupings. A
-	 * category also has a set of "traits" that define what types of products can be added to that category.
+	 * The channel's taxonomy dictates which products are associated with the channel and the classification system under which those products are organized.
 	 * <p>
-	 *
-	 * A channel allows more than one taxonomy to be assigned to it. This allows for one taxonomy that can be u
 	 */
-	private List<TaxonomyReference> taxonomyReferenceList;
+	private TaxonomyReference taxonomy;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;

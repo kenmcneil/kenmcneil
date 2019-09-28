@@ -1,13 +1,16 @@
 package com.ferguson.cs.model.attribute;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
-import com.ferguson.cs.model.PersistentDocument;
+import com.ferguson.cs.model.Auditable;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * A unit of measure is standard unit that can be applied to a numerical attribute definition.
@@ -20,21 +23,22 @@ import lombok.Data;
  *
  * @author tyler.vangorder
  */
-@Data
-@Builder
-public class UnitOfMeasure implements PersistentDocument {
+@ToString
+@Setter
+@Getter
+public class UnitOfMeasure implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Unique persistence ID.
 	 */
-	private String id;
+	@Id
+	private Integer id;
 
 	/**
 	 * Unique business key.
 	 */
-	@Indexed(unique=true)
 	private String code;
 
 	/**
@@ -47,8 +51,9 @@ public class UnitOfMeasure implements PersistentDocument {
 	 */
 	private String description;
 
-	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
+	
+	@Version
 	private Long version;
 }

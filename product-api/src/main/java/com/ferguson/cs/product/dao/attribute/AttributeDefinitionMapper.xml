@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.ferguson.cs.product.dao.attribute.AttributeDefinitionMapper">
+
+	<resultMap id="AttributeDefinitionValueResultMap"
+		type="com.ferguson.cs.model.attribute.AttributeDefinitionValue">
+		<id column="enumeratedValueId" property="id" />
+		<result column="enumeratedValue" property="value" />
+	</resultMap>
+
+	<resultMap id="UnitOfMeasureRefResultMap"
+		type="com.ferguson.cs.model.attribute.UnitOfMeasureReference">
+		<id column="uom_id" jdbcType="INTEGER" property="id" />
+		<result column="uom_code" jdbcType="VARCHAR" property="code" />
+		<result column="uom_name" jdbcType="VARCHAR" property="name" />
+		<result column="uom_description" jdbcType="VARCHAR"
+			property="description" />
+	</resultMap>
+	<resultMap id="attributeDefinitionResultMap"
+		type="com.ferguson.cs.model.attribute.AttributeDefinition">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="code" jdbcType="VARCHAR" property="code" />
+		<result column="datatype" jdbcType="VARCHAR"
+			property="datatype" />
+		<result column="description" jdbcType="VARCHAR"
+			property="description" />
+		<result column="created_timestamp" jdbcType="TIMESTAMP"
+			property="createdTimestamp" />
+		<result column="last_modified_timestamp" jdbcType="TIMESTAMP"
+			property="lastModifiedTimestamp" />
+		<result column="version" jdbcType="SMALLINT" property="version" />
+		<collection property="enumeratedValueList"
+			resultMap="AttributeDefinitionValueResultMap" />
+	</resultMap>
+
+	<select id="findAttributeDefinitionList" resultMap="attributeDefinitionResultMap">
+		select
+			attr.id as id,
+			attr.code as code,
+			attr.datatype as datatype,
+			attr.description as description,
+			attr.created_timestamp as created_timestamp,
+			attr.last_modified_timestamp as last_modified_timestamp,
+			attr.version as version,
+			uom.id as uom_id,
+			uom.code as uom_code,
+			uom.name as uom_name,
+			uom.description as uom_description,
+			value.id as enumeratedValueId,
+			value.value as enumeratedValue
+		from
+			attribute_definition attr
+			left outer join unit_of_measure uom on attr.unit_of_measure_id = uom.id
+			left outer join attribute_definition_value value on value.attribute_definition_id = attr.id
+		<where>
+			<if test="attributeDefinitionId != null">
+				attr.id = #{attributeDefinitionId}
+			</if>
+			<if test="attributeDefinitionCode != null">
+				and attr.code = #{attributeDefinitionCode}
+			</if>
+			<if test="unitOfMeasureCode != null">
+				and uom.code = #{unitOfMeasureCode}
+			</if>
+		</where>
+	</select>
+
+
+  <delete id="deleteAttributeDefinition">
+    delete from attribute_definition where id = #{id} and version = #{version}
+  </delete>
+  <insert id="insertAttributeDefinition" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+	insert into attribute_definition (
+		code,
+		datatype,
+		description,
+		unit_of_measure_id,
+		minimum_value,
+		maximum_value,
+		created_timestamp,
+		last_modified_timestamp,
+		version
+	) values (
+		#{code},
+		#{datatype},
+		#{description},
+		#{unitOfMeasure.id},
+		#{minimumValue},
+		#{maximumValue},
+		#{createdTimestamp},
+		#{lastModifiedTimestamp},
+		1
+	)
+  </insert>
+  <update id="updateAttributeDefinition">
+	update
+		attribute_definition
+	set
+		code = #{code},
+		datatype = #{datatype},
+		description = #{description},
+		unit_of_measure_id = #{unitOfMeasure.id},
+		minimum_value = #{minimumValue},
+		maximum_value = #{maximumValue},
+		last_modified_timestamp = #{lastModifiedTimestamp},
+		version = version + 1
+	where id = #{id} and version = #{version}	 
+  </update>
+	
+	<insert id="insertAttributeDefinitionValue" useGeneratedKeys="true" keyProperty="attributeValue.id" keyColumn="id">
+		insert into attribute_definition_value (
+			attribute_definition_id,
+			value
+		) values (
+			#{attributeDefinitionId},
+			#{attributeValue.value}
+		)
+	</insert>
+	<update id="updateAttributeDefinitionValue">
+		update
+			attribute_definition_value
+		set
+			attribute_definition_id = #{attributeDefinitionId},
+			value = #{attributeValue.value}
+		where
+			id = #{attributeValue.id}
+	</update>
+	<delete id="deleteAttributeDefinitionValues">
+		delete	from attribute_definition_value
+		where  attribute_definition_id = #{attributeDefinitionId}
+		<if test="attributeValueList != null and attributeValueList.size() > 0">
+		and id not in (
+		<foreach collection="attributeValueList" item="value" separator=",">
+		#{value.id}
+		</foreach>
+		)
+		</if> 
+	</delete>
+
+	<resultMap id="UnitOfMeasureResultMap" type="com.ferguson.cs.model.attribute.UnitOfMeasure">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="code" jdbcType="VARCHAR" property="code" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+		<result column="version" jdbcType="SMALLINT" property="version" />
+	</resultMap>
+
+	<select id="findUnitOfMeasureList" resultMap="UnitOfMeasureResultMap">
+		select
+			uom.id uom_id,
+			uom.code uom_code,
+			uom.name uom_name,
+			uom.description uom_description,
+			uom.created_timestamp,
+			uom.last_modified_timestamp,
+			uom.version
+		from
+			unit_of_measure uom
+		<where>
+			<if test="id != null">
+				uom.id = #{id}
+			</if>
+			<if test="code != null">
+				and uom.code = #{code}
+			</if>
+		</where>
+	</select>
+
+	<insert id="insertUnitOfMeasure" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into unit_of_measure (
+			code,
+			name,
+			description,
+			created_timestamp,
+			last_modified_timestamp,
+			version
+		) values (
+			#{code},
+			#{name},
+			#{description},
+			#{createdTimestamp},
+			#{lastModifiedTimestamp},
+			1
+		)
+	</insert>
+
+	<update id="updateUnitOfMeasure">
+		update unit_of_measure set
+			code = #{code},
+			name = #{name},
+			description = #{description},
+			last_modified_timestamp = #{lastModifiedTimestamp},
+			version = version + 1
+		where
+			id = #{id} and version = #{version}
+	</update>
+	<delete id="deleteUnitOfMeasure">
+		delete from unit_of_measure where id = #{id} and version = #{version}
+	</delete>
+
+
+</mapper>

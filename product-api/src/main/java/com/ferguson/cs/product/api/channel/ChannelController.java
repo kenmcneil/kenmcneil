@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ferguson.cs.model.channel.Channel;
 import com.ferguson.cs.model.product.Product;
-import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.product.api.lib.OptionalResourceHelper;
 
 @RestController
@@ -42,13 +41,6 @@ public class ChannelController {
 		Channel channel = getChannelByCode(code);
 		channelService.deleteChannel(channel);
 	}
-
-	@GetMapping(value = "/{code}/taxonomies")
-	public List<Taxonomy> getTaxonomiesByChannel(@PathVariable("code") String code) {
-		Channel channel = getChannelByCode(code);
-		return channelService.getTaxonomiesByChannel(channel);
-	}
-
 
 	@PostMapping(value = "/{code}/filterProducts")
 	public List<Product> getFilteredProductsByChannel(@PathVariable("code") String code, @RequestBody List<String> productListId) {

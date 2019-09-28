@@ -1,11 +1,8 @@
 package com.ferguson.cs.model.manufacturer;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
-
-import com.ferguson.cs.model.Auditable;
 
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +20,7 @@ import lombok.Data;
  */
 @Builder
 @Data
-public class Manufacturer implements Auditable, Serializable {
+public class ManufacturerReference implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -47,10 +44,5 @@ public class Manufacturer implements Auditable, Serializable {
 	 * Is the manufacturer active
 	 */
 	private boolean active;
-
-	//Audit Columns
-	private LocalDateTime createdTimestamp;
-	private LocalDateTime lastModifiedTimestamp;
-	private Long version;
 
 }

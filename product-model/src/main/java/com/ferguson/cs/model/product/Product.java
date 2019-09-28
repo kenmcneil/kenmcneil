@@ -3,14 +3,13 @@ package com.ferguson.cs.model.product;
 import java.io.Serializable;
 import java.util.List;
 
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.annotation.Id;
 
 import com.ferguson.cs.model.asset.DigitalResource;
-import com.ferguson.cs.model.manufacturer.Manufacturer;
+import com.ferguson.cs.model.manufacturer.ManufacturerReference;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
 /**
  * A product representations a family of closely related items called "variants" and defines all of the characteristics/attributes that are pertinent
@@ -33,7 +32,7 @@ import lombok.Value;
  * 										to enforce characteristics of products as part of a product ingest process.
  * @author tyler.vangorder
  */
-@Value
+@Data
 @Builder
 public class Product implements Serializable {
 
@@ -42,7 +41,8 @@ public class Product implements Serializable {
 	/**
 	 * Unique persistence ID.
 	 */
-	private String id;
+	@Id
+	private Long id;
 
 	/**
 	 * The product title
@@ -64,8 +64,7 @@ public class Product implements Serializable {
 	/**
 	 * The manufacture of the product.
 	 */
-	 @DBRef
-	private Manufacturer manufacturer;
+	private ManufacturerReference manufacturer;
 
 	/**
 	 * Often a manufacturer with product a family of products and associate them with a product series. Example: Kohler may have several products
@@ -91,7 +90,6 @@ public class Product implements Serializable {
 	/**
 	 * The list of uniquely, sellable items that belong to this product's family.
 	 */
-	 @Transient
 	private List<ProductVariant> variantList;
 
 	/**
