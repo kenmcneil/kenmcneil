@@ -1,13 +1,18 @@
 package com.ferguson.cs.product.api.attribute;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.model.IdCodeCriteria;
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.AttributeDefinitionCriteria;
+import com.ferguson.cs.model.attribute.AttributeDefinitionValue;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
 import com.ferguson.cs.product.dao.attribute.AttributeDataAccess;
 import com.ferguson.cs.server.common.response.exception.ResourceNotFoundException;
@@ -17,7 +22,7 @@ import com.ferguson.cs.utilities.ArgumentAssert;
 public class AttributeServiceImpl implements AttributeService {
 
 	private final AttributeDataAccess attributeDataAccess;
-	
+
 
 	public AttributeServiceImpl(AttributeDataAccess attributeDataAccess) {
 
@@ -25,7 +30,7 @@ public class AttributeServiceImpl implements AttributeService {
 	}
 
 	@Override
-	public List<UnitOfMeasure> findUnitOfMeasureList(IdCodeCriteria criteria) {
+	public List<UnitOfMeasure> findUnitsOfMeasure(IdCodeCriteria criteria) {
 		return attributeDataAccess.findUnitOfMeasureList(criteria);
 	}
 
@@ -37,7 +42,7 @@ public class AttributeServiceImpl implements AttributeService {
 			return Optional.empty();
 		} else {
 			return Optional.of(results.get(0));
-		}		
+		}
 	}
 
 	@Override
@@ -48,10 +53,10 @@ public class AttributeServiceImpl implements AttributeService {
 			return Optional.empty();
 		} else {
 			return Optional.of(results.get(0));
-		}		
+		}
 	}
-	
-	
+
+
 	@Override
 	public UnitOfMeasure saveUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
 		ArgumentAssert.notNull(unitOfMeasure, "unit of measure");
@@ -70,10 +75,10 @@ public class AttributeServiceImpl implements AttributeService {
 	}
 
 	@Override
-	public List<AttributeDefinition> findAttributeDefinitionList(AttributeDefinitionCriteria criteria) {
+	public List<AttributeDefinition> findAttributeDefinitions(AttributeDefinitionCriteria criteria) {
 		return attributeDataAccess.findAttributeDefinitionList(criteria);
 	}
-	
+
 	@Override
 	public Optional<AttributeDefinition> getAttributeDefinitionByCode(String code) {
 		ArgumentAssert.notNullOrEmpty(code, "code");
@@ -83,7 +88,7 @@ public class AttributeServiceImpl implements AttributeService {
 		} else {
 			return Optional.of(results.get(0));
 		}
-		
+
 	}
 
 	@Override
@@ -95,9 +100,9 @@ public class AttributeServiceImpl implements AttributeService {
 		} else {
 			return Optional.of(results.get(0));
 		}
-		
+
 	}
-	
+
 	@Override
 	public AttributeDefinition saveAttributeDefinition(AttributeDefinition attributeDefinition) {
 
@@ -105,9 +110,22 @@ public class AttributeServiceImpl implements AttributeService {
 		ArgumentAssert.notNullOrEmpty(attributeDefinition.getCode(), "code.");
 		ArgumentAssert.notNullOrEmpty(attributeDefinition.getDescription(), "description.");
 		ArgumentAssert.notNull(attributeDefinition.getDatatype(), "datatype.");
-		if (attributeDefinition.getUnitOfMeasure() != null && (attributeDefinition.getUnitOfMeasure().getId() != null)) {
-			if (!getUnitOfMeasureById(attributeDefinition.getUnitOfMeasure().getId()).isPresent()) {
-				throw new ResourceNotFoundException("The unit of measure associated with the attribute definition does not exist in the database.");
+		if (attributeDefinition.getEnumeratedValues() != null) {
+			Set<String> uniqueValues = new HashSet<>();
+			for (AttributeDefinitionValue value : attributeDefinition.getEnumeratedValues()) {
+				Assert.hasText(value.getValue(), "Each enumerated value of the attribute must be a unique, non-whitespace value.");
+				if (!uniqueValues.add(value.getValue())) {
+					throw new IllegalArgumentException("Each enumerated value must be unique within the context of an attribute definition. The value [" + value.getValue() + "] was found more than once.");
+				}
+				//Default the display value to the value if it is not supplied.
+				if (!StringUtils.hasText(value.getDisplayValue())) {
+					value.setDisplayValue(value.getValue());
+				}
+			}
+		}
+		if (attributeDefinition.getUnitOfMeasure() != null) {
+			if (attributeDefinition.getUnitOfMeasure().getId() == null || !getUnitOfMeasureById(attributeDefinition.getUnitOfMeasure().getId()).isPresent()) {
+				throw new ResourceNotFoundException("The unit of measure associated with the attribute definition either does not have an ID or does not exist in the database.");
 			}
 		}
 		return attributeDataAccess.saveAttributeDefinition(attributeDefinition);

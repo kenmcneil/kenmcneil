@@ -22,10 +22,9 @@ public class TaxonomyController {
 
 	@GetMapping(value = "/{code}")
 	public Taxonomy getTaxonomy(@PathVariable("code") String code) {
-		return OptionalResourceHelper.handle(taxonomyService.getTaxonomy(code), "taxonomy", code);
+		return OptionalResourceHelper.handle(taxonomyService.getTaxonomyByCode(code), "taxonomy", code);
 	}
 
-	//NOTE: It was a conscience choice to merge insert/update into a single call. The use of an insert/update is completely predicated on if the ID field is populated (update) or null (insert)
 	@PostMapping(value = "")
 	public Taxonomy saveTaxonomy(@RequestBody Taxonomy taxonomy) {
 		return taxonomyService.saveTaxonomy(taxonomy);

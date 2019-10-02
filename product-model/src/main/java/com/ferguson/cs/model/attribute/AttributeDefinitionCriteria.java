@@ -22,8 +22,15 @@ public class AttributeDefinitionCriteria {
 	private String attributeDefinitionCode;
 
 	/**
+	 * Search by the attribute's description, this field may contain wildcards.
+	 *
+	 * This value is required.
+	 */
+	private String attributeDefinitionDescription;
+
+	/**
 	 * Search for attribute definitions with a given unit of measure.
 	 */
-	private Integer unitOfMeasureCode;
+	private String unitOfMeasureCode;
 
 }

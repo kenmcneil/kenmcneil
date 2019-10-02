@@ -4,10 +4,13 @@ import java.io.Serializable;
 
 import org.springframework.data.annotation.Id;
 
+import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.AttributeDefinitionReference;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A category within a taxonomy's hierarchy can have one or more attributes associated with it. These attributes represent characteristics
@@ -16,9 +19,11 @@ import lombok.Value;
  *
  * @author tyler.vangorder
  */
-@Value
+@Data
 @Builder
-public class CategoryAttribute implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaxonomyCategoryAttribute implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -31,12 +36,20 @@ public class CategoryAttribute implements Serializable {
 	private AttributeDefinitionReference definition;
 
 	/**
-	 * This flag can be used to mark an attribute such that it is not visible to the end user.
-	 */
-	private boolean hidden;
-
-	/**
 	 * This flag indicates that any product added to the category MUST have the an attribute with the same definition.
 	 */
 	private boolean required;
+
+	public static class TaxonomyCategoryAttributeBuilder {
+
+		public TaxonomyCategoryAttributeBuilder definition(AttributeDefinitionReference definition) {
+			this.definition = definition;
+			return this;
+		}
+
+		public TaxonomyCategoryAttributeBuilder definition(AttributeDefinition definition) {
+			this.definition = new AttributeDefinitionReference(definition);
+			return this;
+		}
+	}
 }

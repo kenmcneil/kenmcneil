@@ -28,6 +28,9 @@ The following are useful links to help clarify domain terminology and design dec
 - https://www.skuvault.com/blog/difference-between-product-options-and-product-variations[Product Options and Product Variations]
 - https://www.skuvault.com/blog/product-kitting-alternates-for-ecommerce[Product Kitting]
 - https://blog.datafeedwatch.com/how-to-find-the-gtins[GTIN]
+- https://medium.com/scalia/5-classic-mistakes-of-master-product-data-management-b135138a08fd[Classic mistakes of master product data management]
+- https://medium.com/scalia/the-dos-and-don-ts-of-product-taxonomy-e8b452c5dc78 [Do's and Dont's of Product Taxonomy]
+- https://medium.com/scalia/why-scalia-decided-to-open-source-its-taxonomy-67e0cdf36d7d [Open Sourced Taxonomy]
 
 == Assertions
 
@@ -68,28 +71,31 @@ A Shirt has a size and a color and also allows a customer to select a name that 
 
 == Product Taxonomy
 
-A product taxonomy is a hierarchical classification system (also sometimes referred to as a product catalog) where products are grouped into categories/sub-categories. A taxonomy is codified and can be linked to one or more channels.
+A product taxonomy is a hierarchical classification system where products are grouped into categories/sub-categories. A taxonomy is codified and can be linked to one or more channels. A taxonomy and a product catalog are closely related, however, there are differences between the two. A product can only be placed once within a taxonomy's category tree whereas a product can be placed in multiple categories within a product catalog. A taxonomy can be used to standardized the set of attributes required for product classification and is appropriate for driving an SEO strategy. The concept of a catalog is typically used for site navigation and driven by merchandising-based analytics.
 
-[IMPORTANT]
-====
-A product taxonomy can be marked as "strict" which means that a product may only be assigned ONCE within the classification hierarchy. A "non-strict" catalog allows a product to be placed in multiple categories within the hierarchy. A "strict" taxonomy is more appropriate for defining a master catalog/SEO strategies while a "non-strict" taxonomy can be used for site navigation.
-==== 
-
-=== Category
+=== Taxonomy Category
 
 Categories are arranged in a hierarchy where the top-level category is associated with the product taxonomy. The top-level category is called the "root category" and acts as the "parent" for the entire category hierarchy.
 
-The root category contains a set of sub-categories that can be used to drill-down into more specific groupings and each sub-category can also have sub-categories. The hierarchy can be arbitrarily nested but is typically 3 or 4 levels deep.
+The root category contains a set of sub-categories that can be used to drill-down into more specific groupings and each sub-category can also have sub-categories. The hierarchy can be arbitrarily nested but referenced architectures are typically 3 to 5 levels deep.
 
 Each category may contain an optional set of products references allowing products to be grouped into that category.
 
+=== Taxonomy Category Attributes
 
-=== Category Attributes
-
-A category can have one or more "atributes" associated with it. These attributes represent characteristics common to products that can be associated (or will be added) to the category. A category attribute is linked to codified attribute definitions that can be reused by both categories and products.
+A category can have one or more "attributes" associated with it. These attributes represent characteristics common to products that can be associated (or will be added) to the category. A category attribute is linked to codified attribute definitions that can be reused by both categories and products.
 
 IMPORTANT: The use of codified attribute definitions is important as those definitions can be used in both category and product attributes. This commonality provides the ability to define search facets from the category attributes and match those to products that have the same attribute definition.
 
+IMPORTANT: "Attributes are to be re-used across the whole category tree and are stand alone. They are never too accurate, so don’t hesitate to have “Diameter of watch dial” and “Diameter of bicycle wheel”, rather than a global “Diameter”. That will strengthen your data consistency (maybe not all diameters are commonly expressed in the same unit), enhance the ease of use of people within your organization, as well as improve clarity for customers."
+
+=== Product Catalog
+
+A product catalog is the "front facing" hierarchy that drive's a storefront's navigation system. There is a strong relationship between the product taxonomy, in that the product catalog can be derived from a taxonomy, however, unlike a taxonomy, a product may be placed multiple times within the catalog. The product catalog is curated and maintained to support branding, merchandising, and promotions of products within the store. 
+
+=== Product Catalog Category
+
+A category within a the product catalog can be derived using search expressions against the product taxonomy. The category attributes are tied to the same set of attribute definitions used within the taxonomy and product domains.
 
 == Product Pricing
 
@@ -146,11 +152,11 @@ There are established tools and processes used by our "brands" and it is importa
 
 === Type, Application, and Handletype
 
-Build.com has a well-established taxonomy structure that consists of a "type", an "application", and a "handletype". These were originally defined when Build.com was primary selling faucets and over time, this classification system has been expanded to other product type. This same classification system is also used by the data team's "standards database", which provides validation rules that are applied to product data as it is imported into our systems.
+Build.com has a psuedo taxonomy structure that consists of a "type", an "application", and a "handle type". These were originally defined when Build.com was primary selling faucets and over time, this classification system has been expanded to other product type. The "TAH" structure is also mapped/linked to a classification system used by the data team's "standards database".
 
 This structure will be imported into the product domain service as a "master" product catalog where the classification structure is type->application->handletype.
 
-IMPORTANT: If you hear the term "tah", this is referring to a product's classification within the type->application->handle type in the master product catalog. Every product sold by build.com is assinged a "tah" value. 
+IMPORTANT: If you hear the term "tah", this is referring to the legacy product classification within the type->application->handle type in the master product catalog. Every product sold by build.com is assigned a "tah" value. The quality of the data structured in the existing "type", "applicaiton", and "handle types" varies widely. 
 
 === Build Terms to Product Domain Terms
 
@@ -158,5 +164,6 @@ IMPORTANT: If you hear the term "tah", this is referring to a product's classifi
 |===
 |Build.com Term |Product Domain Term|Description
 |Finish |Product Variant |A product finish/variant is a tangible unit of merchandise that has a specific name, part number, size, price, and any other attribute required to make the merchandise “sellable”.
-|Product Specification |Product Attribute | A product specification is synomymous with a product attribute and is used to describe a specific characteristic about the product.
+|Product Specification |Product Attribute| A product specification is synomymous with a product attribute and is used to describe a specific characteristic about the product.
+|Category| Catalog & Taxonomy Category| The term "Category" can be used both when describing a category within the context of a taxonomy and when describing a category with a site's navigation system. It is important to establish a clear, unambiguous definition of both concepts. A "taxonomy category" is structured such that a product can only belong to exactly one category. A "product catalog category" may be derived from the product taxonomy and a product may be mapped into multiple locations.
 |===

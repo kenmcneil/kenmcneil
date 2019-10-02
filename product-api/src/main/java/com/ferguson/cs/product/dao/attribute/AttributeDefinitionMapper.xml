@@ -3,8 +3,7 @@
 <mapper
 	namespace="com.ferguson.cs.product.dao.attribute.AttributeDefinitionMapper">
 
-	<resultMap id="AttributeDefinitionValueResultMap"
-		type="com.ferguson.cs.model.attribute.AttributeDefinitionValue">
+	<resultMap id="AttributeDefinitionValueResultMap" type="com.ferguson.cs.model.attribute.AttributeDefinitionValue">
 		<id column="enumeratedValueId" property="id" />
 		<result column="enumeratedValue" property="value" />
 	</resultMap>
@@ -30,8 +29,8 @@
 		<result column="last_modified_timestamp" jdbcType="TIMESTAMP"
 			property="lastModifiedTimestamp" />
 		<result column="version" jdbcType="SMALLINT" property="version" />
-		<collection property="enumeratedValueList"
-			resultMap="AttributeDefinitionValueResultMap" />
+		<association property="unitOfMeasure" resultMap="UnitOfMeasureRefResultMap"/>
+		<collection property="enumeratedValues" resultMap="AttributeDefinitionValueResultMap" />
 	</resultMap>
 
 	<select id="findAttributeDefinitionList" resultMap="attributeDefinitionResultMap">
@@ -59,6 +58,9 @@
 			</if>
 			<if test="attributeDefinitionCode != null">
 				and attr.code = #{attributeDefinitionCode}
+			</if>
+			<if test="attributeDefinitionDescription != null">
+				and attr.description like #{attributeDefinitionDescription}
 			</if>
 			<if test="unitOfMeasureCode != null">
 				and uom.code = #{unitOfMeasureCode}
@@ -150,10 +152,10 @@
 
 	<select id="findUnitOfMeasureList" resultMap="UnitOfMeasureResultMap">
 		select
-			uom.id uom_id,
-			uom.code uom_code,
-			uom.name uom_name,
-			uom.description uom_description,
+			uom.id,
+			uom.code,
+			uom.name,
+			uom.description,
 			uom.created_timestamp,
 			uom.last_modified_timestamp,
 			uom.version

@@ -1,5 +1,6 @@
 package com.ferguson.cs.data;
 
+import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
 
 import org.springframework.core.convert.ConversionService;
@@ -14,20 +15,18 @@ public class DataAccessHelperImpl implements DataAccessHelper {
 	private final SimpleMappingContext mappingContext;
 	private final  AuditingHandler auditingHandler;
 	private final ConversionService conversionService;
-	
+	private final DataEntityHelper dataEntityHelper;
+
 	public DataAccessHelperImpl(SimpleMappingContext mappingContext,  AuditingHandler auditingHandler, ConversionService conversionService) {
 		this.mappingContext = mappingContext;
+		this.dataEntityHelper = new DataEntityHelperImpl(mappingContext);
 		this.auditingHandler = auditingHandler;
 		this.conversionService = conversionService;
 	}
 
 	@Override
 	public boolean isNew(Object entityInstance) {
-
-		ArgumentAssert.notNull(entityInstance, "entityInstance");
-		
-		SimplePersistentEntity<?> entity = mappingContext.getPersistentEntity(entityInstance.getClass());
-		return entity.isNew(entityInstance);
+		return dataEntityHelper.isNew(entityInstance);
 	}
 
 	@Override
@@ -35,7 +34,7 @@ public class DataAccessHelperImpl implements DataAccessHelper {
 		ArgumentAssert.notNull(entityInstance, "entityInstance");
 
 		SimplePersistentEntity<T> entity = getPersistentEntity(entityInstance);
-		
+
 		int rowsDeleted = deleteFunction.applyAsInt(entityInstance);
 		if (entity.hasVersionProperty() && rowsDeleted == 0) {
 			throw new OptimisticLockingFailureException(String.format("Optimistic lock exception while deleting entity of type %s", entity.getName()));
@@ -60,20 +59,50 @@ public class DataAccessHelperImpl implements DataAccessHelper {
 			int rowsUpdated = updateFunction.applyAsInt(entityInstance);
 			if (isVersioned && rowsUpdated  == 1) {
 				Number version = getVersionFromInstance(entityInstance, entity);
-				entityInstance = setVersionOnInstance(entityInstance, version.longValue()+ 1, entity);				
+				entityInstance = setVersionOnInstance(entityInstance, version.longValue()+ 1, entity);
 			} else if(isVersioned) {
-				throw new OptimisticLockingFailureException(String.format("Optimistic lock exception while saving entity of type %s", entity.getName()));								
+				throw new OptimisticLockingFailureException(String.format("Optimistic lock exception while saving entity of type %s", entity.getName()));
 			}
 		}
-			
-		return entityInstance;		
+
+		return entityInstance;
 	}
-	
+
+	@Override
+	public <C, P> C saveChildEntity(C childEntityInstance, P parentEntityInstance,  BiFunction<C, P, Integer> insertFunction, BiFunction<C, P, Integer> updateFunction) {
+
+		ArgumentAssert.notNull(parentEntityInstance, "parentEntityInstance");
+		ArgumentAssert.notNull(childEntityInstance, "childEntityInstance");
+
+		SimplePersistentEntity<C> entity = getPersistentEntity(childEntityInstance);
+		boolean isNew = entity.isNew(childEntityInstance);
+		boolean isVersioned = entity.hasVersionProperty();
+
+		if (isNew) {
+			auditingHandler.markCreated(childEntityInstance);
+			insertFunction.apply(childEntityInstance, parentEntityInstance);
+			if (isVersioned) {
+				childEntityInstance = setVersionOnInstance(childEntityInstance, 1, entity);
+			}
+		} else {
+			auditingHandler.markModified(childEntityInstance);
+			int rowsUpdated = updateFunction.apply(childEntityInstance, parentEntityInstance);
+			if (isVersioned && rowsUpdated  == 1) {
+				Number version = getVersionFromInstance(childEntityInstance, entity);
+				childEntityInstance = setVersionOnInstance(childEntityInstance, version.longValue()+ 1, entity);
+			} else if(isVersioned) {
+				throw new OptimisticLockingFailureException(String.format("Optimistic lock exception while saving entity of type %s", entity.getName()));
+			}
+		}
+
+		return childEntityInstance;
+	}
+
 	@SuppressWarnings("unchecked")
 	private <T> SimplePersistentEntity<T> getPersistentEntity(T entityInstance) {
 		return (SimplePersistentEntity<T>) mappingContext.getPersistentEntity(entityInstance.getClass());
 	}
-	
+
 	private <T> Number getVersionFromInstance(T entityInstance, SimplePersistentEntity<T> entity) {
 		ConvertingPropertyAccessor<T> propertyAccessor = getConvertingPropertyAccessor(entityInstance, entity);
 		return propertyAccessor.getProperty(entity.getRequiredVersionProperty(), Number.class);
@@ -86,7 +115,6 @@ public class DataAccessHelperImpl implements DataAccessHelper {
 	}
 
 	private <T> ConvertingPropertyAccessor<T> getConvertingPropertyAccessor(T instance, SimplePersistentEntity<T> persistentEntity) {
-		return new ConvertingPropertyAccessor<>(persistentEntity.getPropertyAccessor(instance), conversionService);		
+		return new ConvertingPropertyAccessor<>(persistentEntity.getPropertyAccessor(instance), conversionService);
 	}
-
 }

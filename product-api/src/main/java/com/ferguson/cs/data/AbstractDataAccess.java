@@ -1,5 +1,6 @@
 package com.ferguson.cs.data;
 
+import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +13,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public abstract class AbstractDataAccess {
-	
+
 	@Autowired
 	private DataAccessHelper dataAccessHelper;
-		
+
 	protected DataAccessHelper getDataAccessHelper() {
 		return dataAccessHelper;
 	}
@@ -28,5 +29,9 @@ public abstract class AbstractDataAccess {
 	}
 	protected <T> T saveEntity(T entityInstance, ToIntFunction<T> insertFunction, ToIntFunction<T> updateFunction) {
 		return dataAccessHelper.saveEntity(entityInstance, insertFunction, updateFunction);
-	}	
+	}
+	protected <C, P> C saveChildEntity(C childEntityInstance, P parentEntityInstance,  BiFunction<C, P, Integer> insertFunction, BiFunction<C, P, Integer> updateFunction) {
+		return dataAccessHelper.saveChildEntity(childEntityInstance, parentEntityInstance, insertFunction, updateFunction);
+	}
+
 }
