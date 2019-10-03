@@ -9,25 +9,25 @@
     "appName" : "wiser-feeds",
     "name" : "wiser-product-catalog-previous-day-feed-job",
     "jobName" : "productCatalogPreviousDayFeedJob",
-    "heapSize" : "2048m"
+    "heapSize" : "1024m"
   },
   {
     "appName" : "wiser-feeds",
     "name" : "wiser-product-catalog-full-upload-job",
     "jobName" : "productCatalogFullUploadJob",
-    "heapSize" : "2048m"
+    "heapSize" : "1024m"
   },
   {
     "appName" : "wiser-feeds",
     "name" : "wiser-product-catalog-incremental-upload-job",
     "jobName" : "productCatalogIncrementalUploadJob",
-    "heapSize" : "2048m"
+    "heapSize" : "1024m"
   },
   {
     "appName" : "wiser-feeds",
     "name" : "wiser-write-product-data-hash-job",
     "jobName" : "writeProductDataHashJob",
-    "heapSize" : "2048m"
+    "heapSize" : "1024m"
   },
   {
     "appName" : "wiser-feeds",
