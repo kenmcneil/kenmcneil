@@ -8,6 +8,7 @@
 		<module>product-task-supply-image-import</module>
 		<module>product-task-distribution-center-quick-ship</module>
 		<module>wiser-feeds</module>
+		<module>dy-feeds</module>
 	</modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
