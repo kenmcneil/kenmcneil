@@ -19,7 +19,7 @@
 		DECLARE @endDate DATETIME = DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0);
 
 		SELECT id,productUniqueId,startDate,endDate,modifiedDate
-		FROM Integration.boomerang.sale WITH(NOLOCK)
+		FROM Integration.wiser.sale WITH(NOLOCK)
 		WHERE modifiedDate &gt;= @startDate AND modifiedDate &lt; @endDate
 		OR (@startDate &lt;= endDate AND @endDate &gt;= startDate)
 	</select>
