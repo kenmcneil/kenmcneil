@@ -54,14 +54,14 @@ public class DyFeedConfiguration {
 		// so that the task batch auto configuration works properly.
 		//--------------------------------------------------------------------------------------------------
 		@Bean
-		@ConfigurationProperties(prefix = "datasource.core")
+		@ConfigurationProperties(prefix = "datasource.reporter")
 		@Primary
 		public DataSourceProperties coreDataSourceProperties() {
 			return new DataSourceProperties();
 		}
 
 		@Bean
-		@ConfigurationProperties(prefix = "datasource.core")
+		@ConfigurationProperties(prefix = "datasource.reporter")
 		@Primary
 		public DataSource coreDataSource() {
 			return coreDataSourceProperties().initializeDataSourceBuilder().build();
@@ -78,5 +78,4 @@ public class DyFeedConfiguration {
 			return factory.getObject();
 		}
 	}
-
 }

@@ -2,7 +2,7 @@
 
 datasource:
 # Development
-  core:
+  reporter:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://chico-db-stable.build.internal\CICDEV1;selectMethod=direct;applicationName=omc;sendStringParametersAsUnicode=false
     username: wbsrvr_mmc
@@ -47,5 +47,5 @@ dy:
                      pxWzDnUXnytLJjcAAAAmZGJveWNodWNrQGRib3ljaDEwMTExMzcuYnVpbGQuaW50ZXJuYW
                      wBAgMEBQ==
                      -----END OPENSSH PRIVATE KEY-----'
-  localFilePath: ${java:io:tmpdir}
+  localFilePath: ${java.io.tmpdir}
   localFileName: 'productfeed.csv'
