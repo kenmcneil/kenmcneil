@@ -19,33 +19,8 @@ dy:
   ftpUrl: sftp.dynamicyield.com
   ftpPort: 22
   ftpUsername: '8772814-19204'
-  ftpPrivateKey: '-----BEGIN OPENSSH PRIVATE KEY-----
-                     b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABFwAAAAdzc2gtcn
-                     NhAAAAAwEAAQAAAQEAuX67d0/A/4h5xB9/lvghX5Jbu8+iFvybUrzXYyZxk+VNo/7l5wcl
-                     o2THKoeo/4lg4guljBClwKd6mrRW4tJKYEapVbPBEuKZv31VM0G3GI+zD/IaxUH7P7YUng
-                     Muk/cArCLDi4ORZ+uWYGBrTu/P0UfNNFP3pOgmbpecY1siFZFPDaEge/4LcMcXt/Z4sSby
-                     BLNGeeAcifqHOzW+PWbRzHnZZJYQ2QMkCTkloYP5Qi8cM7CM92Cx2p3TGS+UpOK13uvw9b
-                     3mEuR8WbbEat6nFoZteRA2ko7iuJ0mdkVrcf19CvUrNibXdZKmXjWyPNHvzRTO5yAwHccW
-                     9ipMR9hH0wAAA+B6EuplehLqZQAAAAdzc2gtcnNhAAABAQC5frt3T8D/iHnEH3+W+CFfkl
-                     u7z6IW/JtSvNdjJnGT5U2j/uXnByWjZMcqh6j/iWDiC6WMEKXAp3qatFbi0kpgRqlVs8ES
-                     4pm/fVUzQbcYj7MP8hrFQfs/thSeAy6T9wCsIsOLg5Fn65ZgYGtO78/RR800U/ek6CZul5
-                     xjWyIVkU8NoSB7/gtwxxe39nixJvIEs0Z54ByJ+oc7Nb49ZtHMedlklhDZAyQJOSWhg/lC
-                     LxwzsIz3YLHandMZL5Sk4rXe6/D1veYS5HxZtsRq3qcWhm15EDaSjuK4nSZ2RWtx/X0K9S
-                     s2Jtd1kqZeNbI80e/NFM7nIDAdxxb2KkxH2EfTAAAAAwEAAQAAAQBYIH2wEZP/0zcGlnBn
-                     qTsxzLcIY3z+rsScaltqH7mWKjrYzyEqwZqAJkD5U7pWrU36Fs5v3Pjirq7xEPy2hnIPi4
-                     Kn1N7FuiKRd1ojH/V9FchcqwlM7iwP+NGSwLBAW/lVzq5Yegl69dJbt3ND7WsuYo57bekZ
-                     z7FymVUTXxiyZaZ81HHRrfuIsD4M1zzZue40pjgRztx+lm0d3VFYd2scMVhfcci8wBl+ic
-                     Bu6lcY86l8rwbtcPl3P4na5ejgZBxtVZfkWlIjosi47JAJH7or4+a4iQIH5f1Op/gdVwe3
-                     wnxhXQnvEorAInfwK7/vKkaJddenjxvflB7qPjWO508BAAAAgAhXovpAVKASSjKqCzK0Wo
-                     N4zaj1Ymjdgx/zLCQJL4ogxWQ1W9StPcUtXgY/pabHvQU9Vl5mjy4f0/4OXQ0ja269BNtG
-                     nwgGyt71BvXXrUJgvLcR6Alxo8KHo67NaI2rCJa+II6OaOlILFf4KJS+dRJFUkLF566Lvo
-                     M9QCpPkX8mAAAAgQDzEkT5gpVlB3qpFlO5gbpb0sq/h2lvSmXLLdN6pUX4Iq81vnBISa37
-                     hD9Zx2vyyPl/UQUUUktdZE7ZVkhqaQclg7VDbjclXaYQcnDSMamzAv8Byv0xytEpv3C+De
-                     1V52yXY5nHclO44AM9DveIcq9xY8GTq6yaRpDBviL9g3NdRQAAAIEAw1x8qBudKYODGjL1
-                     BMSuCMnQeujvUuSnlPIyx8GgbRpt241VEylwVpLkwaazNQQKLj9YCaTjBTNGSLz8Lqefmj
-                     X3wMknD6fqpyMV/NUZCY4mtWDbBbGTDpNPFPXE97Beeonxh3KN+VVBElUAM5D1D77dFq6i
-                     pxWzDnUXnytLJjcAAAAmZGJveWNodWNrQGRib3ljaDEwMTExMzcuYnVpbGQuaW50ZXJuYW
-                     wBAgMEBQ==
-                     -----END OPENSSH PRIVATE KEY-----'
+  ftpRoot: '/dy-sftp-use/'
+  ftpPrivateKey: |
+    REDACTED
   localFilePath: ${java.io.tmpdir}
   localFileName: 'productfeed.csv'

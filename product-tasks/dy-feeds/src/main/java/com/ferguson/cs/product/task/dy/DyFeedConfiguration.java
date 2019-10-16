@@ -1,5 +1,7 @@
 package com.ferguson.cs.product.task.dy;
 
+import java.io.File;
+
 import javax.sql.DataSource;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -15,9 +17,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.messaging.MessageHandler;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -26,6 +34,8 @@ import com.jcraft.jsch.ChannelSftp;
 public class DyFeedConfiguration {
 	protected static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.dy.dao.core";
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.dy.model";
+	private static final String DY_SFTP_SESSION = "dySftpSession";
+	private static final String DY_UPLOAD_SFTP_CHANNEL = "dyUploadSftpChannel";
 
 	private DyFeedSettings dyFeedSettings;
 
@@ -34,8 +44,8 @@ public class DyFeedConfiguration {
 		this.dyFeedSettings = dyFeedSettings;
 	}
 
-	@Bean(name = "dySFtpSession")
-	public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
+	@Bean(name = DY_SFTP_SESSION)
+	public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory()  {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
 
 		factory.setHost(dyFeedSettings.getFtpUrl());
@@ -44,6 +54,17 @@ public class DyFeedConfiguration {
 		factory.setPrivateKey(new ByteArrayResource(dyFeedSettings.getFtpPrivateKey().getBytes()));
 		factory.setAllowUnknownKeys(true);
 		return factory;
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = DY_UPLOAD_SFTP_CHANNEL)
+	public MessageHandler dySftpHandler()  {
+		SftpMessageHandler handler = new SftpMessageHandler((sftpSessionFactory()));
+		handler.setRemoteDirectoryExpression(new LiteralExpression(dyFeedSettings.getFtpRoot()
+				+ dyFeedSettings.getFtpUsername()));
+		handler.setUseTemporaryFileName(false);
+		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		return handler;
 	}
 
 	@MapperScan(basePackages= DyFeedConfiguration.CORE_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "coreSqlSessionFactory")
@@ -77,5 +98,11 @@ public class DyFeedConfiguration {
 			factory.setTypeHandlersPackage(typeHandlerPackage);
 			return factory.getObject();
 		}
+	}
+
+	@MessagingGateway
+	public interface DynamicYieldGateway {
+		@Gateway(requestChannel = DY_UPLOAD_SFTP_CHANNEL)
+		void sendDyFileSftp(File file);
 	}
 }

@@ -1,7 +1,5 @@
 package com.ferguson.cs.product.task.dy;
 
-import java.io.File;
-
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
@@ -13,13 +11,13 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
+import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
@@ -28,11 +26,14 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
+	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
 
-	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory, DyFeedSettings dyFeedSettings) {
+	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
+	                               DyFeedSettings dyFeedSettings, DyFeedConfiguration.DynamicYieldGateway dyGateway) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
+		this.dyGateway = dyGateway;
 	}
 
 	@Bean
@@ -52,7 +53,7 @@ public class DyFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	ItemStreamWriter<ProductData> dyCsvProductItemWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+	ItemStreamWriter<ProductData> dyCsvProductItemWriter() {
 		String[] header = new String[]{
 				"sku",
 				"group_id",
@@ -140,6 +141,20 @@ public class DyFeedTaskConfiguration {
 				.build();
 	}
 
+	@Bean
+	@StepScope
+	UploadFileTasklet uploadFileTasklet() {
+		return new UploadFileTasklet();
+	}
+
+	@Bean
+	@Qualifier("uploadCsv")
+	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) {
+		return taskBatchJobFactory.getStepBuilder("uploadCsv")
+				.tasklet(uploadFileTasklet)
+				.build();
+	}
+
 	/**
 	 * Writes product data matching all product hashes that have changed since the last time this job was run to a
 	 * csv, uploads that csv to Wiser. If this has never been run, or if the related data is deleted, this will send
@@ -150,6 +165,7 @@ public class DyFeedTaskConfiguration {
 	public Job dynamicYieldExportJob(Step writeDyItems) {
 		return taskBatchJobFactory.getJobBuilder("dynamicYieldExportJob")
 				.start(writeDyItems)
+				.next(uploadCsv(uploadFileTasklet()))
 				.build();
 	}
 

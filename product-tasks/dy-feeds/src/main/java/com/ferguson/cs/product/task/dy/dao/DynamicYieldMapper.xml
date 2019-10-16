@@ -40,7 +40,7 @@
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
-		SELECT p.uniqueid sku, f.id group_id, t.title [name],
+		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
 			   'https://www.build.com/product/s' + CAST(f.id AS VARCHAR) + '?uid=' + CAST(p.uniqueid AS VARCHAR) [url],
 			   pbc.cost price, IIF(s.status = 'stock','true','false') in_stock,
 			   'https://s3.img-b.com/image/private/c_lpad,f_auto,h_220,t_base,w_220/v3/product/' + replace(m.name,' ','') + '/' + i.image image_url,

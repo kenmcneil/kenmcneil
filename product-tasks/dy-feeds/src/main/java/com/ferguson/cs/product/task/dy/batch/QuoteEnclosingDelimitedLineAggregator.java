@@ -38,7 +38,7 @@ public class QuoteEnclosingDelimitedLineAggregator<T> extends ExtractorLineAggre
 				text = new DecimalFormat("0.00").format(fields[i]);
 			} else {
 				text = fields[i].toString();
-				text = text.replace("\\", "").replace("\"","").replace(",","");
+				text = text.replace("\\", "").replace("\"","\"\"");
 			}
 
 			sb.append(text);

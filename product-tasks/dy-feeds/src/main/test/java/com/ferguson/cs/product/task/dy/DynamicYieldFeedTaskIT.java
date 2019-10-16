@@ -19,42 +19,29 @@ import com.ferguson.cs.task.test.EnableTaskIntegrationTesting;
 public class DynamicYieldFeedTaskIT extends BaseBatchStepTest {
 
 	/*
-	 * This will test downloading csv files from Supply's FTP account. There is no
-	 * dev account so any files downloaded will be production files.
-	 * 
-	 * Coordinate running this test with Supply if you're going to be retrieving and
-	 * and processing files production files from the FTP directory. Otherwise use
-	 * your own test files.
+	 * This will write a csv file for the Dynamic Yield product
+	 * feed to a temp directory
 	 */
 	@Test
-	//@Ignore("Use only for dev testing")
+	@Ignore("Use only for dev testing")
 	public void testWriteProductData() throws NoSuchJobException {
 		JobLauncherTestUtils util = getJobLauncherTestUtils("dynamicYieldExportJob");
 		util.launchStep("writeDyItems");
 	}
 
-	/**
-	 * 
-	 * This job will download all csv files from Supply's FTP directory and import
-	 * them into the configured temporary directories. The data will be processed
-	 * and load them into the category tables and then archive the files to the
-	 * configured archive directory.
-	 * 
-	 * There is currently not a dev ftp directory so any files downloaded from FTP
-	 * will be production files.
-	 * 
-	 * Coordinate running this test with Supply if you're going to be retrieving and
-	 * and processing files from the FTP directory. Otherwise use your own test
-	 * files.
+	/*
+	 * This will write a csv file for the Dynamic Yield product
+	 * feed to a temp directory and then ftp it to Dynamic Yield
+	 * for processing
 	 */
-	/*@Test
+	@Test
 	@Ignore("Use only for dev testing")
-	public void testSupplyCategoryJob() throws NoSuchJobException {
-		JobLauncherTestUtils util = getJobLauncherTestUtils("supplyCategoryFileImportJob");
+	public void testDyFeedJob() throws NoSuchJobException {
+		JobLauncherTestUtils util = getJobLauncherTestUtils("dynamicYieldExportJob");
 		try {
 			util.launchJob();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}*/
+	}
 }

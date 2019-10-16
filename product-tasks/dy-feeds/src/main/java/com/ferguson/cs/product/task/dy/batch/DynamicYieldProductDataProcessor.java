@@ -33,11 +33,11 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		return (productData != null
 				&& productData.getSku() != null
 				&& productData.getGroupId() != null
-				&& productData.getName() != null
-				&& productData.getUrl() != null
+				&& productData.getName() != null && productData.getName().length() > 0
+				&& productData.getUrl() != null && productData.getUrl().length() > 0
 				&& productData.getPrice() != null
-				&& productData.getInStock() != null
-				&& productData.getImageUrl() != null
-				&& productData.getCategories() != null);
+				&& productData.getInStock() != null && productData.getImageUrl().length() > 0
+				&& productData.getImageUrl() != null && productData.getImageUrl().length() > 0
+				&& productData.getCategories() != null && productData.getCategories().length() > 0);
 	}
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class DyFeedSettings {
 	private String ftpUrl;
 	private Integer ftpPort;
+	private String ftpRoot;
 	private String ftpUsername;
 	private String ftpPrivateKey;
 	private String localFilePath;
@@ -61,4 +62,11 @@ public class DyFeedSettings {
 		this.ftpUsername = ftpUsername;
 	}
 
+	public String getFtpRoot() {
+		return ftpRoot;
+	}
+
+	public void setFtpRoot(String ftpRoot) {
+		this.ftpRoot = ftpRoot;
+	}
 }
