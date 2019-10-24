@@ -11,11 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.task.dy.DyFeedConfiguration;
 import com.ferguson.cs.product.task.dy.DyFeedSettings;
+import com.ferguson.cs.product.task.dy.domain.ResourceObject;
 
 public class UploadFileTasklet implements Tasklet {
 
 	private DyFeedConfiguration.DynamicYieldGateway dyGateway;
 	private DyFeedSettings dyFeedSettings;
+	private ResourceObject resource;
+
+	@Autowired
+	public void setResourceObject(ResourceObject resource) {
+		this.resource = resource;
+	}
 
 	@Autowired
 	public void setWiserGateway(DyFeedConfiguration.DynamicYieldGateway dyGateway) {
@@ -29,9 +36,7 @@ public class UploadFileTasklet implements Tasklet {
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		if(dyFeedSettings.getLocalFilePath() != null && dyFeedSettings.getLocalFileName() != null) {
-			uploadFile(dyFeedSettings.getLocalFilePath() + dyFeedSettings.getLocalFileName());
-		}
+		uploadFile(resource.getResource().getPath());
 		return null;
 	}
 

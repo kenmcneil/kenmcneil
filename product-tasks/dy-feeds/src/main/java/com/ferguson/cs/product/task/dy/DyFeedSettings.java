@@ -11,15 +11,23 @@ public class DyFeedSettings {
 	private String ftpRoot;
 	private String ftpUsername;
 	private String ftpPrivateKey;
-	private String localFilePath;
-	private String localFileName;
+	private String tempFilePrefix = "productfeed";
+	private String tempFileSuffix = ".csv";
 
-	public String getLocalFileName() {
-		return localFileName;
+	public String getTempFileSuffix() {
+		return tempFileSuffix;
 	}
 
-	public void setLocalFileName(String localFileName) {
-		this.localFileName = localFileName;
+	public void setTempFileSuffix(String tempFileSuffix) {
+		this.tempFileSuffix = tempFileSuffix;
+	}
+
+	public String getTempFilePrefix() {
+		return tempFilePrefix;
+	}
+
+	public void setTempFilePrefix(String tempFilePrefix) {
+		this.tempFilePrefix = tempFilePrefix;
 	}
 
 	public String getFtpPrivateKey() {
@@ -28,14 +36,6 @@ public class DyFeedSettings {
 
 	public void setFtpPrivateKey(String ftpPrivateKey) {
 		this.ftpPrivateKey = ftpPrivateKey;
-	}
-
-	public String getLocalFilePath() {
-		return localFilePath;
-	}
-
-	public void setLocalFilePath(String localFilePath) {
-		this.localFilePath = localFilePath;
 	}
 
 	public String getFtpUrl() {

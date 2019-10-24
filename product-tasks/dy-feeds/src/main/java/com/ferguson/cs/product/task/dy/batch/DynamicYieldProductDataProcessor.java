@@ -1,43 +1,82 @@
 package com.ferguson.cs.product.task.dy.batch;
 
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ItemProcessor;
 
+import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 
+public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductData, DynamicYieldProduct> {
 
-public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductData, ProductData>, StepExecutionListener {
-
-	@Override
-	public void beforeStep(StepExecution stepExecution) {
-	}
-
-	@Override
-	public ExitStatus afterStep(StepExecution stepExecution) {
-		return null;
-	}
+	private static final String URL_STRING = "https://www.build.com/product/s";
+	private static final String URL_UID_STRING = "?uid=";
+	private static final String IMAGE_URL_STRING = "https://s3.img-b.com/image/private/c_lpad,f_auto,h_220,t_base,w_220/v3/product/";
+	private static final String STOCK_STATUS_STRING = "stock";
+	private static final String DISCONTINUED_STATUS_STRING = "discontinued";
+	private static final String NO_IMAGE_REGEX = "(?i:.*noimage.jpg)";
+	private static final String RELATIVE_PATH_STRING = "v3/product/";
 
 	@Override
-	public ProductData process(ProductData item) throws Exception {
+	public DynamicYieldProduct process(ProductData item) throws Exception {
+		DynamicYieldProduct dyProduct = new DynamicYieldProduct();
 
-		if (!isValidAndIncluded(item)) {
+		if (isValidAndIncluded(item)) {
+			dyProduct.setSku(item.getSku());
+			dyProduct.setGroupId(item.getGroupId());
+			dyProduct.setName(item.getName());
+			dyProduct.setPrice(item.getPrice());
+			dyProduct.setModel(item.getModel());
+			dyProduct.setManufacturer(item.getManufacturer());
+			dyProduct.setSeries(item.getSeries());
+			dyProduct.setTheme(item.getTheme());
+			dyProduct.setGenre(item.getGenre());
+			dyProduct.setFinish(item.getFinish());
+			dyProduct.setRating(item.getRating());
+			dyProduct.setType(item.getType());
+			dyProduct.setApplication(item.getApplication());
+			dyProduct.setHandletype(item.getHandletype());
+			dyProduct.setMasterfinish(item.getMasterfinish());
+			dyProduct.setMountingType(item.getMountingType());
+			dyProduct.setInstallationType(item.getInstallationType());
+			dyProduct.setNumberOfBasins(item.getNumberOfBasins());
+			dyProduct.setNominalLength(item.getNominalLength());
+			dyProduct.setNominalWidth(item.getNominalWidth());
+			dyProduct.setNumberOfLights(item.getNumberOfLights());
+			dyProduct.setChandelierType(item.getChandelierType());
+			dyProduct.setPendantType(item.getPendantType());
+			dyProduct.setFanType(item.getFanType());
+			dyProduct.setFuelType(item.getFuelType());
+			dyProduct.setConfiguration(item.getConfiguration());
+
+
+			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
+			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
+			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getName().replaceAll(" ", "") + '/'
+					+ item.getImage());
+			dyProduct.setHasImage(item.getImage().matches(NO_IMAGE_REGEX));
+			dyProduct.setCategories(item.getType() + '|' + item.getApplication());
+			dyProduct.setDiscontinued(item.getStatus().equalsIgnoreCase(DISCONTINUED_STATUS_STRING));
+			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getName().replaceAll(" ", "") + '/'
+					+ item.getImage());
+
+			if (item.getHandletype() != null && item.getHandletype().length() > 0) {
+				dyProduct.setCategories(dyProduct.getCategories() + '|' + item.getHandletype());
+			}
+		} else {
 			return null;
 		}
 
-		return item;
+		return dyProduct;
 	}
 
 	private boolean isValidAndIncluded(ProductData productData) {
 		return (productData != null
 				&& productData.getSku() != null
 				&& productData.getGroupId() != null
+				&& productData.getStatus() != null
 				&& productData.getName() != null && productData.getName().length() > 0
-				&& productData.getUrl() != null && productData.getUrl().length() > 0
+				&& productData.getImage() != null && productData.getImage().length() > 0
 				&& productData.getPrice() != null
-				&& productData.getInStock() != null && productData.getImageUrl().length() > 0
-				&& productData.getImageUrl() != null && productData.getImageUrl().length() > 0
-				&& productData.getCategories() != null && productData.getCategories().length() > 0);
+				&& productData.getApplication() != null && productData.getApplication().length() > 0
+				&& productData.getType() != null && productData.getType().length() > 0);
 	}
 }

@@ -3,22 +3,27 @@ package com.ferguson.cs.product.task.dy.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class ProductData implements Serializable {
+public class DynamicYieldProduct implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Integer sku;
 	private Integer groupId;
 	private String name;
-	private String status;
+	private String url;
 	private BigDecimal price;
-	private String image;
+	private Boolean inStock;
+	private String imageUrl;
+	private String categories;
 	private String model;
 	private String manufacturer;
+	private Boolean discontinued;
 	private String series;
 	private String theme;
 	private String genre;
 	private String finish;
 	private BigDecimal rating;
+	private Boolean hasImage;
+	private String relativePath;
 	private String type;
 	private String application;
 	private String handletype;
@@ -51,22 +56,6 @@ public class ProductData implements Serializable {
 		this.groupId = groupId;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public String getImage() {
-		return image;
-	}
-
-	public void setImage(String image) {
-		this.image = image;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -75,12 +64,44 @@ public class ProductData implements Serializable {
 		this.name = name;
 	}
 
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
 	public BigDecimal getPrice() {
 		return price;
 	}
 
 	public void setPrice(BigDecimal price) {
 		this.price = price;
+	}
+
+	public Boolean getInStock() {
+		return inStock;
+	}
+
+	public void setInStock(Boolean inStock) {
+		this.inStock = inStock;
+	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	public String getCategories() {
+		return categories;
+	}
+
+	public void setCategories(String categories) {
+		this.categories = categories;
 	}
 
 	public String getModel() {
@@ -97,6 +118,14 @@ public class ProductData implements Serializable {
 
 	public void setManufacturer(String manufacturer) {
 		this.manufacturer = manufacturer;
+	}
+
+	public Boolean getDiscontinued() {
+		return discontinued;
+	}
+
+	public void setDiscontinued(Boolean discontinued) {
+		this.discontinued = discontinued;
 	}
 
 	public String getSeries() {
@@ -137,6 +166,22 @@ public class ProductData implements Serializable {
 
 	public void setRating(BigDecimal rating) {
 		this.rating = rating;
+	}
+
+	public Boolean getHasImage() {
+		return hasImage;
+	}
+
+	public void setHasImage(Boolean hasImage) {
+		this.hasImage = hasImage;
+	}
+
+	public String getRelativePath() {
+		return relativePath;
+	}
+
+	public void setRelativePath(String relativePath) {
+		this.relativePath = relativePath;
 	}
 
 	public String getType() {

@@ -1,13 +1,17 @@
 package com.ferguson.cs.product.task.dy;
 
+import java.io.IOException;
+
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +22,8 @@ import org.springframework.core.io.FileSystemResource;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
+import com.ferguson.cs.product.task.dy.domain.ResourceObject;
+import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
@@ -26,14 +32,18 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
-	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
 
 	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
-	                               DyFeedSettings dyFeedSettings, DyFeedConfiguration.DynamicYieldGateway dyGateway) {
+	                               DyFeedSettings dyFeedSettings) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
-		this.dyGateway = dyGateway;
+	}
+
+	@Bean
+	@JobScope
+	public ResourceObject resourceObject() throws IOException {
+		return new ResourceObject(dyFeedSettings.getTempFilePrefix(), dyFeedSettings.getTempFileSuffix());
 	}
 
 	@Bean
@@ -53,7 +63,7 @@ public class DyFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	ItemStreamWriter<ProductData> dyCsvProductItemWriter() {
+	ItemStreamWriter<DynamicYieldProduct> dyCsvProductItemWriter() throws IOException {
 		String[] header = new String[]{
 				"sku",
 				"group_id",
@@ -90,7 +100,7 @@ public class DyFeedTaskConfiguration {
 				"configuration"
 		};
 
-		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
+		BeanWrapperFieldExtractor<DynamicYieldProduct> extractor = new BeanWrapperFieldExtractor<>();
 		extractor.setNames(new String[]{
 				"sku",
 				"groupId",
@@ -126,15 +136,15 @@ public class DyFeedTaskConfiguration {
 				"fuelType",
 				"configuration"
 		});
-		return getFlatFileItemWriter(header, dyFeedSettings.getLocalFilePath() + dyFeedSettings.getLocalFileName(), extractor);
+		return getFlatFileItemWriter(header, resourceObject().getResource().getPath(), extractor);
 	}
 
 	@Bean
 	@Qualifier("writeDyItems")
-	public Step writeDyItems(ItemStreamWriter<ProductData> dyCsvCatalogItemWriter) {
+	public Step writeDyItems(ItemStreamWriter<DynamicYieldProduct> dyCsvCatalogItemWriter) {
 
 		return taskBatchJobFactory.getStepBuilder("writeDyItems")
-				.<ProductData, ProductData>chunk(1000)
+				.<ProductData, DynamicYieldProduct>chunk(1000)
 				.reader(productDataReader())
 				.processor(dyProductDataProcessor())
 				.writer(dyCsvCatalogItemWriter)
@@ -157,8 +167,7 @@ public class DyFeedTaskConfiguration {
 
 	/**
 	 * Writes product data matching all product hashes that have changed since the last time this job was run to a
-	 * csv, uploads that csv to Wiser. If this has never been run, or if the related data is deleted, this will send
-	 * the entire product catalog/all product data hashes.
+	 * csv, uploads that csv to Dynamic Yield. This will send the entire product catalog.
 	 */
 	@Bean
 	@Qualifier("dynamicYieldExportJob")
@@ -169,20 +178,20 @@ public class DyFeedTaskConfiguration {
 				.build();
 	}
 
-	private FlatFileItemWriter getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor fieldExtractor) {
-		FlatFileItemWriter<?> fileItemWriter = new FlatFileItemWriter<>();
+	private FlatFileItemWriter<DynamicYieldProduct> getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor<DynamicYieldProduct> fieldExtractor) {
+		FlatFileItemWriter<DynamicYieldProduct> fileItemWriter = new FlatFileItemWriter<>();
 
-		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", fileHeader)));
+		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(DelimitedLineTokenizer.DELIMITER_COMMA, fileHeader)));
 		fileItemWriter.setResource(new FileSystemResource(filePath));
 
-		LineAggregator lineAggregator = createLineAggregator(fieldExtractor);
+		LineAggregator<DynamicYieldProduct> lineAggregator = createLineAggregator(fieldExtractor);
 		fileItemWriter.setLineAggregator(lineAggregator);
 
 		return fileItemWriter;
 	}
 
-	private LineAggregator createLineAggregator(FieldExtractor fieldExtractor) {
-		QuoteEnclosingDelimitedLineAggregator lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
+	private LineAggregator<DynamicYieldProduct> createLineAggregator(FieldExtractor<DynamicYieldProduct> fieldExtractor) {
+		QuoteEnclosingDelimitedLineAggregator<DynamicYieldProduct> lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
 		lineAggregator.setDelimiter(",");
 		lineAggregator.setFieldExtractor(fieldExtractor);
 		return lineAggregator;

@@ -7,21 +7,16 @@
 		<result column="sku" property="sku"/>
 		<result column="group_id" property="groupId"/>
 		<result column="name" property="name" />
-		<result column="url" property="url" />
 		<result column="price" property="price" />
-		<result column="in_stock" property="inStock" />
-		<result column="image_url" property="imageUrl" />
-		<result column="categories" property="categories" />
 		<result column="model" property="model" />
+		<result column="status" property="status" />
+		<result column="image" property="image" />
 		<result column="manufacturer" property="manufacturer" />
-		<result column="discontinued" property="discontinued" />
 		<result column="series" property="series" />
 		<result column="theme" property="theme" />
 		<result column="genre" property="genre"/>
 		<result column="finish" property="finish" />
 		<result column="rating" property="rating" />
-		<result column="has_image" property="hasImage" />
-		<result column="relative_path" property="relativePath" />
 		<result column="type" property="type" />
 		<result column="application" property="application" />
 		<result column="handletype" property="handletype" />
@@ -41,19 +36,17 @@
 
 	<select id="getProductData" resultMap="productDataMap">
 		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
-			   'https://www.build.com/product/s' + CAST(f.id AS VARCHAR) + '?uid=' + CAST(p.uniqueid AS VARCHAR) [url],
-			   pbc.cost price, IIF(s.status = 'stock','true','false') in_stock,
-			   'https://s3.img-b.com/image/private/c_lpad,f_auto,h_220,t_base,w_220/v3/product/' + replace(m.name,' ','') + '/' + i.image image_url,
-			   ty.type + '|' + ap.application + IIF(ht.handletype IS NULL, '', '|' + ht.handletype) categories, f.productid model, m.name manufacturer,
-			   IIF(s.status = 'discontinued','true','false') discontinued, series.series series, tm.theme theme, pao.optionvalue genre,
-			   pfinish.finish finish, r.rating rating, IIF(i.image LIKE '%noimage.jpg', 'false','true') has_image,
-			   'v3/product/' + replace(m.name,' ','') + '/' + i.image relative_path, ty.type [type], ap.application [application],
-			   ht.handletype handletype,
-			   ( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf WHERE ProductFinish = pfinish.finish ) masterfinish,
-			   attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
-			   attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
-			   attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
-			   attr.Configuration [configuration]
+			pbc.cost price, s.status [status], i.image,
+			f.productid model, m.name manufacturer,
+			series.series series, tm.theme theme, pao.optionvalue genre,
+			pfinish.finish finish, r.rating rating,
+			ty.type [type], ap.application [application],
+			ht.handletype handletype,
+			( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf WHERE ProductFinish = pfinish.finish ) masterfinish,
+			attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
+			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
+			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
+			attr.Configuration [configuration]
 		FROM mmc.product.product p
 		INNER JOIN mmc.product.family f ON p.familyId = f.id
 		INNER JOIN mmc.dbo.manufacturer m ON f.manufacturerid = m.id

@@ -63,7 +63,7 @@ public class DyFeedConfiguration {
 		handler.setRemoteDirectoryExpression(new LiteralExpression(dyFeedSettings.getFtpRoot()
 				+ dyFeedSettings.getFtpUsername()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> ((File)message.getPayload()).getName());
+		handler.setFileNameGenerator(message -> dyFeedSettings.getTempFilePrefix() + '.' + dyFeedSettings.getTempFileSuffix());
 		return handler;
 	}
 

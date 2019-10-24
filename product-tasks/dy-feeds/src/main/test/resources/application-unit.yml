@@ -1,5 +1,3 @@
----
-
 datasource:
 # Development
   reporter:
@@ -22,5 +20,5 @@ dy:
   ftpRoot: '/dy-sftp-use/'
   ftpPrivateKey: |
     REDACTED
-  localFilePath: ${java.io.tmpdir}
-  localFileName: 'productfeed.csv'
+  tempFilePrefix: 'productfeed'
+  tempFileSuffix: 'csv'
