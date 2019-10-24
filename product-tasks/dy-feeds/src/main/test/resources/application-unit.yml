@@ -22,4 +22,4 @@ dy:
   ftpPrivateKey: |
     REDACTED
   tempFilePrefix: 'productfeed'
-  tempFileSuffix: 'csv' 
+  tempFileSuffix: 'csv'
