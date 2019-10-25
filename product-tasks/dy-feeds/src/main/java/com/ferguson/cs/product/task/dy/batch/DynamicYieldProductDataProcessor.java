@@ -47,15 +47,14 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setFuelType(item.getFuelType());
 			dyProduct.setConfiguration(item.getConfiguration());
 
-
 			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
-			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getName().replaceAll(" ", "") + '/'
+			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getManufacturer().replaceAll(" ", "") + '/'
 					+ item.getImage());
 			dyProduct.setHasImage(item.getImage().matches(NO_IMAGE_REGEX));
 			dyProduct.setCategories(item.getType() + '|' + item.getApplication());
 			dyProduct.setDiscontinued(item.getStatus().equalsIgnoreCase(DISCONTINUED_STATUS_STRING));
-			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getName().replaceAll(" ", "") + '/'
+			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(" ", "") + '/'
 					+ item.getImage());
 
 			if (item.getHandletype() != null && item.getHandletype().length() > 0) {
@@ -74,6 +73,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 				&& productData.getGroupId() != null
 				&& productData.getStatus() != null
 				&& productData.getName() != null && productData.getName().length() > 0
+				&& productData.getManufacturer() != null && productData.getManufacturer().length() > 0
 				&& productData.getImage() != null && productData.getImage().length() > 0
 				&& productData.getPrice() != null
 				&& productData.getApplication() != null && productData.getApplication().length() > 0
