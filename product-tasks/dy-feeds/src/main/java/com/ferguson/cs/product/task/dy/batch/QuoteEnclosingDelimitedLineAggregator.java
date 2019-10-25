@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.dy.batch;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 import org.springframework.batch.item.file.transform.ExtractorLineAggregator;
@@ -34,7 +35,7 @@ public class QuoteEnclosingDelimitedLineAggregator<T> extends ExtractorLineAggre
 			}
 			sb.append("\"");
 			String text;
-			if(fields[i] instanceof Double) {
+			if(fields[i] instanceof BigDecimal) {
 				text = new DecimalFormat("0.00").format(fields[i]);
 			} else {
 				text = fields[i].toString();

@@ -32,12 +32,14 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
+	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
 
 	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
-	                               DyFeedSettings dyFeedSettings) {
+	                               DyFeedSettings dyFeedSettings, DyFeedConfiguration.DynamicYieldGateway dyGateway) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
+		this.dyGateway = dyGateway;
 	}
 
 	@Bean
@@ -153,8 +155,8 @@ public class DyFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	UploadFileTasklet uploadFileTasklet() {
-		return new UploadFileTasklet();
+	UploadFileTasklet uploadFileTasklet() throws IOException {
+		return new UploadFileTasklet(dyGateway, resourceObject());
 	}
 
 	@Bean
@@ -171,7 +173,7 @@ public class DyFeedTaskConfiguration {
 	 */
 	@Bean
 	@Qualifier("dynamicYieldExportJob")
-	public Job dynamicYieldExportJob(Step writeDyItems) {
+	public Job dynamicYieldExportJob(Step writeDyItems) throws IOException {
 		return taskBatchJobFactory.getJobBuilder("dynamicYieldExportJob")
 				.start(writeDyItems)
 				.next(uploadCsv(uploadFileTasklet()))

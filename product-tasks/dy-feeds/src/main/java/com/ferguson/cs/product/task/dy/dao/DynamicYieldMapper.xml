@@ -47,29 +47,29 @@
 			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
 			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
 			attr.Configuration [configuration]
-		FROM mmc.product.product p
-		INNER JOIN mmc.product.family f ON p.familyId = f.id
-		INNER JOIN mmc.dbo.manufacturer m ON f.manufacturerid = m.id
-		INNER JOIN mmc.product.[status] s ON p.statusId = s.id
-		INNER JOIN mmc.product.finish pfinish ON p.finishId = pfinish.id
-		INNER JOIN mmc.product.[image] i ON p.imageid = i.id
-		INNER JOIN mmc.product.title t ON t.id = f.titleId
-		INNER JOIN mmc.dbo.pricebook_cost pbc ON p.uniqueid = pbc.uniqueid
-		INNER JOIN mmc.product.typeApplicationHandletype tah ON tah.id = f.typeApplicationHandletypeId
-		INNER JOIN mmc.product.typeApplication ta ON ta.id = tah.typeApplicationId
-		INNER JOIN mmc.product.[type] ty ON ty.id = ta.typeId
-		INNER JOIN mmc.product.[application] ap ON ap.id = ta.applicationId
-		LEFT OUTER JOIN mmc.product.series series ON f.seriesId = series.id
-		LEFT OUTER JOIN mmc.product.handletype ht on ht.id = tah.handletypeId
-		LEFT OUTER JOIN mmc.dbo.product_ratings r WITH (NOLOCK) ON f.id = r.product_composite_id
-		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
-		LEFT OUTER JOIN product.productTheme ptm ON ptm.uniqueid = p.uniqueid
-		LEFT OUTER JOIN product.theme tm ON tm.id = ptm.themeId
+		FROM mmc.product.product p (NOLOCK)
+		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
+		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
+		INNER JOIN mmc.product.[status] s (NOLOCK) ON p.statusId = s.id
+		INNER JOIN mmc.product.finish pfinish (NOLOCK) ON p.finishId = pfinish.id
+		INNER JOIN mmc.product.[image] i (NOLOCK) ON p.imageid = i.id
+		INNER JOIN mmc.product.title t (NOLOCK) ON t.id = f.titleId
+		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
+		INNER JOIN mmc.product.typeApplicationHandletype tah (NOLOCK) ON tah.id = f.typeApplicationHandletypeId
+		INNER JOIN mmc.product.typeApplication ta (NOLOCK) ON ta.id = tah.typeApplicationId
+		INNER JOIN mmc.product.[type] ty (NOLOCK) ON ty.id = ta.typeId
+		INNER JOIN mmc.product.[application] ap (NOLOCK) ON ap.id = ta.applicationId
+		LEFT OUTER JOIN mmc.product.series series (NOLOCK) ON f.seriesId = series.id
+		LEFT OUTER JOIN mmc.product.handletype ht (NOLOCK) ON ht.id = tah.handletypeId
+		LEFT OUTER JOIN mmc.dbo.product_ratings r (NOLOCK) ON f.id = r.product_composite_id
+		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
+		LEFT OUTER JOIN product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
+		LEFT OUTER JOIN product.theme tm (NOLOCK) ON tm.id = ptm.themeId
 		LEFT OUTER JOIN (
 		SELECT * FROM (
 			SELECT pa.name, pao.productid_manufacturer_id familyId, pao.optionValue
-			FROM mmc.dbo.product_attr pa
-			INNER JOIN mmc.dbo.product_attr_optionvalue pao ON pa.attribute_id = pao.attribute_id
+			FROM mmc.dbo.product_attr pa (NOLOCK)
+				INNER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pa.attribute_id = pao.attribute_id
 			WHERE [name] IN (
 				'Mounting Type', 'Installation Type', 'Number of Basins', 'Nominal Length', 'Nominal Width',
 				'Number of Lights', 'Chandelier Type', 'Pendant Type', 'Fan Type', 'Fuel Type', 'Configuration'

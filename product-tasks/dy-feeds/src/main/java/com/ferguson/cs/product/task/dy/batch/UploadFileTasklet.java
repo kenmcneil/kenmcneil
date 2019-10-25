@@ -7,37 +7,24 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.task.dy.DyFeedConfiguration;
-import com.ferguson.cs.product.task.dy.DyFeedSettings;
 import com.ferguson.cs.product.task.dy.domain.ResourceObject;
 
 public class UploadFileTasklet implements Tasklet {
 
-	private DyFeedConfiguration.DynamicYieldGateway dyGateway;
-	private DyFeedSettings dyFeedSettings;
-	private ResourceObject resource;
+	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
+	private final ResourceObject resource;
 
-	@Autowired
-	public void setResourceObject(ResourceObject resource) {
+	public UploadFileTasklet(DyFeedConfiguration.DynamicYieldGateway dyGateway,
+	                         ResourceObject resource) {
+		this.dyGateway = dyGateway;
 		this.resource = resource;
 	}
-
-	@Autowired
-	public void setWiserGateway(DyFeedConfiguration.DynamicYieldGateway dyGateway) {
-		this.dyGateway = dyGateway;
-	}
-
-	@Autowired
-	public void setDyFeedSettings(DyFeedSettings dyFeedSettings) {
-		this.dyFeedSettings = dyFeedSettings;
-	}
-
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		uploadFile(resource.getResource().getPath());
-		return null;
+		return RepeatStatus.FINISHED;
 	}
 
 	private void uploadFile(String filePath) {

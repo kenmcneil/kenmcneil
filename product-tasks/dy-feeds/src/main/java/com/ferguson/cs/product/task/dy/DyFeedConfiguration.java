@@ -9,7 +9,6 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,10 +36,9 @@ public class DyFeedConfiguration {
 	private static final String DY_SFTP_SESSION = "dySftpSession";
 	private static final String DY_UPLOAD_SFTP_CHANNEL = "dyUploadSftpChannel";
 
-	private DyFeedSettings dyFeedSettings;
+	private final DyFeedSettings dyFeedSettings;
 
-	@Autowired
-	public void setDyFeedSettings(DyFeedSettings dyFeedSettings) {
+	public DyFeedConfiguration(DyFeedSettings dyFeedSettings) {
 		this.dyFeedSettings = dyFeedSettings;
 	}
 
@@ -63,7 +61,7 @@ public class DyFeedConfiguration {
 		handler.setRemoteDirectoryExpression(new LiteralExpression(dyFeedSettings.getFtpRoot()
 				+ dyFeedSettings.getFtpUsername()));
 		handler.setUseTemporaryFileName(false);
-		handler.setFileNameGenerator(message -> dyFeedSettings.getTempFilePrefix() + '.' + dyFeedSettings.getTempFileSuffix());
+		handler.setFileNameGenerator(message -> dyFeedSettings.getTempFilePrefix() + dyFeedSettings.getTempFileSuffix());
 		return handler;
 	}
 
