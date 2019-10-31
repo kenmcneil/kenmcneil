@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.dy;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -22,10 +23,10 @@ import org.springframework.core.io.FileSystemResource;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
-import com.ferguson.cs.product.task.dy.domain.ResourceObject;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
+import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
 @Configuration
 public class DyFeedTaskConfiguration {
@@ -44,8 +45,9 @@ public class DyFeedTaskConfiguration {
 
 	@Bean
 	@JobScope
-	public ResourceObject resourceObject() throws IOException {
-		return new ResourceObject(dyFeedSettings.getTempFilePrefix(), dyFeedSettings.getTempFileSuffix());
+	public File dyProductFileResource() throws IOException {
+		return DataFlowTempFileHelper.createTempFile(dyFeedSettings.getTempFilePrefix(),
+				dyFeedSettings.getTempFileSuffix());
 	}
 
 	@Bean
@@ -138,7 +140,7 @@ public class DyFeedTaskConfiguration {
 				"fuelType",
 				"configuration"
 		});
-		return getFlatFileItemWriter(header, resourceObject().getResource().getPath(), extractor);
+		return getFlatFileItemWriter(header, dyProductFileResource().getPath(), extractor);
 	}
 
 	@Bean
@@ -156,7 +158,7 @@ public class DyFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	UploadFileTasklet uploadFileTasklet() throws IOException {
-		return new UploadFileTasklet(dyGateway, resourceObject());
+		return new UploadFileTasklet(dyGateway, dyProductFileResource());
 	}
 
 	@Bean

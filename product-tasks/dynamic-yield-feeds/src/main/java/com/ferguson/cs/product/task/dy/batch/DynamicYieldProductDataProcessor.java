@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.dy.batch;
 
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
@@ -14,6 +15,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	private static final String DISCONTINUED_STATUS_STRING = "discontinued";
 	private static final String NO_IMAGE_REGEX = "(?i:.*noimage.jpg)";
 	private static final String RELATIVE_PATH_STRING = "v3/product/";
+	private static final String WHITE_SPACE_STRING = " ";
 
 	@Override
 	public DynamicYieldProduct process(ProductData item) throws Exception {
@@ -49,15 +51,15 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 
 			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
-			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getManufacturer().replaceAll(" ", "") + '/'
+			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());
 			dyProduct.setHasImage(item.getImage().matches(NO_IMAGE_REGEX));
 			dyProduct.setCategories(item.getType() + '|' + item.getApplication());
 			dyProduct.setDiscontinued(item.getStatus().equalsIgnoreCase(DISCONTINUED_STATUS_STRING));
-			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(" ", "") + '/'
+			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());
 
-			if (item.getHandletype() != null && item.getHandletype().length() > 0) {
+			if (StringUtils.hasText(item.getHandletype())) {
 				dyProduct.setCategories(dyProduct.getCategories() + '|' + item.getHandletype());
 			}
 		} else {
@@ -72,11 +74,11 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 				&& productData.getSku() != null
 				&& productData.getGroupId() != null
 				&& productData.getStatus() != null
-				&& productData.getName() != null && productData.getName().length() > 0
-				&& productData.getManufacturer() != null && productData.getManufacturer().length() > 0
-				&& productData.getImage() != null && productData.getImage().length() > 0
+				&& StringUtils.hasText(productData.getName())
+				&& StringUtils.hasText(productData.getManufacturer())
+				&& StringUtils.hasText(productData.getImage())
 				&& productData.getPrice() != null
-				&& productData.getApplication() != null && productData.getApplication().length() > 0
-				&& productData.getType() != null && productData.getType().length() > 0);
+				&& StringUtils.hasText(productData.getApplication())
+				&& StringUtils.hasText(productData.getType()));
 	}
 }

@@ -7,23 +7,26 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.ferguson.cs.product.task.dy.DyFeedConfiguration;
-import com.ferguson.cs.product.task.dy.domain.ResourceObject;
 
 public class UploadFileTasklet implements Tasklet {
 
 	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
-	private final ResourceObject resource;
+
+	@Qualifier("dyProductFileResource") File dyProductFileResource;
+	private final File resource;
 
 	public UploadFileTasklet(DyFeedConfiguration.DynamicYieldGateway dyGateway,
-	                         ResourceObject resource) {
+	                         File resource) {
 		this.dyGateway = dyGateway;
 		this.resource = resource;
 	}
+
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		uploadFile(resource.getResource().getPath());
+		uploadFile(resource.getPath());
 		return RepeatStatus.FINISHED;
 	}
 
