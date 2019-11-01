@@ -16,6 +16,7 @@ import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
@@ -41,7 +42,7 @@ public class DyFeedTaskConfiguration {
 	}
 
 	@Bean
-	public FileSystemResource dyProductFileResource() throws IOException {
+	public Resource dyProductFileResource() throws IOException {
 		return new FileSystemResource(DataFlowTempFileHelper.createTempFile(dyFeedSettings.getTempFilePrefix(),
 				dyFeedSettings.getTempFileSuffix()));
 	}
@@ -135,7 +136,7 @@ public class DyFeedTaskConfiguration {
 				"fuelType",
 				"configuration"
 		});
-		return getFlatFileItemWriter(header, dyProductFileResource().getPath(), extractor);
+		return getFlatFileItemWriter(header, ((FileSystemResource)dyProductFileResource()).getPath(), extractor);
 	}
 
 	@Bean
@@ -152,7 +153,7 @@ public class DyFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	UploadFileTasklet uploadFileTasklet() throws IOException {
-		return new UploadFileTasklet(dyGateway, dyProductFileResource());
+		return new UploadFileTasklet(dyGateway, (FileSystemResource)dyProductFileResource());
 	}
 
 	@Bean
