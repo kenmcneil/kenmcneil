@@ -1,0 +1,11 @@
+---
+logging:
+  level:
+    ROOT: info
+    com.ferguson.cs: info
+
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"

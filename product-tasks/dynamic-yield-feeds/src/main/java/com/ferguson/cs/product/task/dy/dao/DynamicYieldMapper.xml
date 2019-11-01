@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ferguson.cs.product.task.dy.dao.DynamicYieldMapper">
+	<resultMap id="productDataMap" type="ProductData">
+		<result column="sku" property="sku"/>
+		<result column="group_id" property="groupId"/>
+		<result column="name" property="name" />
+		<result column="price" property="price" />
+		<result column="model" property="model" />
+		<result column="status" property="status" />
+		<result column="image" property="image" />
+		<result column="manufacturer" property="manufacturer" />
+		<result column="series" property="series" />
+		<result column="theme" property="theme" />
+		<result column="genre" property="genre"/>
+		<result column="finish" property="finish" />
+		<result column="rating" property="rating" />
+		<result column="type" property="type" />
+		<result column="application" property="application" />
+		<result column="handletype" property="handletype" />
+		<result column="masterfinish" property="masterfinish" />
+		<result column="mounting_type" property="mountingType" />
+		<result column="installation_type" property="installationType" />
+		<result column="number_of_basins" property="numberOfBasins" />
+		<result column="nominal_length" property="nominalLength" />
+		<result column="nominal_width" property="nominalWidth" />
+		<result column="number_of_lights" property="numberOfLights" />
+		<result column="chandelier_type" property="chandelierType" />
+		<result column="pendant_type" property="pendantType" />
+		<result column="fan_type" property="fanType" />
+		<result column="fuel_type" property="fuelType" />
+		<result column="configuration" property="configuration" />
+	</resultMap>
+
+	<select id="getProductData" resultMap="productDataMap">
+		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
+			pbc.cost price, s.status [status], i.image,
+			f.productid model, m.name manufacturer,
+			series.series series, tm.theme theme, pao.optionvalue genre,
+			pfinish.finish finish, r.rating rating,
+			ty.type [type], ap.application [application],
+			ht.handletype handletype,
+			( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf WHERE ProductFinish = pfinish.finish ) masterfinish,
+			attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
+			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
+			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
+			attr.Configuration [configuration]
+		FROM mmc.product.product p (NOLOCK)
+		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
+		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
+		INNER JOIN mmc.product.[status] s (NOLOCK) ON p.statusId = s.id
+		INNER JOIN mmc.product.finish pfinish (NOLOCK) ON p.finishId = pfinish.id
+		INNER JOIN mmc.product.[image] i (NOLOCK) ON p.imageid = i.id
+		INNER JOIN mmc.product.title t (NOLOCK) ON t.id = f.titleId
+		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
+		INNER JOIN mmc.product.typeApplicationHandletype tah (NOLOCK) ON tah.id = f.typeApplicationHandletypeId
+		INNER JOIN mmc.product.typeApplication ta (NOLOCK) ON ta.id = tah.typeApplicationId
+		INNER JOIN mmc.product.[type] ty (NOLOCK) ON ty.id = ta.typeId
+		INNER JOIN mmc.product.[application] ap (NOLOCK) ON ap.id = ta.applicationId
+		LEFT OUTER JOIN mmc.product.series series (NOLOCK) ON f.seriesId = series.id
+		LEFT OUTER JOIN mmc.product.handletype ht (NOLOCK) ON ht.id = tah.handletypeId
+		LEFT OUTER JOIN mmc.dbo.product_ratings r (NOLOCK) ON f.id = r.product_composite_id
+		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
+		LEFT OUTER JOIN product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
+		LEFT OUTER JOIN product.theme tm (NOLOCK) ON tm.id = ptm.themeId
+		LEFT OUTER JOIN (
+		SELECT * FROM (
+			SELECT pa.name, pao.productid_manufacturer_id familyId, pao.optionValue
+			FROM mmc.dbo.product_attr pa (NOLOCK)
+				INNER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pa.attribute_id = pao.attribute_id
+			WHERE [name] IN (
+				'Mounting Type', 'Installation Type', 'Number of Basins', 'Nominal Length', 'Nominal Width',
+				'Number of Lights', 'Chandelier Type', 'Pendant Type', 'Fan Type', 'Fuel Type', 'Configuration'
+			)
+			) attributes_inner
+			PIVOT (
+				max(optionValue)
+				FOR [name] IN (
+					[Mounting Type], [Installation Type], [Number of Basins], [Nominal Length], [Nominal Width],
+					[Number of Lights], [Chandelier Type], [Pendant Type], [Fan Type], [Fuel Type], [Configuration]
+				)
+			) AS attributes_pivot
+		) attr ON attr.familyId = f.id
+		WHERE s.status IN ('stock', 'nonstock', 'discontinued') AND pbc.pricebookid = 1
+	</select>
+</mapper>
