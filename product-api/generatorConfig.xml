@@ -6,8 +6,14 @@
     <javaModelGenerator targetPackage="com.ferguson.cs.mybatis.model" targetProject="product-api" />
     <sqlMapGenerator targetPackage="com.ferguson.cs.mybatis.dao" targetProject="product-api" />
     <javaClientGenerator targetPackage="com.ferguson.cs.mybatis.dao" targetProject="product-api" type="XMLMAPPER" />
-    <table schema="" tableName="unit_of_measure"/>
+<!--     <table schema="" tableName="unit_of_measure"/>
     <table schema="" tableName="attribute_definition"/>
     <table schema="" tableName="attribute_definition_value"/>
+     -->
+    <table schema="" tableName="taxonomy" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
+    <table schema="" tableName="channel" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
+    <table schema="" tableName="taxonomy_category" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
+    <table schema="" tableName="taxonomy_category_attribute" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
+
   </context>
 </generatorConfiguration>

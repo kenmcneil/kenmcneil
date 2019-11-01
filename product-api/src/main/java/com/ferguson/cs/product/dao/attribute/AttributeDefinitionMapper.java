@@ -1,7 +1,6 @@
 package com.ferguson.cs.product.dao.attribute;
 
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,16 +18,16 @@ public interface AttributeDefinitionMapper {
     int insertUnitOfMeasure(UnitOfMeasure unitOfMeasure);
     int updateUnitOfMeasure(UnitOfMeasure unitOfMeasure);
     int deleteUnitOfMeasure(UnitOfMeasure unitOfMeasure);
-    
+
 
 	List<AttributeDefinition> findAttributeDefinitionList(AttributeDefinitionCriteria criteria);
 	int insertAttributeDefinition(AttributeDefinition attributeDefinition);
 	int updateAttributeDefinition(AttributeDefinition attributeDefinition);
 	int deleteAttributeDefinition(AttributeDefinition attributeDefinition);
 
-	
+
 	int insertAttributeDefinitionValue(@Param("attributeValue") AttributeDefinitionValue attributeValue, @Param("attributeDefinitionId") Integer attributeDefintionId);
 	int updateAttributeDefinitionValue(@Param("attributeValue") AttributeDefinitionValue attributeValue, @Param("attributeDefinitionId") Integer attributeDefintionId);
-	int deleteAttributeDefinitionValues(@Param("attributeDefinitionId") Integer attributeDefintionId, @Param("attributeValueList") Set<AttributeDefinitionValue> exclusionList);
-	
+	int deleteAttributeDefinitionValues(@Param("attributeDefinitionId") Integer attributeDefintionId, @Param("attributeValueList") List<AttributeDefinitionValue> exclusionList);
+
 }

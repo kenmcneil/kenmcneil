@@ -8,9 +8,10 @@ import org.springframework.data.annotation.Version;
 
 import com.ferguson.cs.model.Auditable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A unit of measure is standard unit that can be applied to a numerical attribute definition.
@@ -23,9 +24,10 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@ToString
-@Setter
-@Getter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UnitOfMeasure implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -53,7 +55,7 @@ public class UnitOfMeasure implements Auditable, Serializable {
 
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
-	
+
 	@Version
-	private Long version;
+	private Integer version;
 }

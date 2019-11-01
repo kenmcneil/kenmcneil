@@ -4,18 +4,16 @@ import java.io.Serializable;
 
 import org.springframework.data.annotation.Transient;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A unit of measure reference can be nested in other entities and represents a "read-only" view of the unit of measure.
  *
  * @author tyler.vangorder
  */
-@ToString
-@Setter
-@Getter
+@Data
+@NoArgsConstructor
 public class UnitOfMeasureReference implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -42,4 +40,10 @@ public class UnitOfMeasureReference implements Serializable {
 	@Transient
 	private String description;
 
+	public UnitOfMeasureReference(UnitOfMeasure unitOfMeasure) {
+		this.id = unitOfMeasure.getId();
+		this.code = unitOfMeasure.getCode();
+		this.name = unitOfMeasure.getName();
+		this.description = unitOfMeasure.getDescription();
+	}
 }

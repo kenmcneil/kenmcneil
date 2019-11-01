@@ -17,7 +17,7 @@ import com.ferguson.cs.utilities.ArgumentAssert;
 public class AttributeDataAccessImpl extends AbstractDataAccess implements AttributeDataAccess {
 
 	private final AttributeDefinitionMapper attributeDefinitionMapper;
-	
+
 	public AttributeDataAccessImpl(AttributeDefinitionMapper attributeDefinitionMapper) {
 		this.attributeDefinitionMapper = attributeDefinitionMapper;
 	}
@@ -47,19 +47,20 @@ public class AttributeDataAccessImpl extends AbstractDataAccess implements Attri
 	@Transactional
 	@Override
 	public AttributeDefinition saveAttributeDefinition(AttributeDefinition attributeDefinition) {
-		
+
+
 		AttributeDefinition saved = saveEntity(attributeDefinition, attributeDefinitionMapper::insertAttributeDefinition, attributeDefinitionMapper::updateAttributeDefinition);
-		
+
 		//Save the enumerated values.
-		for (AttributeDefinitionValue value : saved.getEnumeratedValueList()) {
+		for (AttributeDefinitionValue value : saved.getEnumeratedValues()) {
 			if (isNew(value)) {
 				attributeDefinitionMapper.insertAttributeDefinitionValue(value, saved.getId());
 			} else {
-				attributeDefinitionMapper.updateAttributeDefinitionValue(value, saved.getId());	
+				attributeDefinitionMapper.updateAttributeDefinitionValue(value, saved.getId());
 			}
 		}
 		//Delete any values that are not in the current, in-memory list.
-		attributeDefinitionMapper.deleteAttributeDefinitionValues(saved.getId(), saved.getEnumeratedValueList());
+		attributeDefinitionMapper.deleteAttributeDefinitionValues(saved.getId(), saved.getEnumeratedValues());
 		return saved;
 	}
 
@@ -68,7 +69,7 @@ public class AttributeDataAccessImpl extends AbstractDataAccess implements Attri
 	public void deleteAttributeDefinition(AttributeDefinition attributeDefinition) {
 		ArgumentAssert.notNull(attributeDefinition, "attributeDefinition");
 		ArgumentAssert.notNull(attributeDefinition.getId(), "attributeDefinition.id");
-	
+
 		//delete all values first.
 		attributeDefinitionMapper.deleteAttributeDefinitionValues(attributeDefinition.getId(), null);
 		deleteEntity(attributeDefinition, attributeDefinitionMapper::deleteAttributeDefinition);

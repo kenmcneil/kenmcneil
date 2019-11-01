@@ -1,17 +1,21 @@
 package com.ferguson.cs.model.attribute;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.util.Assert;
 
 import com.ferguson.cs.model.Auditable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * An attribute provides a way to describe a characteristic about a product, a product variant, product option, or trait within a
@@ -20,9 +24,10 @@ import lombok.ToString;
  *
  * @author tyler.vangorder
  */
-@ToString
-@Setter
-@Getter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AttributeDefinition implements Serializable, Auditable {
 
 	private static final long serialVersionUID = 1L;
@@ -78,12 +83,81 @@ public class AttributeDefinition implements Serializable, Auditable {
 	 * <p>
 	 *  EXAMPLE, if you define a string attribute definition to represent "shirt color", you can define a finite list of colors of that shirt: "red", "blue", "orange", etc.
 	 */
-	private Set<AttributeDefinitionValue> enumeratedValueList;
+	private List<AttributeDefinitionValue> enumeratedValues;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
 
 	@Version
-	private Long version;
+	private Integer version;
+
+
+	public static class AttributeDefinitionBuilder {
+
+		public AttributeDefinitionBuilder unitOfMeasure(UnitOfMeasure value) {
+			Assert.notNull(value, "The unit of measure cannot be null");
+			unitOfMeasure = new UnitOfMeasureReference(value);
+			return this;
+		}
+		public AttributeDefinitionBuilder unitOfMeasure(UnitOfMeasureReference value) {
+			unitOfMeasure = value;
+			return this;
+		}
+		public AttributeDefinitionBuilder enumeratedValue(String value) {
+			Assert.notNull(value, "The enumerated value cannot be null.");
+			if (enumeratedValues == null) {
+				enumeratedValues = new ArrayList<>();
+			}
+			enumeratedValues.add(new AttributeDefinitionValue(null, value, null));
+			return this;
+		}
+		public AttributeDefinitionBuilder enumeratedValue(Integer value) {
+			Assert.notNull(value, "The enumerated value cannot be null.");
+			if (enumeratedValues == null) {
+				enumeratedValues = new ArrayList<>();
+			}
+			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), null));
+			return this;
+		}
+		public AttributeDefinitionBuilder enumeratedValue(BigDecimal value) {
+			Assert.notNull(value, "The enumerated value cannot be null.");
+			if (enumeratedValues == null) {
+				enumeratedValues = new ArrayList<>();
+			}
+			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), null));
+			return this;
+		}
+		public AttributeDefinitionBuilder minimumValue(String value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value;
+			return this;
+		}
+		public AttributeDefinitionBuilder minimumValue(Integer value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value.toString();
+			return this;
+		}
+		public AttributeDefinitionBuilder minimumValue(BigDecimal value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value.toString();
+			return this;
+		}
+		public AttributeDefinitionBuilder maximumValue(String value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value;
+			return this;
+		}
+		public AttributeDefinitionBuilder maximumValue(Integer value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value.toString();
+			return this;
+		}
+		public AttributeDefinitionBuilder maximumValue(BigDecimal value) {
+			Assert.notNull(value, "The minimum value cannot be null.");
+			minimumValue =  value.toString();
+			return this;
+		}
+
+	}
 }

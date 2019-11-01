@@ -29,6 +29,8 @@ The following code snippet:
 ```java
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UnitOfMeasure implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -37,12 +39,22 @@ public class UnitOfMeasure implements Serializable {
     private String code;
 	private String name;
 	private String description;
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Integer version;
 }
 ```
 
 Results in a Lombok generated class with the following:
 
 image:lombok-example.png[]
+
+Mybatis uses the generated model objects and using value objects tend to be a pain. Therefore, we use the `@Data` and `@NoArgsConstructor` to keep Mybatis happy.
+
+The `@Builder` annotation will generate a nested static class that can be used to create new instances of the model objects using a fluent API. There are a couple of "tricks" that make this feature more useful: 
+
+- If you annotate your class with `@Builder` it also requires the `@AllArgsConstructor`. However, if you dont want all fields to be included in the builder you can create your own constructor and annotate that with `@Builder` instead. This will limit the fields you can configure through the builder.
+- You can also statically create the builder class within your model and add your own methods to the builder. Lombok will augment/skip any builder methods that are already present.
 
 NOTE: You can start with Lombok and if you choose to drop it from your service, you can use the "delombok" plugin to generate the lombok source code. You can simply copy those files over the lombok-annotated classes and drop the Lombok library from the dependencies.
 
@@ -105,9 +117,9 @@ The rendering of icons across environments can be a bit tricky, the following wo
  endif::[]
 ====
 
-## Spring Data Mongo 
+## Persistence Layer Using Mongo (Failed)
 
-We are going to attempt to use the Spring Data repository abstraction for this project, this should allow us to move to a different data store, if we chose. We are selecting Mongo, as its readily available and we can continue our MVP. We can later choose to move to a different data store, like CosmoDB or something else if we run into road blocks. 
+We first attempted to use Spring Data Mongo as the underlying data store for our product data. This ended up being problematic in that we did not have a good experience with ACID transactions and, while the spring data abstract is really nice, we did not feel Mongo was the correct choice. We  may revisit this decision using a different NO SQL store like CosmoDB.
 
 There have been several base-level decisions that have been made to make it easier to leverage Spring Data MongoDB. Please see the stack overflow post that we created for details: 
 
@@ -129,6 +141,35 @@ The following are useful links to help clarify the difference between Spring Dat
 If you are not familar with Spring Data, I highly recommend that you read ALL of the links listed above.
 ====
 
+== Spring Data JDBC (Promising, but still not quite there)
+
+We attempted to switch to Spring Data JDBC, which uses the same metaphores for persistence as the Spring Data Mongo. The different being that it maps the Repository using a relational database.
+
+[IMPORTANT]
+====
+This is NOT the same thing as Spring Data JPA/Hibernate. This is a much simplier approach to persistence.
+====
+
+This project is fairly new and while it is promising, it was lacking features like optimistic record locking. We actually have met with and talked to the lead of this project and it sounds like the project is resource constrained. As much as it would be a good choice, it feels like it might still be a couple years away from production use.
+
+== Spring Data Commons + Mybatis
+
+The project is currently using a hybrid customization to get us up and running quickly. The Spring Data Commons library is the library that is used as the base for all of the Spring Data derivitives. It provides capabilities for tracking auditing columns and reflective access to a version property.
+
+We are still using Mybatis as the primary mechanism for writing and mapping database queries to our Java objet model.
+
+The `DataAccessHelper` merges the annotation-driven functionality provided by spring-data-commons with Mybatis Function references that are used to do insert, update, and delete operations. This helper provides: 
+
+* A method to intergate a Java model object to determine if it should be inserted/updated. The strategy used for this logic does NOT require any calls to the database but relies on the following:
+. If the model object has a numeric property annoatated with `@Version` and that property is null, the model object is considered "new".
+. If the model object has a property annotated with `@Id` and that property is null, the model object is considered "new".
+. If the model object implements "Persistable", there is a method that can be implemented to customize the "isNew" logic.
+* A method to save an entity object, passing the entity and two function references to an "insert" and "update" method. The methods are defined via Mybatis mappers. This method will determine if the entity is new and either call insert or update.
+
+IMPORTANT: This method will manage the record version of an entity, if one is present on the model. It will also enforce optimistic record locking using the version property. This requires the mybatis insert/update to correctly use the version column.
+
+* A method to delete an entity that will also enforce optimistic record locking if the entity has a version property.
+
 == Data Model vs Domain Model
 
 A "perfect" design would create a domain model that does not have any additional attributes used for persisting the model to the underlying data store. In practice, this results in a large amount of duplication and marshalling between the data and domain model.
@@ -137,9 +178,17 @@ This project uses a single domain/data model which means that the persistence at
 
 IMPORTANT: The model project has a dependency on the spring-data projects so that the model can be correctly annotated with persistence hints. We try to minimize the amount of spring-data infrastructure within the model.
 
-Notes:
+== Events
 
-- The datatype of the persistent IDs is a String to provide maximum capatibility. Please see the "ID Handling In Mongo" in the section <<Spring Data Mongo>>.
+This project will emit events as the models are manipulated through the APIs. The events will be published as to "topics" within a messaging broker and allow one or more downstream consumers to listen and consume those events. This service will act as the "source of truth" of product data to all downstream, transactional systems.
+
+The need to emit events is also considered when building the APIs and we are making decisions to help scope the changed.
+
+NOTE: As an example of how this might impact the implementation, consider the taxonomy hierarchy. The hierarchy consists of a category tree and to limit the scope and complexity, the categories, once placed within the hierarchy are immutable (they cannot be moved to some other place in the hierarchy)
+
+== Domain-Driven-Design
+
+This project is using domain driven design to help scope what entities are aggregate roots, aggregates, and references. This may, at first, appear to be  bit confusing, but using disipline when defining the model makes it clear where one entity begins and another ends.
 
 == Functional Seperation of Concerns 
 
@@ -157,9 +206,10 @@ The controller layer handles the mapping from the transport/protocal layer (in t
 
 The service layer is where the primary domain business logic is encapsulated. Each service is defined as an interface/implementation pair where the implementation can have one or more dependencies on repository interfaces from the same business domain. Additionally the service implementation may require calls to other domains that manifest as service interface dependencies. All cross-domain aggregation will occur in the service layer by injecting other domain-level services.
 
-=== Data Access Layer & Repositories
+It is also the service layer that should emit any business domain events.
 
-In many simple cases, having a data access layer AND a repository layer is cumbersome. Therefore, the default pattern leveraged by this domain service is to inject the repositories directly into the service layer. This means that if multiple data access calls must be aggregated, those can be orchestrated at the service level.  
+=== Data Access Layer & Mybatis/Repositories.
+
 
 IMPORTANT: If the service layer is orchestrating multiple calls to the database via repository calls and there is a need to use transaction/caching annotations, the scope of those cross-cutting concerns is at the service level. A developer must be careful when introducing transactions at the service level if that service makes external web service calls. You generally do not want to perform third-party calls in the scope of a database transaction.  
 

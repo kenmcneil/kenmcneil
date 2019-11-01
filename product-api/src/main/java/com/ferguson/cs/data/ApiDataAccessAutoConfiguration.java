@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.auditing.IsNewAwareAuditingHandler;
@@ -23,11 +24,17 @@ public class ApiDataAccessAutoConfiguration {
 	};
 
 	@Bean
+	@Primary
+	public DataEntityHelper dataEntityHelper() {
+		return new DataEntityHelperImpl(mappingContext());
+	};
+
+	@Bean
 	public AuditingHandler auditingHandler() {
 		AuditingHandler handler = new IsNewAwareAuditingHandler(PersistentEntities.of(mappingContext()));
 		handler.setAuditorAware(() ->  Optional.of("default user"));
 		return handler;
 	};
 
-	
+
 }

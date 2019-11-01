@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.dao.taxonomy.TaxonomyMapper">
+		
+	<resultMap id="TaxonomyResultMap" type="com.ferguson.cs.model.taxonomy.Taxonomy">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="code" jdbcType="VARCHAR" property="code" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+		<result column="version" jdbcType="SMALLINT" property="version" />
+		<association property="rootCategory" javaType="TaxonomyCategoryReference">
+			<id column="root_category_id" property="id" />
+			<result column="root_category_code" property="code" />
+			<result column="root_category_name" property="name" />
+			<result column="root_category_description" property="description" />
+			<result column="root_category_path" property="path" />
+		</association>
+	</resultMap>
+
+	<select id="findTaxonomies"	resultMap="TaxonomyResultMap">
+		select
+			taxonomy.id id,
+			taxonomy.code code,
+			taxonomy.description description,
+			taxonomy.created_timestamp created_timestamp,
+			taxonomy.last_modified_timestamp last_modified_timestamp,
+			taxonomy.version as version,
+			taxonomy.category_id root_category_id,
+			root_category.code root_category_code,
+			root_category.name root_category_name,
+			root_category.description root_category_description,
+			root_category.path root_category_path
+		from
+			taxonomy taxonomy
+			join taxonomy_category root_category on root_category.id = taxonomy.category_id
+			<where>
+			<if test="id != null">
+			taxonomy.id = #{id}
+			</if>		
+			<if test="code != null">
+			and taxonomy.code = #{code}
+			</if>
+			</where>		
+	</select>
+
+	<delete id="deleteTaxonomy">
+		delete from taxonomy where id = #{id} and version = #{version}
+	</delete>
+
+	<insert id="insertTaxonomy" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into taxonomy (
+			code,
+			description,
+			created_timestamp,
+			last_modified_timestamp,
+			version
+		) values (
+			#{code},
+			#{description},
+			 #{createdTimestamp}, 
+			 #{lastModifiedTimestamp},
+			 1
+		)
+	</insert>
+	<update id="updateTaxonomy">
+		update
+			taxonomy
+		set
+			description = #{description},
+			last_modified_timestamp = #{lastModifiedTimestamp},
+			version = version + 1
+		where id = #{id}  and version = #{version}
+	</update>
+	<update id="linkTaxonomyRootCategory">
+		update
+			taxonomy
+		set
+			category_id = #{rootCategory.id}
+		where id = #{id}
+	</update>
+	
+
+	<resultMap id="TaxonomyCategoryResultMap" type="com.ferguson.cs.model.taxonomy.TaxonomyCategory">
+	    <result column="category_id" jdbcType="VARCHAR" property="id" />
+	    <result column="category_code" jdbcType="VARCHAR" property="code" />
+	    <result column="category_name" jdbcType="VARCHAR" property="name" />
+	    <result column="category_description" jdbcType="VARCHAR" property="description" />
+	    <result column="category_created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+	    <result column="category_last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+	    <result column="category_version" jdbcType="SMALLINT" property="version" />
+	    <association property="taxonomy" javaType="TaxonomyReference">
+			<id column="taxonomy_id" property="id" />
+			<result column="taxonomy_code" property="code" />
+			<result column="taxonomy_description" property="description" />
+		</association>	    
+	    <association property="categoryParent" javaType="TaxonomyCategoryReference">
+			<id column="category_parent_id" property="id" />
+			<result column="category_parent_code" property="code" />
+			<result column="category_parent_name" property="name" />
+			<result column="category_parent_description" property="description" />
+			<result column="category_parent_path" property="path" />
+		</association>	    
+	</resultMap>
+
+	<select id="findCategories"	resultMap="TaxonomyCategoryResultMap">
+		select
+			category.id as category_id,
+			category.taxonomy_id as taxonomy_id,
+			taxonomy.code as taxonomy_code,
+			taxonomy.description as taxonomy_description,
+			category.code as category_code,
+			category.name as category_name,
+			category.description as category_description,
+			category.path as category_path,
+			category.category_parent_id as category_parent_id,
+			category_parent.code as category_parent_code,
+			category_parent.name as category_parent_name,
+			category_parent.description as category_parent_description,
+			category_parent.path as category_parent_path,
+			category.created_timestamp as category_created_timestamp, 
+			category.last_modified_timestamp as category_last_modified_timestamp,
+			category.version as category_version
+		from
+			taxonomy_category category
+			join taxonomy taxonomy on taxonomy.id = category.taxonomy_id
+			left  join taxonomy_category category_parent on category_parent.id = category.category_parent_id
+		<where>
+			<if test="taxonomyId != null">
+			taxonomy.id = #{taxonomyId}
+			</if>		
+			<if test="taxonomyCode!= null">
+			taxonomy.code = #{taxonomyCode}
+			</if>
+			<if test="categoryName!= null">
+			category.name = #{categoryName}
+			</if>
+			<if test="categoryPath">
+			category.path = #{categoryPath}
+			</if>
+			<if test="categoryIdParent != null">
+			category_parent.id = #{categoryIdParent}
+			</if>
+			<if test="categoryIds != null and categoryIds.size() > 0">
+			and category.id in (
+			<foreach collection="categoryIds" item="value" separator=",">
+			#{value}
+			</foreach>
+			)
+			</if>
+			<if test="categoryCodes != null and categoryCodes.size() > 0">
+			and category.code in (
+			<foreach collection="categoryCodes" item="value" separator=",">
+			#{value}
+			</foreach>
+			)
+			</if>
+		</where>		
+	</select>
+	
+	<delete id="deleteCategory">
+		delete from taxonomy_category where id = #{id} and version = #{version}
+	</delete>
+
+	<insert id="insertCategory" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into taxonomy_category (
+			taxonomy_id,
+			code, 
+			name,
+			description,
+			category_parent_id,
+			path,
+			created_timestamp,
+			last_modified_timestamp, 
+			version
+		) values (
+			#{taxonomy.id,jdbcType=INTEGER},
+			#{code,jdbcType=VARCHAR}, 
+			#{name,jdbcType=VARCHAR},
+			#{description,jdbcType=VARCHAR},
+			#{categoryParent.id,jdbcType=INTEGER},
+			#{path,jdbcType=VARCHAR},
+			#{createdTimestamp,jdbcType=TIMESTAMP},
+			#{lastModifiedTimestamp,jdbcType=TIMESTAMP}, 
+			1
+		)
+	</insert>
+	<update id="updateCategory">
+		update
+			taxonomy_category
+		set
+			name = #{name,jdbcType=VARCHAR},
+			description = #{description,jdbcType=VARCHAR},
+			last_modified_timestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
+			version = version + 1
+		where id = #{id,jdbcType=INTEGER} and version = #{version,jdbcType=SMALLINT}
+	</update>
+
+
+	<delete id="deleteCatagoryAttributes">
+		delete from
+			taxonomy_category_attribute
+		where
+			taxonomy_category_id = #{category.id}
+			<if test="exclusionList != null and exclusionList.size() > 0">
+			and id not in (
+			<foreach collection="exclusionList" item="value" separator=",">
+			#{value.id}
+			</foreach>
+			)
+			</if> 		
+	</delete>
+
+	<insert id="insertCategoryAttribute" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into taxonomy_category_attribute (
+			taxonomy_category_id,
+			attribute_definition_id,
+			is_required
+		) values (
+			#{category.id,jdbcType=INTEGER},
+			#{attribute.definition.id,jdbcType=INTEGER},
+			#{attribute.required,jdbcType=BIT}
+		)
+	</insert>
+	<update id="updateCategoryAttribute">
+		update
+			taxonomy_category_attribute
+		set
+			taxonomy_category_id = #{category.id,jdbcType=INTEGER},
+			attribute_definition_id = #{attribute.definition.id,jdbcType=INTEGER},
+			is_required = #{attribute.required,jdbcType=BIT}
+		where
+			id = #{attribute.id,jdbcType=INTEGER}
+	</update>
+
+	<delete id="deleteCategoryProductReferences">
+		delete from
+			taxonomy_category_product
+		where
+			taxonomy_category_id = #{category.id}
+			<if test="exclusionList != null and exclusionList.size() > 0">
+			and id not in (
+			<foreach collection="exclusionList" item="value" separator=",">
+			#{value.id}
+			</foreach>
+			)
+			</if> 		
+	</delete>
+
+	<insert id="insertCategoryProductReference" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into taxonomy_category_attribute (
+			taxonomy_category_id,
+			attribute_definition_id
+		) values (
+			#{category.id,jdbcType=INTEGER},
+			#{product.id,jdbcType=INTEGER}
+		)
+	</insert>
+	<update id="updateCategoryProductReference">
+		update
+			taxonomy_category_product
+		set
+			taxonomy_category_id = #{category.id,jdbcType=INTEGER},
+			product_id = #{product.id,jdbcType=INTEGER},
+		where
+			id = #{id,jdbcType=INTEGER}	
+	</update>
+</mapper>
