@@ -1,13 +1,11 @@
 package com.ferguson.cs.product.task.dy;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -15,7 +13,6 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -44,14 +41,12 @@ public class DyFeedTaskConfiguration {
 	}
 
 	@Bean
-	@JobScope
-	public File dyProductFileResource() throws IOException {
-		return DataFlowTempFileHelper.createTempFile(dyFeedSettings.getTempFilePrefix(),
-				dyFeedSettings.getTempFileSuffix());
+	public FileSystemResource dyProductFileResource() throws IOException {
+		return new FileSystemResource(DataFlowTempFileHelper.createTempFile(dyFeedSettings.getTempFilePrefix(),
+				dyFeedSettings.getTempFileSuffix()));
 	}
 
 	@Bean
-	@StepScope
 	public MyBatisCursorItemReader<ProductData> productDataReader() {
 		MyBatisCursorItemReader<ProductData> productDataReader = new MyBatisCursorItemReader<>();
 		productDataReader.setQueryId("getProductData");
@@ -144,7 +139,6 @@ public class DyFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("writeDyItems")
 	public Step writeDyItems(ItemStreamWriter<DynamicYieldProduct> dyCsvCatalogItemWriter) {
 
 		return taskBatchJobFactory.getStepBuilder("writeDyItems")
@@ -162,7 +156,6 @@ public class DyFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("uploadCsv")
 	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("uploadCsv")
 				.tasklet(uploadFileTasklet)
@@ -174,7 +167,6 @@ public class DyFeedTaskConfiguration {
 	 * csv, uploads that csv to Dynamic Yield. This will send the entire product catalog.
 	 */
 	@Bean
-	@Qualifier("dynamicYieldExportJob")
 	public Job dynamicYieldExportJob(Step writeDyItems) throws IOException {
 		return taskBatchJobFactory.getJobBuilder("dynamicYieldExportJob")
 				.start(writeDyItems)

@@ -8,6 +8,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.FileSystemResource;
 
 import com.ferguson.cs.product.task.dy.DyFeedConfiguration;
 
@@ -16,10 +17,10 @@ public class UploadFileTasklet implements Tasklet {
 	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
 
 	@Qualifier("dyProductFileResource") File dyProductFileResource;
-	private final File resource;
+	private final FileSystemResource resource;
 
 	public UploadFileTasklet(DyFeedConfiguration.DynamicYieldGateway dyGateway,
-	                         File resource) {
+	                         FileSystemResource resource) {
 		this.dyGateway = dyGateway;
 		this.resource = resource;
 	}
