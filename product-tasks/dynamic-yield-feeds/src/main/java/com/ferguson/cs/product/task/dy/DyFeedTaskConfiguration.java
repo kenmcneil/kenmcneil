@@ -136,7 +136,7 @@ public class DyFeedTaskConfiguration {
 				"fuelType",
 				"configuration"
 		});
-		return getFlatFileItemWriter(header, ((FileSystemResource)dyProductFileResource()).getPath(), extractor);
+		return getFlatFileItemWriter(header, dyProductFileResource(), extractor);
 	}
 
 	@Bean
@@ -175,11 +175,11 @@ public class DyFeedTaskConfiguration {
 				.build();
 	}
 
-	private FlatFileItemWriter<DynamicYieldProduct> getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor<DynamicYieldProduct> fieldExtractor) {
+	private FlatFileItemWriter<DynamicYieldProduct> getFlatFileItemWriter(String[] fileHeader, Resource resource, FieldExtractor<DynamicYieldProduct> fieldExtractor) {
 		FlatFileItemWriter<DynamicYieldProduct> fileItemWriter = new FlatFileItemWriter<>();
 
 		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(DelimitedLineTokenizer.DELIMITER_COMMA, fileHeader)));
-		fileItemWriter.setResource(new FileSystemResource(filePath));
+		fileItemWriter.setResource(resource);
 
 		LineAggregator<DynamicYieldProduct> lineAggregator = createLineAggregator(fieldExtractor);
 		fileItemWriter.setLineAggregator(lineAggregator);
