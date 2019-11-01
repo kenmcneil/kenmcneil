@@ -10,7 +10,7 @@
 		<artifactId>api-parent</artifactId>
 		<version>3.0.8</version>
 	</parent>
-	
+
 	<properties>
 		<api-task.version>3.0.4</api-task.version>
 	</properties>
