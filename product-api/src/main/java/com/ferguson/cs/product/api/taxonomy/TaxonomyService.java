@@ -20,6 +20,8 @@ public interface TaxonomyService {
 
 	List<TaxonomyCategory> getCategoriesByReferences(List<TaxonomyCategoryReference> categoryReferenceList);
 	Optional<TaxonomyCategory> getCategoryByReference(TaxonomyCategoryReference categoryReference);
+	Optional<TaxonomyCategory> getCategoryById(Long catgoryId);
+
 
 	List<TaxonomyCategory> findCategoryList(TaxonomyCategoryCriteria criteria);
 	TaxonomyCategory saveCategory(TaxonomyCategory category);

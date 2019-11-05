@@ -56,11 +56,6 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		ArgumentAssert.notNullOrEmpty(taxonomy.getCode(), "code");
 		ArgumentAssert.notNullOrEmpty(taxonomy.getDescription(), "description");
 
-
-		if (taxonomy.getCode().indexOf(':') > -1 || taxonomy.getCode().indexOf('.') > -1) {
-			throw new IllegalArgumentException("The taxonomy code may not contain either colon ':' or a decimal '.'.");
-		}
-
 		if (dataEntityHelper.isNew(taxonomy) && taxonomy.getRootCategory() != null) {
 			//You cannot explicitly set the root catagory on a new taxonomy, it is created automatically.
 			throw new IllegalArgumentException("The root category will be implicitly created for a new taxonomy. You cannot override this behavior.");
@@ -127,6 +122,12 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 	}
 
 	@Override
+	public Optional<TaxonomyCategory> getCategoryById(Long categoryId) {
+		ArgumentAssert.notNull(categoryId, "categoryId");
+		return taxonomyDataAccess.getTaxonomyCategoryById(categoryId);
+	}
+
+	@Override
 	public List<TaxonomyCategory> findCategoryList(TaxonomyCategoryCriteria criteria) {
 		return taxonomyDataAccess.findCategories(criteria);
 	}
@@ -157,13 +158,13 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 			ArgumentAssert.notNull(category.getTaxonomy(), "category.taxonomy");
 			ArgumentAssert.notNull(category.getTaxonomy().getId(), "category.taxonomy.id");
 
-			if (category.getCode().indexOf(':') > -1 || category.getCode().indexOf('.') > -1) {
-				throw new IllegalArgumentException("The category code may not contain either colon ':' or a decimal '.'.");
+			if (category.getCode().indexOf('.') > -1) {
+				throw new IllegalArgumentException("The category code may not contain a decimal '.'.");
 			}
 
 			//The path of the category is ALWAYS derived from the parent's path and the category's code.
 			StringBuilder path = new StringBuilder(category.getCategoryParent().getPath());
-			if (!category.getCategoryParent().getPath().endsWith(":")) {
+			if (!category.getCategoryParent().getPath().isEmpty()) {
 				path.append(".");
 			}
 			path.append(category.getCode());
@@ -185,7 +186,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		List<TaxonomyCategory> children = findCategoryList(TaxonomyCategoryCriteria.builder()
 				.categoryIdParent(category.getId())
 				.build());
-			children.stream().forEach(this::deleteCategory);
+		children.stream().forEach(this::deleteCategory);
 
 		taxonomyDataAccess.deleteCategory(category);
 

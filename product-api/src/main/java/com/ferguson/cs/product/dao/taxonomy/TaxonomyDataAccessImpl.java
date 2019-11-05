@@ -68,7 +68,7 @@ public class TaxonomyDataAccessImpl extends AbstractDataAccess implements Taxono
 					.code(taxonomy.getCode())
 					.taxonomy(new TaxonomyReference(taxonomy))
 					.description(taxonomy.getDescription())
-					.path(taxonomy.getCode() + ":")
+					.path("")
 					.name("ROOT")
 					.build();
 			rootCategory = saveEntity(rootCategory, taxonomyMapper::insertCategory, taxonomyMapper::updateCategory);

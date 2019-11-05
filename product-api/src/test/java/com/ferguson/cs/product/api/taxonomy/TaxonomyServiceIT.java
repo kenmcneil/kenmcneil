@@ -41,16 +41,6 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				() -> taxonomyService.saveTaxonomy(Taxonomy.builder().build())
 			);
 
-		//Code with a decimal is illegal (because it has special meaning in category paths.)
-		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-				() -> taxonomyService.saveTaxonomy(Taxonomy.builder().code("MY.TAXONOMY").build())
-			);
-
-		//Code with a colon is illegal (because it has special meaning in category paths.)
-		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-				() -> taxonomyService.saveTaxonomy(Taxonomy.builder().code("MYTAXONOM:").build())
-			);
-
 		//Null description.
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveTaxonomy(Taxonomy.builder().code("MYTAXONOM").build())
@@ -84,7 +74,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(taxonomy.getRootCategory().getDescription()).isEqualTo(taxonomy.getDescription());
 		assertThat(taxonomy.getRootCategory().getName()).isEqualTo("ROOT");
 		assertThat(taxonomy.getRootCategory().getId()).isNotNull();
-		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo(taxonomy.getCode() + ":");
+		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo("");
 	}
 
 	@Test
@@ -140,7 +130,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(taxonomy.getRootCategory().getDescription()).isEqualTo(taxonomy.getDescription());
 		assertThat(taxonomy.getRootCategory().getName()).isEqualTo("ROOT");
 		assertThat(taxonomy.getRootCategory().getId()).isNotNull();
-		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo(taxonomy.getCode() + ":");
+		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo("");
 
 		//By ID
 		retrieved = taxonomyService.getTaxonomyById(taxonomy.getId());
@@ -155,7 +145,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(taxonomy.getRootCategory().getDescription()).isEqualTo(taxonomy.getDescription());
 		assertThat(taxonomy.getRootCategory().getName()).isEqualTo("ROOT");
 		assertThat(taxonomy.getRootCategory().getId()).isNotNull();
-		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo(taxonomy.getCode() + ":");
+		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo("");
 	}
 
 	@Test
