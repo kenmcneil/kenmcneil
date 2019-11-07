@@ -100,7 +100,6 @@ public class AttributeServiceImpl implements AttributeService {
 		} else {
 			return Optional.of(results.get(0));
 		}
-
 	}
 
 	@Override

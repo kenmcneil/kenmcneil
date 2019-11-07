@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import static com.ferguson.cs.product.test.GeneralTestUtilities.randomString;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -14,12 +15,14 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import com.ferguson.cs.model.attribute.AttributeDatatype;
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 import com.ferguson.cs.model.attribute.UnitOfMeasure;
-import com.ferguson.cs.model.product.ProductReference;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategory;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategoryAttribute;
+import com.ferguson.cs.model.taxonomy.TaxonomyCategoryCriteria;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategoryReference;
+import com.ferguson.cs.model.taxonomy.TaxonomyReference;
 import com.ferguson.cs.product.test.BaseProductIT;
+import com.ferguson.cs.server.common.response.exception.ResourceNotFoundException;
 
 
 public class TaxonomyServiceIT extends BaseProductIT {
@@ -50,6 +53,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveTaxonomy(Taxonomy.builder()
 						.code("MYTAXONOM")
+						.description("Taxonomy")
 						.rootCategory(new TaxonomyCategoryReference())
 						.build())
 			);
@@ -105,6 +109,41 @@ public class TaxonomyServiceIT extends BaseProductIT {
 			);
 	}
 
+	@Test
+	public void getTaxonomy_byReference() {
+
+		TaxonomyReference reference = new TaxonomyReference();
+		reference.setId(-123);
+
+		//First test when resource does not exist:
+		Optional<Taxonomy> retrieved = taxonomyService.getTaxonomyByReference(reference);
+		assertThat(retrieved).isEmpty();
+
+		Taxonomy taxonomy = Taxonomy.builder()
+				.code(randomString(8))
+				.description("My Cool Taxonomy")
+				.build();
+
+		taxonomy = taxonomyService.saveTaxonomy(taxonomy);
+
+		//By code
+		reference.setId(taxonomy.getId());
+		retrieved = taxonomyService.getTaxonomyByReference(reference);
+		assertThat(retrieved).isNotEmpty();
+		taxonomy = retrieved.get();
+		assertThat(taxonomy.getId()).isNotNull();
+		assertThat(taxonomy.getVersion()).isEqualTo(1);
+		assertThat(taxonomy.getCreatedTimestamp()).isNotNull();
+		assertThat(taxonomy.getLastModifiedTimestamp()).isNotNull();
+
+		assertThat(taxonomy.getRootCategory()).isNotNull();
+		assertThat(taxonomy.getRootCategory().getCode()).isEqualTo(taxonomy.getCode());
+		assertThat(taxonomy.getRootCategory().getDescription()).isEqualTo(taxonomy.getDescription());
+		assertThat(taxonomy.getRootCategory().getName()).isEqualTo("ROOT");
+		assertThat(taxonomy.getRootCategory().getId()).isNotNull();
+		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo("");
+
+	}
 
 	@Test
 	public void getTaxonomy_byCodeAndId() {
@@ -146,6 +185,36 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(taxonomy.getRootCategory().getName()).isEqualTo("ROOT");
 		assertThat(taxonomy.getRootCategory().getId()).isNotNull();
 		assertThat(taxonomy.getRootCategory().getPath()).isEqualTo("");
+	}
+
+	@Test
+	public void deleteTaxonomy_asserts() {
+		//Null object
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteTaxonomy(null)
+			);
+
+		//Empty object
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteTaxonomy(Taxonomy.builder()
+						.build())
+			);
+
+		//Empty version
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteTaxonomy(Taxonomy.builder()
+						.id(-123541)
+						.build())
+			);
+
+		//Invalid record
+		assertThatExceptionOfType(ResourceNotFoundException.class).isThrownBy(
+				() -> taxonomyService.deleteTaxonomy(Taxonomy.builder()
+						.id(-123541)
+						.version(1)
+						.build())
+			);
+
 	}
 
 	@Test
@@ -192,7 +261,6 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.name("Level11")
 				.categoryParent(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
-				.product(new ProductReference(1L))
 				.build();
 		taxonomyService.saveCategory(level1_1);
 		TaxonomyCategory level1_2 = TaxonomyCategory.builder()
@@ -202,8 +270,6 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.name("Level12")
 				.categoryParent(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
-				.product(new ProductReference(2L))
-				.product(new ProductReference(3L))
 				.build();
 		taxonomyService.saveCategory(level1_2);
 		TaxonomyCategory level2_1_1 = TaxonomyCategory.builder()
@@ -213,8 +279,6 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.name("Level211")
 				.categoryParent(level1_1)
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
-				.product(new ProductReference(4L))
-				.product(new ProductReference(5L))
 				.build();
 		taxonomyService.saveCategory(level2_1_1);
 
@@ -231,9 +295,431 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		taxonomyService.deleteTaxonomy(retrieved.get());
 		retrieved = taxonomyService.getTaxonomyById(taxonomy.getId());
 		assertThat(retrieved).isEmpty();
+	}
+
+	@Test
+	public void getCategoriesByReferences_valid() {
+		Taxonomy taxonomy = insertTaxonomy();
+		AttributeDefinition inches = insertAttributeDefinitionLengthInches();
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
+				.build();
+		taxonomyService.saveCategory(category);
+
+
+		Optional<TaxonomyCategory> results = taxonomyService.getCategoryByReference(new TaxonomyCategoryReference(category));
+
+		assertThat(results).isPresent();
+
+		TaxonomyCategory retrieved = results.get();
+		assertThat(retrieved.getId()).isEqualTo(category.getId());
+		assertThat(retrieved.getCode()).isEqualTo(category.getCode());
+		assertThat(retrieved.getTaxonomy().getId()).isEqualTo(taxonomy.getId());
+		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
+		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
+		assertThat(retrieved.getDescription()).isEqualTo(category.getDescription());
+
+		assertThat(retrieved.getCategoryParent()).isNotNull();
+		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+
+		assertThat(retrieved.getDescription()).isEqualTo("A category");
+		assertThat(retrieved.getName()).isEqualTo("category");
+		assertThat(retrieved.getPath()).isEqualTo(category.getCode());
+		assertThat(retrieved.getAttributes()).hasSize(1);
+		assertThat(retrieved.getAttributes().get(0).getDefinition().getCode()).isEqualTo(inches.getCode());
 
 	}
 
+	@Test
+	public void getCategoryById() {
+		Taxonomy taxonomy = insertTaxonomy();
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		Optional<TaxonomyCategory> results = taxonomyService.getCategoryByReference(new TaxonomyCategoryReference(category));
+
+		assertThat(results).isPresent();
+
+		TaxonomyCategory retrieved = results.get();
+		assertThat(retrieved.getId()).isEqualTo(category.getId());
+		assertThat(retrieved.getCode()).isEqualTo(category.getCode());
+		assertThat(retrieved.getTaxonomy().getId()).isEqualTo(taxonomy.getId());
+		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
+		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
+		assertThat(retrieved.getDescription()).isEqualTo(category.getDescription());
+
+		assertThat(retrieved.getCategoryParent()).isNotNull();
+		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+
+		assertThat(retrieved.getDescription()).isEqualTo("A category");
+		assertThat(retrieved.getName()).isEqualTo("category");
+		assertThat(retrieved.getPath()).isEqualTo(category.getCode());
+	}
+
+	@Test
+	public void findCategoryList_asserts() {
+
+		//Null object
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.findCategoryList(null)
+			);
+
+		//Empty object
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+						.build())
+			);
+
+		//Path, no taxonomy ID/Code
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+						.categoryPath("my.cool.path")
+						.build())
+			);
+
+		//Taxonomy ID no path.
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+						.taxonomyId(1)
+						.build())
+			);
+
+		//Taxonomy code no path.
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+						.taxonomyCode("ONETAXONOMY")
+						.build())
+			);
+	}
+
+	@Test
+	public void findCategoryList_byCategoryId() {
+		Taxonomy taxonomy = insertTaxonomy();
+		AttributeDefinition inches = insertAttributeDefinitionLengthInches();
+		AttributeDefinition centimeters = insertAttributeDefinitionLengthCentimeters();
+
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		List<TaxonomyCategory> results = taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+				.categoryId(category.getId())
+				.build());
+
+		assertThat(results).hasSize(1);
+
+		TaxonomyCategory retrieved = results.get(0);
+		assertThat(retrieved.getId()).isEqualTo(category.getId());
+		assertThat(retrieved.getCode()).isEqualTo(category.getCode());
+		assertThat(retrieved.getName()).isEqualTo("category");
+		assertThat(retrieved.getPath()).isEqualTo(category.getCode());
+		assertThat(retrieved.getDescription()).isEqualTo(category.getDescription());
+
+		assertThat(retrieved.getTaxonomy().getId()).isEqualTo(taxonomy.getId());
+		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
+		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
+
+		assertThat(retrieved.getCategoryParent()).isNotNull();
+		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+
+		assertThat(retrieved.getAttributes()).hasSize(2);
+		assertThat(retrieved.getAttributes().get(0).getDefinition().getDescription()).isNotNull();
+		assertThat(retrieved.getAttributes().get(0).getDefinition().getUnitOfMeasure().getCode()).isNotNull();
+	}
+
+	@Test
+	public void findCategoryList_byPath() {
+		Taxonomy taxonomy = insertTaxonomy();
+		AttributeDefinition inches = insertAttributeDefinitionLengthInches();
+		AttributeDefinition centimeters = insertAttributeDefinitionLengthCentimeters();
+
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		List<TaxonomyCategory> results = taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+				.taxonomyCode(taxonomy.getCode())
+				.categoryPath(category.getPath())
+				.build());
+
+		assertThat(results).hasSize(1);
+
+		TaxonomyCategory retrieved = results.get(0);
+		assertThat(retrieved.getId()).isEqualTo(category.getId());
+		assertThat(retrieved.getCode()).isEqualTo(category.getCode());
+		assertThat(retrieved.getName()).isEqualTo("category");
+	}
+
+	@Test
+	public void findCategoryList_byParent() {
+		Taxonomy taxonomy = insertTaxonomy();
+		AttributeDefinition inches = insertAttributeDefinitionLengthInches();
+		AttributeDefinition centimeters = insertAttributeDefinitionLengthCentimeters();
+
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		List<TaxonomyCategory> results = taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+				.categoryIdParent(taxonomy.getRootCategory().getId())
+				.build());
+
+		assertThat(results).hasSize(1);
+
+		TaxonomyCategory retrieved = results.get(0);
+		assertThat(retrieved.getId()).isEqualTo(category.getId());
+		assertThat(retrieved.getCode()).isEqualTo(category.getCode());
+		assertThat(retrieved.getName()).isEqualTo("category");
+	}
+
+	@Test
+	public void saveCategory_asserts() {
+
+		//Null object
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(null)
+			);
+
+		//Empty Name
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(TaxonomyCategory.builder()
+						.name("")
+						.description("A description")
+						.build())
+			);
+
+		//Empty Description
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(TaxonomyCategory.builder()
+						.name("a name")
+						.description("")
+						.build())
+			);
+
+		//Assertions enforced on insert only.
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.code("")
+				.description("A category")
+				.name("category")
+				.build();
+
+		//Empty Code
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		category.setCode("ASDFASDF");
+		category.setCategoryParent(null);
+		//Null parent
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		//Empty Parent
+		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().build()));
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		//Null path in parent
+		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).build()));
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		//Null taxonomy
+		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).path("").build()));
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		//Empty taxonomy
+		category.setTaxonomy(new TaxonomyReference());
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+
+		//Code with a decimal is illegal.
+		category.getTaxonomy().setId(1);
+		category.setCode("HOLA.DECIMAL");
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+	}
+
+	@Test
+	public void saveCategory_child_parent_path() {
+		//Save a parent and then a child,  confirm path is set correctly.
+		Taxonomy taxonomy = insertTaxonomy();
+		AttributeDefinition inches = insertAttributeDefinitionLengthInches();
+		AttributeDefinition centimeters = insertAttributeDefinitionLengthCentimeters();
+
+		TaxonomyCategory parent = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code("PARENT")
+				.description("A parent")
+				.name("parent")
+				.categoryParent(taxonomy.getRootCategory())
+				.build();
+		taxonomyService.saveCategory(parent);
+
+		TaxonomyCategory child = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code("CHILD")
+				.description("Sweet Child of Mine")
+				.name("child")
+				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
+				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
+				.categoryParent(new TaxonomyCategoryReference(parent))
+				.build();
+		taxonomyService.saveCategory(child);
+
+		Optional<TaxonomyCategory> results = taxonomyService.getCategoryByReference(new TaxonomyCategoryReference(child));
+
+		assertThat(results).isPresent();
+
+		TaxonomyCategory retrieved = results.get();
+		assertThat(retrieved.getId()).isEqualTo(child.getId());
+		assertThat(retrieved.getCode()).isEqualTo(child.getCode());
+		assertThat(retrieved.getName()).isEqualTo(child.getName());
+		assertThat(retrieved.getPath()).isEqualTo("PARENT.CHILD");
+		assertThat(retrieved.getTaxonomy().getId()).isEqualTo(taxonomy.getId());
+		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
+		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
+
+		assertThat(retrieved.getCategoryParent()).isNotNull();
+		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(parent.getCode());
+		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(parent.getDescription());
+		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(parent.getName());
+		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(parent.getId());
+		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo("PARENT");
+	}
+
+	@Test
+	public void saveCategory_update() {
+		Taxonomy taxonomy = insertTaxonomy();
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		Optional<TaxonomyCategory> results = taxonomyService.getCategoryByReference(new TaxonomyCategoryReference(category));
+		assertThat(results).isPresent();
+		TaxonomyCategory retrieved= results.get();
+		assertThat(retrieved.getVersion()).isEqualTo(1);
+		assertThat(retrieved.getCreatedTimestamp()).isNotNull();
+		assertThat(retrieved.getLastModifiedTimestamp()).isNotNull();
+
+		retrieved.setDescription("This is a new description");
+		taxonomyService.saveCategory(retrieved);
+
+		 results = taxonomyService.getCategoryByReference(new TaxonomyCategoryReference(category));
+		 assertThat(results).isPresent();
+		 retrieved= results.get();
+		assertThat(retrieved.getVersion()).isEqualTo(2);
+		assertThat(retrieved.getCreatedTimestamp()).isNotEqualTo(retrieved.getLastModifiedTimestamp());
+
+		//Test optimistic record locking.
+		//Empty taxonomy
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(
+				() -> taxonomyService.saveCategory(category)
+			);
+	}
+
+	@Test
+	public void deleteCategory_asserts() {
+		//Null object.
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteCategory(null)
+			);
+
+		//null ID.
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteCategory(TaxonomyCategory.builder().build())
+			);
+
+		//null Version
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+				() -> taxonomyService.deleteCategory(TaxonomyCategory.builder().id(123L).build())
+			);
+
+	}
+
+	@Test
+	public void deleteCategory_optimistic_locking() {
+		Taxonomy taxonomy = insertTaxonomy();
+		TaxonomyCategory category = TaxonomyCategory.builder()
+				.taxonomy(taxonomy)
+				.code(randomString(8))
+				.description("A category")
+				.name("category")
+				.categoryParent(taxonomy.getRootCategory())
+				.build();
+		taxonomyService.saveCategory(category);
+
+		category.setVersion(8);
+		//null ID.
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(
+				() -> taxonomyService.deleteCategory(category)
+			);
+	}
+
+	private Taxonomy insertTaxonomy() {
+		Taxonomy taxonomy = Taxonomy.builder()
+				.code(randomString(8))
+				.description("My Cool Taxonomy")
+				.build();
+
+		return taxonomyService.saveTaxonomy(taxonomy);
+	}
 	/**
 	 * Created test unit of measure for length in inches.
 	 */

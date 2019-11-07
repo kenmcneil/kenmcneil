@@ -123,16 +123,8 @@ public class TaxonomyDataAccessImpl extends AbstractDataAccess implements Taxono
 			}
 		}
 
-		//save product references.
-		if (category.getAttributes() != null) {
-			for (TaxonomyCategoryAttribute attribute : category.getAttributes()) {
-				saveChildEntity(attribute, savedCategory, taxonomyMapper::insertCategoryAttribute, taxonomyMapper::updateCategoryAttribute);
-			}
-		}
-
 		if (!isNew) {
 			//Delete any orphans attributes that are not in the current, in-memory list.
-			taxonomyMapper.deleteCatagoryAttributes(category, savedCategory.getAttributes());
 			taxonomyMapper.deleteCatagoryAttributes(category, savedCategory.getAttributes());
 		}
 
@@ -143,12 +135,8 @@ public class TaxonomyDataAccessImpl extends AbstractDataAccess implements Taxono
 	@Transactional
 	public void deleteCategory(TaxonomyCategory category) {
 
-		//delete product links
-		taxonomyMapper.deleteCategoryProductReferences(category, null);
-
 		//delete attribute links
 		taxonomyMapper.deleteCatagoryAttributes(category, null);
-
 
 		deleteEntity(category, taxonomyMapper::deleteCategory);
 	}

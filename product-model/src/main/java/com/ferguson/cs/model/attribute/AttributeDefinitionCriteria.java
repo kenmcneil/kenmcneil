@@ -1,6 +1,11 @@
 package com.ferguson.cs.model.attribute;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.data.annotation.Id;
+
+import com.ferguson.cs.utilities.ArgumentAssert;
 
 import lombok.Builder;
 import lombok.Value;
@@ -12,7 +17,7 @@ public class AttributeDefinitionCriteria {
 	 * Unique persistent ID assigned to the attribute definition.
 	 */
 	@Id
-	private Integer attributeDefinitionId;
+	private Set<Integer> attributeDefinitionIds;
 
 	/**
 	 * A unique business key assigned to the attribute definition.
@@ -32,5 +37,17 @@ public class AttributeDefinitionCriteria {
 	 * Search for attribute definitions with a given unit of measure.
 	 */
 	private String unitOfMeasureCode;
+
+	public static class AttributeDefinitionCriteriaBuilder {
+
+		public AttributeDefinitionCriteriaBuilder attributeDefinitionId(Integer id) {
+			ArgumentAssert.notNull(id, "id");
+			if (attributeDefinitionIds == null) {
+				attributeDefinitionIds = new HashSet<>();
+			}
+			attributeDefinitionIds.add(id);
+			return this;
+		}
+	}
 
 }

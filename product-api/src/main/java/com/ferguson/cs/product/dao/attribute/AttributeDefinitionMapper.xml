@@ -6,6 +6,7 @@
 	<resultMap id="AttributeDefinitionValueResultMap" type="com.ferguson.cs.model.attribute.AttributeDefinitionValue">
 		<id column="enumeratedValueId" property="id" />
 		<result column="enumeratedValue" property="value" />
+		<result column="enumeratedDisplayValue" property="displayValue" />
 	</resultMap>
 
 	<resultMap id="UnitOfMeasureRefResultMap"
@@ -47,14 +48,19 @@
 			uom.name as uom_name,
 			uom.description as uom_description,
 			value.id as enumeratedValueId,
-			value.value as enumeratedValue
+			value.value as enumeratedValue,
+			value.display_value as enumeratedDisplayValue
 		from
 			attribute_definition attr
 			left outer join unit_of_measure uom on attr.unit_of_measure_id = uom.id
 			left outer join attribute_definition_value value on value.attribute_definition_id = attr.id
 		<where>
-			<if test="attributeDefinitionId != null">
-				attr.id = #{attributeDefinitionId}
+			<if test="attributeDefinitionIds != null and attributeDefinitionIds.size() > 0">
+			and attr.id in (
+			<foreach collection="attributeDefinitionIds" item="value" separator=",">
+			#{value}
+			</foreach>
+			)
 			</if>
 			<if test="attributeDefinitionCode != null">
 				and attr.code = #{attributeDefinitionCode}
@@ -113,10 +119,12 @@
 	<insert id="insertAttributeDefinitionValue" useGeneratedKeys="true" keyProperty="attributeValue.id" keyColumn="id">
 		insert into attribute_definition_value (
 			attribute_definition_id,
-			value
+			value,
+			display_value
 		) values (
 			#{attributeDefinitionId},
-			#{attributeValue.value}
+			#{attributeValue.value},
+			#{attributeValue.displayValue}
 		)
 	</insert>
 	<update id="updateAttributeDefinitionValue">
@@ -124,7 +132,8 @@
 			attribute_definition_value
 		set
 			attribute_definition_id = #{attributeDefinitionId},
-			value = #{attributeValue.value}
+			value = #{attributeValue.value},
+			display_value = #{attributeValue.displayValue}
 		where
 			id = #{attributeValue.id}
 	</update>

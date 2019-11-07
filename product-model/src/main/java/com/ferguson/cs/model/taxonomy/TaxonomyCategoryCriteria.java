@@ -20,7 +20,6 @@ public class TaxonomyCategoryCriteria {
 	 */
 	private String taxonomyCode;
 
-
 	/**
 	 * The category path assigned to a category, the path is unique within a given taxonomy.
 	 */
@@ -30,11 +29,6 @@ public class TaxonomyCategoryCriteria {
 	 * A list of persistent taxonomy category IDs that should be retrieved.
 	 */
 	private Set<Long> categoryIds;
-
-	/**
-	 * A list of persistent taxonomy category IDs that should be retrieved.
-	 */
-	private Set<String> categoryCodes;
 
 	/**
 	 * The persistent ID of a "parent" taxonomy category used to limit the category search to just the immediate children of the parent.
@@ -50,15 +44,6 @@ public class TaxonomyCategoryCriteria {
 			this.categoryIds.add(categoryId);
 			return this;
 		}
-
-		public TaxonomyCategoryCriteriaBuilder categoryCode(String categoryCode) {
-			if (this.categoryCodes == null) {
-				this.categoryCodes= new HashSet<>();
-			}
-			this.categoryCodes.add(categoryCode);
-			return this;
-		}
-
 	}
 
 }
