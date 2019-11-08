@@ -8,8 +8,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 
 import com.ferguson.cs.model.Auditable;
-import com.ferguson.cs.model.product.Product;
-import com.ferguson.cs.model.product.ProductReference;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -78,18 +76,13 @@ public class TaxonomyCategory implements Auditable {
 	 */
 	private List<TaxonomyCategoryAttribute> attributes;
 
-	/**
-	 * A list of product that have been assigned to this category. A product can only be assigned to this category if
-	 * it has all of the category's required traits.
-	 */
-	private List<ProductReference> products;
 
 	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
 
 	@Version
-	private Long version;
+	private Integer version;
 
 	public static class TaxonomyCategoryBuilder {
 
@@ -115,21 +108,6 @@ public class TaxonomyCategory implements Auditable {
 				this.attributes = new ArrayList<>();
 			}
 			this.attributes.add(attribute);
-			return this;
-		}
-
-		public TaxonomyCategoryBuilder product(ProductReference product) {
-			if (this.products == null) {
-				this.products = new ArrayList<>();
-			}
-			this.products.add(product);
-			return this;
-		}
-		public TaxonomyCategoryBuilder product(Product product) {
-			if (this.products == null) {
-				this.products = new ArrayList<>();
-			}
-			this.products.add(new ProductReference(product));
 			return this;
 		}
 	}

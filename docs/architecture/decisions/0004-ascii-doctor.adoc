@@ -1,0 +1,64 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 4. Ascii Doctor for repository documentation.
+
+Date: 2019-11-07
+
+## Status
+
+Accepted
+
+## Context
+
+ASCII Doctor is a text-based formatting langauage that is similar to Markdown. In my opinion, it has better formatting options compared with markdown and is rendered natively on GitHub. For more information:
+
+- https://asciidoctor.org/docs/asciidoc-syntax-quick-reference[Syntax Quick Reference]
+- https://asciidoctor.org/docs/asciidoc-writers-guide[AsciiDoc Writer's Guide]
+- https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74[Hints for ASCII Doctor on GitHub]
+- https://asciidoctor.org/docs/user-manual/#attributes[Attributes can be used as directives to turn styling features on/off]
+
+## Decision
+
+This project has standardized it's in-repository documentation on ASCII doctor.
+
+[TIP]
+====
+The rendering of icons across environments can be a bit tricky, the following works well assuming that the asciidocotor.css file is in the same directory as the .adoc file.
+====
+[source]
+====
+ :sectlinks:
+ :sectanchors:
+ :stylesheet: asciidoctor.css
+ // If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ ifndef::env-github[]
+ :icons: font
+ endif::[]
+ ifdef::env-github[]
+ :important-caption: :exclamation:
+ :warning-caption: :x:
+ :caution-caption: :hand:
+ :note-caption: :bulb:
+ :tip-caption: :mag:
+ endif::[]
+====
+
+## Consequences
+
+- We are not allowing in-repository documentation to use Markdown.

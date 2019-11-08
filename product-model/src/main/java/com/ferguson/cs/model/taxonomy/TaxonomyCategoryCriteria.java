@@ -1,5 +1,6 @@
 package com.ferguson.cs.model.taxonomy;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Builder;
@@ -20,9 +21,9 @@ public class TaxonomyCategoryCriteria {
 	private String taxonomyCode;
 
 	/**
-	 * The persistent ID of a "parent" taxonomy category used to limit the category search to just the immediate children of the parent.
+	 * The category path assigned to a category, the path is unique within a given taxonomy.
 	 */
-	private Long categoryIdParent;
+	private String categoryPath;
 
 	/**
 	 * A list of persistent taxonomy category IDs that should be retrieved.
@@ -30,18 +31,19 @@ public class TaxonomyCategoryCriteria {
 	private Set<Long> categoryIds;
 
 	/**
-	 * A list of persistent taxonomy category IDs that should be retrieved.
+	 * The persistent ID of a "parent" taxonomy category used to limit the category search to just the immediate children of the parent.
 	 */
-	private Set<String> categoryCodes;
+	private Long categoryIdParent;
 
-	/**
-	 * The category path assigned to a category
-	 */
-	private String categoryPath;
+	public static class TaxonomyCategoryCriteriaBuilder {
 
-	/**
-	 * An optional qualifier, typically used in combination with the categoryIdParent to find a specific child by name.
-	 */
-	private String categoryName;
+		public TaxonomyCategoryCriteriaBuilder categoryId(Long categoryId) {
+			if (this.categoryIds == null) {
+				this.categoryIds= new HashSet<>();
+			}
+			this.categoryIds.add(categoryId);
+			return this;
+		}
+	}
 
 }

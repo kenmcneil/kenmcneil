@@ -20,6 +20,13 @@ This repository is the home of a domain service used to manage product data. Thi
 
 WARNING: This is a work in progress and will be under constant change.
 
+== Technology Decisions
+
+This project is using architecture decision records to document some of the design decisions that have been made while developing this project. These records provide context for each decision and often provide links to more information.
+
+link:docs/architecture/architecture-decisions.adoc[See this link for more details]
+
+
 == Links
 
 The following are useful links to help clarify domain terminology and design decisions made within the context of this service.

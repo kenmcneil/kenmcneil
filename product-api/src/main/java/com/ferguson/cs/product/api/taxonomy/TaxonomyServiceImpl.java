@@ -1,22 +1,30 @@
 package com.ferguson.cs.product.api.taxonomy;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.data.DataEntityHelper;
+import com.ferguson.cs.model.attribute.AttributeDefinition;
+import com.ferguson.cs.model.attribute.AttributeDefinitionCriteria;
+import com.ferguson.cs.model.attribute.AttributeDefinitionReference;
 import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategory;
+import com.ferguson.cs.model.taxonomy.TaxonomyCategoryAttribute;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategoryCriteria;
 import com.ferguson.cs.model.taxonomy.TaxonomyCategoryReference;
 import com.ferguson.cs.model.taxonomy.TaxonomyReference;
+import com.ferguson.cs.product.api.attribute.AttributeService;
 import com.ferguson.cs.product.dao.taxonomy.TaxonomyDataAccess;
 import com.ferguson.cs.server.common.response.exception.ResourceNotFoundException;
 import com.ferguson.cs.utilities.ArgumentAssert;
@@ -25,10 +33,12 @@ import com.ferguson.cs.utilities.ArgumentAssert;
 public class TaxonomyServiceImpl implements TaxonomyService {
 
 	private final TaxonomyDataAccess taxonomyDataAccess;
+	private final AttributeService attributeService;
 	private final DataEntityHelper dataEntityHelper;
 
-	public TaxonomyServiceImpl(TaxonomyDataAccess taxonomyDataAccess, DataEntityHelper dataEntityHelper) {
+	public TaxonomyServiceImpl(TaxonomyDataAccess taxonomyDataAccess, AttributeService attributeService, DataEntityHelper dataEntityHelper) {
 		this.taxonomyDataAccess = taxonomyDataAccess;
+		this.attributeService = attributeService;
 		this.dataEntityHelper = dataEntityHelper;
 	}
 
@@ -41,6 +51,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 
 	@Override
 	public Optional<Taxonomy> getTaxonomyByCode(String code) {
+		ArgumentAssert.notNullOrEmpty(code, "code");
 		return taxonomyDataAccess.getTaxonomyByCode(code);
 	}
 
@@ -55,11 +66,6 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		ArgumentAssert.notNull(taxonomy, "taxonomy");
 		ArgumentAssert.notNullOrEmpty(taxonomy.getCode(), "code");
 		ArgumentAssert.notNullOrEmpty(taxonomy.getDescription(), "description");
-
-
-		if (taxonomy.getCode().indexOf(':') > -1 || taxonomy.getCode().indexOf('.') > -1) {
-			throw new IllegalArgumentException("The taxonomy code may not contain either colon ':' or a decimal '.'.");
-		}
 
 		if (dataEntityHelper.isNew(taxonomy) && taxonomy.getRootCategory() != null) {
 			//You cannot explicitly set the root catagory on a new taxonomy, it is created automatically.
@@ -76,13 +82,9 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		ArgumentAssert.notNull(taxonomy.getId(), "taxonomy.id");
 		ArgumentAssert.notNull(taxonomy.getVersion(), "taxonomy.version");
 
-		if (taxonomy.getId() == null && !StringUtils.hasText(taxonomy.getCode())) {
-			throw new IllegalArgumentException("The taxonomy ID or code is required when deleting the taxonomy.");
-		}
 
 		//Retrieve the taxonomy by the ID if the ID was provided, otherwise use the code.
-		Optional<Taxonomy> retrievedTaxonomy = taxonomy.getId() !=null?
-				getTaxonomyById(taxonomy.getId()):getTaxonomyByCode(taxonomy.getCode());
+		Optional<Taxonomy> retrievedTaxonomy = getTaxonomyByReference(new TaxonomyReference(taxonomy));
 
 		if (!retrievedTaxonomy.isPresent()) {
 			throw new ResourceNotFoundException("The taxonomy does not exist.");
@@ -107,27 +109,94 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 	}
 
 	@Override
-	public List<TaxonomyCategory> getCategoriesByReferences(List<TaxonomyCategoryReference> categoryReferenceList) {
-		if (categoryReferenceList == null || categoryReferenceList.isEmpty()) {
-			return Collections.emptyList();
-		}
+	public Optional<TaxonomyCategory> getCategoryByReference(TaxonomyCategoryReference categoryReference) {
+		ArgumentAssert.notNull(categoryReference, "categoryReference");
 
-		Set<Long> categoryIds = categoryReferenceList.stream().map(TaxonomyCategoryReference::getId).collect(Collectors.toSet());
-
-		TaxonomyCategoryCriteria criteria = TaxonomyCategoryCriteria.builder()
-				.categoryIds(categoryIds)
-				.build();
-		return taxonomyDataAccess.findCategories(criteria);
+		return getCategoryById(categoryReference.getId());
 	}
 
 	@Override
-	public Optional<TaxonomyCategory> getCategoryByReference(TaxonomyCategoryReference categoryReference) {
-		ArgumentAssert.notNull(categoryReference, "categoryReference");
-		return taxonomyDataAccess.getTaxonomyCategoryById(categoryReference.getId());
+	public Optional<TaxonomyCategory> getCategoryById(Long categoryId) {
+		ArgumentAssert.notNull(categoryId, "categoryId");
+		Optional<TaxonomyCategory> category= taxonomyDataAccess.getTaxonomyCategoryById(categoryId);
+		if (category.isPresent() && !CollectionUtils.isEmpty(category.get().getAttributes())) {
+			//The retrieve of the taxonomy's attributes will only populate the attribute definition's IDs. We need to resolve
+			//those to a full attribute definition reference.
+			Map<Integer, AttributeDefinitionReference> definitionMap = findAttributeDefintions(category.get().getAttributes());
+			for (TaxonomyCategoryAttribute attribute : category.get().getAttributes()) {
+				if (attribute.getDefinition() != null || attribute.getDefinition().getId() != null) {
+					AttributeDefinitionReference definition = definitionMap.get(attribute.getDefinition().getId());
+					if (definition != null) {
+						attribute.setDefinition(definition);
+					}
+				}
+			}
+		}
+		return category;
+	}
+
+	/**
+	 * This method will accept a list of taxonomy category attributes and find all the attribute definitions for the category attributes.
+	 *
+	 * @param attributes The category attributes
+	 * @return A map of attribute definition IDs to attribute definition references.
+	 */
+	private Map<Integer, AttributeDefinitionReference> findAttributeDefintions(List<TaxonomyCategoryAttribute> attributes) {
+
+		if (CollectionUtils.isEmpty(attributes)) {
+			return Collections.emptyMap();
+		}
+
+		//Collect the Ids of all the definitions.
+		Set<Integer> attributeDefinitionIds = attributes.stream()
+				.filter(definition -> definition.getDefinition() != null && definition.getDefinition().getId() != null)
+				.map(definition -> definition.getDefinition().getId()).collect(Collectors.toSet());
+
+		List<AttributeDefinition> attributeDefinitions = attributeService.findAttributeDefinitions(AttributeDefinitionCriteria.builder()
+			.attributeDefinitionIds(attributeDefinitionIds)
+			.build());
+
+		//Convert the results into a map of ID -> attributeDefinition References.
+		return attributeDefinitions.stream().collect(Collectors.toMap(AttributeDefinition::getId, AttributeDefinitionReference::new));
 	}
 
 	@Override
 	public List<TaxonomyCategory> findCategoryList(TaxonomyCategoryCriteria criteria) {
+		ArgumentAssert.notNull(criteria, "criteria");
+
+		if (CollectionUtils.isEmpty(criteria.getCategoryIds()) &&
+				criteria.getCategoryIdParent() == null && (
+					StringUtils.isEmpty(criteria.getCategoryPath()) ||
+					(!StringUtils.isEmpty(criteria.getCategoryPath()) &&
+						criteria.getTaxonomyId() == null && StringUtils.isEmpty(criteria.getTaxonomyCode())))) {
+
+			throw new IllegalArgumentException("You must supply one of the follow to search for categories: " +
+					"A least one category ID, the categoryIdParent, or a category path accompanied with either the taxonomy ID or taxonomy Code.");
+		}
+		List<TaxonomyCategory> categories = taxonomyDataAccess.findCategories(criteria);
+
+		//The references to an attribute definition are NOT populated via the findCategory query because the attribute definitions are in a different aggregate root.
+		//We do want the fully populated references, and therefore we make a call out to the attribute service to retrieve them. We are making
+		//one aggregate "find" for all attributes. My one concern here is when retrieving a large number of categories (via a category parent or just a really big list of category IDs)
+		//we may exceed the number of allowed element in an "in clause". For now, just leaving this alone, but we could either just chunk the number of attributes in that case or
+		//go to an ID -> cache model.
+		if (!categories.isEmpty()) {
+			List<TaxonomyCategoryAttribute> allAttributes = categories.stream()
+					.map(category -> category.getAttributes()) //TaxonomyCategory -> List<List<TaxonomyCategoryAttribue>>
+					.flatMap(Collection::stream) //Flatten to one stream.
+					.collect(Collectors.toList()); //And collect.
+
+			Map<Integer, AttributeDefinitionReference> definitionMap = findAttributeDefintions(allAttributes);
+			for (TaxonomyCategoryAttribute attribute : allAttributes) {
+				//The attributes are modified by reference, no need to put them "back" into our list of categories.
+				if (attribute.getDefinition() != null || attribute.getDefinition().getId() != null) {
+					AttributeDefinitionReference definition = definitionMap.get(attribute.getDefinition().getId());
+					if (definition != null) {
+						attribute.setDefinition(definition);
+					}
+				}
+			}
+		}
 		return taxonomyDataAccess.findCategories(criteria);
 	}
 
@@ -147,23 +216,19 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 			ArgumentAssert.notNullOrEmpty(category.getCode(), "code");
 			ArgumentAssert.notNull(category.getCategoryParent(), "category.categoryParent");
 			ArgumentAssert.notNull(category.getCategoryParent().getId(), "category.categoryParent.id");
-			ArgumentAssert.notNullOrEmpty(category.getCategoryParent().getPath(), "category.categoryParent.path");
+			ArgumentAssert.notNull(category.getCategoryParent().getPath(), "category.categoryParent.path");
 
-			//if the taxonomy is not provided, attempt to derive it from the parent.
-			if (category.getTaxonomy() == null || category.getTaxonomy().getId() == null) {
-				category.setTaxonomy(category.getCategoryParent().getTaxonomy());
-			}
 			//Make sure the taxonomy is present!
 			ArgumentAssert.notNull(category.getTaxonomy(), "category.taxonomy");
 			ArgumentAssert.notNull(category.getTaxonomy().getId(), "category.taxonomy.id");
 
-			if (category.getCode().indexOf(':') > -1 || category.getCode().indexOf('.') > -1) {
-				throw new IllegalArgumentException("The category code may not contain either colon ':' or a decimal '.'.");
+			if (category.getCode().indexOf('.') > -1) {
+				throw new IllegalArgumentException("The category code may not contain a decimal '.'.");
 			}
 
 			//The path of the category is ALWAYS derived from the parent's path and the category's code.
 			StringBuilder path = new StringBuilder(category.getCategoryParent().getPath());
-			if (!category.getCategoryParent().getPath().endsWith(":")) {
+			if (!category.getCategoryParent().getPath().isEmpty()) {
 				path.append(".");
 			}
 			path.append(category.getCode());
@@ -185,7 +250,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		List<TaxonomyCategory> children = findCategoryList(TaxonomyCategoryCriteria.builder()
 				.categoryIdParent(category.getId())
 				.build());
-			children.stream().forEach(this::deleteCategory);
+		children.stream().forEach(this::deleteCategory);
 
 		taxonomyDataAccess.deleteCategory(category);
 

@@ -80,11 +80,17 @@
 		where id = #{id}
 	</update>
 	
+	<resultMap id="TaxonomyCategoryAttributeResultMap" type="com.ferguson.cs.model.taxonomy.TaxonomyCategoryAttribute">
+		<id column="attribute_id" property="id" />
+		<result column="attribute_definition_id" property="definition.id" />
+		<result column="attribute_is_required" property="required" />
+	</resultMap>
 
 	<resultMap id="TaxonomyCategoryResultMap" type="com.ferguson.cs.model.taxonomy.TaxonomyCategory">
 	    <result column="category_id" jdbcType="VARCHAR" property="id" />
 	    <result column="category_code" jdbcType="VARCHAR" property="code" />
-	    <result column="category_name" jdbcType="VARCHAR" property="name" />
+	    <result column="category_path" jdbcType="VARCHAR" property="path" />
+	    <result column="category_name" jdbcType="VARCHAR" property="name" />	    
 	    <result column="category_description" jdbcType="VARCHAR" property="description" />
 	    <result column="category_created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
 	    <result column="category_last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
@@ -100,7 +106,8 @@
 			<result column="category_parent_name" property="name" />
 			<result column="category_parent_description" property="description" />
 			<result column="category_parent_path" property="path" />
-		</association>	    
+		</association>
+		<collection property="attributes" resultMap="TaxonomyCategoryAttributeResultMap" />		
 	</resultMap>
 
 	<select id="findCategories"	resultMap="TaxonomyCategoryResultMap">
@@ -120,21 +127,19 @@
 			category_parent.path as category_parent_path,
 			category.created_timestamp as category_created_timestamp, 
 			category.last_modified_timestamp as category_last_modified_timestamp,
-			category.version as category_version
+			category.version as category_version,
+			attribute.id attribute_id,
+			attribute.attribute_definition_id attribute_definition_id,
+			attribute.is_required	attribute_is_required
 		from
 			taxonomy_category category
 			join taxonomy taxonomy on taxonomy.id = category.taxonomy_id
-			left  join taxonomy_category category_parent on category_parent.id = category.category_parent_id
+			left join taxonomy_category category_parent on category_parent.id = category.category_parent_id
+			left join taxonomy_category_attribute attribute on attribute.taxonomy_category_id = category.id
 		<where>
 			<if test="taxonomyId != null">
 			taxonomy.id = #{taxonomyId}
 			</if>		
-			<if test="taxonomyCode!= null">
-			taxonomy.code = #{taxonomyCode}
-			</if>
-			<if test="categoryName!= null">
-			category.name = #{categoryName}
-			</if>
 			<if test="categoryPath">
 			category.path = #{categoryPath}
 			</if>
@@ -148,16 +153,12 @@
 			</foreach>
 			)
 			</if>
-			<if test="categoryCodes != null and categoryCodes.size() > 0">
-			and category.code in (
-			<foreach collection="categoryCodes" item="value" separator=",">
-			#{value}
-			</foreach>
-			)
-			</if>
 		</where>		
 	</select>
 	
+	<select id="retrieveCategory" resultMap="TaxonomyCategoryResultMap">
+	
+	</select>
 	<delete id="deleteCategory">
 		delete from taxonomy_category where id = #{id} and version = #{version}
 	</delete>

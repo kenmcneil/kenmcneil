@@ -109,7 +109,7 @@ public class AttributeDefinition implements Serializable, Auditable {
 			if (enumeratedValues == null) {
 				enumeratedValues = new ArrayList<>();
 			}
-			enumeratedValues.add(new AttributeDefinitionValue(null, value, null));
+			enumeratedValues.add(new AttributeDefinitionValue(null, value, value));
 			return this;
 		}
 		public AttributeDefinitionBuilder enumeratedValue(Integer value) {
@@ -117,7 +117,7 @@ public class AttributeDefinition implements Serializable, Auditable {
 			if (enumeratedValues == null) {
 				enumeratedValues = new ArrayList<>();
 			}
-			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), null));
+			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), value.toString()));
 			return this;
 		}
 		public AttributeDefinitionBuilder enumeratedValue(BigDecimal value) {
@@ -125,7 +125,7 @@ public class AttributeDefinition implements Serializable, Auditable {
 			if (enumeratedValues == null) {
 				enumeratedValues = new ArrayList<>();
 			}
-			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), null));
+			enumeratedValues.add(new AttributeDefinitionValue(null, value.toString(), value.toString()));
 			return this;
 		}
 		public AttributeDefinitionBuilder minimumValue(String value) {

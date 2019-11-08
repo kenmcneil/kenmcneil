@@ -18,10 +18,9 @@ public interface TaxonomyService {
 	Taxonomy saveTaxonomy(Taxonomy taxonomy);
 	void deleteTaxonomy(Taxonomy taxonomy);
 
-	List<TaxonomyCategory> getCategoriesByReferences(List<TaxonomyCategoryReference> categoryReferenceList);
-	Optional<TaxonomyCategory> getCategoryByReference(TaxonomyCategoryReference categoryReference);
-
 	List<TaxonomyCategory> findCategoryList(TaxonomyCategoryCriteria criteria);
+	Optional<TaxonomyCategory> getCategoryByReference(TaxonomyCategoryReference categoryReference);
+	Optional<TaxonomyCategory> getCategoryById(Long catgoryId);
 	TaxonomyCategory saveCategory(TaxonomyCategory category);
 	void deleteCategory(TaxonomyCategory category);
 }

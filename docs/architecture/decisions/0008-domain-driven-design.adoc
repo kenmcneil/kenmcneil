@@ -1,0 +1,54 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 8. Using domain-driven-design when modeling our domain model and events.
+
+Date: 2019-11-07
+
+== Status
+
+Accepted
+
+== Context
+
+The spring-data projects use a programming model that is rooted in domain-driven-design. The concepts of defining a ubiquitous language in the early stages of the design were important in getting the business stake holders and the development teams using the same terms when discussing any portion of the product data life cycle.
+
+The concepts of aggregates, aggregate roots, and references help provide scope/bounded context around sub-systems within service implementation. 
+
+== Decision
+
+This project is using domain driven design to help scope what entities are aggregate roots, aggregates, and references. We strongly recommend that you learn the basics of DDD,as the concepts are used to clearly define boundaries between different aggregate roots. In the case where one aggregate root has a reference to a second aggregate root, you will find that we use a "reference" object rather than directly referencing the second aggregate root.
+
+==== Data Model vs Domain Model
+
+A "perfect" design would create a domain model that does not have any additional attributes used for persisting the model to the underlying data store. In practice, this results in a large amount of duplication and marshalling between the data and domain model.
+
+This project uses a single domain/data model which means that the persistence attributes are mixed into the domain model. We felt this was a needed compromise to allow the implementation to be changed quickly. 
+
+==== Events
+
+This project will emit events as the models are manipulated through the APIs. The events will be published as to "topics" within a messaging broker and allow one or more downstream consumers to listen and consume those events. This service will act as the "source of truth" of product data to all downstream, transactional systems.
+
+The need to emit events is also considered when building the APIs and we are making decisions to help scope the changed.
+
+## Consequences
+
+- The model project has a dependency on the spring-data projects so that the model can be correctly annotated with persistence hints. We try to minimize the amount of spring-data infrastructure within the model.
+- The boundary of an aggregate root impacts what types of events can be emitted from the system and how "far" down the object model a save operation will traverse.
+- The domain model will require significant scrutity when changes are being made to make sure we are maintaining the bounded context for each aggregate root. This can lead to some surprsing design decisions that are not initially obvious, but simply the cognitive load required to use the model.
+- There is a learning curve to this process that might be initially frustrating to developers.
