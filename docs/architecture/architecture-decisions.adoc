@@ -1,0 +1,32 @@
+= Architecture Decisions
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../asciidoctor.css
+:imagesdir: ../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+== Architecture Decisions
+
+The following are a list of architecture decisions that have been made for this project:
+
+. link:decisions/0001-record-architecture-decisions.adoc[0001-record-architecture-decisions]
+. link:decisions/0002-lombok.adoc[0002-lombok]
+. link:decisions/0003-conventional-commits.adoc[0003-conventional-commits]
+. link:decisions/0004-ascii-doctor.adoc[0004-ascii-doctor]
+. link:decisions/0005-spring-data-mongo.adoc[0005-spring-data-mongo]
+. link:decisions/0006-spring-data-jdbc.adoc[0006-spring-data-jdbc]
+. link:decisions/0007-spring-data-mybatis.adoc[0007-spring-data-mybatis]
+. link:decisions/0008-domain-driven-design.adoc[0008-domain-driven-design]
+
+

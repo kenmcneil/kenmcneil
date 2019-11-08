@@ -1,0 +1,39 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 1. Record architecture decisions
+
+Date: 2019-11-07
+
+## Status
+
+Accepted
+
+## Context
+
+We need to record the architectural decisions made on this project.
+
+## Decision
+
+We will use Architecture Decision Records, as [described by Michael Nygard](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions). This Technique is rated _Adopt_ by [ThoughtWorks Techology Radar](https://www.thoughtworks.com/radar/techniques/lightweight-architecture-decision-records)
+
+## Consequences
+
+* Architectural decisions should be recorded with the code that they're applicable for.
+* Not documenting architectural decisions creates an overreliance upon institutional knowledge or other knowledge bases that may evolve to not cover or address the problem the decision originally tried to solve.
+* See Michael Nygard's article, linked above. For a lightweight ADR toolset, see Nat Pryce's [adr-tools](https://github.com/npryce/adr-tools).

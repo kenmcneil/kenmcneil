@@ -1,0 +1,51 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 7. Persistence Layer Using Spring Data Common and Mybatis
+
+Date: 2019-11-07
+
+## Status
+
+Accepted
+
+## Context
+
+One thing is clear after experimenting the spring-data projects, the spring-data-commons provides a good base upon which to build a persistence layer. The commons project can handle reflection of the java model, applying the "version" property, supports setting "auditing" columns, and provides a framework for determining if a model object is "new" or has already been persisted to the underlying database.
+
+We are also very familiar with using Mybatis as our persistence layer and the merging of these two libraries promises to add standardization to our new peristence layer but still allows our devs to use Mybatis as the primary mechanism for issuing queries against the database.
+
+## Decision
+
+the project is currently using a hybrid customization to get us up and running quickly. The Spring Data Commons library is the library that is used as the base for all of the Spring Data derivitives. It provides capabilities for tracking auditing columns and reflective access to a version property.
+
+We are still using Mybatis as the primary mechanism for writing and mapping database queries to our Java objet model.
+
+The `DataAccessHelper` merges the annotation-driven functionality provided by spring-data-commons with Mybatis Function references that are used to do insert, update, and delete operations. This helper provides: 
+
+* A method to intergate a Java model object to determine if it should be inserted/updated. The strategy used for this logic does NOT require any calls to the database but relies on the following:
+. If the model object has a numeric property annoatated with `@Version` and that property is null, the model object is considered "new".
+. If the model object has a property annotated with `@Id` and that property is null, the model object is considered "new".
+. If the model object implements "Persistable", there is a method that can be implemented to customize the "isNew" logic.
+* A method to save an entity object, passing the entity and two function references to an "insert" and "update" method. The methods are defined via Mybatis mappers. This method will determine if the entity is new and either call insert or update.
+
+## Consequences
+
+- The data access implementations must use the data access helper to provide a standard experience when inserting, updating, or deleting entities from the database.
+- The Mybatis queries for insert, update and delete are required to correctly use the "version" column in order to enforce optimistic record locking.
+- If we decide to go to a different data access library (like spring-data-jdbc), there will likely be some system-wide refactoring.

@@ -1,0 +1,71 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# . Use Lombok to reduce boilerplate code.
+
+Date: 2019-11-07
+
+## Status
+
+Accepted
+
+## Context
+
+The Java language can be verbose when defining simple "model" objects that are used to represent the domain and API objects of a given project. Lombok is a Java library that can be used to reduce the amount of code a programmer must write when defining these types of objects. See https://projectlombok.org/[Lombok Project Home Page] for more information.
+
+## Decision
+
+This project ONLY uses lombok in the model layer and requires that a plugin is installed in your IDE of choice. Lombok provides several annotations that will generate builders, constructors, getters, setters, and toString. It has support for building "value" objects in which there are no setters and the fields are set at construction time, however, Mybatis does not play well
+
+The following code snippet:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UnitOfMeasure implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private String id;
+    private String code;
+	private String name;
+	private String description;
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+	private Integer version;
+}
+```
+
+Results in a Lombok generated class with the following:
+
+image:lombok-example.png[]
+
+Mybatis uses the generated model objects and using value objects tend to be a pain. Therefore, we use the `@Data` and `@NoArgsConstructor` to keep Mybatis happy.
+
+The `@Builder` annotation will generate a nested static class that can be used to create new instances of the model objects using a fluent API. There are a couple of "tricks" that make this feature more useful: 
+
+
+## Consequences
+
+- You must install the Lombok plugin into your IDE in order to use this project.
+- If you annotate your class with `@Builder` it also requires the `@AllArgsConstructor`. However, if you dont want all fields to be included in the builder you can create your own constructor and annotate that with `@Builder` instead. This will limit the fields you can configure through the builder.
+- You can also statically create the builder class within your model and add your own methods to the builder. Lombok will augment/skip any builder methods that are already present.
+- We have a heavy reliance on the generated Lombok builders.
+- If we choose to drop lombok from this service, we can use the "delombok" plugin to generate the lombok source code. You can simply copy those files over the lombok-annotated classes and drop the Lombok library from the dependencies.

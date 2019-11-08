@@ -82,8 +82,22 @@ public class TaxonomyController {
 	}
 
 	@GetMapping(value = "/{taxonomyCode}/categories/{categoryId}")
-	public TaxonomyCategory getCategory(@PathVariable("taxonomyCode") String taxonomyCode, Long categoryId) {
+	public TaxonomyCategory getCategory(@PathVariable("taxonomyCode") String taxonomyCode, @PathVariable("categoryId") Long categoryId) {
 		return OptionalResourceHelper.handle(taxonomyService.getCategoryById(categoryId), "taxonomy category", "" + categoryId);
+	}
+
+	@GetMapping(value = "{taxonomyCode}/categories/{categoryId}/subCategories")
+	public List<TaxonomyCategory> getSubCategoriesByParent(@PathVariable("taxonomyCode") String  taxonomyCode, @PathVariable("categoryId") Long categoryId) {
+
+		Optional<TaxonomyCategory> parentCategory = taxonomyService.getCategoryById(categoryId);
+		if (!parentCategory.isPresent()) {
+			throw new ResourceNotFoundException("The category [" + categoryId + "] could not be found.");
+		}
+
+		return taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
+				.categoryIdParent(parentCategory.get().getId())
+				.build()
+			);
 	}
 
 	@PostMapping(value = "/{taxonomyCode}/categories")

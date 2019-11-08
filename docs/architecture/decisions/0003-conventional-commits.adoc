@@ -1,0 +1,55 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 3. Conventional Commits
+
+Date: 2019-11-07
+
+## Status
+
+Accepted
+
+## Context
+
+To facilitate the automation of releases notes/change logs and how we increment the semantic version of the services we have enabled a github application that enforces that the pull request description is in a specific format. The format communicates if a PR constitutes a fix, a new feature, and a breaking change.
+
+The following are good links that better define how to use conventional commits.
+
+- https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary[Conventional Commits Summary]
+- https://github.com/zieka/commit-cop[Commit Cop is a github plugin that enforces the description format]
+
+## Decision
+
+IMPORTANT: For now we are just enforcing the format of the pull requestion descriptions with the intention of automating the semantic version and release notes later.
+
+The format of the pull request description is of the form: `SODEV-xxxxx - <type>: Short description.`
+ 
+.Commit Types
+|===
+|Type |Description  
+|fix |The change constitutes a bug fix and does not add new functionality.
+|feature |New functionality has been added to the application.
+|BREAKING CHANGE |The work constitutes a breaking change.
+|doc |Documentation
+|test |Changes to unit/integration tests 
+|===
+
+
+## Consequences
+
+- Conventional commits orginiated out of the Javascript community and provides a very useful format for parsing pull requests and commits. The automation of sematic veresion is not on our roadmap due to some impendence mismatch between the automation and how Maven/Java projects manage versions and sub-modules.

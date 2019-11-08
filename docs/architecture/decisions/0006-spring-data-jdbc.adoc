@@ -1,0 +1,44 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 6. Persistence Layer Using Spring Data JDBC
+
+Date: 2019-11-07
+
+## Status
+
+Deprecated
+
+## Context
+
+There are a collection of subprojects under the Spring Data umbrella. These projects provide a variety of persistent frameworks over relational database, NOSQL database, key/value stores, and graph databases. The spring-data-jdbc project is a "younger" project that provides the same programming model as something like spring-data-jpa but has a simple underlying implementation that does not require the complex mapping and annotation problems that are common with something like JPA or Hibernate.
+
+## Decision
+
+This project is fairly new and while it is promising, it was lacking features like optimistic record locking. We actually have met with and talked to the lead of this project and it sounds like the project is resource constrained. As much as it would be a good choice, it feels like it might still be a couple years away from production use.
+
+We may revisit this.
+
+## Consequences
+
+- The use of spring-data-jdbc means that we are at the mercy of a young project.
+- Spring Data JDBC forces some implementation details upon your domain model. As an example, a one to many ends up being modeled as a Set rather than List. While this is not a huge issue, it does seem a bit constrained. There is the ability to map this as a List but it does some strange mapping between the index value in the list to a column in the database.
+- Using spring data repositories for Create, Update, and Delete are really straightforward but you also need to use Mybatis mappers or some primitive jdbc queries for the read operations. This ends up looking like a Data access object that is fronting both the Repositories and Mybatis mappers.
+- Optimistic record locking is not yet implemented.
+- You really need to model you objects using DDD and you have little choice not to. This might be better as as a CQRS architecture.
+ 

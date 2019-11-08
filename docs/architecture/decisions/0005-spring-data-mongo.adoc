@@ -1,0 +1,49 @@
+= Architecture Decision
+Tyler Van Gorder <tyler.vangorder@build.com>
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: ../../images
+// If not rendered on github, we use fonts for the captions, otherwise, we assign github emojis. DO NOT PUT A BLANK LINE BEFORE THIS, the ICONS don't render.
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:important-caption: :exclamation:
+:warning-caption: :x:
+:caution-caption: :hand:
+:note-caption: :bulb:
+:tip-caption: :mag:
+endif::[]
+
+# 5. Persistence Layer Using Spring Data Mongo
+
+Date: 2019-11-07
+
+## Status
+
+Deprecated
+
+## Context
+
+There are a collection of subprojects under the Spring Data umbrella. These projects provide a variety of persistent frameworks over relational database, NOSQL database, key/value stores, and graph databases. The document-based model used by spring-data-mongo is a natural fix between a java object model and the underlying NO SQL database.
+
+## Decision
+
+The programming model was very straightforward from a Java coding perspective. However, the use of Mongo ended up being problematic in that we did not have a good experience with ACID transactions and, while the spring data abstraction is really nice, we did not feel Mongo was the correct choice. We  may revisit this decision using a different NO SQL store like CosmoDB.
+
+The following are useful links to help clarify the difference between Spring Data vs something like mybatis-spring. Many of the low-level data access concerns are abstracted away by Spring Data:
+
+- https://spring.io/projects/spring-data[Spring Data Overview]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#repositories[Core Spring Data Concepts]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mapping-chapter[Spring Data Object Mapping]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongo-template.id-handling[ID Handling In Mongo]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#projections[Projections]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#auditing[Spring Data Auditing Support]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongo.repositories[Mongo DB Repository Details]
+- https://docs.spring.io/spring-data/mongodb/docs/2.1.4.RELEASE/reference/html/#mongodb.repositories.queries.json-based[Using JSON Expressions For Repository Query Methods]
+
+## Consequences
+
+- There have been several base-level decisions that have been made to make it easier to leverage Spring Data MongoDB. Please see the stack overflow post that we created for details: https://stackoverflow.com/questions/54338496/spring-data-models-abstract-base-classes-with-lombok[Spring Data MongoDB Design Decisions]
+
