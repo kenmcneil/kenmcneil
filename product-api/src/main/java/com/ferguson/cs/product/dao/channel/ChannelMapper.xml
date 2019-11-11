@@ -2,51 +2,91 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.dao.channel.ChannelMapper">
   
-  <resultMap id="channelResultMap" type="com.ferguson.cs.model.channel.Channel">
-    <id column="id" jdbcType="INTEGER"  property="id" />
-    <result column="code" jdbcType="VARCHAR" property="code" />
-    <result column="datatype" jdbcType="VARCHAR" property="datatype" />
-    <result column="description" jdbcType="VARCHAR" property="description" />
-    <result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
-    <result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
-    <result column="version" jdbcType="SMALLINT" property="version" />
-	<association property="businessUnit">
-	    <result column="uom_id" jdbcType="INTEGER" property="" />
-	    <result column="uom_code" jdbcType="VARCHAR" property="code" />
-	    <result column="uom_name" jdbcType="VARCHAR" property="name" />
-	    <result column="uom_description" jdbcType="VARCHAR" property="description" />	
-	</association>
-  </resultMap>
+	 <resultMap id="channelResultMap" type="com.ferguson.cs.model.channel.Channel">
+		<id column="id" jdbcType="INTEGER"  property="id" />
+		<result column="code" jdbcType="VARCHAR" property="code" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="channel_type" jdbcType="VARCHAR" property="channelType" />
+		<result column="business_unit" jdbcType="VARCHAR" property="businessUnit" />
+		<result column="is_active" jdbcType="BIT" property="isActive" />
+		<result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+		<result column="version" jdbcType="SMALLINT" property="version" />
+		<association property="taxonomy" javaType="TaxonomyReference">
+			<id column="taxonomy_id" property="id" />
+		</association>	    
+	</resultMap>
 
-  <select id="findChannelList"  resultMap="channelResultMap">
-    select
-    	attr.id as id,
-    	attr.code as code,
-    	attr.datatype as datatype,
-    	attr.description as description,
-    	attr.created_timestamp as created_timestamp,
-    	attr.last_modified_timestamp as last_modified_timestamp,
-    	attr.version as version,
-    	uom.id as uom_id,
-    	uom.code as uom_code,
-    	uom.name as uom_name,
-        uom.description as uom_description,
-        value.id as enumeratedValueId,
-        value.value as enumeratedValue
-    from attribute_definition attr
-    left outer join unit_of_measure uom on attr.unit_of_measure_id = uom.id 
-    left outer join attribute_definition_value value on value.attribute_definition_id = attr.id
-    <where>
-		<if test="channelId != null">
-		attr.id = #{attributeDefinitionId}
-		</if>    
-		<if test="channelCode != null">
-		and attr.code = #{attributeDefinitionCode}
-		</if>    
-		<if test="businessUnit != null">
-		and uom.code = #{unitOfMeasureCode}
-		</if>
-    </where>    
-  </select>
+	<select id="findChannelList"  resultMap="channelResultMap">
+		select
+			id,
+			code,
+			description,
+			channel_type,
+			business_unit,
+			is_active,
+			taxonomy_id, 
+			created_timestamp,
+			last_modified_timestamp,
+			version
+		from channel
+		<where>
+			<if test="channelId != null">
+			channel.id = #{channelId}
+			</if>    
+			<if test="channelCode != null">
+			and channel.code = #{channelCode}
+			</if>    
+			<if test="businessUnit != null">
+			and channel.business_unit = #{businessUnit}
+			</if>
+    	</where>    
+	</select>
+
+	<delete id="deleteChannel">
+		delete from channel where id = #{id} and version = #{version}
+	</delete>
+
+	<insert id="insertChannel" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into channel (
+			code,
+			description, 
+			channel_type,
+			business_unit,
+			is_active, 
+			taxonomy_id,
+			created_timestamp,
+			last_modified_timestamp, 
+			version
+		) values (
+			#{code,jdbcType=VARCHAR},
+			#{description,jdbcType=VARCHAR}, 
+			#{channelType,jdbcType=VARCHAR},
+			#{businessUnit,jdbcType=VARCHAR},
+			#{isActive,jdbcType=BIT}, 
+			#{taxonomy.id,jdbcType=INTEGER},
+			#{createdTimestamp,jdbcType=TIMESTAMP},
+			#{lastModifiedTimestamp,jdbcType=TIMESTAMP}, 
+			1
+		)
+
+	</insert>
+	<update id="updateChannel">
+		update
+			channel
+		set
+			code = #{code,jdbcType=VARCHAR},
+			description = #{description,jdbcType=VARCHAR},
+			channel_type = #{channelType,jdbcType=VARCHAR},
+			business_unit = #{businessUnit,jdbcType=VARCHAR},
+			is_active = #{isActive,jdbcType=BIT},
+			taxonomy_id = #{taxonomy.id,jdbcType=INTEGER},
+			created_timestamp = #{createdTimestamp,jdbcType=TIMESTAMP},
+			last_modified_timestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
+			version = version + 1
+		where
+			id = #{id,jdbcType=INTEGER} and version = #{version,jdbcType=SMALLINT}
+	</update>
+
 
 </mapper>

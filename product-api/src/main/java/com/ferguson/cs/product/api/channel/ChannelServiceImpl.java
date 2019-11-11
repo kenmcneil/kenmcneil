@@ -3,83 +3,65 @@ package com.ferguson.cs.product.api.channel;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.model.channel.BusinessUnit;
 import com.ferguson.cs.model.channel.Channel;
-import com.ferguson.cs.model.product.Product;
-import com.ferguson.cs.product.api.taxonomy.TaxonomyService;
+import com.ferguson.cs.model.channel.ChannelCriteria;
+import com.ferguson.cs.product.dao.channel.ChannelDataAccess;
 import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Service
 public class ChannelServiceImpl implements ChannelService {
 
-	private final TaxonomyService taxonomyService;
+	private final ChannelDataAccess channelDataAccess;
 
-
-	public ChannelServiceImpl(TaxonomyService taxonomyService) {
-		this.taxonomyService = taxonomyService;
+	public ChannelServiceImpl(ChannelDataAccess channelDataAccess) {
+		this.channelDataAccess = channelDataAccess;
 	}
 
 	@Override
 	public Optional<Channel> getChannelByCode(String code) {
 		ArgumentAssert.notNullOrEmpty(code, "code");
-		//return channelRepository.findByCode(code);
-		return null;
+
+		List<Channel> results = channelDataAccess.findChannels(ChannelCriteria.builder()
+			.channelCode(code)
+			.build());
+
+		if (results.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(results.get(0));
+		}
 	}
 
 	@Override
 	public List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit) {
 		ArgumentAssert.notNull(businessUnit, "business unit");
-		//return channelRepository.findByBusinessUnit(businessUnit);
-		return null;
-	}
+		return channelDataAccess.findChannels(ChannelCriteria.builder()
+				.businessUnit(businessUnit)
+				.build());	}
 
 	@Override
 	public Channel saveChannel(Channel channel) {
 		ArgumentAssert.notNull(channel, "channel");
-		ArgumentAssert.notNullOrEmpty(channel.getCode(), "code");
-		ArgumentAssert.notNull(channel.getBusinessUnit(), "business unit");
+		ArgumentAssert.notNullOrEmpty(channel.getCode(), "channel.code");
+		ArgumentAssert.notNull(channel.getBusinessUnit(), "channel.businessUnit");
+		ArgumentAssert.notNull(channel.getChannelType(), "channel.channelType");
+		ArgumentAssert.notNull(channel.getTaxonomy(), "channel.taxonomy");
+		ArgumentAssert.notNull(channel.getTaxonomy().getId(), "channel.taxonomy.id");
 
 		if (channel.getIsActive() == null) {
 			channel.setIsActive(Boolean.FALSE);
 		}
-		return null;
-		//return channelRepository.save(channel);
+		return channelDataAccess.saveChannel(channel);
 	}
 
 	@Override
 	public void deleteChannel(final Channel channel) {
 		ArgumentAssert.notNull(channel, "channel");
-		ArgumentAssert.notNullOrEmpty(channel.getId(), "ID");
-		//channelRepository.delete(channel);
-		//TODO Need to delete all the channel/product links. Note: Mongo does not support transactions across document operations, so this is NOT atomic.
+		ArgumentAssert.notNull(channel.getId(), "channel.id");
+		ArgumentAssert.notNull(channel.getVersion(), "channel.version");
+		channelDataAccess.deleteChannel(channel);
 	}
-
-
-	@Override
-	public List<Product> getFilteredProductsByChannel(Channel channel, List<String> productListId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Page<Product> getProductsByChannel(Channel channel, Pageable pageable) {
-		return null;
-	}
-
-	@Override
-	public void addProductsToChannel(Channel channel, List<String> productIdList) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void removeProductsFromChannel(Channel channel, List<String> productIdList) {
-		// TODO Auto-generated method stub
-
-	}
-
 }

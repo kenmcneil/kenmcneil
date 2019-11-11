@@ -4,12 +4,16 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
 import com.ferguson.cs.model.Auditable;
+import com.ferguson.cs.model.taxonomy.Taxonomy;
 import com.ferguson.cs.model.taxonomy.TaxonomyReference;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A channel represents a distribution channel through which products are sold.
@@ -39,6 +43,8 @@ import lombok.Data;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Channel  implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -47,7 +53,7 @@ public class Channel  implements Auditable, Serializable {
 	 * Unique ID of the channel.
 	 */
 	@Id
-	private String id;
+	private Integer id;
 
 	/**
 	 * Unique business key for the channel.
@@ -83,7 +89,19 @@ public class Channel  implements Auditable, Serializable {
 	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
-	private Long version;
 
+	@Version
+	private Integer version;
 
+	public static class ChannelBuilder {
+
+		public ChannelBuilder taxonomy(TaxonomyReference taxonomyReference) {
+			this.taxonomy = taxonomyReference;
+			return this;
+		}
+		public ChannelBuilder taxonomy(Taxonomy taxonomyReference) {
+			this.taxonomy = new TaxonomyReference(taxonomyReference);
+			return this;
+		}
+	}
 }

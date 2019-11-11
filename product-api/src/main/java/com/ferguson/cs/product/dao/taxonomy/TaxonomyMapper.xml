@@ -156,9 +156,6 @@
 		</where>		
 	</select>
 	
-	<select id="retrieveCategory" resultMap="TaxonomyCategoryResultMap">
-	
-	</select>
 	<delete id="deleteCategory">
 		delete from taxonomy_category where id = #{id} and version = #{version}
 	</delete>
