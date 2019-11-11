@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,13 +21,13 @@ public class BusinessUnitController {
 		this.channelService = channelService;
 	}
 
-	@GetMapping(value = "/")
+	@GetMapping(value = "")
 	public List<BusinessUnit> getAllBusinessUnits() {
 		return Arrays.asList(BusinessUnit.values());
 	}
 
-	@GetMapping(value = "/{id}/channels")
-	public List<Channel> getChannelsByBusinessUnit(BusinessUnit businessUnit) {
+	@GetMapping(value = "/{businessUnitId}/channels")
+	public List<Channel> getChannelsByBusinessUnit(@PathVariable("businessUnitId") BusinessUnit businessUnit) {
 		return channelService.getChannelsByBusinessUnit(businessUnit);
 	}
 }

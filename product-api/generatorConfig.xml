@@ -10,10 +10,7 @@
     <table schema="" tableName="attribute_definition"/>
     <table schema="" tableName="attribute_definition_value"/>
      -->
-    <table schema="" tableName="taxonomy" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
     <table schema="" tableName="channel" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
-    <table schema="" tableName="taxonomy_category" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
-    <table schema="" tableName="taxonomy_category_attribute" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false" />
 
   </context>
 </generatorConfiguration>

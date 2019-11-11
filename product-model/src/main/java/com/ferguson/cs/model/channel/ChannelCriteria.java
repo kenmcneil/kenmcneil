@@ -24,6 +24,6 @@ public class ChannelCriteria {
 	/**
 	 * Search for channels associated with a business unit.
 	 */
-	private Integer businessUnitId;
+	private BusinessUnit businessUnit;
 
 }
