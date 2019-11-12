@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.dao.manufacturer.ManufacturerMapper">
+  
+	 <resultMap id="manufacturerResultMap" type="com.ferguson.cs.model.manufacturer.Manufacturer">
+	    <id column="id" jdbcType="INTEGER" property="id" />
+	    <result column="name" jdbcType="VARCHAR" property="name" />
+	    <result column="description" jdbcType="VARCHAR" property="description" />
+	    <result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+	    <result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+	    <result column="version" jdbcType="SMALLINT" property="version" />
+	</resultMap>
+
+	<select id="findManufacturers"  resultMap="manufacturerResultMap">
+		select
+			id,
+			name,
+			description,
+			created_timestamp,
+			last_modified_timestamp,
+			version
+		from manufacturer
+		<where>
+			<if test="manufacturerId != null">
+			manufacturer.id = #{manufacturerId}
+			</if>    
+			<if test="manufacturerName != null">
+			and manufacturer.name like #{manufacturerName}
+			</if>    
+    	</where>    
+	</select>
+
+	<delete id="deleteManufacturer">
+		delete from manufacturer where id = #{id} and version = #{version}
+	</delete>
+
+	<insert id="insertManufacturer" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		insert into manufacturer (
+			name,
+			description, 
+			created_timestamp,
+			last_modified_timestamp, 
+			version
+		) values (
+			#{name,jdbcType=VARCHAR},
+			#{description,jdbcType=VARCHAR}, 
+			#{createdTimestamp,jdbcType=TIMESTAMP},
+			#{lastModifiedTimestamp,jdbcType=TIMESTAMP}, 
+			1
+		)
+
+	</insert>
+	<update id="updateManufacturer">
+		update
+			manufacturer
+		set
+			name = #{name,jdbcType=VARCHAR},
+			description = #{description,jdbcType=VARCHAR},
+			last_modified_timestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
+			version = version + 1
+		where
+			id = #{id,jdbcType=INTEGER} and version = #{version,jdbcType=SMALLINT}
+	</update>
+</mapper>

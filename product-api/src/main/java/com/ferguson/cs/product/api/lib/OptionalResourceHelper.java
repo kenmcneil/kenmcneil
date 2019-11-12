@@ -22,7 +22,7 @@ public final class OptionalResourceHelper {
 	 * @return The value, if present.
 	 * @throws ResourceNotFoundException If the resource is not present.
 	 */
-	public static <T> T handle(Optional<T> resource, String resourceType, String resourceId) {
+	public static <T> T handle(Optional<T> resource, String resourceType, Object resourceId) {
 		return resource.orElseThrow(() -> new ResourceNotFoundException(
 				String.format("The %s [%s] was not found.", resourceType, resourceId)));
 	}

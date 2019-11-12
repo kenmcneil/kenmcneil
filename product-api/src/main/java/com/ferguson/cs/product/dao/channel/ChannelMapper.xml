@@ -17,7 +17,7 @@
 		</association>	    
 	</resultMap>
 
-	<select id="findChannelList"  resultMap="channelResultMap">
+	<select id="findChannels"  resultMap="channelResultMap">
 		select
 			id,
 			code,

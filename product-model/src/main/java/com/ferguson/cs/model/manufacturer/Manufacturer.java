@@ -4,11 +4,14 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
 import com.ferguson.cs.model.Auditable;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A manufacturer represents an entity that creates/builds products that are sold through the various sales channels.
@@ -21,8 +24,10 @@ import lombok.Data;
  *
  * @author tyler.vangorder
  */
-@Builder
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Manufacturer implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -31,7 +36,7 @@ public class Manufacturer implements Auditable, Serializable {
 	 * Unique persistent ID
 	 */
 	@Id
-	private Long id;
+	private Integer id;
 
 	/**
 	 * Manufacturer name
@@ -43,14 +48,10 @@ public class Manufacturer implements Auditable, Serializable {
 	 */
 	private String description;
 
-	/**
-	 * Is the manufacturer active
-	 */
-	private boolean active;
-
 	//Audit Columns
 	private LocalDateTime createdTimestamp;
 	private LocalDateTime lastModifiedTimestamp;
-	private Long version;
+	@Version
+	private Integer version;
 
 }
