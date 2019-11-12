@@ -22,7 +22,7 @@ public class ChannelDataAccessImpl extends AbstractDataAccess  implements Channe
 
 	@Override
 	public List<Channel> findChannels(ChannelCriteria criteria) {
-		return channelMapper.findChannelList(criteria);
+		return channelMapper.findChannels(criteria);
 	}
 
 	@Override
