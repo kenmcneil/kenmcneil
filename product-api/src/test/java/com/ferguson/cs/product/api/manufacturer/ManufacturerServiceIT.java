@@ -11,7 +11,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 
 import com.ferguson.cs.model.manufacturer.Manufacturer;
-import com.ferguson.cs.product.api.manufacturer.ManufacturerService;
 import com.ferguson.cs.product.test.BaseProductIT;
 
 public class ManufacturerServiceIT extends BaseProductIT {
