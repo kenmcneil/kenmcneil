@@ -15,18 +15,23 @@ public class DataAccessHelperImpl implements DataAccessHelper {
 	private final SimpleMappingContext mappingContext;
 	private final  AuditingHandler auditingHandler;
 	private final ConversionService conversionService;
-	private final DataEntityHelper dataEntityHelper;
 
 	public DataAccessHelperImpl(SimpleMappingContext mappingContext,  AuditingHandler auditingHandler, ConversionService conversionService) {
 		this.mappingContext = mappingContext;
-		this.dataEntityHelper = new DataEntityHelperImpl(mappingContext);
 		this.auditingHandler = auditingHandler;
 		this.conversionService = conversionService;
 	}
 
 	@Override
 	public boolean isNew(Object entityInstance) {
-		return dataEntityHelper.isNew(entityInstance);
+
+		ArgumentAssert.notNull(entityInstance, "entityInstance");
+
+		SimplePersistentEntity<?> entity = mappingContext.getPersistentEntity(entityInstance.getClass());
+		if (entity == null) {
+			throw new InternalError("Could not find persistent meta-data for entity " + entityInstance.getClass().getName());
+		}
+		return entity.isNew(entityInstance);
 	}
 
 	@Override
