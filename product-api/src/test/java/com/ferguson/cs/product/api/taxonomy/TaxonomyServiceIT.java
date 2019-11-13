@@ -259,7 +259,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("Level 1 Element 1")
 				.name("Level11")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.build();
 		taxonomyService.saveCategory(level1_1);
@@ -268,7 +268,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("Level 1 Element 2")
 				.name("Level12")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
 				.build();
 		taxonomyService.saveCategory(level1_2);
@@ -277,7 +277,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("Level 2 Element 1 SubElement 1")
 				.name("Level211")
-				.categoryParent(level1_1)
+				.parentCategory(level1_1)
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
 				.build();
 		taxonomyService.saveCategory(level2_1_1);
@@ -306,7 +306,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.build();
 		taxonomyService.saveCategory(category);
@@ -324,12 +324,12 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
 		assertThat(retrieved.getDescription()).isEqualTo(category.getDescription());
 
-		assertThat(retrieved.getCategoryParent()).isNotNull();
-		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
-		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
-		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
-		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
-		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+		assertThat(retrieved.getParentCategory()).isNotNull();
+		assertThat(retrieved.getParentCategory().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getParentCategory().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getParentCategory().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getParentCategory().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getParentCategory().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
 
 		assertThat(retrieved.getDescription()).isEqualTo("A category");
 		assertThat(retrieved.getName()).isEqualTo("category");
@@ -347,7 +347,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.build();
 		taxonomyService.saveCategory(category);
 
@@ -363,12 +363,12 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
 		assertThat(retrieved.getDescription()).isEqualTo(category.getDescription());
 
-		assertThat(retrieved.getCategoryParent()).isNotNull();
-		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
-		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
-		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
-		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
-		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+		assertThat(retrieved.getParentCategory()).isNotNull();
+		assertThat(retrieved.getParentCategory().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getParentCategory().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getParentCategory().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getParentCategory().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getParentCategory().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
 
 		assertThat(retrieved.getDescription()).isEqualTo("A category");
 		assertThat(retrieved.getName()).isEqualTo("category");
@@ -422,7 +422,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
 				.build();
@@ -445,12 +445,12 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
 		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
 
-		assertThat(retrieved.getCategoryParent()).isNotNull();
-		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
-		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
-		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(taxonomy.getRootCategory().getName());
-		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(taxonomy.getRootCategory().getId());
-		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
+		assertThat(retrieved.getParentCategory()).isNotNull();
+		assertThat(retrieved.getParentCategory().getCode()).isEqualTo(taxonomy.getRootCategory().getCode());
+		assertThat(retrieved.getParentCategory().getDescription()).isEqualTo(taxonomy.getRootCategory().getDescription());
+		assertThat(retrieved.getParentCategory().getName()).isEqualTo(taxonomy.getRootCategory().getName());
+		assertThat(retrieved.getParentCategory().getId()).isEqualTo(taxonomy.getRootCategory().getId());
+		assertThat(retrieved.getParentCategory().getPath()).isEqualTo(taxonomy.getRootCategory().getPath());
 
 		assertThat(retrieved.getAttributes()).hasSize(2);
 		assertThat(retrieved.getAttributes().get(0).getDefinition().getDescription()).isNotNull();
@@ -468,7 +468,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
 				.build();
@@ -498,14 +498,14 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
 				.build();
 		taxonomyService.saveCategory(category);
 
 		List<TaxonomyCategory> results = taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
-				.categoryIdParent(taxonomy.getRootCategory().getId())
+				.parentCategoryId(taxonomy.getRootCategory().getId())
 				.build());
 
 		assertThat(results).hasSize(1);
@@ -553,26 +553,26 @@ public class TaxonomyServiceIT extends BaseProductIT {
 			);
 
 		category.setCode("ASDFASDF");
-		category.setCategoryParent(null);
+		category.setParentCategory(null);
 		//Null parent
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveCategory(category)
 			);
 
 		//Empty Parent
-		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().build()));
+		category.setParentCategory(new TaxonomyCategoryReference(TaxonomyCategory.builder().build()));
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveCategory(category)
 			);
 
 		//Null path in parent
-		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).build()));
+		category.setParentCategory(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).build()));
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveCategory(category)
 			);
 
 		//Null taxonomy
-		category.setCategoryParent(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).path("").build()));
+		category.setParentCategory(new TaxonomyCategoryReference(TaxonomyCategory.builder().id(-888123L).path("").build()));
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
 				() -> taxonomyService.saveCategory(category)
 			);
@@ -603,7 +603,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code("PARENT")
 				.description("A parent")
 				.name("parent")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.build();
 		taxonomyService.saveCategory(parent);
 
@@ -614,7 +614,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.name("child")
 				.attribute(TaxonomyCategoryAttribute.builder().definition(inches).build())
 				.attribute(TaxonomyCategoryAttribute.builder().definition(centimeters).build())
-				.categoryParent(new TaxonomyCategoryReference(parent))
+				.parentCategory(new TaxonomyCategoryReference(parent))
 				.build();
 		taxonomyService.saveCategory(child);
 
@@ -631,12 +631,12 @@ public class TaxonomyServiceIT extends BaseProductIT {
 		assertThat(retrieved.getTaxonomy().getCode()).isEqualTo(taxonomy.getCode());
 		assertThat(retrieved.getTaxonomy().getDescription()).isEqualTo(taxonomy.getDescription());
 
-		assertThat(retrieved.getCategoryParent()).isNotNull();
-		assertThat(retrieved.getCategoryParent().getCode()).isEqualTo(parent.getCode());
-		assertThat(retrieved.getCategoryParent().getDescription()).isEqualTo(parent.getDescription());
-		assertThat(retrieved.getCategoryParent().getName()).isEqualTo(parent.getName());
-		assertThat(retrieved.getCategoryParent().getId()).isEqualTo(parent.getId());
-		assertThat(retrieved.getCategoryParent().getPath()).isEqualTo("PARENT");
+		assertThat(retrieved.getParentCategory()).isNotNull();
+		assertThat(retrieved.getParentCategory().getCode()).isEqualTo(parent.getCode());
+		assertThat(retrieved.getParentCategory().getDescription()).isEqualTo(parent.getDescription());
+		assertThat(retrieved.getParentCategory().getName()).isEqualTo(parent.getName());
+		assertThat(retrieved.getParentCategory().getId()).isEqualTo(parent.getId());
+		assertThat(retrieved.getParentCategory().getPath()).isEqualTo("PARENT");
 	}
 
 	@Test
@@ -647,7 +647,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.build();
 		taxonomyService.saveCategory(category);
 
@@ -701,7 +701,7 @@ public class TaxonomyServiceIT extends BaseProductIT {
 				.code(randomString(8))
 				.description("A category")
 				.name("category")
-				.categoryParent(taxonomy.getRootCategory())
+				.parentCategory(taxonomy.getRootCategory())
 				.build();
 		taxonomyService.saveCategory(category);
 

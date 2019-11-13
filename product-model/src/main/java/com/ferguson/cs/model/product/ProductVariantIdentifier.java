@@ -2,8 +2,10 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A product variant is a salable item that is linked to carts and orders. There are often multiple identifiers that can be used
@@ -11,21 +13,18 @@ import lombok.Value;
  *
  * @author tyler.vangorder
  */
-@Value
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductVariantIdentifier implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The variant Id associated with this identifier.
-	 */
-	private String variantId;
-
-	/**
 	 * The variant identifier type code identifies the type of identifier and maps to the VariantIndentifyType code.
 	 */
-	private String typeCode;
+	private ProductVariantIdentifierTypeReference type;
 
 	/**
 	 * The variant's identifier value.

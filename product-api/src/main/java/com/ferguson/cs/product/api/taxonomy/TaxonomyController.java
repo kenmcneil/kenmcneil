@@ -76,7 +76,7 @@ public class TaxonomyController {
 		TaxonomyCategory parentCategory = getCategoryByPath(taxonomyCode, path);
 
 		return taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
-				.categoryIdParent(parentCategory.getId())
+				.parentCategoryId(parentCategory.getId())
 				.build()
 			);
 	}
@@ -95,7 +95,7 @@ public class TaxonomyController {
 		}
 
 		return taxonomyService.findCategoryList(TaxonomyCategoryCriteria.builder()
-				.categoryIdParent(parentCategory.get().getId())
+				.parentCategoryId(parentCategory.get().getId())
 				.build()
 			);
 	}

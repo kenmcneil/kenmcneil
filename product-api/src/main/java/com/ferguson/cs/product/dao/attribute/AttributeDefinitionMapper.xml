@@ -9,26 +9,19 @@
 		<result column="enumeratedDisplayValue" property="displayValue" />
 	</resultMap>
 
-	<resultMap id="UnitOfMeasureRefResultMap"
-		type="com.ferguson.cs.model.attribute.UnitOfMeasureReference">
-		<id column="uom_id" jdbcType="INTEGER" property="id" />
-		<result column="uom_code" jdbcType="VARCHAR" property="code" />
-		<result column="uom_name" jdbcType="VARCHAR" property="name" />
-		<result column="uom_description" jdbcType="VARCHAR"
-			property="description" />
+	<resultMap id="UnitOfMeasureRefResultMap" type="com.ferguson.cs.model.attribute.UnitOfMeasureReference">
+		<id column="uomId" jdbcType="INTEGER" property="id" />
+		<result column="uomCode" jdbcType="VARCHAR" property="code" />
+		<result column="uomName" jdbcType="VARCHAR" property="name" />
+		<result column="uomDescription" jdbcType="VARCHAR" property="description" />
 	</resultMap>
-	<resultMap id="attributeDefinitionResultMap"
-		type="com.ferguson.cs.model.attribute.AttributeDefinition">
+	<resultMap id="attributeDefinitionResultMap" type="com.ferguson.cs.model.attribute.AttributeDefinition">
 		<id column="id" jdbcType="INTEGER" property="id" />
 		<result column="code" jdbcType="VARCHAR" property="code" />
-		<result column="datatype" jdbcType="VARCHAR"
-			property="datatype" />
-		<result column="description" jdbcType="VARCHAR"
-			property="description" />
-		<result column="created_timestamp" jdbcType="TIMESTAMP"
-			property="createdTimestamp" />
-		<result column="last_modified_timestamp" jdbcType="TIMESTAMP"
-			property="lastModifiedTimestamp" />
+		<result column="attributeDatatypeId" jdbcType="INTEGER" property="datatype"  typeHandler="com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="createdTimestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="lastModifiedTimestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
 		<result column="version" jdbcType="SMALLINT" property="version" />
 		<association property="unitOfMeasure" resultMap="UnitOfMeasureRefResultMap"/>
 		<collection property="enumeratedValues" resultMap="AttributeDefinitionValueResultMap" />
@@ -38,22 +31,22 @@
 		select
 			attr.id as id,
 			attr.code as code,
-			attr.datatype as datatype,
+			attr.attributeDatatypeId as attributeDatatypeId,
 			attr.description as description,
-			attr.created_timestamp as created_timestamp,
-			attr.last_modified_timestamp as last_modified_timestamp,
+			attr.createdTimestamp as createdTimestamp,
+			attr.lastModifiedTimestamp as lastModifiedTimestamp,
 			attr.version as version,
-			uom.id as uom_id,
-			uom.code as uom_code,
-			uom.name as uom_name,
-			uom.description as uom_description,
+			uom.id as uomId,
+			uom.code as uomCode,
+			uom.name as uomName,
+			uom.description as uomDescription,
 			value.id as enumeratedValueId,
 			value.value as enumeratedValue,
-			value.display_value as enumeratedDisplayValue
+			value.displayValue as enumeratedDisplayValue
 		from
-			attribute_definition attr
-			left outer join unit_of_measure uom on attr.unit_of_measure_id = uom.id
-			left outer join attribute_definition_value value on value.attribute_definition_id = attr.id
+			AttributeDefinition attr
+			left outer join UnitOfMeasure uom on attr.unitOfMeasureId = uom.id
+			left outer join AttributeDefinitionValue value on value.attributeDefinitionId = attr.id
 		<where>
 			<if test="attributeDefinitionIds != null and attributeDefinitionIds.size() > 0">
 			and attr.id in (
@@ -76,22 +69,22 @@
 
 
   <delete id="deleteAttributeDefinition">
-    delete from attribute_definition where id = #{id} and version = #{version}
+    delete from AttributeDefinition where id = #{id} and version = #{version}
   </delete>
   <insert id="insertAttributeDefinition" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-	insert into attribute_definition (
+	insert into AttributeDefinition (
 		code,
-		datatype,
+		attributeDatatypeId,
 		description,
-		unit_of_measure_id,
-		minimum_value,
-		maximum_value,
-		created_timestamp,
-		last_modified_timestamp,
+		unitOfMeasureId,
+		minimumValue,
+		maximumValue,
+		createdTimestamp,
+		lastModifiedTimestamp,
 		version
 	) values (
 		#{code},
-		#{datatype},
+		#{datatype, jdbcType=INTEGER, javaType=AttributeDatatype, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
 		#{description},
 		#{unitOfMeasure.id},
 		#{minimumValue},
@@ -103,24 +96,24 @@
   </insert>
   <update id="updateAttributeDefinition">
 	update
-		attribute_definition
+		AttributeDefinition
 	set
 		code = #{code},
-		datatype = #{datatype},
+		attributeDatatypeId = #{datatype, jdbcType=INTEGER, javaType=AttributeDatatype, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
 		description = #{description},
-		unit_of_measure_id = #{unitOfMeasure.id},
-		minimum_value = #{minimumValue},
-		maximum_value = #{maximumValue},
-		last_modified_timestamp = #{lastModifiedTimestamp},
+		unitOfMeasureId = #{unitOfMeasure.id},
+		minimumValue = #{minimumValue},
+		maximumValue = #{maximumValue},
+		lastModifiedTimestamp = #{lastModifiedTimestamp},
 		version = version + 1
 	where id = #{id} and version = #{version}	 
   </update>
 	
 	<insert id="insertAttributeDefinitionValue" useGeneratedKeys="true" keyProperty="attributeValue.id" keyColumn="id">
-		insert into attribute_definition_value (
-			attribute_definition_id,
+		insert into AttributeDefinitionValue (
+			attributeDefinitionId,
 			value,
-			display_value
+			displayValue
 		) values (
 			#{attributeDefinitionId},
 			#{attributeValue.value},
@@ -129,17 +122,17 @@
 	</insert>
 	<update id="updateAttributeDefinitionValue">
 		update
-			attribute_definition_value
+			AttributeDefinitionValue
 		set
-			attribute_definition_id = #{attributeDefinitionId},
+			attributeDefinitionId = #{attributeDefinitionId},
 			value = #{attributeValue.value},
-			display_value = #{attributeValue.displayValue}
+			displayValue = #{attributeValue.displayValue}
 		where
 			id = #{attributeValue.id}
 	</update>
 	<delete id="deleteAttributeDefinitionValues">
-		delete	from attribute_definition_value
-		where  attribute_definition_id = #{attributeDefinitionId}
+		delete	from AttributeDefinitionValue
+		where  attributeDefinitionId = #{attributeDefinitionId}
 		<if test="attributeValueList != null and attributeValueList.size() > 0">
 		and id not in (
 		<foreach collection="attributeValueList" item="value" separator=",">
@@ -154,8 +147,8 @@
 		<result column="code" jdbcType="VARCHAR" property="code" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="description" jdbcType="VARCHAR" property="description" />
-		<result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
-		<result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+		<result column="createdTimestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="lastModifiedTimestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
 		<result column="version" jdbcType="SMALLINT" property="version" />
 	</resultMap>
 
@@ -165,11 +158,11 @@
 			uom.code,
 			uom.name,
 			uom.description,
-			uom.created_timestamp,
-			uom.last_modified_timestamp,
+			uom.createdTimestamp,
+			uom.lastModifiedTimestamp,
 			uom.version
 		from
-			unit_of_measure uom
+			UnitOfMeasure uom
 		<where>
 			<if test="id != null">
 				uom.id = #{id}
@@ -181,12 +174,12 @@
 	</select>
 
 	<insert id="insertUnitOfMeasure" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-		insert into unit_of_measure (
+		insert into UnitOfMeasure (
 			code,
 			name,
 			description,
-			created_timestamp,
-			last_modified_timestamp,
+			createdTimestamp,
+			lastModifiedTimestamp,
 			version
 		) values (
 			#{code},
@@ -199,17 +192,17 @@
 	</insert>
 
 	<update id="updateUnitOfMeasure">
-		update unit_of_measure set
+		update UnitOfMeasure set
 			code = #{code},
 			name = #{name},
 			description = #{description},
-			last_modified_timestamp = #{lastModifiedTimestamp},
+			lastModifiedTimestamp = #{lastModifiedTimestamp},
 			version = version + 1
 		where
 			id = #{id} and version = #{version}
 	</update>
 	<delete id="deleteUnitOfMeasure">
-		delete from unit_of_measure where id = #{id} and version = #{version}
+		delete from UnitOfMeasure where id = #{id} and version = #{version}
 	</delete>
 
 

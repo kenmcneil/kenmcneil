@@ -67,9 +67,9 @@ public class TaxonomyCategory implements Auditable {
 	private String description;
 
 	/**
-	 * The persistent ID of the parent category, top-level categories will NOT have a parent.
+	 * A reference to the parent category, top-level categories will NOT have a parent.
 	 */
-	private TaxonomyCategoryReference categoryParent;
+	private TaxonomyCategoryReference parentCategory;
 
 	/**
 	 * A list of attributes that are common for products that are assigned to this category.
@@ -94,12 +94,12 @@ public class TaxonomyCategory implements Auditable {
 			this.taxonomy = new TaxonomyReference(taxonomy);
 			return this;
 		}
-		public TaxonomyCategoryBuilder categoryParent(TaxonomyCategoryReference categoryParent) {
-			this.categoryParent = categoryParent;
+		public TaxonomyCategoryBuilder parentCategory(TaxonomyCategoryReference parentCategory) {
+			this.parentCategory = parentCategory;
 			return this;
 		}
-		public TaxonomyCategoryBuilder categoryParent(TaxonomyCategory categoryParent) {
-			this.categoryParent = new TaxonomyCategoryReference(categoryParent);
+		public TaxonomyCategoryBuilder parentCategory(TaxonomyCategory parentCategory) {
+			this.parentCategory = new TaxonomyCategoryReference(parentCategory);
 			return this;
 		}
 

@@ -2,10 +2,12 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 
-import com.ferguson.cs.model.attribute.AttributeDefinition;
+import com.ferguson.cs.model.attribute.AttributeDefinitionReference;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A product attribute is a characteristic of the product and/or variants of that product. The attribute's validation rules are dictated through
@@ -17,8 +19,10 @@ import lombok.Value;
  *
  * @author tyler.vangorder
  */
-@Value
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductAttribute implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -27,12 +31,7 @@ public class ProductAttribute implements Serializable {
 	 * Each product attribute must have a link to an attribute definition. The definition sets the datatype and the validation
 	 * rules that should be applied to the attribute value.
 	 */
-	private AttributeDefinition definition;
-
-	/**
-	 * This flag can be used to mark an attribute such that it is not visible to the end user.
-	 */
-	private boolean hidden;
+	private AttributeDefinitionReference definition;
 
 	/**
 	 * Can this attribute be overridden at the variant level? Setting this value to false precludes the variants from overriding the value defined at the product level.
@@ -40,6 +39,7 @@ public class ProductAttribute implements Serializable {
 	private boolean overrideAllowed;
 
 	/**
+	 * If the "overrideAllowed" flag is set to "false", this value is required when saving the product attribute.
 	 * This value of this attribute must conform to the rules defined by attribute definition linked to this attribute:
 	 * <p>
 	 * <li>This value must be able to be parsed into the datatype defined for the attribute definition.</li>

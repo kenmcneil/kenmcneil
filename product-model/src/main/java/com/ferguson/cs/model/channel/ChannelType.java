@@ -1,5 +1,7 @@
 package com.ferguson.cs.model.channel;
 
+import com.ferguson.cs.utilities.IntMappedEnum;
+
 /**
  * Channel Type used to categorize channels.
  *  <P>
@@ -9,7 +11,18 @@ package com.ferguson.cs.model.channel;
  * @author tyler.vangorder
  *
  */
-public enum ChannelType {
-	WEB_STORE,
-	MARKETPLACE
+public enum ChannelType implements IntMappedEnum {
+	WEB_STORE(1),
+	MARKETPLACE(2);
+
+	private int id;
+
+	private ChannelType(int id) {
+		this.id = id;
+	}
+	@Override
+	public int getIntValue() {
+		return id;
+	}
+
 }

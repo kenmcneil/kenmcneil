@@ -33,7 +33,7 @@ public class TaxonomyCategoryCriteria {
 	/**
 	 * The persistent ID of a "parent" taxonomy category used to limit the category search to just the immediate children of the parent.
 	 */
-	private Long categoryIdParent;
+	private Long parentCategoryId;
 
 	public static class TaxonomyCategoryCriteriaBuilder {
 

@@ -2,12 +2,18 @@ package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.annotation.Version;
+
+import com.ferguson.cs.model.Auditable;
 import com.ferguson.cs.model.asset.DigitalResource;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A variant is a tangible unit of merchandise that has a specific name, part number, size, price, and any other attribute required to make the merchandise “sellable”.
@@ -18,19 +24,21 @@ import lombok.Value;
  * @author tyler.vangorder
  *
  */
-@Value
+@Data
 @Builder
-public class ProductVariant implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductVariant implements Auditable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Unique persistence ID.
 	 */
-	private String id;
+	private Integer id;
 
 	/**
-	 * The product unique persistence ID that acts as a parent for this variant.
+	 *  A reference to the parent product that this variant belongs.
 	 */
 	private ProductReference productReference;
 
@@ -50,9 +58,6 @@ public class ProductVariant implements Serializable {
 	 * The manufacturer's suggested retail price.
 	 */
 	private BigDecimal msrp;
-
-	//TODO Not sure if it makes sense to have priceDiscount here, this might be a channel-specific value.
-	//private BigDecimal priceDiscount;
 
 	/**
 	 * A list of alternate IDs that can be used to reference the product variant.
@@ -75,7 +80,6 @@ public class ProductVariant implements Serializable {
 	 * TODO: NOT SURE THIS BELONGS HERE, as this is more an attribute that should be related to vendor and shipping method.
 	 */
 	private BigDecimal freightCost;
-
 
 	/**
 	 * Variant's handling fee.
@@ -126,7 +130,12 @@ public class ProductVariant implements Serializable {
 	 */
 	private List<DigitalResource> digitalResourceList;
 
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
 
-	//TODO Need to figure out what to do with auditing columns (timestampCreated, timestampUpdated)
+	@Version
+	private Integer version;
+
 
 }
