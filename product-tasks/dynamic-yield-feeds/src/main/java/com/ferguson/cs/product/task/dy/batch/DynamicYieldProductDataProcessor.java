@@ -48,6 +48,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setFanType(item.getFanType());
 			dyProduct.setFuelType(item.getFuelType());
 			dyProduct.setConfiguration(item.getConfiguration());
+			dyProduct.setCADroughtCompliant(item.getCADroughtCompliant());
 
 			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
