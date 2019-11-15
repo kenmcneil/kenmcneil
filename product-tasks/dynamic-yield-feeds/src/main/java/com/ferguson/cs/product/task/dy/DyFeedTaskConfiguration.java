@@ -97,7 +97,8 @@ public class DyFeedTaskConfiguration {
 				"pendant_type",
 				"fan_type",
 				"fuel_type",
-				"configuration"
+				"configuration",
+				"ca_drought_compliant"
 		};
 
 		BeanWrapperFieldExtractor<DynamicYieldProduct> extractor = new BeanWrapperFieldExtractor<>();
@@ -134,7 +135,8 @@ public class DyFeedTaskConfiguration {
 				"pendantType",
 				"fanType",
 				"fuelType",
-				"configuration"
+				"configuration",
+				"CADroughtCompliant"
 		});
 		return getFlatFileItemWriter(header, dyProductFileResource(), extractor);
 	}

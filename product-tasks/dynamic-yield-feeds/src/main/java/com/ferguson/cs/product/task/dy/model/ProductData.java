@@ -34,7 +34,16 @@ public class ProductData implements Serializable {
 	private String fanType;
 	private String fuelType;
 	private String configuration;
+	private Boolean CADroughtCompliant;
 
+	public Boolean getCADroughtCompliant() {
+		return CADroughtCompliant;
+	}
+
+	public void setCADroughtCompliant(Boolean CADroughtCompliant) {
+		this.CADroughtCompliant = CADroughtCompliant;
+	}
+	
 	public Integer getSku() {
 		return sku;
 	}
