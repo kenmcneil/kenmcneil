@@ -36,7 +36,7 @@
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
-		SELECT top 1 p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
+		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
 			pbc.cost price, s.status [status], i.image,
 			f.productid model, m.name manufacturer,
 			series.series series, tm.theme theme, pao.optionvalue genre,
