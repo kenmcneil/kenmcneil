@@ -36,22 +36,22 @@
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
-		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
+		SELECT top 1 p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
 			pbc.cost price, s.status [status], i.image,
 			f.productid model, m.name manufacturer,
 			series.series series, tm.theme theme, pao.optionvalue genre,
 			pfinish.finish finish, r.rating rating,
 			ty.type [type], ap.application [application],
 			ht.handletype handletype,
-			( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf WHERE ProductFinish = pfinish.finish ) masterfinish,
+			( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf (NOLOCK) WHERE ProductFinish = pfinish.finish ) masterfinish,
 			attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
 			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
 			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
 			attr.Configuration [configuration],
 			IIF(EXISTS(
 				SELECT psr.id
-			   	FROM mmc.dbo.product_sale_restriction psr
-				INNER JOIN mmc.dbo.product_sale_restriction_policy psrp
+			   	FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
+				INNER JOIN mmc.dbo.product_sale_restriction_policy psrp (NOLOCK)
 					ON psrp.id = psr.restrictionPolicyId
 				WHERE psr.productid_manufacturer_id = f.id
 				AND psr.restrictionPolicyId IN (2, 7, 8, 9, 10, 12, 13)
