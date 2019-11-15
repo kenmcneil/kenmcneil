@@ -4,15 +4,19 @@ import java.io.Serializable;
 
 import com.ferguson.cs.model.attribute.AttributeDefinition;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A variant attribute is a product characteristic that is defined at the variant level. The collection of variant attributes are
  * what make each variant "unique" within the product family.
  */
-@Value
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductVariantAttribute implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -22,11 +26,6 @@ public class ProductVariantAttribute implements Serializable {
 	 * rules that should be applied to the attribute value.
 	 */
 	private AttributeDefinition definition;
-
-	/**
-	 * This flag can be used to mark an attribute such that it is not visible to the end user.
-	 */
-	private boolean hidden;
 
 	/**
 	 * This value of this attribute must conform to the rules defined by attribute definition linked to this attribute:

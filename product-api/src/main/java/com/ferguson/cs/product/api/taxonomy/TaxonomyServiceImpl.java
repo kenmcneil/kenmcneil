@@ -165,7 +165,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 		ArgumentAssert.notNull(criteria, "criteria");
 
 		if (CollectionUtils.isEmpty(criteria.getCategoryIds()) &&
-				criteria.getCategoryIdParent() == null && (
+				criteria.getParentCategoryId() == null && (
 					StringUtils.isEmpty(criteria.getCategoryPath()) ||
 					(!StringUtils.isEmpty(criteria.getCategoryPath()) &&
 						criteria.getTaxonomyId() == null && StringUtils.isEmpty(criteria.getTaxonomyCode())))) {
@@ -214,9 +214,9 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 			//make a change that impacts where the category exists within the taxonomy category is to create a new category,
 			//copy over settings, and then delete the old category.
 			ArgumentAssert.notNullOrEmpty(category.getCode(), "code");
-			ArgumentAssert.notNull(category.getCategoryParent(), "category.categoryParent");
-			ArgumentAssert.notNull(category.getCategoryParent().getId(), "category.categoryParent.id");
-			ArgumentAssert.notNull(category.getCategoryParent().getPath(), "category.categoryParent.path");
+			ArgumentAssert.notNull(category.getParentCategory(), "category.categoryParent");
+			ArgumentAssert.notNull(category.getParentCategory().getId(), "category.categoryParent.id");
+			ArgumentAssert.notNull(category.getParentCategory().getPath(), "category.categoryParent.path");
 
 			//Make sure the taxonomy is present!
 			ArgumentAssert.notNull(category.getTaxonomy(), "category.taxonomy");
@@ -227,8 +227,8 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 			}
 
 			//The path of the category is ALWAYS derived from the parent's path and the category's code.
-			StringBuilder path = new StringBuilder(category.getCategoryParent().getPath());
-			if (!category.getCategoryParent().getPath().isEmpty()) {
+			StringBuilder path = new StringBuilder(category.getParentCategory().getPath());
+			if (!category.getParentCategory().getPath().isEmpty()) {
 				path.append(".");
 			}
 			path.append(category.getCode());
@@ -248,7 +248,7 @@ public class TaxonomyServiceImpl implements TaxonomyService {
 
 		//find all child categories and delete those first. This is recursive!
 		List<TaxonomyCategory> children = findCategoryList(TaxonomyCategoryCriteria.builder()
-				.categoryIdParent(category.getId())
+				.parentCategoryId(category.getId())
 				.build());
 		children.stream().forEach(this::deleteCategory);
 

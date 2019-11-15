@@ -6,8 +6,8 @@
 	    <id column="id" jdbcType="INTEGER" property="id" />
 	    <result column="name" jdbcType="VARCHAR" property="name" />
 	    <result column="description" jdbcType="VARCHAR" property="description" />
-	    <result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
-	    <result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+	    <result column="createdTimestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+	    <result column="lastModifiedTimestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
 	    <result column="version" jdbcType="SMALLINT" property="version" />
 	</resultMap>
 
@@ -16,10 +16,10 @@
 			id,
 			name,
 			description,
-			created_timestamp,
-			last_modified_timestamp,
+			createdTimestamp,
+			lastModifiedTimestamp,
 			version
-		from manufacturer
+		from Manufacturer manufacturer
 		<where>
 			<if test="manufacturerId != null">
 			manufacturer.id = #{manufacturerId}
@@ -31,15 +31,15 @@
 	</select>
 
 	<delete id="deleteManufacturer">
-		delete from manufacturer where id = #{id} and version = #{version}
+		delete from Manufacturer where id = #{id} and version = #{version}
 	</delete>
 
 	<insert id="insertManufacturer" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-		insert into manufacturer (
+		insert into Manufacturer (
 			name,
 			description, 
-			created_timestamp,
-			last_modified_timestamp, 
+			createdTimestamp,
+			lastModifiedTimestamp, 
 			version
 		) values (
 			#{name,jdbcType=VARCHAR},
@@ -52,11 +52,11 @@
 	</insert>
 	<update id="updateManufacturer">
 		update
-			manufacturer
+			Manufacturer
 		set
 			name = #{name,jdbcType=VARCHAR},
 			description = #{description,jdbcType=VARCHAR},
-			last_modified_timestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
+			lastModifiedTimestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
 			version = version + 1
 		where
 			id = #{id,jdbcType=INTEGER} and version = #{version,jdbcType=SMALLINT}

@@ -6,10 +6,15 @@ logging:
     com.ferguson.cs.product.dao: trace
 spring:
     datasource:
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://localhost:5432/product
-      username: 'product'
-      password: 'product'
+        # Postgres connection information.
+#      url: jdbc:postgresql://localhost:5432/product
+#      username: 'product'
+#      password: 'product'
+
+      # SQL Server
+      url: jdbc:sqlserver://localhost;database=product;applicationName=product-service;sendStringParametersAsUnicode=false
+      username: 'sa'
+      password: 'Your_password123'
     jackson:
       default-property-inclusion: non-null
 mybatis:

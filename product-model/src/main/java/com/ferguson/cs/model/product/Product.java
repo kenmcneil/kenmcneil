@@ -1,15 +1,20 @@
 package com.ferguson.cs.model.product;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
+import com.ferguson.cs.model.Auditable;
 import com.ferguson.cs.model.asset.DigitalResource;
 import com.ferguson.cs.model.manufacturer.ManufacturerReference;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * A product representations a family of closely related items called "variants" and defines all of the characteristics/attributes that are pertinent
@@ -34,7 +39,9 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Product implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product implements Auditable,Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -86,15 +93,17 @@ public class Product implements Serializable {
 	 */
 	private List<ProductAttribute> attributeList;
 
-
-	/**
-	 * The list of uniquely, sellable items that belong to this product's family.
-	 */
-	private List<ProductVariant> variantList;
-
 	/**
 	 * A collection of digital assets that are associated with a product. The can be images, documents, or AR models.
 	 */
 	private List<DigitalResource> digitalResourceList;
+
+
+	//Audit Columns
+	private LocalDateTime createdTimestamp;
+	private LocalDateTime lastModifiedTimestamp;
+
+	@Version
+	private Integer version;
 
 }

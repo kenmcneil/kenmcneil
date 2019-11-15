@@ -6,14 +6,14 @@
 		<id column="id" jdbcType="INTEGER"  property="id" />
 		<result column="code" jdbcType="VARCHAR" property="code" />
 		<result column="description" jdbcType="VARCHAR" property="description" />
-		<result column="channel_type" jdbcType="VARCHAR" property="channelType" />
-		<result column="business_unit" jdbcType="VARCHAR" property="businessUnit" />
-		<result column="is_active" jdbcType="BIT" property="isActive" />
-		<result column="created_timestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
-		<result column="last_modified_timestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
+		<result column="channelTypeId" jdbcType="INTEGER" property="channelType" typeHandler="com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler" />
+		<result column="businessUnitId" jdbcType="VARCHAR" property="businessUnit"  typeHandler="com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler" />
+		<result column="isActive" jdbcType="BIT" property="isActive" />
+		<result column="createdTimestamp" jdbcType="TIMESTAMP" property="createdTimestamp" />
+		<result column="lastModifiedTimestamp" jdbcType="TIMESTAMP" property="lastModifiedTimestamp" />
 		<result column="version" jdbcType="SMALLINT" property="version" />
 		<association property="taxonomy" javaType="TaxonomyReference">
-			<id column="taxonomy_id" property="id" />
+			<id column="taxonomyId" property="id" />
 		</association>	    
 	</resultMap>
 
@@ -22,14 +22,14 @@
 			id,
 			code,
 			description,
-			channel_type,
-			business_unit,
-			is_active,
-			taxonomy_id, 
-			created_timestamp,
-			last_modified_timestamp,
+			channelTypeId,
+			businessUnitId,
+			isActive,
+			taxonomyId, 
+			createdTimestamp,
+			lastModifiedTimestamp,
 			version
-		from channel
+		from Channel channel
 		<where>
 			<if test="channelId != null">
 			channel.id = #{channelId}
@@ -38,31 +38,31 @@
 			and channel.code = #{channelCode}
 			</if>    
 			<if test="businessUnit != null">
-			and channel.business_unit = #{businessUnit}
+			and channel.businessUnitId = #{businessUnit, jdbcType=INTEGER, javaType=BusinessUnit, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler}
 			</if>
     	</where>    
 	</select>
 
 	<delete id="deleteChannel">
-		delete from channel where id = #{id} and version = #{version}
+		delete from Channel where id = #{id} and version = #{version}
 	</delete>
 
 	<insert id="insertChannel" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-		insert into channel (
+		insert into Channel (
 			code,
 			description, 
-			channel_type,
-			business_unit,
-			is_active, 
-			taxonomy_id,
-			created_timestamp,
-			last_modified_timestamp, 
+			channelTypeId,
+			businessUnitId,
+			isActive, 
+			taxonomyId,
+			createdTimestamp,
+			lastModifiedTimestamp, 
 			version
 		) values (
 			#{code,jdbcType=VARCHAR},
 			#{description,jdbcType=VARCHAR}, 
-			#{channelType,jdbcType=VARCHAR},
-			#{businessUnit,jdbcType=VARCHAR},
+			#{channelType,jdbcType=VARCHAR, javaType=ChannelType, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
+			#{businessUnit,jdbcType=VARCHAR, javaType=BusinessUnit, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
 			#{isActive,jdbcType=BIT}, 
 			#{taxonomy.id,jdbcType=INTEGER},
 			#{createdTimestamp,jdbcType=TIMESTAMP},
@@ -77,12 +77,12 @@
 		set
 			code = #{code,jdbcType=VARCHAR},
 			description = #{description,jdbcType=VARCHAR},
-			channel_type = #{channelType,jdbcType=VARCHAR},
-			business_unit = #{businessUnit,jdbcType=VARCHAR},
-			is_active = #{isActive,jdbcType=BIT},
-			taxonomy_id = #{taxonomy.id,jdbcType=INTEGER},
-			created_timestamp = #{createdTimestamp,jdbcType=TIMESTAMP},
-			last_modified_timestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
+			channelTypeId = #{channelType,jdbcType=VARCHAR, javaType=ChannelType, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
+			businessUnitId = #{businessUnit,jdbcType=VARCHAR, javaType=BusinessUnit, typeHandler=com.ferguson.cs.data.mybatis.IntMappedEnumTypeHandler},
+			isActive = #{isActive,jdbcType=BIT},
+			taxonomyId = #{taxonomy.id,jdbcType=INTEGER},
+			createdTimestamp = #{createdTimestamp,jdbcType=TIMESTAMP},
+			lastModifiedTimestamp = #{lastModifiedTimestamp,jdbcType=TIMESTAMP},
 			version = version + 1
 		where
 			id = #{id,jdbcType=INTEGER} and version = #{version,jdbcType=SMALLINT}
