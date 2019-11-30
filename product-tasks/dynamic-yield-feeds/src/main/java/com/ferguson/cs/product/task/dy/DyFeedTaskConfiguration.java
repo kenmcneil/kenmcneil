@@ -1,6 +1,10 @@
 package com.ferguson.cs.product.task.dy;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
@@ -8,7 +12,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemStreamWriter;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.FieldExtractor;
@@ -19,10 +22,13 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
+import com.ferguson.cs.product.task.dy.batch.ProductDataSiteWriter;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
+import com.ferguson.cs.product.task.dy.domain.Sites;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
+import com.ferguson.cs.product.task.dy.service.DyAsyncService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
@@ -31,20 +37,26 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
-	private final DyFeedConfiguration.DynamicYieldGateway dyGateway;
+	private final DyAsyncService dyAsyncService;
 
 	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
-	                               DyFeedSettings dyFeedSettings, DyFeedConfiguration.DynamicYieldGateway dyGateway) {
+	                               DyFeedSettings dyFeedSettings, DyAsyncService dyAsyncService) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
-		this.dyGateway = dyGateway;
+		this.dyAsyncService = dyAsyncService;
 	}
 
 	@Bean
-	public Resource dyProductFileResource() throws IOException {
-		return new FileSystemResource(DataFlowTempFileHelper.createTempFile(dyFeedSettings.getTempFilePrefix(),
-				dyFeedSettings.getTempFileSuffix()));
+	public Map<Integer, Resource> dyProductFileResource() throws IOException {
+		Map<Integer, Resource> siteFileMap = new HashMap<>();
+		for (Sites site : Sites.values()) {
+			siteFileMap.put(site.getSiteId(),
+					new FileSystemResource(DataFlowTempFileHelper.createTempFile(site.getSiteId().toString() +
+									dyFeedSettings.getTempFilePrefix(), dyFeedSettings.getTempFileSuffix()))
+			);
+		}
+		return siteFileMap;
 	}
 
 	@Bean
@@ -63,7 +75,8 @@ public class DyFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	ItemStreamWriter<DynamicYieldProduct> dyCsvProductItemWriter() throws IOException {
+	public ProductDataSiteWriter dyCsvProductItemWriter() throws IOException {
+
 		String[] header = new String[]{
 				"sku",
 				"group_id",
@@ -98,47 +111,19 @@ public class DyFeedTaskConfiguration {
 				"fan_type",
 				"fuel_type",
 				"configuration",
-				"ca_drought_compliant"
+				"california_drought_compliant"
 		};
 
 		BeanWrapperFieldExtractor<DynamicYieldProduct> extractor = new BeanWrapperFieldExtractor<>();
-		extractor.setNames(new String[]{
-				"sku",
-				"groupId",
-				"name",
-				"url",
-				"price",
-				"inStock",
-				"imageUrl",
-				"categories",
-				"model",
-				"manufacturer",
-				"discontinued",
-				"series",
-				"theme",
-				"genre",
-				"finish",
-				"rating",
-				"hasImage",
-				"relativePath",
-				"type",
-				"application",
-				"handletype",
-				"masterfinish",
-				"mountingType",
-				"installationType",
-				"numberOfBasins",
-				"nominalLength",
-				"nominalWidth",
-				"numberOfLights",
-				"chandelierType",
-				"pendantType",
-				"fanType",
-				"fuelType",
-				"configuration",
-				"CADroughtCompliant"
-		});
-		return getFlatFileItemWriter(header, dyProductFileResource(), extractor);
+		extractor.setNames(camelCase(header));
+
+		ProductDataSiteWriter writer = new ProductDataSiteWriter();
+		writer.setHeaderNames(header);
+		writer.setDelimeter(DelimitedLineTokenizer.DELIMITER_COMMA);
+		LineAggregator<DynamicYieldProduct> lineAggregator = createLineAggregator(extractor);
+		writer.setLineAggregator(lineAggregator);
+		writer.setDyProductFileResource(dyProductFileResource());
+		return writer;
 	}
 
 	@Bean
@@ -155,7 +140,7 @@ public class DyFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	UploadFileTasklet uploadFileTasklet() throws IOException {
-		return new UploadFileTasklet(dyGateway, (FileSystemResource)dyProductFileResource());
+		return new UploadFileTasklet(dyFeedSettings, dyProductFileResource(), dyAsyncService);
 	}
 
 	@Bean
@@ -167,7 +152,8 @@ public class DyFeedTaskConfiguration {
 
 	/**
 	 * Writes product data matching all product hashes that have changed since the last time this job was run to a
-	 * csv, uploads that csv to Dynamic Yield. This will send the entire product catalog.
+	 * csv, uploads that csv to Dynamic Yield. This will send the entire product catalog for all sites defined in
+	 * the Sites enum
 	 */
 	@Bean
 	public Job dynamicYieldExportJob(Step writeDyItems) throws IOException {
@@ -177,23 +163,41 @@ public class DyFeedTaskConfiguration {
 				.build();
 	}
 
-	private FlatFileItemWriter<DynamicYieldProduct> getFlatFileItemWriter(String[] fileHeader, Resource resource, FieldExtractor<DynamicYieldProduct> fieldExtractor) {
-		FlatFileItemWriter<DynamicYieldProduct> fileItemWriter = new FlatFileItemWriter<>();
+	/**
+	 * Convert snake case to camel case
+	 *
+	 * @param columnNames
+	 * @return Camel cased string
+	 */
+	private String[] camelCase(String[] columnNames) {
+		String[] updatedColumnNames = new String[columnNames.length];
+		int index = 0;
 
-		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(DelimitedLineTokenizer.DELIMITER_COMMA, fileHeader)));
-		fileItemWriter.setResource(resource);
+		for (String columnName : columnNames) {
+			Matcher underscoreMatcher = Pattern.compile("_(.)").matcher(columnName);
+			StringBuffer sb = new StringBuffer();
 
-		LineAggregator<DynamicYieldProduct> lineAggregator = createLineAggregator(fieldExtractor);
-		fileItemWriter.setLineAggregator(lineAggregator);
+			while (underscoreMatcher.find()) {
+				underscoreMatcher.appendReplacement(sb, underscoreMatcher.group().toUpperCase());
+			}
 
-		return fileItemWriter;
+			underscoreMatcher.appendTail(sb);
+			updatedColumnNames[index] = sb.toString().replaceAll("_","");
+			index++;
+		}
+		return updatedColumnNames;
 	}
 
+	/**
+	 * Create a QuoteEnclosingLineAggregator for for correct formatting of csv files
+	 *
+	 * @param fieldExtractor
+	 * @return lineAggregator
+	 */
 	private LineAggregator<DynamicYieldProduct> createLineAggregator(FieldExtractor<DynamicYieldProduct> fieldExtractor) {
 		QuoteEnclosingDelimitedLineAggregator<DynamicYieldProduct> lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
 		lineAggregator.setDelimiter(",");
 		lineAggregator.setFieldExtractor(fieldExtractor);
 		return lineAggregator;
 	}
-
 }

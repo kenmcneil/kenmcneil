@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private Integer sku;
 	private Integer groupId;
@@ -34,14 +34,23 @@ public class ProductData implements Serializable {
 	private String fanType;
 	private String fuelType;
 	private String configuration;
-	private Boolean CADroughtCompliant;
+	private Boolean californiaDroughtCompliant;
+	private String siteIds;
 
-	public Boolean getCADroughtCompliant() {
-		return CADroughtCompliant;
+	public String getSiteIds() {
+		return siteIds;
 	}
 
-	public void setCADroughtCompliant(Boolean CADroughtCompliant) {
-		this.CADroughtCompliant = CADroughtCompliant;
+	public void setSiteIds(String siteIds) {
+		this.siteIds = siteIds;
+	}
+
+	public Boolean getCaliforniaDroughtCompliant() {
+		return californiaDroughtCompliant;
+	}
+
+	public void setCaliforniaDroughtCompliantDroughtCompliant(Boolean californiaDroughtCompliant) {
+		this.californiaDroughtCompliant = californiaDroughtCompliant;
 	}
 	
 	public Integer getSku() {

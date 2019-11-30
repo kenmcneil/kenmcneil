@@ -1,5 +1,8 @@
 package com.ferguson.cs.product.task.dy;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,10 +12,10 @@ public class DyFeedSettings {
 	private String ftpUrl;
 	private Integer ftpPort;
 	private String ftpRoot;
-	private String ftpUsername;
 	private String ftpPrivateKey;
 	private String tempFilePrefix = "productfeed";
 	private String tempFileSuffix = ".csv";
+	private Map<Integer, String> siteUsername = new HashMap<>();
 
 	public String getTempFileSuffix() {
 		return tempFileSuffix;
@@ -54,19 +57,19 @@ public class DyFeedSettings {
 		this.ftpPort = ftpPort;
 	}
 
-	public String getFtpUsername() {
-		return ftpUsername;
-	}
-
-	public void setFtpUsername(String ftpUsername) {
-		this.ftpUsername = ftpUsername;
-	}
-
 	public String getFtpRoot() {
 		return ftpRoot;
 	}
 
 	public void setFtpRoot(String ftpRoot) {
 		this.ftpRoot = ftpRoot;
+	}
+
+	public Map<Integer, String> getSiteUsername() {
+		return siteUsername;
+	}
+
+	public void setSiteUsername(Map<Integer, String> siteUsername) {
+		this.siteUsername = siteUsername;
 	}
 }

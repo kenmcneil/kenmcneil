@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.dy.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 public class DynamicYieldProduct implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -39,14 +40,15 @@ public class DynamicYieldProduct implements Serializable {
 	private String fanType;
 	private String fuelType;
 	private String configuration;
-	private Boolean CADroughtCompliant;
+	private Boolean californiaDroughtCompliant;
+	private List<Integer> siteIds;
 
-	public Boolean getCADroughtCompliant() {
-		return CADroughtCompliant;
+	public Boolean getCaliforniaDroughtCompliant() {
+		return californiaDroughtCompliant;
 	}
 
-	public void setCADroughtCompliant(Boolean CADroughtCompliant) {
-		this.CADroughtCompliant = CADroughtCompliant;
+	public void setCaliforniaDroughtCompliant(Boolean CADroughtCompliant) {
+		this.californiaDroughtCompliant = californiaDroughtCompliant;
 	}
 
 	public Integer getSku() {
@@ -311,5 +313,13 @@ public class DynamicYieldProduct implements Serializable {
 
 	public void setConfiguration(String configuration) {
 		this.configuration = configuration;
+	}
+
+	public List<Integer> getSiteIds() {
+		return siteIds;
+	}
+
+	public void setSiteIds(List<Integer> siteIds) {
+		this.siteIds = siteIds;
 	}
 }

@@ -4,7 +4,7 @@
 
 <mapper namespace="com.ferguson.cs.product.task.dy.dao.DynamicYieldMapper">
 	<resultMap id="productDataMap" type="ProductData">
-		<result column="sku" property="sku"/>
+		<id column="sku" property="sku"/>
 		<result column="group_id" property="groupId"/>
 		<result column="name" property="name" />
 		<result column="price" property="price" />
@@ -32,7 +32,8 @@
 		<result column="fan_type" property="fanType" />
 		<result column="fuel_type" property="fuelType" />
 		<result column="configuration" property="configuration" />
-		<result column="ca_drought_compliant" property="CADroughtCompliant" />
+		<result column="california_drought_compliant" property="californiaDroughtCompliant" />
+		<result column="site_ids" property="siteIds" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -47,7 +48,7 @@
 			attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
 			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
 			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
-			attr.Configuration [configuration],
+			attr.Configuration [configuration], sites.siteIds site_ids,
 			IIF(EXISTS(
 				SELECT psr.id
 			   	FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
@@ -55,7 +56,7 @@
 					ON psrp.id = psr.restrictionPolicyId
 				WHERE psr.productid_manufacturer_id = f.id
 				AND psr.restrictionPolicyId IN (2, 7, 8, 9, 10, 12, 13)
-			), 0, 1) ca_drought_compliant
+			), 0, 1) california_drought_compliant
 		FROM mmc.product.product p (NOLOCK)
 		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
 		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
@@ -92,6 +93,13 @@
 				)
 			) AS attributes_pivot
 		) attr ON attr.familyId = f.id
+		INNER JOIN (
+			SELECT store.familyId, STRING_AGG(sto.siteId,',') siteIds
+			FROM mmc.product.onStore store
+					 INNER JOIN mmc.dbo.store sto ON sto.storeId = store.storeId
+			WHERE store.storeId IN (248, 315, 310, 186, 1, 73, 313, 312, 37, 187, 309, 55, 56, 71, 311)
+			GROUP BY store.familyId
+		) sites ON f.id = sites.familyId
 		WHERE s.status IN ('stock', 'nonstock', 'discontinued') AND pbc.pricebookid = 1
 	</select>
 </mapper>
