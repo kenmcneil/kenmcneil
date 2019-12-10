@@ -55,8 +55,7 @@ public class WiserFeedListener implements JobExecutionListener {
 				break;
 			case COMPETITOR_FEED:
 				filePrefix = "Competitor_data_";
-				Date yesterday = DateUtils.addDaysToDate(new Date(),-1);
-				dateString = DateUtils.dateToString(yesterday,dateTimeFormatter);
+				dateString = DateUtils.dateToString(new Date(),dateTimeFormatter);
 				remoteFilePath = threeSixtyPiSettings.getFtpFolder() + "buildcom_product-level-uniqueid_all-products_" + dateString + "_*.csv";
 				jobExecution.getExecutionContext().putString("remoteDownloadFilePath",remoteFilePath);
 				break;
