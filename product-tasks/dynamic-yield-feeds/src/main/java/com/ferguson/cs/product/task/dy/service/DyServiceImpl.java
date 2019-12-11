@@ -1,16 +1,9 @@
 package com.ferguson.cs.product.task.dy.service;
 
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.task.dy.DyFeedSettings;
@@ -21,21 +14,20 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
 @Service
-@EnableAsync
-public class DyAsyncServiceImpl implements DyAsyncService {
+public class DyServiceImpl implements DyService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DyAsyncServiceImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DyServiceImpl.class);
 
-	@Async
 	@Override
-	public Future<Boolean> sendSftpFile(Integer siteId, DyFeedSettings dyFeedSettings, Map<Integer, Resource> resources) throws JSchException, SftpException {
+	public void sendSftpFile(Integer siteId, DyFeedSettings dyFeedSettings,
+	                         String filename) throws JSchException, SftpException {
 		ChannelSftp channelSftp = setupJsch(siteId, dyFeedSettings);
 		channelSftp.connect();
 
 		try {
 			channelSftp.cd(dyFeedSettings.getFtpRoot()
 					+ dyFeedSettings.getSiteUsername().get(siteId));
-			channelSftp.put(((FileSystemResource) resources.get(siteId)).getPath(), ".");
+			channelSftp.put(filename, ".");
 		} catch (SftpException e) {
 			LOGGER.debug("Base directory not found. Creating.");
 
@@ -44,7 +36,7 @@ public class DyAsyncServiceImpl implements DyAsyncService {
 
 			channelSftp.cd(dyFeedSettings.getFtpRoot()
 					+ dyFeedSettings.getSiteUsername().get(siteId));
-			channelSftp.put(((FileSystemResource) resources.get(siteId)).getPath(), ".");
+			channelSftp.put(filename, ".");
 		}
 		try {
 			channelSftp.rm("./" + dyFeedSettings.getTempFilePrefix() + dyFeedSettings.getTempFileSuffix());
@@ -52,10 +44,9 @@ public class DyAsyncServiceImpl implements DyAsyncService {
 			LOGGER.debug("File not found for removal. Skipping.");
 		}
 
-		channelSftp.rename("./" + ((FileSystemResource) resources.get(siteId)).getFilename(), "./" + dyFeedSettings.getTempFilePrefix() + dyFeedSettings.getTempFileSuffix());
+		channelSftp.rename("./" + filename,
+				"./" + dyFeedSettings.getTempFilePrefix() + dyFeedSettings.getTempFileSuffix());
 		channelSftp.exit();
-
-		return new AsyncResult<>(Boolean.TRUE);
 	}
 
 	/**

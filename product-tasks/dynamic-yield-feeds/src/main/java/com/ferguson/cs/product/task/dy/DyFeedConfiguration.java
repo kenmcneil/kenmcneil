@@ -13,10 +13,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.integration.annotation.IntegrationComponentScan;
 
 @Configuration
-@IntegrationComponentScan
 public class DyFeedConfiguration {
 	static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.dy.dao.core";
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.dy.model";

@@ -1,6 +1,8 @@
 package com.ferguson.cs.product.task.dy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,6 +18,10 @@ public class DyFeedSettings {
 	private String tempFilePrefix = "productfeed";
 	private String tempFileSuffix = ".csv";
 	private Map<Integer, String> siteUsername = new HashMap<>();
+
+	private List<Integer> restrictionPolicies = new ArrayList<>();
+
+	private List<Integer> stores = new ArrayList<>();
 
 	public String getTempFileSuffix() {
 		return tempFileSuffix;
@@ -71,5 +77,20 @@ public class DyFeedSettings {
 
 	public void setSiteUsername(Map<Integer, String> siteUsername) {
 		this.siteUsername = siteUsername;
+	}
+
+	public List<Integer> getStores() {
+		return stores;
+	}
+
+	public void setStores(List<Integer> stores) {
+		this.stores = stores;
+	}
+	public List<Integer> getRestrictionPolicies() {
+		return restrictionPolicies;
+	}
+
+	public void setRestrictionPolicies(List<Integer> restrictionPolicies) {
+		this.restrictionPolicies = restrictionPolicies;
 	}
 }

@@ -47,7 +47,7 @@ public class DynamicYieldProduct implements Serializable {
 		return californiaDroughtCompliant;
 	}
 
-	public void setCaliforniaDroughtCompliant(Boolean CADroughtCompliant) {
+	public void setCaliforniaDroughtCompliant(Boolean californiaDroughtCompliant) {
 		this.californiaDroughtCompliant = californiaDroughtCompliant;
 	}
 

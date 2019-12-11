@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import com.ferguson.cs.product.task.dy.domain.Sites;
+import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 
 public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProduct> {
@@ -26,7 +26,7 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 	private Long jobExecutionId;
 
 	@Qualifier("dyProductFileResource")
-	private Map<Integer, Resource> dyProductFileResource;
+	private SiteProductFileResource dyProductFileResource;
 
 	private LineAggregator<DynamicYieldProduct> lineAggregator;
 	private Map<Integer, SiteResource> siteResources = new HashMap<>();
@@ -57,19 +57,19 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 		this.lineAggregator = lineAggregator;
 	}
 
-	private Map<Integer, Resource> getDyProductFileResource() {
+	private SiteProductFileResource getDyProductFileResource() {
 		return dyProductFileResource;
 	}
 
-	public void setDyProductFileResource(Map<Integer, Resource> dyProductFileResource) {
+	public void setDyProductFileResource(SiteProductFileResource dyProductFileResource) {
 		this.dyProductFileResource = dyProductFileResource;
 	}
 
 	@PostConstruct
 	public void initializeStoreAccounts() {
-		for (Sites site : Sites.values()) {
+		for (Map.Entry<Integer, Resource> entry : dyProductFileResource.getSiteFileMap().entrySet()) {
 			SiteResource sr = new SiteResource();
-			siteResources.put(site.getSiteId(), sr);
+			siteResources.put(entry.getKey(), sr);
 		}
 	}
 
@@ -92,7 +92,7 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 			List<DynamicYieldProduct> productsToWrite = entry.getValue();
 
 			// Write the items to file
-			if (dyProductFileResource.get(siteId) != null && productsToWrite.size() > 0) {
+			if (dyProductFileResource.getSiteFileMap().get(siteId) != null && productsToWrite.size() > 0) {
 				siteResources.get(siteId).writer.write(productsToWrite);
 			}
 		}
@@ -123,7 +123,7 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 		for (Map.Entry<Integer, SiteResource> entry : siteResources.entrySet()) {
 			Integer siteId = entry.getKey();
 			SiteResource sr = entry.getValue();
-			Resource resource = getDyProductFileResource().get(siteId);
+			Resource resource = dyProductFileResource.getSiteFileMap().get(siteId);
 			sr.resource = resource;
 			sr.writer = createFlatFileItemWriter(resource);
 		}

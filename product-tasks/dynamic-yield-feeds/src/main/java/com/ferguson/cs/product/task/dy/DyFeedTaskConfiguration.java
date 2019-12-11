@@ -16,19 +16,21 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
+import com.ferguson.cs.product.task.dy.batch.CustomMultiResourcePartitioner;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.ProductDataSiteWriter;
 import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
-import com.ferguson.cs.product.task.dy.domain.Sites;
+import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
-import com.ferguson.cs.product.task.dy.service.DyAsyncService;
+import com.ferguson.cs.product.task.dy.service.DyService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
@@ -37,34 +39,28 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
-	private final DyAsyncService dyAsyncService;
+	private final DyService dyService;
 
 	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
-	                               DyFeedSettings dyFeedSettings, DyAsyncService dyAsyncService) {
+	                               DyFeedSettings dyFeedSettings, DyService dyService) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
-		this.dyAsyncService = dyAsyncService;
+		this.dyService = dyService;
 	}
 
 	@Bean
-	public Map<Integer, Resource> dyProductFileResource() throws IOException {
-		Map<Integer, Resource> siteFileMap = new HashMap<>();
-		for (Sites site : Sites.values()) {
-			siteFileMap.put(site.getSiteId(),
-					new FileSystemResource(DataFlowTempFileHelper.createTempFile(site.getSiteId().toString() +
-									dyFeedSettings.getTempFilePrefix(), dyFeedSettings.getTempFileSuffix()))
+	public SiteProductFileResource dyProductFileResource() throws IOException {
+		SiteProductFileResource siteProductFileResource = new SiteProductFileResource();
+
+
+		for (Integer siteId : dyFeedSettings.getSiteUsername().keySet()) {
+			siteProductFileResource.getSiteFileMap().put(siteId,
+					new FileSystemResource(DataFlowTempFileHelper.createTempFile(siteId.toString() +
+							dyFeedSettings.getTempFilePrefix(), dyFeedSettings.getTempFileSuffix()))
 			);
 		}
-		return siteFileMap;
-	}
-
-	@Bean
-	public MyBatisCursorItemReader<ProductData> productDataReader() {
-		MyBatisCursorItemReader<ProductData> productDataReader = new MyBatisCursorItemReader<>();
-		productDataReader.setQueryId("getProductData");
-		productDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
-		return productDataReader;
+		return siteProductFileResource;
 	}
 
 	@Bean
@@ -127,6 +123,18 @@ public class DyFeedTaskConfiguration {
 	}
 
 	@Bean
+	public MyBatisCursorItemReader<ProductData> productDataReader() {
+		MyBatisCursorItemReader<ProductData> productDataReader = new MyBatisCursorItemReader<>();
+		productDataReader.setQueryId("getProductData");
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("storeIds", dyFeedSettings.getStores());
+		parameters.put("restrictionPolicies", dyFeedSettings.getRestrictionPolicies());
+		productDataReader.setParameterValues(parameters);
+		productDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
+		return productDataReader;
+	}
+
+	@Bean
 	public Step writeDyItems(ItemStreamWriter<DynamicYieldProduct> dyCsvCatalogItemWriter) {
 
 		return taskBatchJobFactory.getStepBuilder("writeDyItems")
@@ -137,16 +145,37 @@ public class DyFeedTaskConfiguration {
 				.build();
 	}
 
+
 	@Bean
-	@StepScope
-	UploadFileTasklet uploadFileTasklet() throws IOException {
-		return new UploadFileTasklet(dyFeedSettings, dyProductFileResource(), dyAsyncService);
+	public Step partitionFtpStep() throws IOException {
+		return taskBatchJobFactory.getStepBuilder("partitionFtpStep")
+				.partitioner(uploadCsv(uploadFileTasklet(null, null)))
+				.partitioner("uploadCsv", partitioner())
+				.gridSize(10)
+				.taskExecutor(new SimpleAsyncTaskExecutor())
+				.build();
 	}
 
 	@Bean
-	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) {
+	public CustomMultiResourcePartitioner partitioner() throws IOException {
+		CustomMultiResourcePartitioner partitioner = new CustomMultiResourcePartitioner();
+		partitioner.setResources(dyProductFileResource());
+		return partitioner;
+	}
+
+	@StepScope
+	@Bean
+	UploadFileTasklet uploadFileTasklet(
+			@Value("#{stepExecutionContext[fileName]}") String filename,
+			@Value("#{stepExecutionContext[siteId]}") Integer siteId) throws IOException {
+
+		return new UploadFileTasklet(filename, siteId, dyFeedSettings, dyService);
+	}
+
+	@Bean
+	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) throws IOException {
 		return taskBatchJobFactory.getStepBuilder("uploadCsv")
-				.tasklet(uploadFileTasklet)
+				.tasklet(uploadFileTasklet(null, null))
 				.build();
 	}
 
@@ -159,7 +188,7 @@ public class DyFeedTaskConfiguration {
 	public Job dynamicYieldExportJob(Step writeDyItems) throws IOException {
 		return taskBatchJobFactory.getJobBuilder("dynamicYieldExportJob")
 				.start(writeDyItems)
-				.next(uploadCsv(uploadFileTasklet()))
+				.next(partitionFtpStep())
 				.build();
 	}
 
@@ -172,9 +201,10 @@ public class DyFeedTaskConfiguration {
 	private String[] camelCase(String[] columnNames) {
 		String[] updatedColumnNames = new String[columnNames.length];
 		int index = 0;
+		Pattern underscorePattern = Pattern.compile("_(.)");
 
 		for (String columnName : columnNames) {
-			Matcher underscoreMatcher = Pattern.compile("_(.)").matcher(columnName);
+			Matcher underscoreMatcher = underscorePattern.matcher(columnName);
 			StringBuffer sb = new StringBuffer();
 
 			while (underscoreMatcher.find()) {

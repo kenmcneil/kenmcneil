@@ -55,7 +55,11 @@
 				INNER JOIN mmc.dbo.product_sale_restriction_policy psrp (NOLOCK)
 					ON psrp.id = psr.restrictionPolicyId
 				WHERE psr.productid_manufacturer_id = f.id
-				AND psr.restrictionPolicyId IN (2, 7, 8, 9, 10, 12, 13)
+				AND psr.restrictionPolicyId IN
+				    <foreach item="restrictionPolicyId" index="0" collection="restrictionPolicies"
+							 open="(" separator="," close=")">
+						#{restrictionPolicyId}
+					</foreach>
 			), 0, 1) california_drought_compliant
 		FROM mmc.product.product p (NOLOCK)
 		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
@@ -97,7 +101,11 @@
 			SELECT store.familyId, STRING_AGG(sto.siteId,',') siteIds
 			FROM mmc.product.onStore store
 					 INNER JOIN mmc.dbo.store sto ON sto.storeId = store.storeId
-			WHERE store.storeId IN (248, 315, 310, 186, 1, 73, 313, 312, 37, 187, 309, 55, 56, 71, 311)
+			WHERE store.storeId IN
+				<foreach item="storeId" index="0" collection="storeIds"
+						 open="(" separator="," close=")">
+					#{storeId}
+				</foreach>
 			GROUP BY store.familyId
 		) sites ON f.id = sites.familyId
 		WHERE s.status IN ('stock', 'nonstock', 'discontinued') AND pbc.pricebookid = 1
