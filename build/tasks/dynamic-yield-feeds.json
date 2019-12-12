@@ -3,6 +3,6 @@
     "appName" : "dynamic-yield-feeds",
     "name" : "dynamic-yield-export-job",
     "jobName" : "dynamicYieldExportJob",
-    "heapSize" : "512m"
+    "heapSize" : "256m"
   }
 ]

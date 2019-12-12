@@ -1,5 +1,8 @@
 package com.ferguson.cs.product.task.dy.batch;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.util.StringUtils;
 
@@ -48,7 +51,10 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setFanType(item.getFanType());
 			dyProduct.setFuelType(item.getFuelType());
 			dyProduct.setConfiguration(item.getConfiguration());
-			dyProduct.setCADroughtCompliant(item.getCADroughtCompliant());
+			dyProduct.setCaliforniaDroughtCompliant(item.getCaliforniaDroughtCompliant());
+
+			dyProduct.setSiteIds(Arrays.asList(item.getSiteIds().split(",")).stream()
+					.map(x -> Integer.parseInt(x)).collect(Collectors.toList()));
 
 			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
@@ -70,6 +76,12 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		return dyProduct;
 	}
 
+	/**
+	 * Check all required fields for data
+	 *
+	 * @param productData
+	 * @return true or false
+	 */
 	private boolean isValidAndIncluded(ProductData productData) {
 		return (productData != null
 				&& productData.getSku() != null
