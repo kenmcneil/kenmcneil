@@ -114,15 +114,9 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 		writer.setAppendAllowed(true);
 		writer.setShouldDeleteIfExists(true);
 		writer.setResource(resource);
-		Site site = Site.BUILD;
-		//Create the site Enum for the line aggregator
-		for (Site s : Site.values()) {
-			if (s.getSiteId().equals(siteId)) {
-				site = s;
-			}
-		}
+
 		QuoteEnclosingDelimitedLineAggregator<DynamicYieldProduct>
-				lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>(site);
+				lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>(Site.getById(siteId));
 		lineAggregator.setDelimiter(getDelimeter());
 		lineAggregator.setFieldExtractor(getExtractor());
 		writer.setLineAggregator(lineAggregator);

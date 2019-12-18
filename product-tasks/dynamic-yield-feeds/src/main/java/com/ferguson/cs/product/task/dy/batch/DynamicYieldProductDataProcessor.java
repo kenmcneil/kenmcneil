@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.util.StringUtils;
 
+import com.ferguson.cs.product.task.dy.domain.CommonConfig;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 
@@ -17,7 +18,6 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	private static final String NO_IMAGE_REGEX = "(?i:.*noimage.jpg)";
 	private static final String RELATIVE_PATH_STRING = "v3/product/";
 	private static final String WHITE_SPACE_STRING = " ";
-	private static final String PRODUCT_URL_REPLACEMENT = "PRODUCTURL";
 
 	@Override
 	public DynamicYieldProduct process(ProductData item) throws Exception {
@@ -55,7 +55,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setSiteIds(Arrays.asList(item.getSiteIds().split(",")).stream()
 					.map(x -> Integer.parseInt(x)).collect(Collectors.toList()));
 
-			dyProduct.setUrl(PRODUCT_URL_REPLACEMENT + ":" + dyProduct.getSku() + ":" + dyProduct.getGroupId());
+			dyProduct.setUrl(CommonConfig.PRODUCT_URL_REPLACEMENT + ":" + dyProduct.getSku() + ":" + dyProduct.getGroupId());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
 			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());

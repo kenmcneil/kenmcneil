@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import org.springframework.batch.item.file.transform.ExtractorLineAggregator;
 import org.springframework.util.ObjectUtils;
 
+import com.ferguson.cs.product.task.dy.domain.CommonConfig;
 import com.ferguson.cs.product.task.dy.domain.Site;
 
 public class QuoteEnclosingDelimitedLineAggregator<T> extends ExtractorLineAggregator<T> {
@@ -14,7 +15,6 @@ public class QuoteEnclosingDelimitedLineAggregator<T> extends ExtractorLineAggre
 	private static final String URL_STRING_POST = ".com/product/s";
 
 	private static final String URL_UID_STRING = "?uid=";
-	private static final String PRODUCT_URL_REPLACEMENT = "PRODUCTURL.*";
 
 	private String delimiter;
 	private Site site;
@@ -55,7 +55,7 @@ public class QuoteEnclosingDelimitedLineAggregator<T> extends ExtractorLineAggre
 			} else {
 				text = fields[i].toString();
 				text = text.replace("\\", "").replace("\"","\"\"");
-				if (text.matches(PRODUCT_URL_REPLACEMENT)) {
+				if (text.startsWith(CommonConfig.PRODUCT_URL_REPLACEMENT)) {
 					String groupId;
 					String sku;
 

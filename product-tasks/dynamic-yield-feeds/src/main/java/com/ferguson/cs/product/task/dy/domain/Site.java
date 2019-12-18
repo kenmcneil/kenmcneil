@@ -25,4 +25,13 @@ public enum Site {
 	public Integer getSiteId() {
 		return this.value;
 	}
+
+	public static Site getById(Integer siteId) {
+		for (Site s : Site.values()) {
+			if (s.getSiteId().equals(siteId)) {
+				return s;
+			}
+		}
+		return Site.BUILD;
+	}
 }
