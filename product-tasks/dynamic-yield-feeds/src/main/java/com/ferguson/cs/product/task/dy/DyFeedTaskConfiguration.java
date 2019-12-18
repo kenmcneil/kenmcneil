@@ -14,8 +14,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.FieldExtractor;
-import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +23,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import com.ferguson.cs.product.task.dy.batch.CustomMultiResourcePartitioner;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
 import com.ferguson.cs.product.task.dy.batch.ProductDataSiteWriter;
-import com.ferguson.cs.product.task.dy.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
@@ -116,8 +113,7 @@ public class DyFeedTaskConfiguration {
 		ProductDataSiteWriter writer = new ProductDataSiteWriter();
 		writer.setHeaderNames(header);
 		writer.setDelimeter(DelimitedLineTokenizer.DELIMITER_COMMA);
-		LineAggregator<DynamicYieldProduct> lineAggregator = createLineAggregator(extractor);
-		writer.setLineAggregator(lineAggregator);
+		writer.setExtractor(extractor);
 		writer.setDyProductFileResource(dyProductFileResource());
 		return writer;
 	}
@@ -216,18 +212,5 @@ public class DyFeedTaskConfiguration {
 			index++;
 		}
 		return updatedColumnNames;
-	}
-
-	/**
-	 * Create a QuoteEnclosingLineAggregator for for correct formatting of csv files
-	 *
-	 * @param fieldExtractor
-	 * @return lineAggregator
-	 */
-	private LineAggregator<DynamicYieldProduct> createLineAggregator(FieldExtractor<DynamicYieldProduct> fieldExtractor) {
-		QuoteEnclosingDelimitedLineAggregator<DynamicYieldProduct> lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
-		lineAggregator.setDelimiter(",");
-		lineAggregator.setFieldExtractor(fieldExtractor);
-		return lineAggregator;
 	}
 }
