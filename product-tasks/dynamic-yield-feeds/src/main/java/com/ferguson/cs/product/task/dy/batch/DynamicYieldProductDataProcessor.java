@@ -6,13 +6,12 @@ import java.util.stream.Collectors;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.util.StringUtils;
 
+import com.ferguson.cs.product.task.dy.domain.CommonConfig;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
 
 public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductData, DynamicYieldProduct> {
 
-	private static final String URL_STRING = "https://www.build.com/product/s";
-	private static final String URL_UID_STRING = "?uid=";
 	private static final String IMAGE_URL_STRING = "https://s3.img-b.com/image/private/c_lpad,f_auto,h_220,t_base,w_220/v3/product/";
 	private static final String STOCK_STATUS_STRING = "stock";
 	private static final String DISCONTINUED_STATUS_STRING = "discontinued";
@@ -56,7 +55,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setSiteIds(Arrays.asList(item.getSiteIds().split(",")).stream()
 					.map(x -> Integer.parseInt(x)).collect(Collectors.toList()));
 
-			dyProduct.setUrl(URL_STRING + item.getGroupId() + URL_UID_STRING + item.getSku());
+			dyProduct.setUrl(CommonConfig.PRODUCT_URL_REPLACEMENT + ":" + dyProduct.getSku() + ":" + dyProduct.getGroupId());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
 			dyProduct.setImageUrl(IMAGE_URL_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());

@@ -10,11 +10,12 @@ import javax.annotation.PostConstruct;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.transform.LineAggregator;
+import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
+import com.ferguson.cs.product.task.dy.domain.Site;
 import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 
@@ -28,10 +29,18 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 	@Qualifier("dyProductFileResource")
 	private SiteProductFileResource dyProductFileResource;
 
-	private LineAggregator<DynamicYieldProduct> lineAggregator;
 	private Map<Integer, SiteResource> siteResources = new HashMap<>();
 	private String[] headerNames;
 	private String delimeter;
+	private BeanWrapperFieldExtractor<DynamicYieldProduct> extractor;
+
+	public BeanWrapperFieldExtractor<DynamicYieldProduct> getExtractor() {
+		return extractor;
+	}
+
+	public void setExtractor(BeanWrapperFieldExtractor<DynamicYieldProduct> extractor) {
+		this.extractor = extractor;
+	}
 
 	private String[] getHeaderNames() {
 		return headerNames;
@@ -49,13 +58,6 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 		this.delimeter = delimeter;
 	}
 
-	private LineAggregator<DynamicYieldProduct> getLineAggregator() {
-		return lineAggregator;
-	}
-
-	public void setLineAggregator(LineAggregator<DynamicYieldProduct> lineAggregator) {
-		this.lineAggregator = lineAggregator;
-	}
 
 	private SiteProductFileResource getDyProductFileResource() {
 		return dyProductFileResource;
@@ -102,16 +104,23 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 	 * Get a FlatFileItemWriter for the passed resource using the lineAggregator set in this class
 	 *
 	 * @param resource
+	 * @param siteId
 	 * @return writer
 	 */
-	private FlatFileItemWriter<DynamicYieldProduct> createFlatFileItemWriter(Resource resource) {
+	private FlatFileItemWriter<DynamicYieldProduct> createFlatFileItemWriter(Resource resource, Integer siteId) {
 		//Create writer instance
 		FlatFileItemWriter<DynamicYieldProduct> writer = new FlatFileItemWriter<>();
 		//Set output file location
 		writer.setAppendAllowed(true);
 		writer.setShouldDeleteIfExists(true);
 		writer.setResource(resource);
-		writer.setLineAggregator(getLineAggregator());
+
+		QuoteEnclosingDelimitedLineAggregator<DynamicYieldProduct>
+				lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>(Site.getById(siteId));
+		lineAggregator.setDelimiter(getDelimeter());
+		lineAggregator.setFieldExtractor(getExtractor());
+		writer.setLineAggregator(lineAggregator);
+
 		writer.setHeaderCallback(w -> w.write(String.join(getDelimeter(), getHeaderNames())));
 		writer.open(executionContext);
 		return writer;
@@ -125,7 +134,7 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 			SiteResource sr = entry.getValue();
 			Resource resource = dyProductFileResource.getSiteFileMap().get(siteId);
 			sr.resource = resource;
-			sr.writer = createFlatFileItemWriter(resource);
+			sr.writer = createFlatFileItemWriter(resource, siteId);
 		}
 	}
 
