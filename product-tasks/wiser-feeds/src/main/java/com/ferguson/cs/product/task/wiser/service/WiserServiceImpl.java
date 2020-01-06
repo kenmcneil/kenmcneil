@@ -58,7 +58,9 @@ public class WiserServiceImpl implements WiserService {
 
 	@Override
 	public List<WiserSale> getWiserSales(Date date) {
-		return wiserIntegrationDao.getActiveOrModifiedWiserSales(date);
+		List<WiserSale> sales = wiserIntegrationDao.getActiveOrModifiedWiserSales(date);
+		sales.addAll(wiserDao.getParticipationProductSales(date));
+		return sales;
 	}
 
 	@Override

@@ -24,8 +24,6 @@
 		OR (@startDate &lt;= endDate AND @endDate &gt;= startDate)
 	</select>
 
-
-
 	<resultMap id="productDataHashMap" type="ProductDataHash">
 		<result property="productUniqueId" column="productUniqueId"/>
 		<result property="hashCode" column="hashCode"/>

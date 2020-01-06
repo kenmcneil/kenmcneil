@@ -1,11 +1,11 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -56,9 +56,21 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 		String jobName = stepExecution.getJobExecution().getJobInstance().getJobName();
 		date = wiserService.getLastRanDate(jobName);
 		List<WiserSale> wiserSaleList = wiserService.getWiserSales(date);
+		wiserSaleMap = new HashMap<>();
 
-		wiserSaleMap = wiserSaleList.stream().collect(Collectors.toMap(WiserSale::getProductUniqueId, Function
-				.identity()));
+		/*
+		 * Memory optimization. This list can get quite large, containing both list and map in memory can be a lot,
+		 * so remove items from list as they are added to map.
+		 */
+		for (Iterator<WiserSale> it = wiserSaleList.iterator(); it.hasNext(); ) {
+			WiserSale e = it.next();
+			it.remove();
+			WiserSale duplicateSale = wiserSaleMap.get(e.getProductUniqueId());
+			//Put into sale map if key doesn't exist or if existing key isn't promo
+			if(duplicateSale == null || !wiserService.isItemPromo(duplicateSale,date)) {
+				wiserSaleMap.put(e.getProductUniqueId(), e);
+			}
+		}
 	}
 
 	@Override
