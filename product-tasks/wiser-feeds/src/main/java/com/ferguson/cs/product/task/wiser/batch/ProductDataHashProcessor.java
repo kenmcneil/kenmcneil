@@ -60,10 +60,15 @@ public class ProductDataHashProcessor implements ItemProcessor<ProductData,Produ
 		date = wiserService.getLastRanDate(jobName);
 		List<WiserSale> wiserSaleList = wiserService.getWiserSales(date);
 
+
 		for (Iterator<WiserSale> it = wiserSaleList.iterator(); it.hasNext(); ) {
 			WiserSale e = it.next();
 			it.remove();
-			wiserSaleMap.put(e.getProductUniqueId(),e);
+			WiserSale old = wiserSaleMap.get(e.getProductUniqueId());
+			//Put into sale map if key doesn't exist or if existing key isn't promo
+			if(old == null || !wiserService.isItemPromo(old,date)) {
+				wiserSaleMap.put(e.getProductUniqueId(), e);
+			}
 		}
 	}
 

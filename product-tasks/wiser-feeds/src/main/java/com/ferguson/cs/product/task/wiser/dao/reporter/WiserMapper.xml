@@ -305,5 +305,44 @@
 		GROUP BY c.uniqueId, ISNULL(u.priceBookId, 1), DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0), IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0), IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0)
 	</select>
 
+	<resultMap id="wiserSaleMap" type="WiserSale">
+		<result property="productUniqueId" column="productUniqueId" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+		<result property="modifiedDate" column="modifiedDate" />
+	</resultMap>
 
+	<select id="getParticipationProductSales" resultMap="wiserSaleMap">
+		DECLARE @date DATETIME2 = #{date}
+
+		;WITH ownedProducts AS (
+		SELECT TOP (1) WITH TIES
+		pp.uniqueId,
+		pp.participationId,
+		p.saleId,
+		p.startDate,
+		p.endDate,
+		p.lastModifiedUserId AS userId
+		FROM
+		mmc.product.participationProduct AS pp
+		INNER JOIN
+		mmc.product.participationItemPartial AS p
+		ON p.participationId = pp.participationId
+		AND (p.startDate IS NULL OR p.startDate &lt;= @date)
+		AND (p.endDate IS NULL OR p.endDate &gt; @date)
+		ORDER BY
+		ROW_NUMBER() OVER(PARTITION BY pp.uniqueId ORDER BY p.startDate DESC)
+		)
+
+		SELECT DISTINCT
+		uniqueId as productUniqueId,
+		startDate,
+		endDate,
+		@date as modifiedDate
+		FROM
+		ownedProducts AS pp
+		INNER JOIN
+		mmc.product.participationCalculatedDiscount AS d
+		ON d.participationId = pp.participationId
+	</select>
 </mapper>
