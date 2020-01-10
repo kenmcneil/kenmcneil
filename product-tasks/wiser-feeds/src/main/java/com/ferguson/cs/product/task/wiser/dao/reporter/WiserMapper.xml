@@ -113,6 +113,7 @@
 		LEFT JOIN mmc.product.sale sa WITH(NOLOCK)
 		ON p.uniqueId = sa.uniqueId
 		WHERE ct.type = 'Product'
+		AND s.status = 'stock'
 		ORDER BY p.uniqueId ASC
 	</select>
 
@@ -219,6 +220,7 @@
 		AND pbc.PriceBookId = results.inner_channel_id
 		AND results.rank = 1
 		WHERE pbc.PricebookId IN (1,22,25)
+		AND p.statusId = 6
 	</select>
 
 	<resultMap id="wiserPerformanceDataMap" type="WiserPerformanceData">
@@ -263,6 +265,7 @@
 		AND ISNULL(u.priceBookId, 1) IN (1, 22, 25)
 		AND p.containerType = 'Product'
 		AND o.status != 'cancelled'
+		AND p.status = 'stock'
 		GROUP BY c.uniqueId, ISNULL(u.priceBookId, 1), DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0), IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0), IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0)
 
 		UNION ALL
@@ -302,6 +305,7 @@
 		AND (DATEADD(day, DATEDIFF(day, 0, po.cancelledDateTime), 0) != DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0) OR DATEADD(day, DATEDIFF(day, 0, h.ChangeDate), 0) != DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0))
 		AND ISNULL(u.priceBookId, 1) IN (1, 22, 25)
 		AND p.containerType = 'Product'
+		AND p.status = 'stock'
 		GROUP BY c.uniqueId, ISNULL(u.priceBookId, 1), DATEADD(day, DATEDIFF(day, 0, o.placedDate), 0), IIF(mo.marketplaceId IS NOT NULL, mo.marketplaceId, 0), IIF(ncr.NoChargeReplacement_LogId IS NOT NULL, 1, 0)
 	</select>
 
