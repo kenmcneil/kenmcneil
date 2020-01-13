@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class DynamicYieldProduct implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3L;
 
 	private Integer sku;
 	private Integer groupId;
@@ -40,6 +40,8 @@ public class DynamicYieldProduct implements Serializable {
 	private String fanType;
 	private String fuelType;
 	private String configuration;
+	private String baseCategory;
+	private String businessCategory;
 	private Boolean californiaDroughtCompliant;
 	private List<Integer> siteIds;
 
@@ -49,6 +51,22 @@ public class DynamicYieldProduct implements Serializable {
 
 	public void setCaliforniaDroughtCompliant(Boolean californiaDroughtCompliant) {
 		this.californiaDroughtCompliant = californiaDroughtCompliant;
+	}
+
+	public String getBaseCategory() {
+		return baseCategory;
+	}
+
+	public void setBaseCategory(String baseCategory) {
+		this.baseCategory = baseCategory;
+	}
+
+	public String getBusinessCategory() {
+		return businessCategory;
+	}
+
+	public void setBusinessCategory(String businessCategory) {
+		this.businessCategory = businessCategory;
 	}
 
 	public Integer getSku() {

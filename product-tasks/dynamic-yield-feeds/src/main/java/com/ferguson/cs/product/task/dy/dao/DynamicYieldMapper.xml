@@ -31,6 +31,8 @@
 		<result column="pendant_type" property="pendantType" />
 		<result column="fan_type" property="fanType" />
 		<result column="fuel_type" property="fuelType" />
+		<result column="base_category" property="baseCategory" />
+		<result column="business_category" property="businessCategory" />
 		<result column="configuration" property="configuration" />
 		<result column="california_drought_compliant" property="californiaDroughtCompliant" />
 		<result column="site_ids" property="siteIds" />
@@ -49,6 +51,7 @@
 			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
 			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
 			attr.Configuration [configuration], sites.siteIds site_ids,
+		    bcat.base_category base_category, bc.name business_category,
 			IIF(EXISTS(
 				SELECT psr.id
 			   	FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
@@ -77,8 +80,12 @@
 		LEFT OUTER JOIN mmc.product.handletype ht (NOLOCK) ON ht.id = tah.handletypeId
 		LEFT OUTER JOIN mmc.dbo.product_ratings r (NOLOCK) ON f.id = r.product_composite_id
 		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
-		LEFT OUTER JOIN product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
-		LEFT OUTER JOIN product.theme tm (NOLOCK) ON tm.id = ptm.themeId
+		LEFT OUTER JOIN mmc.product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
+		LEFT OUTER JOIN mmc.product.theme tm (NOLOCK) ON tm.id = ptm.themeId
+		LEFT OUTER JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
+		LEFT OUTER JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
+		LEFT OUTER JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
+		LEFT OUTER JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
 		LEFT OUTER JOIN (
 			SELECT * FROM (
 				SELECT pa.name, pao.productid_manufacturer_id familyId, pao.optionValue
