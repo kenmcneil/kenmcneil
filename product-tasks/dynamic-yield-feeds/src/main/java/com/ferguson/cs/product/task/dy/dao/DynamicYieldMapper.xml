@@ -82,8 +82,8 @@
 		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
 		LEFT OUTER JOIN mmc.product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
 		LEFT OUTER JOIN mmc.product.theme tm (NOLOCK) ON tm.id = ptm.themeId
-		LEFT OUTER JOIN mmc.dbo.product_base_category pbcat ON p.uniqueId = pbcat.uniqueid
-		LEFT OUTER JOIN mmc.dbo.base_category bcat WITH (NOLOCK) ON bcat.id = pbcat.base_category_id
+		LEFT OUTER JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
+		LEFT OUTER JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
 		LEFT OUTER JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
 		LEFT OUTER JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
 		LEFT OUTER JOIN (
