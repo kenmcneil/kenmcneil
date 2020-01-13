@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	private Integer sku;
 	private Integer groupId;
@@ -35,6 +35,8 @@ public class ProductData implements Serializable {
 	private String fuelType;
 	private String configuration;
 	private Boolean californiaDroughtCompliant;
+	private String baseCategory;
+	private String businessCategory;
 	private String siteIds;
 
 	public String getSiteIds() {
@@ -51,6 +53,22 @@ public class ProductData implements Serializable {
 
 	public void setCaliforniaDroughtCompliantDroughtCompliant(Boolean californiaDroughtCompliant) {
 		this.californiaDroughtCompliant = californiaDroughtCompliant;
+	}
+
+	public String getBaseCategory() {
+		return baseCategory;
+	}
+
+	public void setBaseCategory(String baseCategory) {
+		this.baseCategory = baseCategory;
+	}
+
+	public String getBusinessCategory() {
+		return businessCategory;
+	}
+
+	public void setBusinessCategory(String businessCategory) {
+		this.businessCategory = businessCategory;
 	}
 	
 	public Integer getSku() {

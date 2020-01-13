@@ -103,6 +103,8 @@ public class DyFeedTaskConfiguration {
 				"pendant_type",
 				"fan_type",
 				"fuel_type",
+				"base_category",
+				"business_category",
 				"configuration",
 				"california_drought_compliant"
 		};
