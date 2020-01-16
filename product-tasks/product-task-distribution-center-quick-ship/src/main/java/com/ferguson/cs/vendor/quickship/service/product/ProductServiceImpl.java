@@ -85,4 +85,14 @@ public class ProductServiceImpl implements ProductService {
 	public void updateProductModified(Product product) {
 		productDao.updateProductModified(product);
 	}
+
+	@Override
+	public void populateProductPreferredVendorQuickShip() {
+		productDao.populateProductPreferredVendorQuickShip();
+	}
+
+	@Override
+	public void truncateProductPreferredVendorQuickShip() {
+		productDao.truncateProductPreferredVendorQuickShip();
+	}
 }

@@ -48,16 +48,43 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	public Step truncateDistributionCenterProductQuickShipTable() {
 		return taskBatchJobFactory.getStepBuilder("truncateDistributionCenterProductQuickShipTable")
-				.tasklet(truncateTasklet()).build();
+				.tasklet(truncateDistributionCenterProductQuickShipTableTasklet())
+				.build();
 	}
 
 	@Bean
 	@StepScope
-	public TruncateDistributionCenterProductQuickShipTableTasklet truncateTasklet() {
-		final TruncateDistributionCenterProductQuickShipTableTasklet tasklet =
-				new TruncateDistributionCenterProductQuickShipTableTasklet(vendorService);
+	public TruncateDistributionCenterProductQuickShipTableTasklet truncateDistributionCenterProductQuickShipTableTasklet() {
 
-		return tasklet;
+		return new TruncateDistributionCenterProductQuickShipTableTasklet(vendorService);
+	}
+
+	@Bean
+	public Step truncatePreferredProductVendorQuickShipTable() {
+		return taskBatchJobFactory.getStepBuilder("truncatePreferredProductVendorQuickShipTableTasklet")
+				.tasklet(truncatePreferredProductVendorQuickShipTableTasklet())
+				.build();
+	}
+
+	@Bean
+	@StepScope
+	public TruncatePreferredProductVendorQuickShipTableTasklet truncatePreferredProductVendorQuickShipTableTasklet() {
+
+		return new TruncatePreferredProductVendorQuickShipTableTasklet(productService);
+	}
+
+	@Bean
+	public Step copyProductPreferredVendorTableForQuickShip() {
+		return taskBatchJobFactory.getStepBuilder("copyProductPreferredVendorTableForQuickShipTasklet")
+				.tasklet(copyProductPreferredVendorTableForQuickShipTasklet())
+				.build();
+	}
+
+	@Bean
+	@StepScope
+	public CopyProductPreferredVendorTableForQuickShipTasklet copyProductPreferredVendorTableForQuickShipTasklet() {
+
+		return new CopyProductPreferredVendorTableForQuickShipTasklet(productService);
 	}
 
 	/**
@@ -100,6 +127,8 @@ public class DistributionCenterQuickShipJobConfiguration {
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
 				.start(truncateDistributionCenterProductQuickShipTable())
+				.next(truncatePreferredProductVendorQuickShipTable())
+				.next(copyProductPreferredVendorTableForQuickShip())
 				.next(populateDistributionCenterProductQuickShipTable())
 				.build();
 	}
