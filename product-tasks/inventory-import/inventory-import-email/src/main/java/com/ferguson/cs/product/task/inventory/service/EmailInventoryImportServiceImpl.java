@@ -69,9 +69,9 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		} catch (MessagingException e) {
 			InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 			inventoryImportJobError.setInventoryImportJobLogId(emailInventoryImportJobLog.getId());
-			inventoryImportJobError.setErrorMessage(String
-					.format(InventoryImportJobErrorMessage.EMAIL_RETRIEVAL_ERROR.getStringValue(), StringUtils
-							.truncate(e.getCause().toString(), 255)));
+			inventoryImportJobError.setErrorMessage(StringUtils
+					.truncate(String
+					.format(InventoryImportJobErrorMessage.EMAIL_RETRIEVAL_ERROR.getStringValue(), e.getCause().toString()),255));
 			emailInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 			emailInventoryImportJobLog.setStatus(InventoryImportJobStatus.FAILED);
 			inventoryImportJobLogService.saveInventoryImportJobLog(emailInventoryImportJobLog);
@@ -207,7 +207,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 			} catch (Exception e) {
 				InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
 				inventoryImportJobError.setInventoryImportJobLogId(emailInventoryImportJobLog.getId());
-				inventoryImportJobError.setErrorMessage(String.format(InventoryImportJobErrorMessage.EMAIL_ATTACHMENT_UKNOWN_ERROR.getStringValue(), StringUtils.truncate(e.toString(), 255)));
+				inventoryImportJobError.setErrorMessage(StringUtils.truncate(String.format(InventoryImportJobErrorMessage.EMAIL_ATTACHMENT_UKNOWN_ERROR.getStringValue(), e.toString()),255));
 				emailInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 			}
 		}
@@ -238,7 +238,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		if (e == null) {
 			inventoryImportJobError.setErrorMessage(errorMessage.getStringValue());
 		} else {
-			inventoryImportJobError.setErrorMessage(String.format(errorMessage.getStringValue(), StringUtils.truncate(e.getCause().toString(), 255)));
+			inventoryImportJobError.setErrorMessage(StringUtils.truncate(String.format(errorMessage.getStringValue(), e.getCause().toString()), 255));
 		}
 		inventoryImportJobEmailAttachment.setWasSuccessful(false);
 		emailInventoryImportJobLog.getInventoryImportJobEmailAttachmentList().add(inventoryImportJobEmailAttachment);
