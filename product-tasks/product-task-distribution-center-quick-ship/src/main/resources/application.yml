@@ -1,7 +1,7 @@
 logging:
   level:
     ROOT: error
-    com.ferguson.cs: debug
+    com.ferguson.cs: warn
 
 info:
   build:
