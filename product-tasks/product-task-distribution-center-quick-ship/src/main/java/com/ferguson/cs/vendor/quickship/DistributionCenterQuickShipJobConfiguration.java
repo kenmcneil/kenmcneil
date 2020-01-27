@@ -34,7 +34,6 @@ public class DistributionCenterQuickShipJobConfiguration {
 			DistributionCenterQuickShipTaskConfiguration taskConfiguration, VendorService vendorService,
 			ProductService productService, CategoryService categoryService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
-		this.taskConfiguration = taskConfiguration;
 		this.vendorService = vendorService;
 		this.productService = productService;
 		this.categoryService = categoryService;
