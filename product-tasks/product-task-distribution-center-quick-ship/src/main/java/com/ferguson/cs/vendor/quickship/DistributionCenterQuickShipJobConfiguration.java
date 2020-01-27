@@ -26,7 +26,6 @@ import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 @EnableRetry
 public class DistributionCenterQuickShipJobConfiguration {
 	private final TaskBatchJobFactory taskBatchJobFactory;
-	private final DistributionCenterQuickShipTaskConfiguration taskConfiguration;
 	private final VendorService vendorService;
 	private final ProductService productService;
 	private final CategoryService categoryService;
@@ -130,6 +129,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 				.next(truncatePreferredProductVendorQuickShipTable())
 				.next(copyProductPreferredVendorTableForQuickShip())
 				.next(populateDistributionCenterProductQuickShipTable())
+				.next(truncatePreferredProductVendorQuickShipTable())
 				.build();
 	}
 }
