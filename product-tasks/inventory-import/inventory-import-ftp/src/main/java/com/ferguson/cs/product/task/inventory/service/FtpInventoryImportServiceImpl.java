@@ -103,9 +103,9 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 						receiveVendorInventoryFileSftp(vendorFtpData);
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
-						inventoryImportJobError.setErrorMessage(String
+						inventoryImportJobError.setErrorMessage(StringUtils.truncate(String
 								.format(InventoryImportJobErrorMessage.SFTP_FILE_TRANSFER_ERROR
-										.getStringValue(), StringUtils.truncate(e.getCause().toString(), 255)));
+										.getStringValue(), e.getCause().toString()),255));
 						inventoryImportJobError.setInventoryImportJobLogId(ftpInventoryImportJobLog.getId());
 						ftpInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 					}
@@ -114,9 +114,9 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 						receiveVendorInventoryFileFtp(vendorFtpData);
 					} catch (Exception e) {
 						InventoryImportJobError inventoryImportJobError = new InventoryImportJobError();
-						inventoryImportJobError.setErrorMessage(String
+						inventoryImportJobError.setErrorMessage(StringUtils.truncate(String
 								.format(InventoryImportJobErrorMessage.FTP_FILE_TRANSFER_ERROR
-										.getStringValue(), StringUtils.truncate(e.getCause().toString(), 255)));
+										.getStringValue(), e.getCause().toString()),255));
 						inventoryImportJobError.setInventoryImportJobLogId(ftpInventoryImportJobLog.getId());
 						ftpInventoryImportJobLog.getErrors().add(inventoryImportJobError);
 					}
