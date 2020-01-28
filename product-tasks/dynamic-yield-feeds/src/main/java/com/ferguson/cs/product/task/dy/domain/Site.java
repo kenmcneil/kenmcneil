@@ -14,7 +14,8 @@ public enum Site {
 	WINECOOLERDIRECT(90),
 	KEGERATOR(91),
 	ICEMAKERDIRECT(92),
-	ALLERGYANDAIR(94);
+	ALLERGYANDAIR(94),
+	EDGESTAR(95);
 
 	private Integer value;
 
