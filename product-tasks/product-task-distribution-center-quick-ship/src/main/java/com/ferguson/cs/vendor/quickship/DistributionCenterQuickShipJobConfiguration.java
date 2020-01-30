@@ -31,8 +31,9 @@ public class DistributionCenterQuickShipJobConfiguration {
 	private final CategoryService categoryService;
 
 	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory,
-			DistributionCenterQuickShipTaskConfiguration taskConfiguration, VendorService vendorService,
-			ProductService productService, CategoryService categoryService) {
+	                                                   VendorService vendorService,
+	                                                   ProductService productService,
+	                                                   CategoryService categoryService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.vendorService = vendorService;
 		this.productService = productService;
@@ -53,35 +54,40 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	@StepScope
 	public TruncateDistributionCenterProductQuickShipTableTasklet truncateDistributionCenterProductQuickShipTableTasklet() {
-
 		return new TruncateDistributionCenterProductQuickShipTableTasklet(vendorService);
 	}
 
+	/**
+	 * Truncates a worktable copy of ProductPreferredVendor, used to avoid concurrency issues
+	 * with other scheduled jobs during processing.
+	 * @return
+	 */
 	@Bean
 	public Step truncatePreferredProductVendorQuickShipTable() {
 		return taskBatchJobFactory.getStepBuilder("truncatePreferredProductVendorQuickShipTableTasklet")
 				.tasklet(truncatePreferredProductVendorQuickShipTableTasklet())
 				.build();
 	}
-
 	@Bean
 	@StepScope
 	public TruncatePreferredProductVendorQuickShipTableTasklet truncatePreferredProductVendorQuickShipTableTasklet() {
-
 		return new TruncatePreferredProductVendorQuickShipTableTasklet(productService);
 	}
 
+	/**
+	 * Populates a working copy of ProductPreferredVendor, used to avoid concurrency issues
+	 * with other scheduled jobs during processing.
+	 * @return
+	 */
 	@Bean
 	public Step copyProductPreferredVendorTableForQuickShip() {
 		return taskBatchJobFactory.getStepBuilder("copyProductPreferredVendorTableForQuickShipTasklet")
 				.tasklet(copyProductPreferredVendorTableForQuickShipTasklet())
 				.build();
 	}
-
 	@Bean
 	@StepScope
 	public CopyProductPreferredVendorTableForQuickShipTasklet copyProductPreferredVendorTableForQuickShipTasklet() {
-
 		return new CopyProductPreferredVendorTableForQuickShipTasklet(productService);
 	}
 
@@ -125,10 +131,10 @@ public class DistributionCenterQuickShipJobConfiguration {
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
 				.start(truncateDistributionCenterProductQuickShipTable())
-				.next(truncatePreferredProductVendorQuickShipTable())
-				.next(copyProductPreferredVendorTableForQuickShip())
+				.next(truncatePreferredProductVendorQuickShipTable())       // Clear any remains from prior failure
+				.next(copyProductPreferredVendorTableForQuickShip())        // Copy data from ProductPreferredVendor to worktable
 				.next(populateDistributionCenterProductQuickShipTable())
-				.next(truncatePreferredProductVendorQuickShipTable())
+				.next(truncatePreferredProductVendorQuickShipTable())       // Clean up ~2.6M records
 				.build();
 	}
 }

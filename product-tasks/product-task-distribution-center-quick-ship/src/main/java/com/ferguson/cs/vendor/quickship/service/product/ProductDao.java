@@ -22,13 +22,13 @@ public interface ProductDao {
 	void updateProductModified(Product product);
 
 	/**
-	 * Clears the data from the MMC.dbo.ProductPreferredVendorQuickShip table, in
+	 * Clears the data from the tempData.dbo.ProductPreferredVendorQuickShip table, in
 	 * preparation of being populated by the method below.
 	 */
 	void truncateProductPreferredVendorQuickShip();
 
 	/**
-	 * Copies MMC.dbo.ProductPreferredVendor table contents into ProductPreferredVendorQuickShip.
+	 * Copies tempData.dbo.ProductPreferredVendor table contents into ProductPreferredVendorQuickShip.
 	 */
 	void populateProductPreferredVendorQuickShip();
 }
