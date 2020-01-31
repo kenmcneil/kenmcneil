@@ -7,10 +7,10 @@ import org.springframework.batch.repeat.RepeatStatus;
 
 import com.ferguson.cs.vendor.quickship.service.product.ProductService;
 
-public class PopulatePreferredProductVendorQuickShipTableTasklet implements Tasklet {
+public class RefreshPreferredProductVendorQuickShipTableTasklet implements Tasklet {
 	private final ProductService productService;
 
-	public PopulatePreferredProductVendorQuickShipTableTasklet(ProductService productService) {
+	public RefreshPreferredProductVendorQuickShipTableTasklet(ProductService productService) {
 		this.productService = productService;
 	}
 

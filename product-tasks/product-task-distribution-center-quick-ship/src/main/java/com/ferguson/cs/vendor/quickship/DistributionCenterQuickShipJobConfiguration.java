@@ -63,15 +63,15 @@ public class DistributionCenterQuickShipJobConfiguration {
 	 * @return
 	 */
 	@Bean
-	public Step RefreshPreferredProductVendorQuickShipTable() {
-		return taskBatchJobFactory.getStepBuilder("populatePreferredProductVendorQuickShipTableTasklet")
-				.tasklet(populatePreferredProductVendorQuickShipTableTasklet())
+	public Step refreshPreferredProductVendorQuickShipTable() {
+		return taskBatchJobFactory.getStepBuilder("refreshPreferredProductVendorQuickShipTableTasklet")
+				.tasklet(refreshPreferredProductVendorQuickShipTableTasklet())
 				.build();
 	}
 	@Bean
 	@StepScope
-	public PopulatePreferredProductVendorQuickShipTableTasklet populatePreferredProductVendorQuickShipTableTasklet() {
-		return new PopulatePreferredProductVendorQuickShipTableTasklet(productService);
+	public RefreshPreferredProductVendorQuickShipTableTasklet refreshPreferredProductVendorQuickShipTableTasklet() {
+		return new RefreshPreferredProductVendorQuickShipTableTasklet(productService);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
 				.start(truncateDistributionCenterProductQuickShipTable())
-				.next(RefreshPreferredProductVendorQuickShipTable())
+				.next(refreshPreferredProductVendorQuickShipTable())
 				.next(populateDistributionCenterProductQuickShipTable())
 				.build();
 	}
