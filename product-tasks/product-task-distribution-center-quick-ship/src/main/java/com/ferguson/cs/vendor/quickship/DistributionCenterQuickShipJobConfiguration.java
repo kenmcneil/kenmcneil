@@ -58,37 +58,20 @@ public class DistributionCenterQuickShipJobConfiguration {
 	}
 
 	/**
-	 * Truncates a worktable copy of ProductPreferredVendor, used to avoid concurrency issues
+	 * Refreshes the data in a worktable copy of ProductPreferredVendor, used to avoid concurrency issues
 	 * with other scheduled jobs during processing.
 	 * @return
 	 */
 	@Bean
-	public Step truncatePreferredProductVendorQuickShipTable() {
-		return taskBatchJobFactory.getStepBuilder("truncatePreferredProductVendorQuickShipTableTasklet")
-				.tasklet(truncatePreferredProductVendorQuickShipTableTasklet())
+	public Step RefreshPreferredProductVendorQuickShipTable() {
+		return taskBatchJobFactory.getStepBuilder("populatePreferredProductVendorQuickShipTableTasklet")
+				.tasklet(populatePreferredProductVendorQuickShipTableTasklet())
 				.build();
 	}
 	@Bean
 	@StepScope
-	public TruncatePreferredProductVendorQuickShipTableTasklet truncatePreferredProductVendorQuickShipTableTasklet() {
-		return new TruncatePreferredProductVendorQuickShipTableTasklet(productService);
-	}
-
-	/**
-	 * Populates a working copy of ProductPreferredVendor, used to avoid concurrency issues
-	 * with other scheduled jobs during processing.
-	 * @return
-	 */
-	@Bean
-	public Step copyProductPreferredVendorTableForQuickShip() {
-		return taskBatchJobFactory.getStepBuilder("copyProductPreferredVendorTableForQuickShipTasklet")
-				.tasklet(copyProductPreferredVendorTableForQuickShipTasklet())
-				.build();
-	}
-	@Bean
-	@StepScope
-	public CopyProductPreferredVendorTableForQuickShipTasklet copyProductPreferredVendorTableForQuickShipTasklet() {
-		return new CopyProductPreferredVendorTableForQuickShipTasklet(productService);
+	public PopulatePreferredProductVendorQuickShipTableTasklet populatePreferredProductVendorQuickShipTableTasklet() {
+		return new PopulatePreferredProductVendorQuickShipTableTasklet(productService);
 	}
 
 	/**
@@ -131,10 +114,8 @@ public class DistributionCenterQuickShipJobConfiguration {
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
 				.start(truncateDistributionCenterProductQuickShipTable())
-				.next(truncatePreferredProductVendorQuickShipTable())       // Clear any remains from prior failure
-				.next(copyProductPreferredVendorTableForQuickShip())        // Copy data from ProductPreferredVendor to worktable
+				.next(RefreshPreferredProductVendorQuickShipTable())
 				.next(populateDistributionCenterProductQuickShipTable())
-				.next(truncatePreferredProductVendorQuickShipTable())       // Clean up ~2.6M records
 				.build();
 	}
 }
