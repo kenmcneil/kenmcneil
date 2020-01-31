@@ -197,14 +197,7 @@ pipeline {
                           sh "ls rpm-specs/ | parallel sed -i \"s/1\\.0\\.0/${releaseVersion}/\" rpm-specs/{}"
                           sh 'ls rpm-specs/ | parallel --jobs 0 rpmbuild -bb rpm-specs/{}'
                         }
-                        script {
-                          // Upload to artifactory.
-                          Map<String, String> uploadResult = uploadToArtifactory "rpmbuild/RPMS/noarch/*.rpm", 'buildcom-yum'
-                          // Check if upload was successful.
-                          if (uploadResult == null || uploadResult.isEmpty()) {
-                              error "Failed to upload RPMs."
-                          }
-                        }
+                        uploadToArtifactory "rpmbuild/RPMS/noarch/*.rpm", 'buildcom-yum'
                       }
                     }
                     stage ('Register Tasks') {
