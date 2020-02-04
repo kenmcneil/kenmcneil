@@ -13,10 +13,7 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.task.wiser.model.ConversionBucket;
-import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
-import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserProductData;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.product.task.wiser.service.WiserService;
@@ -26,8 +23,6 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 
 	private WiserService wiserService;
 	private Map<Integer, WiserSale> wiserSaleMap;
-	private Map<Integer, ProductRevenueCategory> productRevenueCategorization;
-	private Map<Integer, ProductConversionBucket> productConversionBuckets;
 	private Set<Integer> productUniqueIds;
 	private Date date;
 
@@ -36,15 +31,6 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 		this.productUniqueIds = productUniqueIds;
 	}
 
-	@Autowired
-	public void setProductRevenueCategorization(Map<Integer, ProductRevenueCategory> productRevenueCategorization) {
-		this.productRevenueCategorization = productRevenueCategorization;
-	}
-
-	@Autowired
-	public void setProductConversionBuckets(Map<Integer, ProductConversionBucket> productConversionBuckets) {
-		this.productConversionBuckets = productConversionBuckets;
-	}
 
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
@@ -125,19 +111,8 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 		wiserProductData.setSaleId(item.getSaleId());
 		wiserProductData.setDateAdded(item.getDateAdded());
 		wiserProductData.setListPrice(item.getListPrice());
-		ProductRevenueCategory productRevenueCategory = productRevenueCategorization.get(item.getUniqueId());
-		if (productRevenueCategory != null) {
-			wiserProductData.setHctCategory(productRevenueCategory.getRevenueCategory()
-					.getStringValue());
-			productRevenueCategorization.remove(item.getUniqueId());
-		}
-		ProductConversionBucket productConversionBucket = productConversionBuckets.get(item.getUniqueId());
-		if (productConversionBucket != null) {
-			wiserProductData.setConversionCategory(productConversionBucket.getConversionBucket().getStringValue());
-			productConversionBuckets.remove(item.getUniqueId());
-		} else {
-			wiserProductData.setConversionCategory(ConversionBucket.MEDIUM.getStringValue());
-		}
+		wiserProductData.setHctCategory(item.getHctCategory());
+		wiserProductData.setConversionCategory(item.getConversionCategory());
 
 
 		return wiserProductData;

@@ -49,6 +49,14 @@ public interface WiserService {
 	Map<Integer, ProductConversionBucket> getProductConversionBuckets();
 
 	/**
+	 * Get conversion bucket for product
+	 *
+	 * @param productUniqueId
+	 * @return string conversion bucket value
+	 */
+	String getProductConversionBucket(Integer productUniqueId);
+
+	/**
 	 * Determines if a given wiser sale object indicates that a product is on sale starting from a given date
 	 *
 	 * @param wiserSale	wiser sale object
@@ -61,4 +69,9 @@ public interface WiserService {
 	 * Delete all product data hashes
 	 */
 	void truncateProductDataHashes();
+
+	/**
+	 * Populate product revenue categorization table
+	 */
+	void populateProductRevenueCategorization();
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.ferguson.cs.product.task.wiser.dao.reporter.WiserMapper">
+<mapper namespace="com.ferguson.cs.product.task.wiser.dao.reporter.WiserReporterMapper">
 	<resultMap id="productDataMap" type="ProductData">
 		<result column="productId" property="productId"/>
 		<result column="compositeId" property="compositeId"/>
@@ -27,6 +27,8 @@
 		<result column="saleId" property="saleId" />
 		<result column="dateAdded" property="dateAdded" />
 		<result column="listPrice" property="listPrice" />
+		<result column="hctCategory" property="hctCategory" />
+		<result column="conversionCategory" property="conversionCategory" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -52,7 +54,9 @@
 		IIF(sd.ltl IS NULL, 0, sd.ltl) as 'isLtl',
 		sa.saleId as 'saleId',
 		p.dateAdded as 'dateAdded',
-		p.msrp as 'listPrice'
+		p.msrp as 'listPrice',
+		COALESCE(rc.revenueCategorization,'T') as 'hctCategory',
+		COALESCE(cb.conversionBucket,'M') as 'conversionCategory'
 		FROM mmc.product.product p WITH (NOLOCK)
 		INNER JOIN mmc.product.family fa WITH(NOLOCK)
 		ON p.familyId = fa.id
@@ -112,6 +116,14 @@
 		AND vc.pricedOptionId IS NULL
 		LEFT JOIN mmc.product.sale sa WITH(NOLOCK)
 		ON p.uniqueId = sa.uniqueId
+		LEFT JOIN Integration.wiser.productConversionBucket pcb WITH(NOLOCK)
+		ON p.uniqueId = pcb.productUniqueId
+		LEFT JOIN Integration.wiser.conversionBucket cb WITH(NOLOCK)
+		ON pcb.conversionBucketId = cb.id
+		LEFT JOIN Integration.wiser.productRevenueCategorization prc WITH(NOLOCK)
+		ON p.uniqueId = prc.productUniqueId
+		LEFT JOIN Integration.wiser.revenueCategorization rc WITH(NOLOCK)
+		ON prc.revenueCategorizationId = rc.id
 		WHERE ct.type = 'Product'
 		AND s.status = 'stock'
 		ORDER BY p.uniqueId ASC

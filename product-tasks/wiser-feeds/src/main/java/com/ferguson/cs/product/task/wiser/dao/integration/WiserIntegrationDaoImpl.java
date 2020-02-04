@@ -44,4 +44,14 @@ public class WiserIntegrationDaoImpl implements WiserIntegrationDao {
 				.collect(Collectors.toMap(ProductConversionBucket::getProductUniqueId, Function
 						.identity()));
 	}
+
+	@Override
+	public ProductConversionBucket getProductConversionBucket(Integer productUniqueId) {
+		return wiserIntegrationMapper.getProductConversionBucket(productUniqueId);
+	}
+
+	@Override
+	public void populateProductRevenueCategorization() {
+		wiserIntegrationMapper.populateProductRevenueCategorization();
+	}
 }

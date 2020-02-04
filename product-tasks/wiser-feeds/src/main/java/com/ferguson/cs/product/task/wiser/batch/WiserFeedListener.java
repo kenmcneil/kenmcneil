@@ -64,7 +64,7 @@ public class WiserFeedListener implements JobExecutionListener {
 				break;
 			case RECOMMENDATION_FEED:
 				filePrefix = "Recommendation_data_";
-				dateString = DateUtils.dateToString(new Date(),dateTimeFormatter);
+				dateString = DateUtils.dateToString(DateUtils.addDaysToDate(new Date(),3),dateTimeFormatter);
 				remoteFilePath = wiserFeedSettings.getFtpOutputFolder() + "wiser_output_" + dateString + ".csv";
 				jobExecution.getExecutionContext().putString("remoteDownloadFilePath",remoteFilePath);
 				break;

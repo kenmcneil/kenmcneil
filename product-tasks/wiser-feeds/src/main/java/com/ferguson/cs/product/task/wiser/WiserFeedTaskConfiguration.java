@@ -14,6 +14,7 @@ import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -39,7 +40,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import com.ferguson.cs.product.task.wiser.batch.DownloadFileTasklet;
 import com.ferguson.cs.product.task.wiser.batch.FlatteningItemStreamWriter;
-import com.ferguson.cs.product.task.wiser.batch.PopulateProductMetadataTasklet;
+import com.ferguson.cs.product.task.wiser.batch.PopulateProductRevenueCategorizationTasklet;
 import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
@@ -50,6 +51,7 @@ import com.ferguson.cs.product.task.wiser.batch.WiserFeedListener;
 import com.ferguson.cs.product.task.wiser.batch.WiserPerformanceDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserPriceDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserProductDataProcessor;
+import com.ferguson.cs.product.task.wiser.batch.WiserRetryableJobTasklet;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
@@ -60,6 +62,7 @@ import com.ferguson.cs.product.task.wiser.model.WiserPriceData;
 import com.ferguson.cs.product.task.wiser.model.WiserProductData;
 import com.ferguson.cs.product.task.wiser.service.WiserService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
+import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 import com.ferguson.cs.utilities.DateUtils;
 
 @Configuration
@@ -110,6 +113,11 @@ public class WiserFeedTaskConfiguration {
 	@Autowired
 	public void setWiserGateway(WiserFeedConfiguration.WiserGateway wiserGateway) {
 		this.wiserGateway = wiserGateway;
+	}
+
+	@Bean
+	public WiserRetryableJobTasklet wiserRetryableJobDecider(JobRepositoryHelper jobRepositoryHelper) {
+		return new WiserRetryableJobTasklet(jobRepositoryHelper);
 	}
 
 	@Bean
@@ -287,14 +295,14 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	PopulateProductMetadataTasklet populateProductRevenueCategorizationMapTasklet() {
-		return new PopulateProductMetadataTasklet();
+	UploadCostTasklet uploadCostTasklet() {
+		return new UploadCostTasklet();
 	}
 
 	@Bean
 	@StepScope
-	UploadCostTasklet uploadCostTasklet() {
-		return new UploadCostTasklet();
+	PopulateProductRevenueCategorizationTasklet populateProductRevenueCategorizationTasklet(WiserService wiserService) {
+		return new PopulateProductRevenueCategorizationTasklet(wiserService);
 	}
 
 	@Bean
@@ -492,8 +500,7 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("writeProductDataHashJob")
 	public Job writeProductDataHashJob(Step upsertProductDataHash) {
 		return taskBatchJobFactory.getJobBuilder("writeProductDataHashJob")
-				.start(populateProductMetadata())
-				.next(upsertProductDataHash)
+				.start(upsertProductDataHash)
 				.build();
 	}
 
@@ -502,7 +509,6 @@ public class WiserFeedTaskConfiguration {
 	public Job repopulateProductDataHashJob(Step truncateProductDataHashes, Step insertProductDataHash) {
 		return taskBatchJobFactory.getJobBuilder("repopulateProductDataHashJob")
 				.start(truncateProductDataHashes)
-				.next(populateProductMetadata())
 				.next(insertProductDataHash)
 				.build();
 	}
@@ -517,8 +523,7 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("productCatalogIncrementalUploadJob")
 	public Job productCatalogIncrementalUploadJob(Step writeProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogIncrementalUploadJob")
-				.start(populateProductMetadata())
-				.next(writeProductDataHashUniqueIds)
+				.start(writeProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
@@ -530,12 +535,17 @@ public class WiserFeedTaskConfiguration {
 	 */
 	@Bean
 	@Qualifier("productCatalogFullUploadJob")
-	public Job productCatalogFullUploadJob(Step writeWiserItems, Step uploadCsv) {
+	public Job productCatalogFullUploadJob(Step decideIfJobShouldRun, Step populateProductRevenueCategorization, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogFullUploadJob")
-				.start(populateProductMetadata())
+				.listener(wiserProductCatalogFeedListener())
+				.start(decideIfJobShouldRun)
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(decideIfJobShouldRun)
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(populateProductRevenueCategorization)
 				.next(writeWiserItems)
 				.next(uploadCsv)
-				.listener(wiserProductCatalogFeedListener())
+				.end()
 				.build();
 	}
 
@@ -548,8 +558,7 @@ public class WiserFeedTaskConfiguration {
 	@Qualifier("productCatalogPreviousDayFeedJob")
 	public Job productCatalogPreviousDayFeedJob(Step writePreviousDayProductDataHashUniqueIds, Step writeWiserItems, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("productCatalogPreviousDayFeedJob")
-				.start(populateProductMetadata())
-				.next(writePreviousDayProductDataHashUniqueIds)
+				.start(writePreviousDayProductDataHashUniqueIds)
 				.next(writeWiserItems)
 				.next(uploadCsv)
 				.listener(wiserProductCatalogFeedListener())
@@ -568,44 +577,64 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("priceDataFullUploadJob")
-	public Job priceDataFullUploadJob(Step writeFullWiserPriceData, Step uploadCsv) {
+	public Job priceDataFullUploadJob(Step decideIfJobShouldRun, Step writeFullWiserPriceData, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("priceDataFullUploadJob")
-				.start(writeFullWiserPriceData)
-				.next(uploadCsv)
 				.listener(wiserPriceFeedListener())
+				.start(decideIfJobShouldRun)
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(decideIfJobShouldRun)
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(writeFullWiserPriceData)
+				.next(uploadCsv)
+				.end()
 				.build();
 	}
 
 	@Bean
 	@Qualifier("competitorDataFeedJob")
-	public Job competitorDataFeedJob(Step uploadCsv) {
+	public Job competitorDataFeedJob(Step decideIfJobShouldRun, Step uploadCsv) {
 		Step downloadCsv = downloadCsv(threeSixtyPiDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("competitorDataFeedJob")
-				.start(downloadCsv)
-				.next(uploadCsv)
 				.listener(wiserCompetitorFeedListener())
+				.start(decideIfJobShouldRun)
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(decideIfJobShouldRun)
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(downloadCsv)
+				.next(uploadCsv)
+				.end()
 				.build();
 	}
 
 	@Bean
 	@Qualifier("performanceDataUploadJob")
-	public Job performanceDataUploadJob(Step writeWiserPerformanceData, Step uploadCsv) {
+	public Job performanceDataUploadJob(Step decideIfJobShouldRun, Step writeWiserPerformanceData, Step uploadCsv) {
 		return taskBatchJobFactory.getJobBuilder("performanceDataUploadJob")
-				.start(writeWiserPerformanceData)
-				.next(uploadCsv)
 				.listener(wiserPerformanceFeedListener())
+				.start(decideIfJobShouldRun)
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(decideIfJobShouldRun)
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(writeWiserPerformanceData)
+				.next(uploadCsv)
+				.end()
 				.build();
 	}
 
 	@Bean
 	@Qualifier("recommendationDataDownloadJob")
-	public Job recommendationDataDownloadJob(Step uploadCost,Step changeRecommendationFeedHeader) {
+	public Job recommendationDataDownloadJob(Step decideIfJobShouldRun, Step uploadCost, Step changeRecommendationFeedHeader) {
 		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
-				.start(downloadCsv)
+				.listener(wiserRecommendationFeedListener())
+				.start(decideIfJobShouldRun)
+				.on(ExitStatus.NOOP.getExitCode()).end()
+				.from(decideIfJobShouldRun)
+				.on(ExitStatus.COMPLETED.getExitCode())
+				.to(downloadCsv)
 				.next(changeRecommendationFeedHeader)
 				.next(uploadCost)
-				.listener(wiserRecommendationFeedListener())
+				.end()
 				.build();
 	}
 
@@ -644,14 +673,6 @@ public class WiserFeedTaskConfiguration {
 	public Step truncateProductDataHashes() {
 		return taskBatchJobFactory.getStepBuilder("truncateProductDataHashes")
 				.tasklet(truncateProductDataHashTasklet())
-				.build();
-	}
-
-	@Bean
-	@Qualifier("populateProductMetadata")
-	public Step populateProductMetadata() {
-		return taskBatchJobFactory.getStepBuilder("populateProductMetadata")
-				.tasklet(populateProductRevenueCategorizationMapTasklet())
 				.build();
 	}
 
@@ -763,6 +784,22 @@ public class WiserFeedTaskConfiguration {
 	public Step uploadCost(UploadCostTasklet uploadCostTasklet) {
 		return taskBatchJobFactory.getStepBuilder("uploadCost")
 				.tasklet(uploadCostTasklet)
+				.build();
+	}
+
+	@Bean
+	@Qualifier("decideIfJobShouldRun")
+	public Step decideIfJobShouldRun(WiserRetryableJobTasklet wiserRetryableJobTasklet) {
+		return taskBatchJobFactory.getStepBuilder("decideIfJobShouldRun")
+				.tasklet(wiserRetryableJobTasklet)
+				.build();
+	}
+
+	@Bean
+	@Qualifier("populateProductRevenueCategorization")
+	public Step populateProductRevenueCategorization(PopulateProductRevenueCategorizationTasklet populateProductRevenueCategorizationTasklet) {
+		return taskBatchJobFactory.getStepBuilder("populateProductRevenueCategorization")
+				.tasklet(populateProductRevenueCategorizationTasklet)
 				.build();
 	}
 

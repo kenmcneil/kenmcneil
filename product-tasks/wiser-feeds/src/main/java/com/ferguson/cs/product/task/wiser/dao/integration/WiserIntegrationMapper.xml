@@ -63,5 +63,9 @@
 		FROM Integration.wiser.productConversionBucket pcb
 	</select>
 
-
+	<select id="getProductConversionBucket" resultMap="productConversionBucketMap">
+		SELECT DISTINCT pcb.productUniqueId,pcb.conversionBucketId
+		FROM Integration.wiser.productConversionBucket pcb
+		where productUniqueId = #{productUniqueId}
+	</select>
 </mapper>
