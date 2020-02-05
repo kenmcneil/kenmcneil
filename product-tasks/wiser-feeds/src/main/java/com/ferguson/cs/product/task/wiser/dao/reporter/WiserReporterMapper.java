@@ -13,7 +13,7 @@ import com.ferguson.cs.product.task.wiser.model.WiserPriceData;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 @Mapper
-public interface WiserMapper {
+public interface WiserReporterMapper {
 	List<ProductData> getProductData();
 	List<WiserPriceData> getWiserPriceData(Date date);
 	WiserPerformanceData getWiserPerformanceData(Date date);

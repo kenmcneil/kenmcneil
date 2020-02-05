@@ -37,6 +37,7 @@ public class WiserFeedConfiguration {
 	protected static final String REPORTER_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.reporter";
 	public static final String INTEGRATION_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.integration";
 	protected static final String BATCH_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.batch";
+	protected static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.wiser.dao.core";
 	private static final String BASE_ALIAS_PAKCAGE = "com.ferguson.cs.product.task.wiser.model";
 	private static final String WISER_UPLOAD_SFTP_CHANNEL = "wiserUploadSftpChannel";
 	private static final String WISER_DOWNLOAD_SFTP_CHANNEL = "wiserDownloadSftpChannel";
@@ -208,6 +209,36 @@ public class WiserFeedConfiguration {
 		public SqlSessionFactory integrationSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(integrationDataSource());
+			factory.setVfs(SpringBootVFS.class);
+			factory.setTypeAliasesPackage(BASE_ALIAS_PAKCAGE);
+			factory.setTypeHandlersPackage(typeHandlerPackage);
+			return factory.getObject();
+		}
+	}
+
+	@MapperScan(basePackages= WiserFeedConfiguration.CORE_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "coreSqlSessionFactory")
+	@Configuration
+	public static class CoreDataSourceConfiguration {
+		//--------------------------------------------------------------------------------------------------
+		// Setup the reporter data source and then wire up a mybatis sql map. We have to alias the data source
+		// so that the task batch auto configuration works properly.
+		//--------------------------------------------------------------------------------------------------
+		@Bean
+		@ConfigurationProperties(prefix = "datasource.core")
+		public DataSourceProperties coreDataSourceProperties() {
+			return new DataSourceProperties();
+		}
+
+		@Bean
+		@ConfigurationProperties(prefix = "datasource.core")
+		public DataSource coreDataSource() {
+			return coreDataSourceProperties().initializeDataSourceBuilder().build();
+		}
+
+		@Bean
+		public SqlSessionFactory coreSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
+			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+			factory.setDataSource(coreDataSource());
 			factory.setVfs(SpringBootVFS.class);
 			factory.setTypeAliasesPackage(BASE_ALIAS_PAKCAGE);
 			factory.setTypeHandlersPackage(typeHandlerPackage);

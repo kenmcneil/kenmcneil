@@ -17,4 +17,8 @@ public interface WiserIntegrationMapper {
 	List<Integer> getProductDataHashUniqueIds();
 	void truncateProductDataHashes();
 	List<ProductConversionBucket> getProductConversionBuckets();
+
+	ProductConversionBucket getProductConversionBucket(Integer productUniqueId);
+
+	void populateProductRevenueCategorization();
 }

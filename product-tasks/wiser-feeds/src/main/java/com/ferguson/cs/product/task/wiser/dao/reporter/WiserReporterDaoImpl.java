@@ -13,21 +13,21 @@ import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 @Repository
-public class WiserDaoImpl implements WiserDao {
-	private WiserMapper wiserMapper;
+public class WiserReporterDaoImpl implements WiserReporterDao {
+	private WiserReporterMapper wiserReporterMapper;
 
 	@Autowired
-	public void setWiserMapper(WiserMapper wiserMapper) {
-		this.wiserMapper = wiserMapper;
+	public void setWiserReporterMapper(WiserReporterMapper wiserReporterMapper) {
+		this.wiserReporterMapper = wiserReporterMapper;
 	}
 
 	@Override
 	public Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
-		return wiserMapper.getProductRevenueCategorization().stream().collect(Collectors.toMap(ProductRevenueCategory::getProductUniqueId, Function.identity()));
+		return wiserReporterMapper.getProductRevenueCategorization().stream().collect(Collectors.toMap(ProductRevenueCategory::getProductUniqueId, Function.identity()));
 	}
 
 	@Override
 	public List<WiserSale> getParticipationProductSales(Date date) {
-		return wiserMapper.getParticipationProductSales(date);
+		return wiserReporterMapper.getParticipationProductSales(date);
 	}
 }

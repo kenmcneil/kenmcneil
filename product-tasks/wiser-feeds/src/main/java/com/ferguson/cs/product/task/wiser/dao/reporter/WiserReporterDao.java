@@ -7,7 +7,7 @@ import java.util.Map;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
-public interface WiserDao {
+public interface WiserReporterDao {
 	/**
 	 * Get revenue categorization for each product
 	 *

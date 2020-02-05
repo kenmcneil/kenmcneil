@@ -12,8 +12,9 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.product.task.wiser.dao.core.WiserDao;
 import com.ferguson.cs.product.task.wiser.dao.integration.WiserIntegrationDao;
-import com.ferguson.cs.product.task.wiser.dao.reporter.WiserDao;
+import com.ferguson.cs.product.task.wiser.dao.reporter.WiserReporterDao;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
@@ -24,12 +25,18 @@ import com.ferguson.cs.utilities.DateUtils;
 @Service
 public class WiserServiceImpl implements WiserService {
 	private WiserIntegrationDao wiserIntegrationDao;
+	private WiserReporterDao wiserReporterDao;
 	private WiserDao wiserDao;
 	private JobRepositoryHelper jobRepositoryHelper;
 
 	@Autowired
 	public void setWiserIntegrationDao(WiserIntegrationDao wiserIntegrationDao) {
 		this.wiserIntegrationDao = wiserIntegrationDao;
+	}
+
+	@Autowired
+	public void setWiserReporterDao(WiserReporterDao wiserReporterDao) {
+		this.wiserReporterDao = wiserReporterDao;
 	}
 
 	@Autowired
@@ -59,18 +66,23 @@ public class WiserServiceImpl implements WiserService {
 	@Override
 	public List<WiserSale> getWiserSales(Date date) {
 		List<WiserSale> sales = wiserIntegrationDao.getActiveOrModifiedWiserSales(date);
-		sales.addAll(wiserDao.getParticipationProductSales(date));
+		sales.addAll(wiserReporterDao.getParticipationProductSales(date));
 		return sales;
 	}
 
 	@Override
 	public Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
-		return wiserDao.getProductRevenueCategorization();
+		return wiserReporterDao.getProductRevenueCategorization();
 	}
 
 	@Override
 	public Map<Integer, ProductConversionBucket> getProductConversionBuckets() {
 		return wiserIntegrationDao.getProductConversionBuckets();
+	}
+
+	@Override
+	public String getProductConversionBucket(Integer productUniqueId) {
+		return wiserIntegrationDao.getProductConversionBucket(productUniqueId).getConversionBucket().getStringValue();
 	}
 
 	@Override
@@ -101,5 +113,10 @@ public class WiserServiceImpl implements WiserService {
 	@Override
 	public void truncateProductDataHashes() {
 		wiserIntegrationDao.truncateProductDataHashes();
+	}
+
+	@Override
+	public void populateProductRevenueCategorization() {
+		wiserDao.populateProductRevenueCategorization();
 	}
 }

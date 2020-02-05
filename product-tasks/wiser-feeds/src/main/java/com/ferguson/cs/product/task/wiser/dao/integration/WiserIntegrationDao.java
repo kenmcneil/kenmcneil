@@ -35,4 +35,17 @@ public interface WiserIntegrationDao {
 	 * @return map of uniqueids to conversion buckets
 	 */
 	Map<Integer,ProductConversionBucket> getProductConversionBuckets();
+
+	/**
+	 * Get conversion bucket for product
+	 *
+	 * @param productUniqueId
+	 * @return string conversion bucket value
+	 */
+	ProductConversionBucket getProductConversionBucket(Integer productUniqueId);
+
+	/**
+	 * Populate product revenue categorization table
+	 */
+	void populateProductRevenueCategorization();
 }
