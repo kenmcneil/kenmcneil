@@ -1,8 +1,5 @@
 package com.ferguson.cs.product.task.inventory.batch;
 
-import java.io.File;
-
-import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -18,14 +15,13 @@ import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventory
  */
 public class ManhattanJobInitializationTasklet implements Tasklet {
 	private ManhattanInventoryJob manhattanInventoryJob;
-	private File oldFile;
+	private String filePath;
 
 
 	public ManhattanJobInitializationTasklet(ManhattanInventoryJob manhattanInventoryJob, String filePath) {
 		this.manhattanInventoryJob = manhattanInventoryJob;
-		if (filePath != null) {
-			oldFile = new File(filePath);
-		}
+		this.filePath = filePath;
+
 	}
 
 	@Autowired
@@ -37,11 +33,8 @@ public class ManhattanJobInitializationTasklet implements Tasklet {
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		if (manhattanInventoryJob == null || manhattanInventoryJob.getId() == null) {
 			contribution.setExitStatus(ExitStatus.NOOP);
-		} else {
-			//In the event that something went catastrophically wrong on a previous run, the old file will still exist
-			//This is to ensure that a catastrophic failure doesn't cause problems for later runs
-			FileUtils.deleteQuietly(oldFile);
 		}
+		chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().putString("filePath",filePath);
 		return RepeatStatus.FINISHED;
 	}
 }

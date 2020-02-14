@@ -1,5 +1,7 @@
 package com.ferguson.cs.product.task.inventory;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,10 +11,13 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ItemStreamReader;
+import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -26,6 +31,7 @@ import com.ferguson.cs.product.task.inventory.model.VendorInventory;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanChannel;
 import com.ferguson.cs.product.task.inventory.model.manhattan.ManhattanInventoryJob;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
+import com.ferguson.cs.utilities.DateUtils;
 
 @Configuration
 public class ManhattanInventoryProcessorTaskConfiguration {
@@ -52,10 +58,8 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public FlatFileItemWriter<VendorInventory> vendorInventoryFlatFileItemWriter(ManhattanInventoryJob manhattanInventoryJob) {
-
-
-		return createVendorInventoryWriter(manhattanInventoryJob);
+	public FlatFileItemWriter<VendorInventory> vendorInventoryFlatFileItemWriter(@Value("#{jobExecutionContext['filePath']}") String filePath) {
+		return createVendorInventoryWriter(filePath);
 	}
 
 	@Bean
@@ -64,30 +68,34 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public Step writeManhattanVendorInventory() {
+	public Step writeManhattanVendorInventory(ItemStreamReader<VendorInventory> manhattanVendorInventoryReader,
+											  ItemStreamWriter<VendorInventory> vendorInventoryItemStreamWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventory")
 				.<VendorInventory, VendorInventory>chunk(1000)
-				.reader(manhattanVendorInventoryReader(null))
-				.writer(vendorInventoryFlatFileItemWriter(null))
+				.reader(manhattanVendorInventoryReader)
+				.writer(vendorInventoryItemStreamWriter)
 				.build();
 	}
 
 	@Bean
-	public Step writeManhattanBuildVendorInventory() {
+	public Step writeManhattanBuildVendorInventory(ItemStreamReader<VendorInventory> manhattanBuildVendorInventoryReader,
+												   ManhattanBuildVendorInventoryProcessor manhattanVendorInventoryProcessor,
+												   ItemStreamWriter<VendorInventory> vendorInventoryFlatFileItemWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanBuildVendorInventory")
 				.<VendorInventory, VendorInventory>chunk(1000)
-				.reader(manhattanBuildVendorInventoryReader(null))
-				.processor(manhattanVendorInventoryProcessor())
-				.writer(vendorInventoryFlatFileItemWriter(null))
+				.reader(manhattanBuildVendorInventoryReader)
+				.processor(manhattanVendorInventoryProcessor)
+				.writer(vendorInventoryFlatFileItemWriter)
 				.build();
 	}
 
 	@Bean
-	public Step writeManhattanVendorInventoryZeroes() {
+	public Step writeManhattanVendorInventoryZeroes(ItemStreamReader<VendorInventory> manhattanVendorInventoryZeroesReader,
+													ItemStreamWriter<VendorInventory> vendorInventoryFlatFileItemWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeManhattanVendorInventoryZeroes")
 				.<VendorInventory, VendorInventory>chunk(1000)
-				.reader(manhattanVendorInventoryZeroesReader(null))
-				.writer(vendorInventoryFlatFileItemWriter(null))
+				.reader(manhattanVendorInventoryZeroesReader)
+				.writer(vendorInventoryFlatFileItemWriter)
 				.build();
 	}
 
@@ -106,41 +114,45 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	}
 
 	@Bean
-	public Job manhattanBuildInboundInventoryProcessorJob() {
+	public Job manhattanBuildInboundInventoryProcessorJob(Step initializeManhattanJob,
+														  Step writeManhattanBuildVendorInventory, Step handleFile) {
 		return taskBatchJobFactory.getJobBuilder("manhattanBuildInboundInventoryProcessorJob")
 				.listener(manhattanBuildVendorInventoryJobListener())
-				.start(initializeManhattanJob())
+				.start(initializeManhattanJob)
 				.on(ExitStatus.NOOP.getExitCode()).end()
-				.from(initializeManhattanJob())
+				.from(initializeManhattanJob)
 				.on(ExitStatus.COMPLETED.getExitCode())
-				.to(writeManhattanBuildVendorInventory())
-				.next(handleFile())
+				.to(writeManhattanBuildVendorInventory)
+				.next(handleFile)
 				.end()
 				.build();
 	}
 
 	@Bean
-	public Job manhattanSupplyInboundInventoryProcessorJob() {
+	public Job manhattanSupplyInboundInventoryProcessorJob(Step initializeManhattanJob,
+														   Step writeManhattanVendorInventory, Step handleFile) {
 		return taskBatchJobFactory.getJobBuilder("manhattanSupplyInboundInventoryProcessorJob")
 				.listener(manhattanSupplyVendorInventoryJobListener())
-				.start(initializeManhattanJob())
+				.start(initializeManhattanJob)
 				.on(ExitStatus.NOOP.getExitCode()).end()
 				.on(ExitStatus.COMPLETED.getExitCode())
-				.to(writeManhattanVendorInventory())
-				.next(handleFile())
+				.to(writeManhattanVendorInventory)
+				.next(handleFile)
 				.end()
 				.build();
 	}
 
 	@Bean
-	public Job manhattanHmWallaceInboundInventoryProcessorJob() {
+	public Job manhattanHmWallaceInboundInventoryProcessorJob(Step initializeManhattanJob,
+															  Step writeManhattanVendorInventory,
+															  Step handleFile) {
 		return taskBatchJobFactory.getJobBuilder("manhattanHmWallaceInboundInventoryProcessorJob")
 				.listener(manhattanHmWallaceVendorInventoryJobListener())
-				.start(initializeManhattanJob())
+				.start(initializeManhattanJob)
 				.on(ExitStatus.NOOP.getExitCode()).end()
 				.on(ExitStatus.COMPLETED.getExitCode())
-				.to(writeManhattanVendorInventory())
-				.next(handleFile())
+				.to(writeManhattanVendorInventory)
+				.next(handleFile)
 				.end()
 				.build();
 	}
@@ -199,7 +211,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 	@Bean
 	@StepScope
 	public FileHandlingTasklet fileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob) {
-		return new FileHandlingTasklet(manhattanInventoryJob, getFilePathFromManhattanJob(manhattanInventoryJob), manhattanInboundSettings);
+		return new FileHandlingTasklet(manhattanInventoryJob, manhattanInboundSettings);
 	}
 
 	private MyBatisCursorItemReader<VendorInventory> createVendorInventoryReader(String queryName, String transactionNumber) {
@@ -212,10 +224,9 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 
 		reader.setParameterValues(params);
 		return reader;
-
 	}
 
-	private FlatFileItemWriter<VendorInventory> createVendorInventoryWriter(ManhattanInventoryJob manhattanInventoryJob) {
+	private FlatFileItemWriter<VendorInventory> createVendorInventoryWriter(String filePath) {
 
 
 		return new FlatFileItemWriterBuilder<VendorInventory>()
@@ -224,7 +235,7 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 				.names(new String[]{"mpid", "location", "quantity"})
 				.name("vendorInventoryFlatFileItemWriter")
 				.headerCallback(writer -> writer.write("MPID,LOCATION,QTY"))
-				.resource(new FileSystemResource(getFilePathFromManhattanJob(manhattanInventoryJob)))
+				.resource(new FileSystemResource(filePath))
 				.append(true)
 				.build();
 	}
@@ -244,7 +255,12 @@ public class ManhattanInventoryProcessorTaskConfiguration {
 		String localPath = manhattanInboundSettings.getFileTransferProperties()
 				.get(manhattanInventoryJob.getManhattanChannel().getStringValue()).getLocalPath();
 
-		return String.format("%s/%s-%s-sync-inventory.csv", localPath, manhattanInventoryJob.getManhattanChannel()
-				.getStringValue(), completionStatus);
+		String dateFormat = "MMddyyhhmmssS";
+		DateTimeFormatter formatter = DateUtils.getDateTimeFormatter(dateFormat);
+		String dateString = DateUtils.dateToString(new Date(), formatter);
+
+
+		return String.format("%s/%s-%s-sync-inventory-%s.csv", localPath, manhattanInventoryJob.getManhattanChannel()
+				.getStringValue(), completionStatus, dateString);
 	}
 }

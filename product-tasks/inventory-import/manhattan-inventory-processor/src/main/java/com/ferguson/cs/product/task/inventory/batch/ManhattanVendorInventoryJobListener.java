@@ -1,5 +1,8 @@
 package com.ferguson.cs.product.task.inventory.batch;
 
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -61,10 +64,10 @@ public class ManhattanVendorInventoryJobListener implements JobExecutionListener
 				manhattanInventoryJob.setManhattanInventoryJobStatus(ManhattanInventoryJobStatus.FAILED);
 			}
 			manhattanInventoryProcessorService.updateManhattanInventoryJob(manhattanInventoryJob);
+			FileUtils.deleteQuietly(new File(jobExecution.getExecutionContext().getString("filePath")));
 		} else {
 			jobExecution.setExitStatus(new ExitStatus("COMPLETED(NOOP)"));
 			jobExecution.setStatus(BatchStatus.COMPLETED);
 		}
 	}
-
 }
