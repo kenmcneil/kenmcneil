@@ -26,12 +26,9 @@ public class FileHandlingTasklet implements Tasklet {
 	private ManhattanInventoryJob manhattanInventoryJob;
 	private ManhattanOutboundGateway manhattanOutboundGateway;
 	private ManhattanInboundSettings manhattanInboundSettings;
-	private String filePath;
 
-
-	public FileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob, String filePath, ManhattanInboundSettings manhattanInboundSettings) {
+	public FileHandlingTasklet(ManhattanInventoryJob manhattanInventoryJob, ManhattanInboundSettings manhattanInboundSettings) {
 		this.manhattanInventoryJob = manhattanInventoryJob;
-		this.filePath = filePath;
 		this.manhattanInboundSettings = manhattanInboundSettings;
 	}
 
@@ -40,6 +37,8 @@ public class FileHandlingTasklet implements Tasklet {
 		FileTransferProperties fileTransferProperties = manhattanInboundSettings.getFileTransferProperties()
 				.get(manhattanInventoryJob.getManhattanChannel().getStringValue());
 
+		String filePath = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext()
+				.getString("filePath");
 		File file = new File(filePath);
 		if (fileTransferProperties.getUploadFile()) {
 			ftpUploadFile(file);
@@ -48,7 +47,6 @@ public class FileHandlingTasklet implements Tasklet {
 		if (fileTransferProperties.getStoreFile()) {
 			FileUtils.copyFileToDirectory(file, new File(fileTransferProperties.getStoragePath()));
 		}
-		FileUtils.deleteQuietly(file);
 		return RepeatStatus.FINISHED;
 	}
 
