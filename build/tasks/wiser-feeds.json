@@ -15,7 +15,7 @@
     "appName" : "wiser-feeds",
     "name" : "wiser-product-catalog-full-upload-job",
     "jobName" : "productCatalogFullUploadJob",
-    "heapSize" : "1024m"
+    "heapSize" : "512m"
   },
   {
     "appName" : "wiser-feeds",
