@@ -51,6 +51,8 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setFuelType(item.getFuelType());
 			dyProduct.setConfiguration(item.getConfiguration());
 			dyProduct.setCaliforniaDroughtCompliant(item.getCaliforniaDroughtCompliant());
+			dyProduct.setBaseCategory(item.getBaseCategory());
+			dyProduct.setBusinessCategory(item.getBusinessCategory());
 
 			dyProduct.setSiteIds(Arrays.asList(item.getSiteIds().split(",")).stream()
 					.map(x -> Integer.parseInt(x)).collect(Collectors.toList()));
