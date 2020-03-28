@@ -13,6 +13,8 @@ public class ElectroluxInventorySettings {
 	private Map<Integer,String> vendorUidWarehouseMap;
 	private String customerId;
 	private String fileNamePrefix;
+	private String apiUsername;
+	private String apiPassword;
 
 	public String getApiUrl() {
 		return apiUrl;
@@ -52,5 +54,21 @@ public class ElectroluxInventorySettings {
 
 	public void setFileNamePrefix(String fileNamePrefix) {
 		this.fileNamePrefix = fileNamePrefix;
+	}
+
+	public String getApiUsername() {
+		return apiUsername;
+	}
+
+	public void setApiUsername(String apiUsername) {
+		this.apiUsername = apiUsername;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
+	}
+
+	public void setApiPassword(String apiPassword) {
+		this.apiPassword = apiPassword;
 	}
 }

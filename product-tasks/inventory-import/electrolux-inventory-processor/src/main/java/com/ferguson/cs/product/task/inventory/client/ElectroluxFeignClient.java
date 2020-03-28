@@ -9,8 +9,7 @@ import com.ferguson.cs.product.task.inventory.model.ElectroluxInventoryResponse;
 
 @FeignClient(
 		name = "electrolux-api-client",
-		//url = "${electrolux.api-url}",
-		url = "https://wsqa.electrolux-na.com:7085/integrations/oasisstock",
+		url = "${electrolux.api-url}",
 		configuration = {ElectroluxClientConfiguration.class})
 @Component
 public interface ElectroluxFeignClient {
