@@ -8,21 +8,18 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.ws.client.WebServiceTransportException;
+import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.task.inventory.ElectroluxInventoryProcessorConfiguration.ElectroluxGateway;
 import com.ferguson.cs.product.task.inventory.ElectroluxInventorySettings;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
+import com.ferguson.cs.product.task.inventory.client.ElectroluxFeignClient;
 import com.ferguson.cs.product.task.inventory.dao.core.ElectroluxInventoryDao;
-import com.ferguson.cs.product.task.inventory.model.ElectroluxInventoryRequest;
 import com.ferguson.cs.product.task.inventory.model.ElectroluxInventoryResponse;
 import com.ferguson.cs.product.task.inventory.model.ElectroluxSkuVendorData;
 import com.opencsv.CSVWriter;
@@ -30,32 +27,18 @@ import com.opencsv.CSVWriter;
 @Service
 public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryService {
 
-	private ElectroluxInventorySettings electroluxInventorySettings;
-	private InventoryImportSettings inventoryImportSettings;
-	private ElectroluxGateway electroluxGateway;
-	private ElectroluxInventoryDao electroluxInventoryDao;
+	private final ElectroluxInventorySettings electroluxInventorySettings;
+	private final InventoryImportSettings inventoryImportSettings;
+	private final ElectroluxFeignClient electroluxFeignClient;
+	private final ElectroluxInventoryDao electroluxInventoryDao;
 
 
 	private static final Logger log = LoggerFactory.getLogger(ElectroluxInventoryServiceImpl.class);
 
-
-	@Autowired
-	public void setElectroluxInventorySettings(ElectroluxInventorySettings electroluxInventorySettings) {
+	public ElectroluxInventoryServiceImpl(ElectroluxInventorySettings electroluxInventorySettings, InventoryImportSettings inventoryImportSettings, ElectroluxFeignClient electroluxFeignClient, ElectroluxInventoryDao electroluxInventoryDao) {
 		this.electroluxInventorySettings = electroluxInventorySettings;
-	}
-
-	@Autowired
-	public void setInventoryImportSettings(InventoryImportSettings inventoryImportSettings) {
 		this.inventoryImportSettings = inventoryImportSettings;
-	}
-
-	@Autowired
-	public void setElectroluxGateway(ElectroluxGateway electroluxGateway) {
-		this.electroluxGateway = electroluxGateway;
-	}
-
-	@Autowired
-	public void setElectroluxInventoryDao(ElectroluxInventoryDao electroluxInventoryDao) {
+		this.electroluxFeignClient = electroluxFeignClient;
 		this.electroluxInventoryDao = electroluxInventoryDao;
 	}
 
@@ -79,29 +62,16 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 				String[] headerRow = new String[]{"sku", "vendorUid", "quantity"};
 				writer.writeNext(headerRow);
 
-				for (ElectroluxSkuVendorData electroluxSkuVendorData : electroluxSkuVendorDataList) {
-					ElectroluxInventoryRequest request = new ElectroluxInventoryRequest();
-					request.setCustomerId(electroluxInventorySettings.getCustomerId());
-					request.setItemId(electroluxSkuVendorData.getSku());
-					request.setWareHouseCode(electroluxInventorySettings.getVendorUidWarehouseMap()
-							.get(electroluxSkuVendorData.getVendorUid()));
-					if (request.getWareHouseCode() != null && request.getItemId() != null) {
-
-						ElectroluxInventoryResponse response;
-						try {
-							response = getElectroluxInventoryData(request);
-						} catch (WebServiceTransportException e) {
-							response = new ElectroluxInventoryResponse();
-							response.setError(e.toString());
-						}
-
-						if (response.getAvailableQuantity() != null) {
-							String[] row = new String[]{electroluxSkuVendorData.getSku(), electroluxSkuVendorData
-									.getVendorUid().toString(), response.getAvailableQuantity().toString()};
-
-							writer.writeNext(row);
-						}
-					}
+				String commaDelmitedSkus = electroluxSkuVendorDataList.stream().map(ElectroluxSkuVendorData::getSku).collect(Collectors.joining(","));
+				ElectroluxInventoryResponse response = null;
+				try {
+					response = electroluxFeignClient
+							.getElectroluxInventoryData(warehouse.getValue(), commaDelmitedSkus);
+				} catch (Exception e) {
+					log.error("Failed to get Electrolux stock for vendor {}. Cause: {}", warehouse.getKey(),e.toString());
+				}
+				if(response != null && !CollectionUtils.isEmpty(response.getInventoryResponse())) {
+					response.getInventoryResponse().forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
 				}
 			} catch (IOException e) {
 				log.error("Failed to write Electrolux inventory file: {}",e.toString());
@@ -115,11 +85,4 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 		}
 
 	}
-
-
-	@Retryable(backoff = @Backoff)
-	private ElectroluxInventoryResponse getElectroluxInventoryData(ElectroluxInventoryRequest request) {
-		return electroluxGateway.getElectroluxInventoryData(request);
-	}
-
 }

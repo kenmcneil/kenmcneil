@@ -10,7 +10,7 @@ public class ElectroluxInventoryProcessorTaskRunner implements SimpleTaskRunner 
 	private ElectroluxInventoryProcessorTask electroluxInventoryProcessorTask;
 
 	@Autowired
-	public void setOrderlyCreateRiskPoTask(ElectroluxInventoryProcessorTask electroluxInventoryProcessorTask) {
+	public void setElectroluxInventoryProcessorTask(ElectroluxInventoryProcessorTask electroluxInventoryProcessorTask) {
 		this.electroluxInventoryProcessorTask = electroluxInventoryProcessorTask;
 	}
 
