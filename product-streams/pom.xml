@@ -12,4 +12,7 @@
 	<packaging>pom</packaging>
 	<name>product-streams</name>
 
+	<modules>
+		<module>product-participation-engine</module>
+	</modules>
 </project>

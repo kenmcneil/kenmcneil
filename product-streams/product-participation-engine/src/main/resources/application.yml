@@ -1,0 +1,12 @@
+logging:
+  level:
+    ROOT: ERROR
+    org.springframework: WARN
+    org.springframework.cloud: INFO
+    org.springframework.web: INFO
+    com.ferguson.cs: INFO
+
+info:
+  build:
+    artifact: "@project.build.finalName@"
+    version: "@project.version@"

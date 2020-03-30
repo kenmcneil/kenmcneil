@@ -1,0 +1,31 @@
+spring:
+  application:
+    # Name is used to lookup configuration on the configuration server and for service discovery.
+    name: api-task-campaign-application # participation-processor
+  profiles:
+    active: localdev
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      label: master
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+
+---
+
+spring:
+  profiles: local,dev,test,train,localdev
+  cloud:
+    config:
+      fail-fast: true
+
+---
+
+spring:
+  profiles: sandbox,staging,production
+  cloud:
+    config:
+      fail-fast: true
+      username: sdc
