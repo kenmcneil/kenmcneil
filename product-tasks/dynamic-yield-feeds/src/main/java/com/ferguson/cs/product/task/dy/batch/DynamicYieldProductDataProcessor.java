@@ -1,6 +1,10 @@
 package com.ferguson.cs.product.task.dy.batch;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.item.ItemProcessor;
@@ -67,6 +71,8 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());
 
+			dyProduct.setCategoryNameSiteMap(getCategoryMap(item.getEncodedCategories()));
+
 			if (StringUtils.hasText(item.getHandletype())) {
 				dyProduct.setCategories(dyProduct.getCategories() + '|' + item.getHandletype());
 			}
@@ -75,6 +81,31 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		}
 
 		return dyProduct;
+	}
+
+	private Map<Integer, Set<String>> getCategoryMap(String encodedCategories) {
+		Map<Integer, Set<String>> categoryKeywordsMap = new HashMap<>();
+
+		if (encodedCategories != null && encodedCategories.length() > 0) {
+			String[] siteKeywords = encodedCategories.split("\\|");
+
+			if (siteKeywords.length > 0) {
+				for (String siteKeyword : siteKeywords) {
+					if (siteKeyword.length() > 0) {
+						String[] keyword = siteKeyword.split(":");
+
+						if (keyword.length == 2) {
+							if (categoryKeywordsMap.get(Integer.parseInt(keyword[0])) == null) {
+								categoryKeywordsMap.put(Integer.parseInt(keyword[0]), new HashSet<String>());
+							}
+
+							categoryKeywordsMap.get(Integer.parseInt(keyword[0])).add(keyword[1].toLowerCase());
+						}
+					}
+				}
+			}
+		}
+		return categoryKeywordsMap;
 	}
 
 	/**
