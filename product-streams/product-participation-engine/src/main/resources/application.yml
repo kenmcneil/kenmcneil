@@ -1,3 +1,6 @@
+development:
+  minParticipationId: 5000
+
 logging:
   level:
     ROOT: ERROR
