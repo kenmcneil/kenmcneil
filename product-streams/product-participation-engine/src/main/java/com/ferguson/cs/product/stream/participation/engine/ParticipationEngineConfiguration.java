@@ -17,10 +17,10 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 @Configuration
-@MapperScan(basePackageClasses = ProductParticipationEngineConfiguration.class, annotationClass = Mapper.class)
+@MapperScan(basePackageClasses = ParticipationEngineConfiguration.class, annotationClass = Mapper.class)
 @EnableFeignClients
 @IntegrationComponentScan(basePackages = "com.ferguson.cs.product.stream.participation")
-public class ProductParticipationEngineConfiguration {
+public class ParticipationEngineConfiguration {
 
 	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.stream.participation.domain";
 

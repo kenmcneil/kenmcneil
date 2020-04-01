@@ -2,61 +2,66 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.lang.NonNull;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.PagedSearchResults;
 import com.ferguson.cs.product.stream.participation.engine.model.Paging;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.SortedPagedSearchCriteria;
 
 @Repository
 public class ParticipationItemRepositoryImpl implements ParticipationItemRepositoryCustom {
-	private static Logger LOG = LoggerFactory.getLogger(ParticipationItemRepositoryImpl.class);
 	private final String PARTICIPATION_ITEM_COLLECTION_NAME = "participationItem";
 
-	@Autowired
+	private ParticipationEngineSettings participationEngineSettings;
 	private MongoOperations coreMongoTemplate;
 
-	@Value("${development.minParticipationId:1}")
-	private Integer minParticipationId;
+	@Autowired
+	public void setParticipationEngineSettings(ParticipationEngineSettings participationEngineSettings) {
+		this.participationEngineSettings = participationEngineSettings;
+	}
+
+	@Autowired
+	public void setMongoOperations(MongoOperations coreMongoTemplate) {
+		this.coreMongoTemplate = coreMongoTemplate;
+	}
 
 	@Override
-	public void updateParticipationItemStatusFields(@NonNull ParticipationItem updateItem) throws Exception{
-
-		ParticipationItem item = coreMongoTemplate.findById(updateItem.getId(), ParticipationItem.class);
-		if (item != null){
-			item.setStatus(updateItem.getStatus());
-			item.setUpdateStatus(updateItem.getUpdateStatus());
-			item.setDeletedProductUniqueIds(new HashSet<>());
-			item.setLastModifiedUserId(updateItem.getLastModifiedUserId());
-			item.setLastModifiedDate(new Date());
-
-			//save the item
-			coreMongoTemplate.save(item);
-		} else {
-			String message = "Cannot perform status update for participationItem " + updateItem.getId() +
-					" No existing participationItem found with this id.";
-			LOG.warn(message);
-			throw new Exception(message);
+	public void updateParticipationItemStatus(
+			int participationId,
+			ParticipationItemStatus status,
+			ParticipationItemUpdateStatus updateStatus,
+			int userId,
+			Date processingDate
+	) {
+		Update update = new Update();
+		if (!ParticipationItemStatus.PUBLISHED.equals(status)) {
+			update.set("status", status);
 		}
+		update.set("updateStatus", updateStatus);
+		update.set("lastModifiedUserId", userId);
+		update.set("lastModifiedDate", processingDate);
+		coreMongoTemplate.updateFirst(
+				Query.query(Criteria.where("_id").is(participationId)),
+				update,
+				PARTICIPATION_ITEM_COLLECTION_NAME
+		);
 	}
 
 	@Override
@@ -119,9 +124,9 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 			}
 		}
 
-		// For development/testing (configure in application.yml)
-		if (minParticipationId > 1) {
-			query.addCriteria(Criteria.where("_id").gte(minParticipationId));
+		// For development / load testing.
+		if (participationEngineSettings.getTestModeEnabled()) {
+			query.addCriteria(Criteria.where("_id").gte(participationEngineSettings.getTestModeMinParticipationId()));
 		}
 
 		return findMatchingContent(criteria, query, ParticipationItem.class, PARTICIPATION_ITEM_COLLECTION_NAME);

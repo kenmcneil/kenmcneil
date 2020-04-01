@@ -2,17 +2,17 @@ package com.ferguson.cs.product.stream.participation.engine.sql;
 
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class ParticipationDaoImpl implements ParticipationDao {
-	private static Logger LOG = LoggerFactory.getLogger(ParticipationDaoImpl.class);
+	private ParticipationMapper participationMapper;
 
 	@Autowired
-	ParticipationMapper participationMapper;
+	public void setParticipationMapper(ParticipationMapper participationMapper) {
+		this.participationMapper = participationMapper;
+	}
 
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {

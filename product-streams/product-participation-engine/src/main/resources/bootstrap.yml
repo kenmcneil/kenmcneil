@@ -16,7 +16,7 @@ spring:
 ---
 
 spring:
-  profiles: local,dev,test,train,localdev
+  profiles: local,dev,localdev,test
   cloud:
     config:
       fail-fast: true
@@ -24,7 +24,7 @@ spring:
 ---
 
 spring:
-  profiles: sandbox,staging,production
+  profiles: production
   cloud:
     config:
       fail-fast: true
