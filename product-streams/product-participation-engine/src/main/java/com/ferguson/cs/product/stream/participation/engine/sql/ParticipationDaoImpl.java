@@ -2,15 +2,13 @@ package com.ferguson.cs.product.stream.participation.engine.sql;
 
 import java.util.Date;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class ParticipationDaoImpl implements ParticipationDao {
 	private ParticipationMapper participationMapper;
 
-	@Autowired
-	public void setParticipationMapper(ParticipationMapper participationMapper) {
+	ParticipationDaoImpl(ParticipationMapper participationMapper) {
 		this.participationMapper = participationMapper;
 	}
 
@@ -97,5 +95,11 @@ public class ParticipationDaoImpl implements ParticipationDao {
 		return participationMapper.deleteParticipationProductsByParticipationId(participationId)
 		+ participationMapper.deleteParticipationCalculatedDiscountsByParticipationId(participationId)
 		+ participationMapper.deleteParticipationItemPartialByParticipationId(participationId);
+	}
+
+	// TODO remove currentPriorityParticipation code
+	@Override
+	public int syncToCurrentPriorityParticipation() {
+		return participationMapper.syncToCurrentPriorityParticipation();
 	}
 }

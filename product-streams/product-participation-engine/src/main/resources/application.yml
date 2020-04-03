@@ -1,9 +1,8 @@
-settings:
+participation-engine:
   task-user-id: 835
   schedule-fixed-delay: 1000
   schedule-initial-delay: 2000
   test-mode-enabled: true
-  test-mode-log-participations: true
   test-mode-min-participation-id: 5000
 
 logging:
@@ -19,10 +18,23 @@ info:
     artifact: "@project.build.finalName@"
     version: "@project.version@"
 
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /app
+      exposure:
+        include: loggers,health
+  endpoint:
+    health:
+      enabled: true
+    loggers:
+      enabled: true
+
 ---
 
 spring:
   profiles: dev,test,production
 
-settings:
+participation-engine:
   testmode-enabled: false

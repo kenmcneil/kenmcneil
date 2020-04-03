@@ -3,7 +3,7 @@ package com.ferguson.cs.product.stream.participation.engine;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties("settings")
+@ConfigurationProperties("participation-engine")
 @Component
 public class ParticipationEngineSettings {
 	Integer taskUserId;

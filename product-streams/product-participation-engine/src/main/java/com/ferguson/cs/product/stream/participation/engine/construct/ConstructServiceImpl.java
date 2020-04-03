@@ -2,9 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
@@ -16,22 +14,18 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 @Service
 public class ConstructServiceImpl implements ConstructService {
-	private ParticipationEngineSettings participationEngineSettings;
-	private ContentEventRepository contentEventRepository;
-	private ParticipationItemRepository participationItemRepository;
 
-	@Autowired
-	public void setParticipationEngineSettings(ParticipationEngineSettings participationEngineSettings) {
+	private final ParticipationEngineSettings participationEngineSettings;
+	private final ContentEventRepository contentEventRepository;
+	private final ParticipationItemRepository participationItemRepository;
+
+	public ConstructServiceImpl(
+			ParticipationEngineSettings participationEngineSettings,
+			ContentEventRepository contentEventRepository,
+			ParticipationItemRepository participationItemRepository
+	) {
 		this.participationEngineSettings = participationEngineSettings;
-	}
-
-	@Autowired
-	public void setContentEventRepository(ContentEventRepository contentEventRepository) {
 		this.contentEventRepository = contentEventRepository;
-	}
-
-	@Autowired
-	public void setParticipationItemRepository(ParticipationItemRepository participationItemRepository) {
 		this.participationItemRepository = participationItemRepository;
 	}
 
@@ -40,22 +34,19 @@ public class ConstructServiceImpl implements ConstructService {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(
 				ParticipationItemUpdateStatus.NEEDS_UPDATE, false);
 		criteria.setScheduledOn(new Date());
-		List<ParticipationItem> items = participationItemRepository.findMatchingParticipationItems(criteria).getData();
-		return items.size() > 0 ? items.get(0) : null;
+		return participationItemRepository.findMatchingParticipationItem(criteria);
 	}
 
 	@Override
 	public ParticipationItem getNextPendingDeactivationParticipation() {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(null, true);
-		List<ParticipationItem> items = participationItemRepository.findMatchingParticipationItems(criteria).getData();
-		return items.size() > 0 ? items.get(0) : null;
+		return participationItemRepository.findMatchingParticipationItem(criteria);
 	}
 
 	@Override
 	public ParticipationItem getNextPendingUnpublishParticipation() {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(ParticipationItemUpdateStatus.NEEDS_UNPUBLISH, false);
-		List<ParticipationItem> items = participationItemRepository.findMatchingParticipationItems(criteria).getData();
-		return items.size() > 0 ? items.get(0) : null;
+		return participationItemRepository.findMatchingParticipationItem(criteria);
 	}
 
 	@Override

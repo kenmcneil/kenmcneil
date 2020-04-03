@@ -22,7 +22,12 @@
 
 	<update id="updateOwnerChangesForDeactivation" parameterType="int">
 		-- Must set isActive=0 on the deactivating participation first.
-		TRUNCATE TABLE mmc.product.participationOwnerChanges;
+		DROP TABLE IF EXISTS ##participationOwnerChanges;
+		CREATE TABLE ##participationOwnerChanges (
+			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
+			,[oldParticipationId] [int]
+			,[newParticipationId] [int]
+		);
 		WITH newOwner AS (
 			-- find new owners for owned products in P
 			-- products that are becoming un-owned are not returned
@@ -43,7 +48,7 @@
 			ORDER BY
 				 ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO mmc.product.participationOwnerChanges
+		INSERT INTO ##participationOwnerChanges
 		SELECT
 			pp.uniqueId AS uniqueId,
 			pp.participationId AS oldParticipationId,
@@ -63,7 +68,12 @@
 
 	<update id="updateOwnerChangesForActivation" parameterType="int">
 		-- Must set isActive=1 on the activating participation first.
-		TRUNCATE TABLE mmc.product.participationOwnerChanges;
+		DROP TABLE IF EXISTS ##participationOwnerChanges;
+		CREATE TABLE ##participationOwnerChanges (
+			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
+			,[oldParticipationId] [int]
+			,[newParticipationId] [int]
+		);
 		WITH newOwner AS (
 			-- find products in P that will be owned by P (activating products)
 			SELECT TOP (1) WITH TIES
@@ -82,7 +92,7 @@
 			 ORDER BY
 				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO mmc.product.participationOwnerChanges
+		INSERT INTO ##participationOwnerChanges
 		SELECT
 			newOwner.uniqueId,
 			pp.participationId AS oldParticipationId,
@@ -110,7 +120,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = owner.uniqueId
 				AND oc.newParticipationId = owner.participationId
 		WHERE
@@ -128,7 +138,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = owner.uniqueId
 				AND oc.oldParticipationId = owner.participationId
 		WHERE
@@ -144,7 +154,7 @@
 		FROM
 			mmc.product.sale AS sale
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = sale.uniqueId
 		LEFT JOIN
 			mmc.product.participationItemPartial AS p
@@ -162,7 +172,7 @@
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = lastOnSale.uniqueId
 		JOIN
 			mmc.dbo.pricebook_cost AS pbcost
@@ -184,7 +194,7 @@
 		FROM
 			mmc.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -213,7 +223,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -242,7 +252,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -264,7 +274,7 @@
 		FROM
 			mmc.product.modified
 		JOIN
-			mmc.product.participationOwnerChanges AS oc
+			##participationOwnerChanges AS oc
 			ON oc.uniqueId = modified.uniqueId
 		JOIN
 			omc.dbo.users AS users
@@ -291,4 +301,21 @@
 		WHERE
 			participationId = #{participationId}
 	</delete>
+
+	<insert id="syncToCurrentPriorityParticipation">
+		-- TODO remove currentPriorityParticipation code
+		-- Keep currentPriorityParticipation up to date for things still using it.
+		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
+		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
+		select
+			pp.uniqueId,
+			pip.saleId,
+			pp.participationId
+		from mmc.product.participationProduct as pp
+			 join mmc.product.participationItemPartial pip
+			on pip.participationId = pp.participationId
+				and pip.isActive = 1
+		where pp.isOwner = 1
+		order by pp.participationId, pp.uniqueId
+	</insert>
 </mapper>

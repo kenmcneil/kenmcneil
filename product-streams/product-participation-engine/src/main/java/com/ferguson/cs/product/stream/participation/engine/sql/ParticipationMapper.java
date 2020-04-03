@@ -136,4 +136,7 @@ public interface ParticipationMapper {
 	 * @param participationId
 	 */
 	int deleteParticipationItemPartialByParticipationId(@Param("participationId") Integer participationId);
+
+	// TODO remove currentPriorityParticipation code
+	int syncToCurrentPriorityParticipation();
 }

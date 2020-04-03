@@ -105,4 +105,9 @@ public interface ParticipationDao {
 	 * @return The number of records modified.
 	 */
 	int deleteParticipation(Integer participationId);
+
+	//
+
+	// TODO remove currentPriorityParticipation code
+	int syncToCurrentPriorityParticipation();
 }

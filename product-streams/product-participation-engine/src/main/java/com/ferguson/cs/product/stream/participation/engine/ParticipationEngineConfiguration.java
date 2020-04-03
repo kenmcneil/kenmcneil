@@ -1,53 +1,29 @@
 package com.ferguson.cs.product.stream.participation.engine;
 
-import javax.sql.DataSource;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.annotation.MapperScan;
-import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.integration.annotation.IntegrationComponentScan;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 
 @Configuration
-@MapperScan(basePackageClasses = ParticipationEngineConfiguration.class, annotationClass = Mapper.class)
-@EnableFeignClients
-@IntegrationComponentScan(basePackages = "com.ferguson.cs.product.stream.participation")
 public class ParticipationEngineConfiguration {
-
-	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.stream.participation.domain";
-
 	@Bean
-	@Primary
-	@ConfigurationProperties("datasource.core")
-	public DataSourceProperties dataSourceProperties() {
-		return new DataSourceProperties();
+	public ParticipationReader participationReader(ConstructService constructService) {
+		return new ParticipationReader(constructService);
 	}
 
 	@Bean
-	@Primary
-	public DataSource coreDataSource() {
-		return dataSourceProperties().initializeDataSourceBuilder().build();
+	public ParticipationWriter participationWriter(ParticipationService participationService, ConstructService constructService) {
+		return new ParticipationWriter(participationService, constructService);
 	}
 
-	@Bean(name="coreTransactionManager")
-	public DataSourceTransactionManager coreTransactionManager() {
-		return new DataSourceTransactionManager(coreDataSource());
+	@Bean
+	public ParticipationProcessor participationProcessor(ParticipationReader participationReader, ParticipationWriter participationWriter) {
+		return new ParticipationProcessor(participationReader, participationWriter);
 	}
 
-	@Bean(name="coreSqlSessionFactory")
-	public SqlSessionFactory coreSqlSessionFactory(DataSource dataSource) throws Exception {
-		SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
-		factory.setDataSource(dataSource);
-		factory.setVfs(SpringBootVFS.class);
-		factory.setTypeAliasesPackage(CORE_BASE_ALIAS_PACKAGE);
-		return factory.getObject();
+	@Bean
+	public ParticipationEngineTask participationTask(ParticipationProcessor participationProcessor) {
+		return new ParticipationEngineTask(participationProcessor);
 	}
 }
