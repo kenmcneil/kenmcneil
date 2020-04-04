@@ -47,6 +47,14 @@ public final class DynamicYieldHelper {
             dyProduct.setKeywords(String.join("|", product.getCategoryNameSiteMap().get(siteId)));
         }
 
+        if (product.getCategoryIdSiteMap().get(siteId) != null) {
+            dyProduct.setCategoryIds(product.getCategoryIdSiteMap().get(siteId).toString()
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace(" ", "")
+            );
+        }
+
         return dyProduct;
     }
 }

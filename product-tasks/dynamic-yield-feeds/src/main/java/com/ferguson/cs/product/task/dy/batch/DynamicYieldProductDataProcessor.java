@@ -1,10 +1,13 @@
 package com.ferguson.cs.product.task.dy.batch;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.stream.Collectors;
 
 import org.springframework.batch.item.ItemProcessor;
@@ -26,6 +29,8 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	@Override
 	public DynamicYieldProduct process(ProductData item) throws Exception {
 		DynamicYieldProduct dyProduct = new DynamicYieldProduct();
+		Map<Integer, Set<String>> categoryNameMap = new HashMap<>();
+		Map<Integer, List<Integer>> categoryIdMap = new HashMap<>();
 
 		if (isValidAndIncluded(item)) {
 			dyProduct.setSku(item.getSku());
@@ -71,7 +76,9 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());
 
-			dyProduct.setCategoryNameSiteMap(getCategoryMap(item.getEncodedCategories()));
+			setCategoryMaps(item.getEncodedCategories(), categoryNameMap, categoryIdMap);
+			dyProduct.setCategoryNameSiteMap(categoryNameMap);
+			dyProduct.setCategoryIdSiteMap(categoryIdMap);
 
 			if (StringUtils.hasText(item.getHandletype())) {
 				dyProduct.setCategories(dyProduct.getCategories() + '|' + item.getHandletype());
@@ -83,8 +90,8 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		return dyProduct;
 	}
 
-	private Map<Integer, Set<String>> getCategoryMap(String encodedCategories) {
-		Map<Integer, Set<String>> categoryKeywordsMap = new HashMap<>();
+	private void setCategoryMaps(String encodedCategories, Map<Integer, Set<String>> categoryNameMap,
+								 Map<Integer, List<Integer>> categoryIdMap) {
 
 		if (encodedCategories != null && encodedCategories.length() > 0) {
 			String[] siteKeywords = encodedCategories.split("\\|");
@@ -94,18 +101,22 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 					if (siteKeyword.length() > 0) {
 						String[] keyword = siteKeyword.split(":");
 
-						if (keyword.length == 2) {
-							if (categoryKeywordsMap.get(Integer.parseInt(keyword[0])) == null) {
-								categoryKeywordsMap.put(Integer.parseInt(keyword[0]), new HashSet<String>());
+						if (keyword.length == 3) {
+							if (categoryNameMap.get(Integer.parseInt(keyword[0])) == null) {
+								categoryNameMap.put(Integer.parseInt(keyword[0]), new HashSet<String>());
 							}
 
-							categoryKeywordsMap.get(Integer.parseInt(keyword[0])).add(keyword[1].toLowerCase());
+							if (categoryIdMap.get(Integer.parseInt(keyword[0])) == null) {
+								categoryIdMap.put(Integer.parseInt(keyword[0]), new ArrayList<Integer>());
+							}
+
+							categoryIdMap.get(Integer.parseInt(keyword[0])).add(Integer.parseInt(keyword[1]));
+							categoryNameMap.get(Integer.parseInt(keyword[0])).add(keyword[2].toLowerCase());
 						}
 					}
 				}
 			}
 		}
-		return categoryKeywordsMap;
 	}
 
 	/**

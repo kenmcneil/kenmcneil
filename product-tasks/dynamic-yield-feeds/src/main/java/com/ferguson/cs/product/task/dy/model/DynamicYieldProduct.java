@@ -47,7 +47,26 @@ public class DynamicYieldProduct implements Serializable {
 	private Boolean californiaDroughtCompliant;
 	private List<Integer> siteIds;
 	private Map<Integer, Set<String>> categoryNameSiteMap;
+	private Map<Integer, List<Integer>> categoryIdSiteMap;
 	private String keywords;
+	private String categoryIds;
+
+	public String getCategoryIds() {
+		return categoryIds;
+	}
+
+	public void setCategoryIds(String categoryIds) {
+		this.categoryIds = categoryIds;
+	}
+
+
+	public Map<Integer, List<Integer>> getCategoryIdSiteMap() {
+		return categoryIdSiteMap;
+	}
+
+	public void setCategoryIdSiteMap(Map<Integer, List<Integer>> categoryIdSiteMap) {
+		this.categoryIdSiteMap = categoryIdSiteMap;
+	}
 
 	public String getKeywords() {
 		return keywords;

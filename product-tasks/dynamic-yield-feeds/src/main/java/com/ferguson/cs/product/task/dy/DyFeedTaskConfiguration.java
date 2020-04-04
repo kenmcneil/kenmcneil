@@ -107,7 +107,8 @@ public class DyFeedTaskConfiguration {
 				"business_category",
 				"configuration",
 				"california_drought_compliant",
-				"keywords"
+				"keywords",
+				"category_ids"
 		};
 
 		BeanWrapperFieldExtractor<DynamicYieldProduct> extractor = new BeanWrapperFieldExtractor<>();
@@ -128,6 +129,7 @@ public class DyFeedTaskConfiguration {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("storeIds", dyFeedSettings.getStores());
 		parameters.put("restrictionPolicies", dyFeedSettings.getRestrictionPolicies());
+		parameters.put("excludedBrands", dyFeedSettings.getExcludedBrands());
 		productDataReader.setParameterValues(parameters);
 		productDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return productDataReader;
