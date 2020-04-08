@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.stream.participation.engine.sql;
+package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
 

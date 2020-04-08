@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ferguson.cs.product.stream.participation.engine.sql.ParticipationMapper">
+<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationMapper">
 
 	<select id="getParticipationIsActive" parameterType="int" resultType="Boolean">
 		SELECT
@@ -50,20 +50,28 @@
 		)
 		INSERT INTO ##participationOwnerChanges
 		SELECT
+			uniqueId,
+			#{participationId} AS oldParticipationId,
+			newOwner.participationId
+		FROM
+			newOwner;
+		INSERT INTO ##participationOwnerChanges
+		SELECT
 			pp.uniqueId AS uniqueId,
-			pp.participationId AS oldParticipationId,
-			newOwner.participationId AS newParticipationId
+			#{participationId} AS oldParticipationId,
+			NULL AS newParticipationId
 		FROM
 			mmc.product.participationProduct AS pp
-		JOIN
-			mmc.product.participationItemPartial AS p
-			ON p.participationId = pp.participationId
-		LEFT JOIN
-			newOwner
-			ON newOwner.uniqueId = pp.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = pp.participationId
+			LEFT JOIN
+				##participationOwnerChanges as poc
+				ON poc.uniqueId = pp.uniqueId
 		WHERE
 			pp.participationId = #{participationId}
-			AND pp.isOwner = 1
+		  AND pp.isOwner = 1
+		  AND poc.uniqueId IS NULL
 	</update>
 
 	<update id="updateOwnerChangesForActivation" parameterType="int">

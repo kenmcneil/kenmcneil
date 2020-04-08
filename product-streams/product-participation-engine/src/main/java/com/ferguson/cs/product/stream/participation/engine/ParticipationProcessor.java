@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 
 /**
@@ -14,11 +15,11 @@ public class ParticipationProcessor {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	private final ParticipationReader participationReader;
+	private final ConstructService constructService;
 	private final ParticipationWriter participationWriter;
 
-	public ParticipationProcessor(ParticipationReader participationReader, ParticipationWriter participationWriter) {
-		this.participationReader = participationReader;
+	public ParticipationProcessor(ConstructService constructService, ParticipationWriter participationWriter) {
+		this.constructService = constructService;
 		this.participationWriter = participationWriter;
 	}
 
@@ -26,21 +27,20 @@ public class ParticipationProcessor {
 	 * Unpublish each participation that's pending unpublish.
 	 */
 	public void processPendingUnpublishes() {
-		int previousParticipationId = 0;
-
-		ParticipationItem item = participationReader.getNextPendingUnpublishParticipation();
+		ParticipationItem item = constructService.getNextPendingUnpublishParticipation();
 		while (item != null) {
-			if (item.getId() == previousParticipationId) {
-				LOG.error("Tried to process participation " + item.getId() + " again - status update may have failed.");
-				break;
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(toJson(item));
 			}
 
-			LOG.trace(toJson(item));
-			participationWriter.processUnpublish(item);
-			LOG.info("unpublished participation " + item.getId() + " to draft status");
+			try {
+				participationWriter.processUnpublish(item);
+				LOG.info("unpublished participation " + item.getId() + " to draft status");
+			} catch (Exception e) {
+				throw new RuntimeException("Error unpublishing participation " + item.getId(), e);
+			}
 
-			previousParticipationId = item.getId();
-			item = participationReader.getNextPendingUnpublishParticipation();
+			item = constructService.getNextPendingUnpublishParticipation();
 		}
 	}
 
@@ -48,21 +48,20 @@ public class ParticipationProcessor {
 	 * Activate each participation that's pending activation.
 	 */
 	public void processPendingActivations() {
-		int previousParticipationId = 0;
-
-		ParticipationItem item = participationReader.getNextPendingActivationParticipation();
+		ParticipationItem item = constructService.getNextPendingActivationParticipation();
 		while (item != null) {
-			if (item.getId() == previousParticipationId) {
-				LOG.error("Tried to process participation " + item.getId() + " again - status update may have failed.");
-				break;
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(toJson(item));
 			}
 
-			LOG.trace(toJson(item));
-			participationWriter.processActivation(item);
-			LOG.info("activated participation " + item.getId());
+			try {
+				participationWriter.processActivation(item);
+				LOG.info("activated participation {}", item.getId());
+			} catch (Exception e) {
+				throw new RuntimeException("Error activating participation " + item.getId(), e);
+			}
 
-			previousParticipationId = item.getId();
-			item = participationReader.getNextPendingActivationParticipation();
+			item = constructService.getNextPendingActivationParticipation();
 		}
 	}
 
@@ -70,21 +69,20 @@ public class ParticipationProcessor {
 	 * Deactivate each participation that's pending deactivation.
 	 */
 	public void processPendingDeactivations() {
-		int previousParticipationId = 0;
-
-		ParticipationItem item = participationReader.getNextPendingDeactivationParticipation();
+		ParticipationItem item = constructService.getNextPendingDeactivationParticipation();
 		while (item != null) {
-			if (item.getId() == previousParticipationId) {
-				LOG.error("Tried to process participation " + item.getId() + " again - status update may have failed.");
-				break;
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(toJson(item));
 			}
 
-			LOG.trace(toJson(item));
-			participationWriter.processDeactivation(item);
-			LOG.info("deactivated participation " + item.getId() + " to archived status");
+			try {
+				participationWriter.processDeactivation(item);
+				LOG.info("deactivated participation {} to archived status", item.getId());
+			} catch (Exception e) {
+				throw new RuntimeException("Error deactivating participation " + item.getId(), e);
+			}
 
-			previousParticipationId = item.getId();
-			item = participationReader.getNextPendingDeactivationParticipation();
+			item = constructService.getNextPendingDeactivationParticipation();
 		}
 	}
 

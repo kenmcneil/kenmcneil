@@ -8,22 +8,20 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 @Configuration
 public class ParticipationEngineConfiguration {
 	@Bean
-	public ParticipationReader participationReader(ConstructService constructService) {
-		return new ParticipationReader(constructService);
-	}
-
-	@Bean
 	public ParticipationWriter participationWriter(ParticipationService participationService, ConstructService constructService) {
 		return new ParticipationWriter(participationService, constructService);
 	}
 
 	@Bean
-	public ParticipationProcessor participationProcessor(ParticipationReader participationReader, ParticipationWriter participationWriter) {
-		return new ParticipationProcessor(participationReader, participationWriter);
+	public ParticipationProcessor participationProcessor(ConstructService constructService, ParticipationWriter participationWriter) {
+		return new ParticipationProcessor(constructService, participationWriter);
 	}
 
 	@Bean
-	public ParticipationEngineTask participationTask(ParticipationProcessor participationProcessor) {
-		return new ParticipationEngineTask(participationProcessor);
+	public ParticipationEngineTask participationTask(
+			ParticipationProcessor participationProcessor,
+			ParticipationEngineSettings participationEngineSettings
+	) {
+		return new ParticipationEngineTask(participationProcessor, participationEngineSettings);
 	}
 }

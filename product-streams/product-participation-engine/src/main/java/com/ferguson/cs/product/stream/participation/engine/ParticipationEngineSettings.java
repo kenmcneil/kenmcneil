@@ -6,12 +6,12 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("participation-engine")
 @Component
 public class ParticipationEngineSettings {
-	Integer taskUserId;
-	Integer scheduleFixedDelay;
-	Integer scheduleInitialDelay;
-	Boolean testModeEnabled;
-	Boolean testModeLogParticipations;
-	Integer testModeMinParticipationId;
+	private Integer taskUserId;
+	private Integer scheduleFixedDelay;
+	private Integer scheduleInitialDelay;
+	private Boolean testModeEnabled;
+	private Boolean testModeLogParticipations;
+	private Integer testModeMinParticipationId;
 
 	public Integer getTaskUserId() {
 		return taskUserId;

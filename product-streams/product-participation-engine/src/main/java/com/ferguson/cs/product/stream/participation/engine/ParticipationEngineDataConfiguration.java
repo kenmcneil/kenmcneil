@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class ParticipationEngineDataConfiguration {
 
-	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.stream.participation.model";
+	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.stream.participation.engine.model";
 
 	@Bean
 	@Primary

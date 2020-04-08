@@ -1,9 +1,4 @@
-participation-engine:
-  task-user-id: 835
-  schedule-fixed-delay: 1000
-  schedule-initial-delay: 2000
-  test-mode-enabled: true
-  test-mode-min-participation-id: 5000
+---
 
 logging:
   level:
@@ -11,7 +6,6 @@ logging:
     org.springframework: WARN
     org.springframework.cloud: INFO
     org.springframework.web: INFO
-    com.ferguson.cs: INFO
 
 info:
   build:
@@ -30,11 +24,3 @@ management:
       enabled: true
     loggers:
       enabled: true
-
----
-
-spring:
-  profiles: dev,test,production
-
-participation-engine:
-  testmode-enabled: false

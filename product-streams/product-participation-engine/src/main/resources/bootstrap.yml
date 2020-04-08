@@ -1,13 +1,15 @@
+---
+
 spring:
   application:
     # Name is used to lookup configuration on the configuration server and for service discovery.
-    name: api-task-campaign-application # participation-processor
+    name: product-services-participation-engine
   profiles:
     active: localdev
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      label: SODEV-24977
+      label: master
       fail-fast: true
       uri: http://config
       username: config
