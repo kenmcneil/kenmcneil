@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.newrelic.api.agent.NewRelic;
 
 /**
  * Poll for user events and process them.
@@ -37,7 +38,9 @@ public class ParticipationProcessor {
 				participationWriter.processUnpublish(item);
 				LOG.info("unpublished participation " + item.getId() + " to draft status");
 			} catch (Exception e) {
-				throw new RuntimeException("Error unpublishing participation " + item.getId(), e);
+				String errorMessage = "Error unpublishing participation " + item.getId();
+				NewRelic.noticeError(errorMessage);
+				throw new RuntimeException(errorMessage, e);
 			}
 
 			item = constructService.getNextPendingUnpublishParticipation();
@@ -58,7 +61,9 @@ public class ParticipationProcessor {
 				participationWriter.processActivation(item);
 				LOG.info("activated participation {}", item.getId());
 			} catch (Exception e) {
-				throw new RuntimeException("Error activating participation " + item.getId(), e);
+				String errorMessage = "Error activating participation " + item.getId();
+				NewRelic.noticeError(errorMessage);
+				throw new RuntimeException(errorMessage, e);
 			}
 
 			item = constructService.getNextPendingActivationParticipation();
@@ -79,7 +84,9 @@ public class ParticipationProcessor {
 				participationWriter.processDeactivation(item);
 				LOG.info("deactivated participation {} to archived status", item.getId());
 			} catch (Exception e) {
-				throw new RuntimeException("Error deactivating participation " + item.getId(), e);
+				String errorMessage = "Error deactivating participation " + item.getId();
+				NewRelic.noticeError(errorMessage);
+				throw new RuntimeException(errorMessage, e);
 			}
 
 			item = constructService.getNextPendingDeactivationParticipation();
