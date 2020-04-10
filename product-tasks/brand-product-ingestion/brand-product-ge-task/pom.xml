@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.ferguson.cs.product</groupId>
     <artifactId>brand-product-ingestion</artifactId>
-    <version>1.0.59-SNAPSHOT</version>
+    <version>1.0.59</version>
   </parent> 
   <artifactId>brand-product-ge-task</artifactId>
   <name>brand-product-ge-task</name>
