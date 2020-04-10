@@ -13,4 +13,8 @@ public interface ProductMapper {
 	List<Product> getQuickShipEligibleProduct(@Param("criteria") QuickshipEligibleProductSearchCriteria criteria);
 
 	public void updateProductModified(Product product);
+
+	void truncateProductPreferredVendorQuickShip();
+
+	void copyProductPreferredVendorTableForQuickShip();
 }

@@ -30,4 +30,13 @@ public interface ProductService {
 	 */
 	void updateProductModified(Product product);
 
+	/**
+	 * Clears the tempData.dbo.ProductPreferredVendorQuickShip table.
+	 */
+	void truncateProductPreferredVendorQuickShip();
+
+	/**
+	 * Populates a copy of tempData.dbo.ProductPreferredVendor for use by QuickShip job.
+	 */
+	void populateProductPreferredVendorQuickShip();
 }
