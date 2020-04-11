@@ -14,11 +14,13 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.MessageChannel;
 
 import com.ferguson.cs.product.task.dy.batch.CustomMultiResourcePartitioner;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
@@ -27,7 +29,6 @@ import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
 import com.ferguson.cs.product.task.dy.model.ProductData;
-import com.ferguson.cs.product.task.dy.service.DyService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
@@ -36,14 +37,15 @@ public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final DyFeedSettings dyFeedSettings;
-	private final DyService dyService;
+	@Qualifier("sftpChannel")
+	private MessageChannel sftpChannel;
 
 	public DyFeedTaskConfiguration(SqlSessionFactory coreSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory,
-	                               DyFeedSettings dyFeedSettings, DyService dyService) {
+	                               DyFeedSettings dyFeedSettings, MessageChannel sftpChannel) {
 		this.reporterSqlSessionFactory = coreSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.dyFeedSettings = dyFeedSettings;
-		this.dyService = dyService;
+		this.sftpChannel = sftpChannel;
 	}
 
 	@Bean
@@ -150,7 +152,7 @@ public class DyFeedTaskConfiguration {
 	@Bean
 	public Step partitionFtpStep() throws IOException {
 		return taskBatchJobFactory.getStepBuilder("partitionFtpStep")
-				.partitioner(uploadCsv(uploadFileTasklet(null, null)))
+				.partitioner(uploadCsv(uploadFileTasklet(null)))
 				.partitioner("uploadCsv", partitioner())
 				.gridSize(10)
 				.taskExecutor(new SimpleAsyncTaskExecutor())
@@ -166,17 +168,15 @@ public class DyFeedTaskConfiguration {
 
 	@StepScope
 	@Bean
-	UploadFileTasklet uploadFileTasklet(
-			@Value("#{stepExecutionContext[fileName]}") String filename,
-			@Value("#{stepExecutionContext[siteId]}") Integer siteId) throws IOException {
+	UploadFileTasklet uploadFileTasklet(@Value("#{stepExecutionContext[siteId]}") Integer siteId) throws IOException {
 
-		return new UploadFileTasklet(filename, siteId, dyFeedSettings, dyService);
+		return new UploadFileTasklet(siteId, dyFeedSettings, sftpChannel, dyProductFileResource());
 	}
 
 	@Bean
 	public Step uploadCsv(UploadFileTasklet uploadFileTasklet) throws IOException {
 		return taskBatchJobFactory.getStepBuilder("uploadCsv")
-				.tasklet(uploadFileTasklet(null, null))
+				.tasklet(uploadFileTasklet(null))
 				.build();
 	}
 

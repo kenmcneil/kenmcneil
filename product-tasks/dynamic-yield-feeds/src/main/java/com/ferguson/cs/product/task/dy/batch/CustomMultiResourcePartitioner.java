@@ -24,7 +24,6 @@ public class CustomMultiResourcePartitioner implements Partitioner {
 			Integer siteId = entry.getKey();
 			Assert.state(resources.getSiteFileMap().get(siteId).exists(), "Resource does not exist: "
 				+ resources.getSiteFileMap().get(siteId).getFilename());
-			context.putString("fileName", resources.getSiteFileMap().get(siteId).getFilename());
 			context.putString("siteId", siteId.toString());
 			partition.put(PARTITION_KEY + siteId, context);
 		}

@@ -1,6 +1,8 @@
 package com.ferguson.cs.product.task.dy;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +13,9 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -18,16 +23,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.sftp.outbound.SftpMessageHandler;
+import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.handler.GenericHandler;
+import org.springframework.integration.sftp.dsl.Sftp;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.MessageChannel;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -35,21 +43,31 @@ import com.jcraft.jsch.ChannelSftp;
 public class DyFeedConfiguration {
 	protected static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.dy.dao.core";
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.dy.model";
-	private static final String SFTP_OUTBOUND_CHANNEL = "dyOutboundChannel";
 	private final DyFeedSettings dyFeedSettings;
+	private final Integer FTP_TIMEOUT = 600000;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DyFeedConfiguration.class);
 
 	public DyFeedConfiguration(DyFeedSettings dyFeedSettings) {
 		this.dyFeedSettings = dyFeedSettings;
 	}
 
 	@Bean
+	MessageChannel sftpChannel() {
+		return MessageChannels.direct().get();
+	}
+
+	@Bean
 	public SftpRemoteFileTemplate remoteTemplate() {
 		SftpRemoteFileTemplate remoteTemplate = new SftpRemoteFileTemplate(sessionFactory());
+		remoteTemplate.setFileNameGenerator(filename -> dyFeedSettings.getTempFilePrefix() +
+				dyFeedSettings.getTempFileSuffix());
 		remoteTemplate.setRemoteDirectoryExpression(new FunctionExpression<Message>(m -> m.getHeaders().get("remoteDirectory")));
 		return remoteTemplate;
 	}
 
 	@Bean
+
+	@Qualifier("sftpSessionFactory")
 	public DelegatingSessionFactory<ChannelSftp.LsEntry> sessionFactory() {
 		Map<Object, SessionFactory<ChannelSftp.LsEntry>> factories = new LinkedHashMap<>();
 
@@ -61,22 +79,34 @@ public class DyFeedConfiguration {
 			factory.setUser(entry.getValue());
 			factory.setPrivateKey(new ByteArrayResource(dyFeedSettings.getFtpPrivateKey().getBytes()));
 			factory.setAllowUnknownKeys(true);
+			factory.setTimeout(FTP_TIMEOUT);
 			factories.put(entry.getKey(), factory);
 		}
 		// use the first SF as the default
 		return new DelegatingSessionFactory<>(factories, factories.values().iterator().next());
 	}
 
-	@ServiceActivator(inputChannel = SFTP_OUTBOUND_CHANNEL)
-	@Bean
-	public SftpMessageHandler handler() {
-		SftpMessageHandler handler = new SftpMessageHandler(remoteTemplate());
-		return handler;
-	}
 
-	@MessagingGateway(defaultRequestChannel = SFTP_OUTBOUND_CHANNEL)
-	public interface SftpGateway {
-		void send(File file, @Header("remoteDirectory") String remoteDirectory);
+	@Bean
+	IntegrationFlow sftpGateway(SftpRemoteFileTemplate template, DelegatingSessionFactory<ChannelSftp.LsEntry> dsf) {
+		return f -> f.channel(sftpChannel())
+				.handle((GenericHandler<Object>) ( file, messageHeaders) -> {
+					dsf.setThreadKey(messageHeaders.get("siteId"));
+					return file;
+				}).handle(Sftp.outboundGateway(template, AbstractRemoteFileOutboundGateway.Command.PUT, "payload")
+						.fileExistsMode(FileExistsMode.REPLACE)
+				).handle((GenericHandler<Object>) (file, messageHeaders) -> {
+					dsf.clearThreadKey();
+
+					try {
+						if (messageHeaders.get("tempFile") != null) {
+							Files.delete(Paths.get(messageHeaders.get("tempFile").toString()));
+						}
+					} catch (IOException e) {
+						LOGGER.warn("Failed to delete temporary file: " + messageHeaders.get("tempFile").toString(), e);
+					}
+					return null;
+				});
 	}
 
 	@MapperScan(basePackages= DyFeedConfiguration.CORE_BASE_MAPPER_PACKAGE, annotationClass=Mapper.class, sqlSessionFactoryRef = "coreSqlSessionFactory")
@@ -108,6 +138,7 @@ public class DyFeedConfiguration {
 			factory.setVfs(SpringBootVFS.class);
 			factory.setTypeAliasesPackage(BASE_ALIAS_PACKAGE);
 			factory.setTypeHandlersPackage(typeHandlerPackage);
+			
 			return factory.getObject();
 		}
 	}
