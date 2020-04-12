@@ -9,7 +9,6 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @MapperScan(basePackageClasses = ParticipationEngineDataConfiguration.class, annotationClass = Mapper.class)
-@EnableFeignClients
 @EnableTransactionManagement
 public class ParticipationEngineDataConfiguration {
 
