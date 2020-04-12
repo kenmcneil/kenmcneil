@@ -1,0 +1,129 @@
+= Load Testing
+:toc: left
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+:source-highlighter: coderay
+
+== Introduction
+
+Load testing is important to do before releasing database structure changes or modified queries, especially for new features.
+
+== Process
+
+* Turn on load test mode
+* Clear SQL data for the Participation id range being used for testing
+* Create Participation record fixtures
+* Publish fixtures
+* Start the engine
+* Watch database performance (DBA assistance is valuable here)
+** Look for slow queries or other performance issues.
+* Watch New Relic graphs for SQL database CPU, MongoDB CPU, Product Storage Synchronization
+* If desired use more Participation record fixtures to test other user events like un-publish or publish changes, or simply to test ongoing publish events.
+* Note processing start and end times
+* If needed add missing indexes or other improvements and do another load test.
+
+== Detailed steps
+
+=== Load test mode
+
+Use the load test configuration properties when running the engine:
+
+[source%nowrap]
+-DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=5000
+
+The docs below use 5000 for the min value--modify if desired.
+
+=== Clear testing data from SQL tables
+
+Delete test data before running each test to avoid data from any previous runs interfering with new tests.
+
+.SQL queries to clear test data
+[source,sql]
+----
+-- Clear all Participation data for participations with id >= 5000
+-- and reset any modified prices or other data.
+
+DELETE
+FROM mmc.product.currentPriorityParticipation
+WHERE participationId >= 5000
+
+DELETE
+FROM mmc.product.participationTracking
+WHERE participationId >= 5000
+
+DELETE
+FROM mmc.product.participationProduct
+WHERE participationId >= 5000
+
+DELETE
+FROM mmc.product.participationCalculatedDiscount
+WHERE participationId >= 5000
+
+DELETE
+FROM mmc.product.participationItemPartial
+WHERE participationId >= 5000
+
+UPDATE
+mmc.product.sale
+SET saleId = 0
+WHERE participationId >= 5000
+
+-- reset any prices on sale to off-sale values
+UPDATE
+mmc.dbo.Pricebook_Cost
+SET Cost = basePrice
+WHERE participationId >= 5000
+AND Cost <> basePrice
+
+DELETE plos
+FROM mmc.product.participationLastOnSale plos
+INNER JOIN mmc.dbo.Pricebook_Cost pbc
+ON plos.uniqueId = pbc.uniqueId
+AND plos.PriceBookId = pbc.PricebookId
+AND pbc.participationId >= 5000
+WHERE 1=1
+----
+
+=== Create Participation record fixtures
+
+It's useful to use a script to create records in the participationItem collection, to easily run a test repeatedly with many testing records.
+
+.Previous fixture generator scripts
+* link:../load-testing/make-participation-fixtures.js[make-participation-fixtures.js]
+* link:../load-testing/make-participation-fixtures-large.js[make-participation-fixtures-large.js]
+
+=== Publish fixtures
+
+Publish the test Participation records created in the last step.
+
+[source,shell script]
+----
+./publish-participation-fixtures.sh 3
+----
+
+.Publish Script
+* link:../load-testing/publish-participation-fixtures.sh[publish-participation-fixtures.sh]
+
+=== Run engine to perform load test
+
+Start the engine in your IDE with your configured properties.
+
+.During the load test
+* Watch database performance (DBA assistance is valuable here)
+* Look for slow queries or other performance issues.
+* Watch New Relic graphs for SQL database CPU, MongoDB CPU, Product Storage Synchronization
+* If desired use more Participation record fixtures to test other user events like un-publish or publish changes, or simply to test ongoing publish events.
+* Note processing start and end times
+
+=== New Relic graphs
+
+_TODO: get links to New Relic for mongodb and dev databases_
+
+== References
+
+* https://wiki.build.com/pages/viewpage.action?pageId=106662278[1st Load Test Planning Document]
+* https://wiki.build.com/display/PT/2019-11-14+Calculated+Discount+load+testing[1st load test results]
+* https://wiki.build.com/display/PT/2019-11-19+Calculated+Discounts+load+testing+II[[2nd load test results]
+

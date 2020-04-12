@@ -1,0 +1,215 @@
+= Participation System Overview
+:toc: left
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+
+== Introduction
+
+=== What is a Participation?
+
+<<#participation-term,Participation>> records are created and published in Construct by merchandisers in order to modify <<#product-variant-term,product variants>>. Each Participation manages part of a sale in a marketing campaign, so that its product variants "participate" in the sale.
+
+Participation records are scheduled by the <<#participation-author-term,author>> to start and stop at designated times. Records are "activated" on the start date, and "deactivated" on the end date or when manually un-published by an author.
+
+=== Priority and Overlap
+
+When a Participation activates, the <<#participation-effect-term, effects>> configured by the author are applied to the product variants it references. When a product variant is in multiple active participations, only the effects of the Participation with the highest priority will be applied to the product. It's possible that only some of the products in a Participation will actually be affected by it.
+
+Priority is implicitly defined--the record with the latest start date has the highest priority.
+
+This allows scenarios like a long-running participation for a product, say for a month, and a short-term participation with the same product (say for a weekend flash sale) that will override the effects of the longer-running participation just for that weekend. When the short-term participation ends, the effects of the longer participation are re-applied.
+
+On deactivation, all effects are removed, and effects are applied from any lower-priority active Participations.
+
+.Illustration of participations overlapping by priority and time. The area of each box represents products, and left-to-right represents time.
+[caption=""]
+image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram,400]
+
+=== Effects
+
+.Effects available for use currently
+|===
+|Effect|Input|Changes
+
+|Sale ID
+|`saleId`, `uniqueIds` list
+|Set the sale id of the entered products to `saleId`.
+
+|Calculated Discounts
+|`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`
+|Apply flat or percentage discounts to the pricebook 1 and 22 prices of the entered products.
+
+//|Itemized Discounts
+//|list of { `uniqueId`, `pb 1 price`, `pb 22 price` }
+//|Set pb1 and pb22 pricebook prices to specific values for each variant as authored.
+
+|===
+
+=== Price Changes
+
+When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and any pending base price changes are applied.
+
+== System Diagram
+
+.System Architecture.
+image::participation-lifecycle.png[Participations Architecture Diagram]
+
+== Components
+
+=== Construct
+
+The UI of the Participations System. Participation Authors use Construct to edit, publish, and unpublish records.
+
+==== Participation records
+
+Participation records are edited and versioned with the same Construct Atomic Form Editor library that is used to edit content records. This provides a flexible and familiar interface to users to manage sales. Author-entered data is structured and validated by versioned schemas that allow new backwards-compatible features to be added as needed.
+
+When a calculated discount effect is activated, discounts are applied to pricebook prices and the off-sale prices are preserved. On deactivation off-sale prices are restored, which takes the products off sale. Overlap logic and safeguards provide assurance that the sale description and end date are accurate and that we are showing accurate information to customers. Discounts touch several areas of the SQL database and product storage cache system, and the client applications (web store, native app) consume data provided by the participation system.
+
+Construct stores records in MongoDB. The engine application copies published Participations into SQL to track active records and activate and deactivate Participation effects. When a record is unpublished or deactivated, its information is deleted from the SQL tables.
+
+==== Participation Record Lifecycle
+
+image::participation-lifecycle.png[Participation Record Lifecycle]
+
+==== MongoDB Database
+
+Participation records are stored in the `core.participationItem` collection and are the source-of-truth for user authored content.
+
+=== Participation Engine
+
+This is a persistent spring-boot application that processes user and time-based events for Participation records.
+
+It processes events from Participation authors to unpublish Participations, and time-based events that activate or deactivate Participations. Publish events are currently handled in the publish endpoint in Services.
+
+==== Events
+
+A user event queue is simulated by polling the Construct database for Participation records with the statuses that indicate a state transition is required--publish, publish changes, or unpublish. Time based events (activate, and deactivate) are found by polling for published records with pending update status and a start date or end date in the past. See the lifecycle diagram for each state and transition.
+
+In the tables below, _Update Participation_ refers to updating the Construct database, and _SQL_ refers to updating tables in the SQL database for Participation state and to apply effects.
+
+.User Events
+[cols="1,4"]
+|===
+|Event|Actions taken to create event
+
+|Publish
+a|* Update Participation `status: PUBLISHED, updateStatus: NEEDS_UPDATE`.
+* Insert Participation data to SQL.
+
+|Publish Changes
+a|* Update Participation `status: PUBLISHED, updateStatus: NEEDS_UPDATE`.
+* Upsert Participation data to SQL.
+
+|Unpublish
+a|* Update Participation `updateStatus: NEEDS_UNPUBLISH`.
+
+|===
+
+.Events Processed by Engine
+[cols="1,4"]
+|===
+|Event|Actions taken to process event
+
+|Time to Activate
+a|* Perform activation process in SQL.
+* Update Participation `status: PUBLISHED, updateStatus: NEEDS_UPDATE`.
+
+|Time to Deactivate
+a|* Perform deactivation process, then delete Participation data in SQL.
+* Update Participation `status: PUBLISHED, updateStatus: NEEDS_UPDATE`.
+
+|User Unpublish
+a|* Perform deactivation process in SQL if active. Then delete Participation data in SQL.
+* Update Participation `status: DRAFT, updateStatus: NULL`.
+
+|===
+
+==== Database
+
+The engine copies published Participations into SQL to track active records and activate and deactivate Participation effects. When a record is unpublished or deactivated, its information is deleted from the SQL tables.
+
+Participation record data and activation state is stored in several tables owned by the engine, and effects are applied to several product and pricing tables.
+
+.Database Tables
+|===
+|Table|Use|Description
+
+|mmc.product. +
+- participationItemPartial +
+- participationCalculatedDiscount +
+- participationCalculatedDiscountTemplate +
+- participationCalculatedDiscountTemplateType +
+- participationProduct
+|Engine
+|Normalized data from Mongo ParticipationItem records. Also stores active and owner state.
+
+|mmc.product.participationLastOnSale
+|Engine
+|Records pricebook base prices that were on sale recently for the 48 waiting period rule.
+
+|mmc.product.sale
+|Effect
+|When a Sale ID (the id from a ProductSale record) is applied to a product variant, or removed, the saleId and participationId values are updated in this table.
+
+|mmc.product.modified
+|Effect
+|The modified date is updated to trigger product storage cache updates.
+
+|mmc.dbo.pricebook_cost +
+mmc.dbo.pricebook_cost_log
+|Effect
+|Price changes are made to this table. Changes trigger new log records.
+
+|===
+
+.Use types:
+* Engine: tables managed by the Participation Engine.
+* Effect: tables modified by effects in activation or deactivation.
+
+==== Monitoring
+
+NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.
+
+
+=== Cost Uploader / PDM
+
+==== Sale Price Change Protection
+
+Each pricebook price change from outside Participations updates the price in the latestBasePrice table. These are Cost Uploader jobs created for Wiser updates or manual jobs for permanent price changes, or one-off changes through the PDM Product editor.
+
+Then if the pricebook price is not in an active participation with a discount (not "owned" by the participation), the pricebook price will be updated too.
+
+Otherwise, if the pricebook price is owned by a participation, changes to the discounted prices are prevented. This is done to prevent changes to a sale once it has started.
+
+At the end of the sale, any latest base prices updated during the sale are used to update the pricebook prices.
+
+=== Stores and Native App
+
+The web stores and the native application consume prices and data either updated by or provided by the Participation system.
+
+== Glossary
+
+[#participation-author-term]
+Participation Author:: An author is responsible for creating, publishing, and un-publishing records. Authors configure Participation records by entering the details for the desired effects and the dates to activate and deactivate the effects. Common author roles include merchandiser or marketer.
+
+[#participation-term]
+Participation:: A set of values entered by the author, including desired effects and their schedule and the record's published and activation statuses.
+
+[#participation-effect-term]
+Participation Effect:: An effect is a specific change or set of changes made to product data and pricing, based on values entered by the author.
+
+[#sale-id-term]
+Sale ID:: The id of a ProductSale record, edited in OMC, which has a date range, a title, and a description. The id is used in various ways to link a product variant and other entities such as coupons in a marketing campaign.
+
+[#product-variant-term]
+Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_.
+
+== References
+
+* https://construct.build.com/participations[Participations editor in Construct]
+* https://github.com/buildcom/construct[Construct repository]
+* https://wiki.build.com/display/CON[Production-specific info / runbook]
+* https://wiki.build.com/display/CON/Construct+Architecture[Construct Architecture]

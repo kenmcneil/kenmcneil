@@ -1,0 +1,88 @@
+= Participation Engine
+:toc: left
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../asciidoctor.cs
+:imagesdir: ../../images
+
+== Documentation
+
+* link:docs/system-overview.adoc[Participation System Overview]
+
+== Development
+
+See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] for the current application configuration.
+
+=== Run Configuration
+
+==== Database
+
+The engine makes direct connections to MongoDB and SQL servers.
+
+===== MongoDB and SQL
+
+There is one development MongoDB server, and three dev SQL servers. Because of this, regardless of which SQL database is used, the same set of Participation records are processed on each run.
+
+These practices should be followed when not using cicdev1 to avoid missing or incorrect data, or when using cicdev1 after using a different database:
+* Run Services locally, connecting to the same database you will use in the engine, and run Construct locally so that it connects to your local services. Construct _will_ connect automatically with its default localdev profile but may switch to dev Services if the connection to your local Services is lost or if you pause in a breakpoint for too long; using local profile will force it to stay connected to your local services.
+* If you want to use a Participation that was published or activated in a different SQL database, then unpublish it and publish it again, to ensure the data is in your configured database when you run the engine.
+* Also consider manually cleaning up SQL data for specific Participation records being used for development. See load testing for queries.
+
+==== Log output
+
+The engine emits a log message for each event handled at the INFO level. Additional engine logging can be enabled at DEBUG and TRACE levels.
+
+==== Load Testing
+
+When test mode is enabled, participations below a given id are omitted from processing. This allows running the engine on only your load testing Participation records, omitting any other records present in the database. Also useful when during development.
+
+See link:docs/load-testing.adoc[load testing docs].
+
+==== Configuration properties
+
+|===
+|Config|Effect|VM Arguments
+
+|Database
+|Use CICDEV1
+|_Default_
+
+|Database
+|Use CICDEV2
+a|`-Ddatasource.core.url="jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false"`
+
+|Database
+|Use CICDEV3
+a|`-Ddatasource.core.url="jdbc:sqlserver://chico-db-debug.build.internal\CICDEV3;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false"`
+
+|Database
+|Set mongodb server
+a|`-Dspring.data.mongodb.uri=mongodb://XXXXXX`
+
+
+|Logging
+|Debug steps performed by the engine
+a|`-Dlogging.level.com.ferguson.cs=DEBUG -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.data=INFO -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl=DEBUG`
+
+|Logging
+|Output the Participation record being processed by the engine
+a|`-Dlogging.level.com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl=TRACE`
+
+|Logging
+|Show transactions
+a|`-Dlogging.level.org.springframework.transaction.interceptor=TRACE`
+
+|Load Testing
+|Restrict records processed for load testing/development
+a|`-DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=5000` (only process records with id >= 5000)
+
+|Config source
+|Use a config repository branch
+a|`-Dspring.cloud.config.label=SODEV-XXXXX`
+
+|Profile
+|Change the spring profile
+a|Runs with `localdev` by default. You should not need to change it. +
+`-Dspring.profiles.active=XXXXX`
+
+|===
