@@ -1,5 +1,4 @@
 = Participation Engine
-:toc: left
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../asciidoctor.cs
@@ -11,9 +10,15 @@
 
 == Development
 
-See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] for the current application configuration.
+* See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] for the current application configuration.
 
 === Run Configuration
+
+This is a persistent application, as opposed to a data flow application that runs once and then stops. When running, it will continue to poll for events periodically. Use your IDE stop button to stop the application or ctrl-c if running in the terminal.
+
+.To run locally, add a Spring Boot run configuration:
+* Use `com.ferguson.cs.product.stream.participation.engine.ParticipationEngineApplication` for the main class.
+* Enter desired VM options (see table below).
 
 ==== Database
 
@@ -24,9 +29,10 @@ The engine makes direct connections to MongoDB and SQL servers.
 There is one development MongoDB server, and three dev SQL servers. Because of this, regardless of which SQL database is used, the same set of Participation records are processed on each run.
 
 These practices should be followed when not using cicdev1 to avoid missing or incorrect data, or when using cicdev1 after using a different database:
+
 * Run Services locally, connecting to the same database you will use in the engine, and run Construct locally so that it connects to your local services. Construct _will_ connect automatically with its default localdev profile but may switch to dev Services if the connection to your local Services is lost or if you pause in a breakpoint for too long; using local profile will force it to stay connected to your local services.
 * If you want to use a Participation that was published or activated in a different SQL database, then unpublish it and publish it again, to ensure the data is in your configured database when you run the engine.
-* Also consider manually cleaning up SQL data for specific Participation records being used for development. See load testing for queries.
+* Also consider manually cleaning up SQL data for specific Participation records being used for development. See link:docs/load-testing.adoc[load testing] for more information.
 
 ==== Log output
 
@@ -36,7 +42,7 @@ The engine emits a log message for each event handled at the INFO level. Additio
 
 When test mode is enabled, participations below a given id are omitted from processing. This allows running the engine on only your load testing Participation records, omitting any other records present in the database. Also useful when during development.
 
-See link:docs/load-testing.adoc[load testing docs].
+* See link:docs/load-testing.adoc[load testing docs].
 
 ==== Configuration properties
 
@@ -86,3 +92,7 @@ a|Runs with `localdev` by default. You should not need to change it. +
 `-Dspring.profiles.active=XXXXX`
 
 |===
+
+== Monitoring
+
+NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.

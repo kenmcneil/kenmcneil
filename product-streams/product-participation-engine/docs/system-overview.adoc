@@ -11,7 +11,7 @@
 
 <<#participation-term,Participation>> records are created and published in Construct by merchandisers in order to modify <<#product-variant-term,product variants>>. Each Participation manages part of a sale in a marketing campaign, so that its product variants "participate" in the sale.
 
-Participation records are scheduled by the <<#participation-author-term,author>> to start and stop at designated times. Records are "activated" on the start date, and "deactivated" on the end date or when manually un-published by an author.
+Participation records are scheduled by an <<#participation-author-term,author>> to start and stop at designated times. Records are "activated" on the start date, and "deactivated" on the end date or when manually un-published by an author.
 
 === Priority and Overlap
 
@@ -35,11 +35,11 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 
 |Sale ID
 |`saleId`, `uniqueIds` list
-|Set the sale id of the entered products to `saleId`.
+|Set the sale id of the entered products in `uniqueIds` to `saleId`.
 
 |Calculated Discounts
-|`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`
-|Apply flat or percentage discounts to the pricebook 1 and 22 prices of the entered products.
+|`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`, `template`
+|Apply flat or percentage discounts to the pricebook 1 and 22 prices of the entered products in `uniqueIds`, and store the id of the entered template for use in the store.
 
 //|Itemized Discounts
 //|list of { `uniqueId`, `pb 1 price`, `pb 22 price` }
@@ -53,8 +53,9 @@ When an effect activates and changes a pricebook price, the price and base price
 
 == System Diagram
 
-.System Architecture.
-image::participation-lifecycle.png[Participations Architecture Diagram]
+.System Diagram
+(diagram under construction)
+//image::participation-lifecycle.png[Participations Architecture Diagram]
 
 == Components
 
@@ -83,6 +84,8 @@ Participation records are stored in the `core.participationItem` collection and 
 This is a persistent spring-boot application that processes user and time-based events for Participation records.
 
 It processes events from Participation authors to unpublish Participations, and time-based events that activate or deactivate Participations. Publish events are currently handled in the publish endpoint in Services.
+
+It is not designed to have more than one application instance running in an environment, as there is no strategy currently to divide events to be processed between multiple servers.
 
 ==== Events
 
