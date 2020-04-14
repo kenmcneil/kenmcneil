@@ -17,7 +17,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
 
 	private final ParticipationDao participationDao;
-	private final ParticipationEngineSettings;
+	private final ParticipationEngineSettings participationEngineSettings;
 
 	ParticipationServiceImpl(ParticipationDao participationDao, ParticipationEngineSettings participationEngineSettings) {
 		this.participationDao = participationDao;
@@ -30,7 +30,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
 		int totalRows = 0;
-		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod()
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
 		totalRows += rowsAffected;
 		LOG.debug("==== activating participation {} ====", participationId);

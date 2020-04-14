@@ -21,6 +21,7 @@ public class ParticipationEngineTask {
 	 * Periodically poll for new events to handle. Delay at first to allow startup
 	 * processes to finish their log output (this makes the log easier to read).
 	 */
+	@Scheduled(fixedDelayString = "${participation-engine.schedule-fixed-delay:1000}",
 	@Scheduled(fixedDelayString = "${participation-engine.schedule-fixed-delay:60000}",
 			initialDelayString = "${participation-engine.schedule-initial-delay:2000}")
 	public void pollForEvents() {
