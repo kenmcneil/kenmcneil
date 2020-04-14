@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.newrelic.api.agent.NewRelic;
@@ -14,7 +13,6 @@ import com.newrelic.api.agent.NewRelic;
  */
 public class ParticipationProcessor {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
-	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final ConstructService constructService;
 	private final ParticipationWriter participationWriter;
@@ -30,10 +28,6 @@ public class ParticipationProcessor {
 	public void processPendingUnpublishes() {
 		ParticipationItem item = constructService.getNextPendingUnpublishParticipation();
 		while (item != null) {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(toJson(item));
-			}
-
 			try {
 				participationWriter.processUnpublish(item);
 				LOG.info("unpublished participation " + item.getId() + " to draft status");
@@ -53,10 +47,6 @@ public class ParticipationProcessor {
 	public void processPendingActivations() {
 		ParticipationItem item = constructService.getNextPendingActivationParticipation();
 		while (item != null) {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(toJson(item));
-			}
-
 			try {
 				participationWriter.processActivation(item);
 				LOG.info("activated participation {}", item.getId());
@@ -76,10 +66,6 @@ public class ParticipationProcessor {
 	public void processPendingDeactivations() {
 		ParticipationItem item = constructService.getNextPendingDeactivationParticipation();
 		while (item != null) {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(toJson(item));
-			}
-
 			try {
 				participationWriter.processDeactivation(item);
 				LOG.info("deactivated participation {} to archived status", item.getId());
@@ -91,17 +77,5 @@ public class ParticipationProcessor {
 
 			item = constructService.getNextPendingDeactivationParticipation();
 		}
-	}
-
-	/**
-	 * Convert given object to a JSON string for debug output.
-	 */
-	private String toJson(Object item) {
-		try {
-			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(item);
-		} catch (Exception e) {
-			LOG.debug("Could not convert to JSON: ", e);
-		}
-		return "";
 	}
 }

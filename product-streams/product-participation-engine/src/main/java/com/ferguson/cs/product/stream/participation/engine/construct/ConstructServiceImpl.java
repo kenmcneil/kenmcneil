@@ -34,19 +34,19 @@ public class ConstructServiceImpl implements ConstructService {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(
 				ParticipationItemUpdateStatus.NEEDS_UPDATE, false);
 		criteria.setScheduledOn(new Date());
-		return participationItemRepository.findMatchingParticipationItem(criteria);
+		return participationItemRepository.findParticipationItemEvent(criteria);
 	}
 
 	@Override
 	public ParticipationItem getNextPendingDeactivationParticipation() {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(null, true);
-		return participationItemRepository.findMatchingParticipationItem(criteria);
+		return participationItemRepository.findParticipationItemEvent(criteria);
 	}
 
 	@Override
 	public ParticipationItem getNextPendingUnpublishParticipation() {
 		ParticipationItemSearchCriteria criteria = createSearchCriteria(ParticipationItemUpdateStatus.NEEDS_UNPUBLISH, false);
-		return participationItemRepository.findMatchingParticipationItem(criteria);
+		return participationItemRepository.findParticipationItemEvent(criteria);
 	}
 
 	@Override

@@ -25,9 +25,10 @@ public interface ParticipationItemRepositoryCustom {
 
 	/**
 	 * Query the participation item collection and return the first result found.
+	 * Populates only id and lastModifiedUserId properties.
 	 * @param criteria {@link ParticipationItemSearchCriteria} The criteria by which to filter results.
 	 * @return A {@link ParticipationItem} or null if none found.
 	 */
 	@Nullable
-	ParticipationItem findMatchingParticipationItem(ParticipationItemSearchCriteria criteria);
+	ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria);
 }

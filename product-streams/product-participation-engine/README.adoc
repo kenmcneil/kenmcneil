@@ -36,7 +36,7 @@ These practices should be followed when not using cicdev1 to avoid missing or in
 
 ==== Log output
 
-The engine emits a log message for each event handled at the INFO level. Additional engine logging can be enabled at DEBUG and TRACE levels.
+The engine emits a log message for each event handled at the INFO level. Additional engine logging can be enabled at DEBUG level.
 
 ==== Load Testing
 
@@ -69,10 +69,6 @@ a|`-Dspring.data.mongodb.uri=mongodb://XXXXXX`
 |Logging
 |Debug steps performed by the engine
 a|`-Dlogging.level.com.ferguson.cs=DEBUG -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.data=INFO -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl=DEBUG`
-
-|Logging
-|Output the Participation record being processed by the engine
-a|`-Dlogging.level.com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl=TRACE`
 
 |Logging
 |Show transactions

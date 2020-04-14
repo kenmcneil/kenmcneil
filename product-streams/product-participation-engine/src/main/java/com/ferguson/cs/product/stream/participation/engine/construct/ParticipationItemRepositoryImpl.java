@@ -52,10 +52,16 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 		);
 	}
 
+	/**
+	 * Note that this returns a partial object with only id and lastModifiedUserId,
+	 * since those are the only needed values.
+	 */
 	@Override
 	@Nullable
-	public ParticipationItem findMatchingParticipationItem(ParticipationItemSearchCriteria criteria) {
+	public ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria) {
 		Query query = new Query();
+		query.fields().include("id");
+		query.fields().include("lastModifiedUserId");
 
 		if (criteria.getId() != null) {
 			query.addCriteria(Criteria.where("_id").is(criteria.getId()));
