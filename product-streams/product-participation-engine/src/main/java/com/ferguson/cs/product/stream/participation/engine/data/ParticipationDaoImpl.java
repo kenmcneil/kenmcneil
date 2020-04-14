@@ -71,10 +71,10 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId) {
+	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any calculated discounts to pricebook prices.
-		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId);
+		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
 	}
 
 	@Override

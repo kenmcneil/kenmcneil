@@ -270,7 +270,7 @@
 			mmc.product.participationLastOnSale AS las
 			ON las.uniqueId = pbcost.uniqueId
 				AND las.pricebookId = pbcost.pricebookId
-				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; 48*60
+				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriod}
 	</update>
 
 	<update id="updateProductModifiedDates" parameterType="map">

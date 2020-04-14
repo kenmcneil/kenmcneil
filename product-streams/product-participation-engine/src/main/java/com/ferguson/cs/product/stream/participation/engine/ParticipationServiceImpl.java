@@ -17,9 +17,11 @@ public class ParticipationServiceImpl implements ParticipationService {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
 
 	private final ParticipationDao participationDao;
+	private final ParticipationEngineSettings;
 
-	ParticipationServiceImpl(ParticipationDao participationDao) {
+	ParticipationServiceImpl(ParticipationDao participationDao, ParticipationEngineSettings participationEngineSettings) {
 		this.participationDao = participationDao;
+		this.participationEngineSettings = participationEngineSettings;
 	}
 
 	@Transactional
@@ -28,7 +30,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
 		int totalRows = 0;
-
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
 		totalRows += rowsAffected;
 		LOG.debug("==== activating participation {} ====", participationId);
@@ -59,7 +61,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate new discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
