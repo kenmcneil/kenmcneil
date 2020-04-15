@@ -8,6 +8,11 @@ import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * This is the domain class for the source-of-truth for Participation records,
+ * owned by Construct. Participation records are created and managed in Construct
+ * and saved as ParticipationItem documents.
+ */
 @Document
 public class ParticipationItem {
 	@Id

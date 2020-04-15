@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 import java.util.Date;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 @Component

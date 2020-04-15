@@ -3,6 +3,9 @@ package com.ferguson.cs.product.stream.participation.engine.model;
 import java.util.Date;
 import java.util.Set;
 
+/**
+ * Used to pass criteria around for queries to the participationItem collection in MongoDB.
+ */
 public class ParticipationItemSearchCriteria extends SortedPagedSearchCriteria<ParticipationItemSortColumn> {
 	private static final long serialVersionUID = 1L;
 

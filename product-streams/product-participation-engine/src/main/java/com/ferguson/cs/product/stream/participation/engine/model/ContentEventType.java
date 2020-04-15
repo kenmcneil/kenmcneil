@@ -1,5 +1,8 @@
 package com.ferguson.cs.product.stream.participation.engine.model;
 
+/**
+ * This is all the different types of events that are logged in Construct or by the engine.
+ */
 public enum ContentEventType {
 	CREATE_GROUP,
 	DELETE_GROUP,
