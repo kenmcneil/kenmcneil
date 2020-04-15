@@ -92,29 +92,40 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	private void setCategoryMaps(String encodedCategories, Map<Integer, Set<String>> categoryNameMap,
 								 Map<Integer, List<Integer>> categoryIdMap) {
 
-		if (encodedCategories != null && encodedCategories.length() > 0) {
-			String[] siteKeywords = encodedCategories.split("\\|");
+		// Empty String nothing to do
+		if (!StringUtils.hasText(encodedCategories)) {
+			return;
+		}
 
-			if (siteKeywords.length > 0) {
-				for (String siteKeyword : siteKeywords) {
-					if (siteKeyword.length() > 0) {
-						String[] keyword = siteKeyword.split(":");
+		String[] siteKeywords = encodedCategories.split("\\|");
 
-						if (keyword.length == 3) {
-							if (categoryNameMap.get(Integer.parseInt(keyword[0])) == null) {
-								categoryNameMap.put(Integer.parseInt(keyword[0]), new HashSet<String>());
-							}
+		// Incomplete encoded category nothing to do
+		if (siteKeywords.length < 1) {
+			return;
+		}
 
-							if (categoryIdMap.get(Integer.parseInt(keyword[0])) == null) {
-								categoryIdMap.put(Integer.parseInt(keyword[0]), new ArrayList<Integer>());
-							}
-
-							categoryIdMap.get(Integer.parseInt(keyword[0])).add(Integer.parseInt(keyword[1]));
-							categoryNameMap.get(Integer.parseInt(keyword[0])).add(keyword[2].toLowerCase());
-						}
-					}
-				}
+		for (String siteKeyword : siteKeywords) {
+			// Empty keyword nothing to do
+			if (!StringUtils.hasText(siteKeyword)) {
+				continue;
 			}
+
+			String[] keyword = siteKeyword.split(":");
+
+			// invalid keyword nothing to do
+			if (keyword.length != 3) {
+				continue;
+			}
+
+			// fetch the categoryId
+			Integer categoryId = Integer.parseInt(keyword[0]);
+			// Add the key word and name
+			categoryIdMap
+					.computeIfAbsent(categoryId, k -> new ArrayList<>())
+					.add(Integer.parseInt(keyword[1]));
+			categoryNameMap
+					.computeIfAbsent(categoryId, k -> new HashSet<>())
+					.add(keyword[2].toLowerCase());
 		}
 	}
 
