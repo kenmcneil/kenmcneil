@@ -25,4 +25,13 @@ public class ProductDaoImpl implements ProductDao {
 		productMapper.updateProductModified(product);
 	}
 
+	@Override
+	public void truncateProductPreferredVendorQuickShip() {
+		productMapper.truncateProductPreferredVendorQuickShip();
+	}
+
+	@Override
+	public void populateProductPreferredVendorQuickShip() {
+		productMapper.copyProductPreferredVendorTableForQuickShip();
+	}
 }

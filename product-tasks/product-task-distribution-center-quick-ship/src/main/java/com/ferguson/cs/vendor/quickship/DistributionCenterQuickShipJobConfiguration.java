@@ -26,16 +26,15 @@ import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 @EnableRetry
 public class DistributionCenterQuickShipJobConfiguration {
 	private final TaskBatchJobFactory taskBatchJobFactory;
-	private final DistributionCenterQuickShipTaskConfiguration taskConfiguration;
 	private final VendorService vendorService;
 	private final ProductService productService;
 	private final CategoryService categoryService;
 
 	public DistributionCenterQuickShipJobConfiguration(TaskBatchJobFactory taskBatchJobFactory,
-			DistributionCenterQuickShipTaskConfiguration taskConfiguration, VendorService vendorService,
-			ProductService productService, CategoryService categoryService) {
+	                                                   VendorService vendorService,
+	                                                   ProductService productService,
+	                                                   CategoryService categoryService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
-		this.taskConfiguration = taskConfiguration;
 		this.vendorService = vendorService;
 		this.productService = productService;
 		this.categoryService = categoryService;
@@ -48,16 +47,31 @@ public class DistributionCenterQuickShipJobConfiguration {
 	@Bean
 	public Step truncateDistributionCenterProductQuickShipTable() {
 		return taskBatchJobFactory.getStepBuilder("truncateDistributionCenterProductQuickShipTable")
-				.tasklet(truncateTasklet()).build();
+				.tasklet(truncateDistributionCenterProductQuickShipTableTasklet())
+				.build();
 	}
 
 	@Bean
 	@StepScope
-	public TruncateDistributionCenterProductQuickShipTableTasklet truncateTasklet() {
-		final TruncateDistributionCenterProductQuickShipTableTasklet tasklet =
-				new TruncateDistributionCenterProductQuickShipTableTasklet(vendorService);
+	public TruncateDistributionCenterProductQuickShipTableTasklet truncateDistributionCenterProductQuickShipTableTasklet() {
+		return new TruncateDistributionCenterProductQuickShipTableTasklet(vendorService);
+	}
 
-		return tasklet;
+	/**
+	 * Refreshes the data in a worktable copy of ProductPreferredVendor, used to avoid concurrency issues
+	 * with other scheduled jobs during processing.
+	 * @return
+	 */
+	@Bean
+	public Step refreshPreferredProductVendorQuickShipTable() {
+		return taskBatchJobFactory.getStepBuilder("refreshPreferredProductVendorQuickShipTableTasklet")
+				.tasklet(refreshPreferredProductVendorQuickShipTableTasklet())
+				.build();
+	}
+	@Bean
+	@StepScope
+	public RefreshPreferredProductVendorQuickShipTableTasklet refreshPreferredProductVendorQuickShipTableTasklet() {
+		return new RefreshPreferredProductVendorQuickShipTableTasklet(productService);
 	}
 
 	/**
@@ -100,6 +114,7 @@ public class DistributionCenterQuickShipJobConfiguration {
 	public Job distributionCenterProductQuickShipJob() {
 		return taskBatchJobFactory.getJobBuilder("distributionCenterProductQuickShipJob")
 				.start(truncateDistributionCenterProductQuickShipTable())
+				.next(refreshPreferredProductVendorQuickShipTable())
 				.next(populateDistributionCenterProductQuickShipTable())
 				.build();
 	}

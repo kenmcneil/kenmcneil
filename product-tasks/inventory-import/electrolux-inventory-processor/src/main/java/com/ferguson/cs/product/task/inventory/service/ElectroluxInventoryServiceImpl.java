@@ -71,7 +71,7 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 					log.error("Failed to get Electrolux stock for vendor {}. Cause: {}", warehouse.getKey(),e.toString());
 				}
 				if(response != null && !CollectionUtils.isEmpty(response.getInventoryResponse())) {
-					response.getInventoryResponse().forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
+					response.getInventoryResponse().stream().filter(r->r.getWarehouseCode().equalsIgnoreCase(warehouse.getValue())).forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
 				}
 			} catch (IOException e) {
 				log.error("Failed to write Electrolux inventory file: {}",e.toString());
