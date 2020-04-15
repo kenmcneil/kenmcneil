@@ -112,7 +112,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate fallback discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
