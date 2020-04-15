@@ -315,15 +315,14 @@
 		-- Keep currentPriorityParticipation up to date for things still using it.
 		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
 		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
-		select
+		SELECT
 			pp.uniqueId,
 			pip.saleId,
 			pp.participationId
-		from mmc.product.participationProduct as pp
-			 join mmc.product.participationItemPartial pip
-			on pip.participationId = pp.participationId
-				and pip.isActive = 1
-		where pp.isOwner = 1
-		order by pp.participationId, pp.uniqueId
+		FROM mmc.product.participationProduct AS pp
+		JOIN mmc.product.participationItemPartial AS pip
+			ON pip.participationId = pp.participationId
+				AND pip.isActive = 1
+		WHERE pp.isOwner = 1
 	</insert>
 </mapper>

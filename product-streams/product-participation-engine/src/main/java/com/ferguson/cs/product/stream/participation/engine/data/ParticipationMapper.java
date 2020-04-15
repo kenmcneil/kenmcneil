@@ -11,30 +11,35 @@ import org.springframework.stereotype.Component;
 public interface ParticipationMapper {
 
 	/**
-	 * Returns true if the isActive column is 1, else false. True indicates that
-	 * the participation is currently activated.
-	 * @param participationId
-	 * @return The isActive status of the participation, or null if participation not found.
+	 * Determine if a participation is currently active.
+	 * @param participationId The id of a participation.
+	 * @return Returns true if a participation is currently active, else false.
 	 */
-	Boolean getParticipationIsActive(@Param("participationId") Integer participationId);
-
-	int setParticipationIsActive(@Param("participationId") Integer participationId, @Param("isActive") Boolean isActive);
+	Boolean getParticipationIsActive(Integer participationId);
 
 	/**
-	 * Truncate the temporary owner changes table and fill it with the ownership changes caused by deactivating
-	 * the specified participation.
-	 * @param participationId
+	 * Mark a participation as active or inactive.
+	 * @param participationId The id of a participation.
+	 * @param isActive Use true to indicate active, false to indicate inactive.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForDeactivation(@Param("participationId") Integer participationId);
+	int setParticipationIsActive(Integer participationId, Boolean isActive);
 
 	/**
-	 * Truncate the temporary owner changes table and fill it with the ownership changes caused by activating
-	 * the specified participation.
-	 * @param participationId
+	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * changes caused by deactivating the specified participation.
+	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForActivation(@Param("participationId") Integer participationId);
+	int updateOwnerChangesForDeactivation(Integer participationId);
+
+	/**
+	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * changes caused by activating the specified participation.
+	 * @param participationId The id of the activating participation.
+	 * @return The number of records modified.
+	 */
+	int updateOwnerChangesForActivation(Integer participationId);
 
 	/**
 	 * Set ownership for products in P, only considering active participations.
@@ -61,29 +66,29 @@ public interface ParticipationMapper {
 	/**
 	 * Updates lastOnSale records from the PriceBook_Cost table. Use when the price is going off-sale.
 	 *
-	 * @param processingDate
+	 * @param processingDate The date the participation is being processed.
 	 * @return The number of records modified.
 	 */
-	int updateExistingLastOnSaleBasePrices(@Param("processingDate") Date processingDate);
+	int updateExistingLastOnSaleBasePrices(Date processingDate);
 
 	/**
 	 * Inserts missing lastOnSale records from the PriceBook_Cost table. Use when the price is going off-sale.
 	 * Use after updating any existing records with updateExistingLastOnSaleBasePrices().
 	 *
-	 * @param processingDate
+	 * @param processingDate The date the participation is being processed.
 	 * @return The number of records modified.
 	 */
-	int insertMissingLastOnSaleBasePrices(@Param("processingDate") Date processingDate);
+	int insertMissingLastOnSaleBasePrices(Date processingDate);
 
 	/**
 	 * Take the prices owned by the participation off sale.
 	 * Update PriceBook_Cost basePrice from pending baseprice, and update the cost column
 	 * from the new basePrice.
 	 *
-	 * @param userId
+	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(@Param("userId") Integer userId);
+	int takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId);
 
 	/**
 	 * Sets priceBook_Cost.cost (pbcost) to a discounted base price
@@ -98,45 +103,47 @@ public interface ParticipationMapper {
 	 * else if dollar amount discount:
 	 *      pbcost.cost = pbocost.basePrice + discounts.changeValue
 	 *
-	 * @param processingDate
-	 * @param userId
+	 * @param processingDate The date the participation is being processed.
+	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(@Param("processingDate") Date processingDate, @Param("userId") Integer userId);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId);
 
 	/**
 	 * Update product.modified to trigger product cache update.
 	 *
-	 * @param processingDate
-	 * @param userId
+	 * @param processingDate The date the participation is being processed.
+	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int updateProductModifiedDates(@Param("processingDate") Date processingDate, @Param("userId") Integer userId);
+	int updateProductModifiedDates(Date processingDate, Integer userId);
 
 	/**
 	 * Remove all records from the participationProduct table for the given
 	 * participation id. Must be done ahead of deleting from participationItemPartial
 	 * table to avoid FK_constraint failure.
 	 *
-	 * @param participationId
-	 * @return
+	 * @param participationId The id of the participation to delete from SQL.
+	 * @return The number of records modified.
 	 */
-	int deleteParticipationProductsByParticipationId(@Param("participationId") Integer participationId);
+	int deleteParticipationProductsByParticipationId(Integer participationId);
 
 	/**
 	 * Delete the calculated discount records for the given participation id.
 	 *
-	 * @param participationId
+	 * @param participationId The id of the participation to delete from SQL.
+	 * @return The number of records modified.
 	 */
-	int deleteParticipationCalculatedDiscountsByParticipationId(@Param("participationId") Integer participationId);
+	int deleteParticipationCalculatedDiscountsByParticipationId(Integer participationId);
 
 	/**
 	 * Delete the participationItemPartial record for given participation id.
 	 *
-	 * @param participationId
+	 * @param participationId The id of the participation to delete from SQL.
+	 * @return The number of records modified.
 	 */
-	int deleteParticipationItemPartialByParticipationId(@Param("participationId") Integer participationId);
+	int deleteParticipationItemPartialByParticipationId(Integer participationId);
 
 	// TODO remove currentPriorityParticipation code
-	int syncToCurrentPriorityParticipation();
+	void syncToCurrentPriorityParticipation();
 }
