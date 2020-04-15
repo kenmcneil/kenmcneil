@@ -30,7 +30,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
 		int totalRows = 0;
-		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod()
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
 		totalRows += rowsAffected;
 		LOG.debug("==== activating participation {} ====", participationId);
