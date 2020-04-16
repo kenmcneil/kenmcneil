@@ -81,6 +81,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void deactivateParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, false);
