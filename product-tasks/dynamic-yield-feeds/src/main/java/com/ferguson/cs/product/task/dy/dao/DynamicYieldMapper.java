@@ -11,5 +11,6 @@ import com.ferguson.cs.product.task.dy.model.ProductData;
 public interface DynamicYieldMapper {
 	List<ProductData> getProductData(
 			@Param("restrictionPolicies") List<Integer> restrictionPolicies,
-			@Param("storeIds") List<Integer> storeIds);
+			@Param("storeIds") List<Integer> storeIds,
+			@Param("excludedBrands") List<String> excludedBrands);
 }

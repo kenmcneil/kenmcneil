@@ -3,9 +3,11 @@ package com.ferguson.cs.product.task.dy.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DynamicYieldProduct implements Serializable {
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 4L;
 
 	private Integer sku;
 	private Integer groupId;
@@ -44,6 +46,43 @@ public class DynamicYieldProduct implements Serializable {
 	private String businessCategory;
 	private Boolean californiaDroughtCompliant;
 	private List<Integer> siteIds;
+	private Map<Integer, Set<String>> categoryNameSiteMap;
+	private Map<Integer, List<Integer>> categoryIdSiteMap;
+	private String keywords;
+	private String categoryIds;
+
+	public String getCategoryIds() {
+		return categoryIds;
+	}
+
+	public void setCategoryIds(String categoryIds) {
+		this.categoryIds = categoryIds;
+	}
+
+
+	public Map<Integer, List<Integer>> getCategoryIdSiteMap() {
+		return categoryIdSiteMap;
+	}
+
+	public void setCategoryIdSiteMap(Map<Integer, List<Integer>> categoryIdSiteMap) {
+		this.categoryIdSiteMap = categoryIdSiteMap;
+	}
+
+	public String getKeywords() {
+		return keywords;
+	}
+
+	public void setKeywords(String keywords) {
+		this.keywords = keywords;
+	}
+
+	public Map<Integer, Set<String>> getCategoryNameSiteMap() {
+		return categoryNameSiteMap;
+	}
+
+	public void setCategoryNameSiteMap(Map<Integer, Set<String>> categoryNameSiteMap) {
+		this.categoryNameSiteMap = categoryNameSiteMap;
+	}
 
 	public Boolean getCaliforniaDroughtCompliant() {
 		return californiaDroughtCompliant;

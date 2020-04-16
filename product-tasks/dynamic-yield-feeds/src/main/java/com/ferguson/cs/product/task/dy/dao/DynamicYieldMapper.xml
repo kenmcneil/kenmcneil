@@ -36,9 +36,76 @@
 		<result column="configuration" property="configuration" />
 		<result column="california_drought_compliant" property="californiaDroughtCompliant" />
 		<result column="site_ids" property="siteIds" />
+		<result column="encodedCategories" property="encodedCategories" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
+		-- =========================
+		-- Product Keys
+		-- =========================
+		drop table if exists #productKey
+		select distinct
+		product.uniqueId,
+		family.id as familyId,
+		mfg.name as manufacturer,
+		family.productId as productId
+		into #productKey
+		from mmc.product.product as product
+		inner join mmc.product.family as family on
+		family.id = product.familyId
+		inner join mmc.dbo.Manufacturer as mfg on
+		mfg.id = family.manufacturerId
+		inner join mmc.product.status as status on
+		status.id = product.statusId
+		where
+		status.status in ('stock','nonstock', 'discontinued')
+
+		create unique clustered index cix_productKey_uniqueid on
+		#productKey(uniqueid)
+
+		drop table if exists #familyKey
+		select distinct
+		familyId, Manufacturer, productid
+		into #familyKey
+		from #productKey
+		order by familyId
+
+		create unique clustered index cix_familyKey_familyId on
+		#familyKey(familyId)
+		create unique nonclustered index nix_familyKey_productId_manufacturer on
+		#familyKey (productid, manufacturer)
+
+		-- ========================
+		-- Get category data
+		-- ========================
+		drop table if exists #categoryProduct
+		select
+		family.familyId,
+		category.siteid,
+		category.categoryId,
+		category.categoryName,
+		category.metaIndex
+		into #categoryProduct
+		from mmc.dbo.category_products as productCategory
+		inner join MMC.dbo.PRD_CategoryV2 as category on
+		productCategory.CategoryID = category.CategoryID and
+		productCategory.siteId = category.siteid
+		inner join #familyKey as family on
+		family.productId = productCategory.productId and
+		family.manufacturer = productCategory.manufacturer
+		where category.metaindex = 0 and category.active = 'y'
+
+		drop table if exists #categoryInfo
+		select
+		familyId,
+		string_Agg(concat(
+		siteid, ':', categoryid, ':',
+		categoryName
+		),'|') as category
+		into #categoryInfo
+		from #categoryProduct
+		group by familyId
+
 		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
 			pbc.cost price, s.status [status], i.image,
 			f.productid model, m.name manufacturer,
@@ -51,7 +118,7 @@
 			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
 			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
 			attr.Configuration [configuration], sites.siteIds site_ids,
-		    bcat.base_category base_category, bc.name business_category,
+		    bcat.base_category base_category, bc.name business_category, ci.category encodedCategories,
 			IIF(EXISTS(
 				SELECT psr.id
 			   	FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
@@ -63,7 +130,17 @@
 							 open="(" separator="," close=")">
 						#{restrictionPolicyId}
 					</foreach>
-			), 0, 1) california_drought_compliant
+			), 0, 1) california_drought_compliant,
+			(
+				SELECT STRING_AGG(CAST(c.siteId AS varchar(max)
+				) + ':' + c.categoryname, '|') categoryNames
+				FROM mmc.dbo.product p
+				INNER JOIN mmc.dbo.category_products cp on p.productid = cp.productID and p.manufacturer = cp.manufacturer
+				INNER JOIN mmc.dbo.prd_categoryv2 c ON c.categoryid = cp.CategoryID AND cp.siteid = c.siteID
+				WHERE p.status = 'stock'
+				AND c.active ='y' AND c.metaIndex = 0
+				AND cp.productid = f.productid and cp.manufacturer = m.name
+			) encodedCategories
 		FROM mmc.product.product p (NOLOCK)
 		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
 		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
@@ -76,6 +153,7 @@
 		INNER JOIN mmc.product.typeApplication ta (NOLOCK) ON ta.id = tah.typeApplicationId
 		INNER JOIN mmc.product.[type] ty (NOLOCK) ON ty.id = ta.typeId
 		INNER JOIN mmc.product.[application] ap (NOLOCK) ON ap.id = ta.applicationId
+		LEFT OUTER JOIN #categoryInfo ci ON ci.familyid = f.id
 		LEFT OUTER JOIN mmc.product.series series (NOLOCK) ON f.seriesId = series.id
 		LEFT OUTER JOIN mmc.product.handletype ht (NOLOCK) ON ht.id = tah.handletypeId
 		LEFT OUTER JOIN mmc.dbo.product_ratings r (NOLOCK) ON f.id = r.product_composite_id
@@ -116,5 +194,9 @@
 			GROUP BY store.familyId
 		) sites ON f.id = sites.familyId
 		WHERE s.status IN ('stock', 'nonstock', 'discontinued') AND pbc.pricebookid = 1
+		AND m.name NOT IN
+		<foreach item="brand" index="0" collection="excludedBrands" open="(" separator="," close=")">
+			#{brand}
+		</foreach>
 	</select>
 </mapper>

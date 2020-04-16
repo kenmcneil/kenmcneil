@@ -1,6 +1,12 @@
 package com.ferguson.cs.product.task.dy.batch;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.item.ItemProcessor;
@@ -22,6 +28,8 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	@Override
 	public DynamicYieldProduct process(ProductData item) throws Exception {
 		DynamicYieldProduct dyProduct = new DynamicYieldProduct();
+		Map<Integer, Set<String>> categoryNameMap = new HashMap<>();
+		Map<Integer, List<Integer>> categoryIdMap = new HashMap<>();
 
 		if (isValidAndIncluded(item)) {
 			dyProduct.setSku(item.getSku());
@@ -67,6 +75,10 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setRelativePath(RELATIVE_PATH_STRING + item.getManufacturer().replaceAll(WHITE_SPACE_STRING, "") + '/'
 					+ item.getImage());
 
+			setCategoryMaps(item.getEncodedCategories(), categoryNameMap, categoryIdMap);
+			dyProduct.setCategoryNameSiteMap(categoryNameMap);
+			dyProduct.setCategoryIdSiteMap(categoryIdMap);
+
 			if (StringUtils.hasText(item.getHandletype())) {
 				dyProduct.setCategories(dyProduct.getCategories() + '|' + item.getHandletype());
 			}
@@ -75,6 +87,46 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		}
 
 		return dyProduct;
+	}
+
+	private void setCategoryMaps(String encodedCategories, Map<Integer, Set<String>> categoryNameMap,
+								 Map<Integer, List<Integer>> categoryIdMap) {
+
+		// Empty String nothing to do
+		if (!StringUtils.hasText(encodedCategories)) {
+			return;
+		}
+
+		String[] siteKeywords = encodedCategories.split("\\|");
+
+		// Incomplete encoded category nothing to do
+		if (siteKeywords.length < 1) {
+			return;
+		}
+
+		for (String siteKeyword : siteKeywords) {
+			// Empty keyword nothing to do
+			if (!StringUtils.hasText(siteKeyword)) {
+				continue;
+			}
+
+			String[] keyword = siteKeyword.split(":");
+
+			// invalid keyword nothing to do
+			if (keyword.length != 3) {
+				continue;
+			}
+
+			// fetch the categoryId
+			Integer categoryId = Integer.parseInt(keyword[0]);
+			// Add the key word and name
+			categoryIdMap
+					.computeIfAbsent(categoryId, k -> new ArrayList<>())
+					.add(Integer.parseInt(keyword[1]));
+			categoryNameMap
+					.computeIfAbsent(categoryId, k -> new HashSet<>())
+					.add(keyword[2].toLowerCase());
+		}
 	}
 
 	/**
