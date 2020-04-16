@@ -18,6 +18,7 @@ import org.springframework.core.io.Resource;
 import com.ferguson.cs.product.task.dy.domain.Site;
 import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
 import com.ferguson.cs.product.task.dy.model.DynamicYieldProduct;
+import com.ferguson.cs.product.task.dy.utility.DynamicYieldHelper;
 
 public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProduct> {
 
@@ -84,7 +85,10 @@ public class ProductDataSiteWriter implements ItemStreamWriter<DynamicYieldProdu
 		for (DynamicYieldProduct product : items) {
 			for (Integer siteId : product.getSiteIds()) {
 				List<DynamicYieldProduct> changeList = siteProducts.computeIfAbsent(siteId, k -> new ArrayList<>());
-				changeList.add(product);
+
+				//We need to get the categoryNames by site
+				DynamicYieldProduct finalProduct = DynamicYieldHelper.initializeDynamicYieldProduct(product, siteId);
+				changeList.add(finalProduct);
 			}
 		}
 

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 4L;
 
 	private Integer sku;
 	private Integer groupId;
@@ -38,6 +38,15 @@ public class ProductData implements Serializable {
 	private String baseCategory;
 	private String businessCategory;
 	private String siteIds;
+	private String encodedCategories;
+
+	public String getEncodedCategories() {
+		return encodedCategories;
+	}
+
+	public void setEncodedCategories(String encodedCategories) {
+		this.encodedCategories = encodedCategories;
+	}
 
 	public String getSiteIds() {
 		return siteIds;
