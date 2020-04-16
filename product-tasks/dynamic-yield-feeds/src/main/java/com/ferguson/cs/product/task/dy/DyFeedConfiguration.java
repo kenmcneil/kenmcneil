@@ -33,7 +33,7 @@ import com.jcraft.jsch.ChannelSftp;
 
 @Configuration
 public class DyFeedConfiguration {
-	private static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.dy.dao.core";
+	protected static final String CORE_BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.dy.dao.core";
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.dy.model";
 	private static final String SFTP_OUTBOUND_CHANNEL = "dyOutboundChannel";
 	private final DyFeedSettings dyFeedSettings;

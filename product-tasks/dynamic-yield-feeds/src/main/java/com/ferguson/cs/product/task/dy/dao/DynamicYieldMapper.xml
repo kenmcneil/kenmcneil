@@ -137,7 +137,7 @@
 				FROM mmc.dbo.product p
 				INNER JOIN mmc.dbo.category_products cp on p.productid = cp.productID and p.manufacturer = cp.manufacturer
 				INNER JOIN mmc.dbo.prd_categoryv2 c ON c.categoryid = cp.CategoryID AND cp.siteid = c.siteID
-				WHERE p.status IN ('stock' /*, 'nonstock', 'discontinued'*/)
+				WHERE p.status = 'stock'
 				AND c.active ='y' AND c.metaIndex = 0
 				AND cp.productid = f.productid and cp.manufacturer = m.name
 			) encodedCategories
