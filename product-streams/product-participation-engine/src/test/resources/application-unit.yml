@@ -1,0 +1,27 @@
+---
+
+participation-engine:
+  schedule-fixed-delay: -1
+  schedule-initial-delay: -1
+
+logging:
+  level:
+    ROOT: ERROR
+    org.springframework: WARN
+    org.springframework.cloud: INFO
+    org.springframework.web: INFO
+    com.build: DEBUG
+
+datasource:
+  core:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: 'Build12Dot24Cow!'
+
+  integration:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false
+    username: integration
+    password: 'N0f$d$2dWU$2d'
+

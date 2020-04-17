@@ -1,0 +1,82 @@
+= Test Scenarios
+:toc: left
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+:source-highlighter: coderay
+:sectnums:
+
+== Introduction
+
+This lists the scenarios covered by the ParticipationScenariosIT integration tests.
+
+There are two types of Participation records: The first simply allows setting the SaleId. The second built on the original version to add optional calculated discounts. Thus effectively, there is one participation type with one required effect (sale id) and one optional effect (calculated discounts).
+
+To support planned new effects and participation record types, the scenarios are grouped as follows:
+
+* Shared scenarios to test base features that are common among all participation types.
+* Scenarios that test specific Participation effects.
+
+Scenarios may be combined together to test specific combinations, such as "schedule + saleId + calculated discounts."
+
+See the link:system-overview.adoc#participation-effects-table[effects table] for details on effects.
+
+== Shared scenarios
+
+=== Basics
+
+==== Activation and deactivation process
+
+Test activating then deactivating with no schedule, no products, and no effects, to verify basic process works.
+
+.Expectations
+* Before activation
+** P.isActive is false
+* After activation
+** P.isActive is true
+* After deactivation
+** P.isActive is false
+
+==== Scheduling
+
+Test activating and deactivating Participations with various start and end date combinations:
+
+.Cases
+* no start date, no end date
+* no start date, end date
+* start date, no end date
+* start date, end date
+
+==== Sale ID
+
+Test the Sale ID effect.
+
+==== Calculated Discounts
+
+==== Overlapping Participations
+
+Participations are considered overlapping when they share products and are scheduled to be active at the same time.
+
+==== Test a short P1 overlapping a longer-running P2
+
+[source,text]
+P1 -------=====------------
+P2 --====================--
+
+* Expect that at activation P1 takes ownership of any of its products that are owned by P2 at activation time.
+* Expect at P1 deactivation P2 takes ownership back.
+
+
+
+== Participation Types
+
+Scenarios to test specific participation versions.
+
+=== Sale ID
+
+Test Sale ID effect for participation@{1.0.0, 1.1.0}
+
+
+=== Sale ID + Calculated Discounts (participation@1.1.0)
+

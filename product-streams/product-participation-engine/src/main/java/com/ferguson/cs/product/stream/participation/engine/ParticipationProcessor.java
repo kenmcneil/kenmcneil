@@ -23,6 +23,20 @@ public class ParticipationProcessor {
 	}
 
 	/**
+	 * Poll for new events and process each one.
+	 */
+	public void process() {
+		// Process pending user events.
+		// This is currently implemented as mongodb queries on the participationItem collection.
+		processPendingUnpublishes();
+
+		// Process pending time-based events for activation and deactivation.
+		// This is currently implemented as mongodb queries on the participationItem collection.
+		processPendingDeactivations();
+		processPendingActivations();
+	}
+
+	/**
 	 * Unpublish each participation that's pending unpublish.
 	 */
 	public void processPendingUnpublishes() {
