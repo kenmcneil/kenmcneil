@@ -143,6 +143,6 @@ public interface ParticipationMapper {
 	 */
 	int deleteParticipationItemPartialByParticipationId(Integer participationId);
 
-	// TODO remove currentPriorityParticipation code
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	void syncToCurrentPriorityParticipation();
 }

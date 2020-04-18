@@ -30,7 +30,7 @@ public class ParticipationProcessor {
 		while (item != null) {
 			try {
 				participationWriter.processUnpublish(item);
-				LOG.info("unpublished participation " + item.getId() + " to draft status");
+				LOG.info("unpublished participation {} to draft status", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + item.getId();
 				NewRelic.noticeError(errorMessage);

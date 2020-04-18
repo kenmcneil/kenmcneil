@@ -97,7 +97,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 		+ participationMapper.deleteParticipationItemPartialByParticipationId(participationId);
 	}
 
-	// TODO remove currentPriorityParticipation code
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	@Override
 	public void syncToCurrentPriorityParticipation() {
 		participationMapper.syncToCurrentPriorityParticipation();

@@ -4,8 +4,6 @@ logging:
   level:
     ROOT: ERROR
     org.springframework: WARN
-    org.springframework.cloud: INFO
-    org.springframework.web: INFO
 
 info:
   build:

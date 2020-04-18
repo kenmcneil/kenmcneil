@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
+import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Repository
 public class ParticipationItemRepositoryImpl implements ParticipationItemRepositoryCustom {
@@ -58,7 +60,8 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 	 */
 	@Override
 	@Nullable
-	public ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria) {
+	public ParticipationItem findParticipationItemEvent(@NonNull ParticipationItemSearchCriteria criteria) {
+		ArgumentAssert.notNull(criteria, "criteria");
 		Query query = new Query();
 		query.fields().include("id");
 		query.fields().include("lastModifiedUserId");

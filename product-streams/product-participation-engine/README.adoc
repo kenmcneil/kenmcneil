@@ -76,7 +76,7 @@ a|`-Dlogging.level.org.springframework.transaction.interceptor=TRACE`
 
 |Load Testing
 |Restrict records processed for load testing/development
-a|`-DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=5000` (only process records with id >= 5000)
+a|`-DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=50000` (only process records with id >= 50000)
 
 |Config source
 |Use a config repository branch
