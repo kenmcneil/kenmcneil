@@ -3,6 +3,8 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 import java.util.Collections;
 import java.util.Date;
 
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
@@ -11,6 +13,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
+import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Service
 public class ConstructServiceImpl implements ConstructService {
@@ -52,10 +55,13 @@ public class ConstructServiceImpl implements ConstructService {
 	@Override
 	public void updateParticipationItemStatus(
 			int participationId,
-			ParticipationItemStatus status,
-			ParticipationItemUpdateStatus updateStatus,
+			@NonNull ParticipationItemStatus status,
+			@Nullable ParticipationItemUpdateStatus updateStatus,
 			Date processingDate
 	) {
+		ArgumentAssert.notNull(status, "status");
+		ArgumentAssert.notNull(processingDate, "processingDate");
+
 		// update the participation record
 		participationItemRepository.updateParticipationItemStatus(
 				participationId, status, updateStatus,

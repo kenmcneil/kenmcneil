@@ -31,9 +31,9 @@ Load testing is important to do before releasing database structure changes or m
 Use the load test configuration properties when running the engine:
 
 [source%nowrap]
--DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=5000
+-DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=50000
 
-The docs below use 5000 for the min value--modify if desired.
+The docs below use 50000 for the min value--modify if desired.
 
 === Clear testing data from SQL tables
 
@@ -42,39 +42,39 @@ Delete test data before running each test to avoid data from any previous runs i
 .SQL queries to clear test data
 [source,sql]
 ----
--- Clear all Participation data for participations with id >= 5000
+-- Clear all Participation data for participations with id >= 50000
 -- and reset any modified prices or other data.
 
 DELETE
 FROM mmc.product.currentPriorityParticipation
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 DELETE
 FROM mmc.product.participationTracking
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 DELETE
 FROM mmc.product.participationProduct
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 DELETE
 FROM mmc.product.participationCalculatedDiscount
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 DELETE
 FROM mmc.product.participationItemPartial
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 UPDATE
 mmc.product.sale
 SET saleId = 0
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 
 -- reset any prices on sale to off-sale values
 UPDATE
 mmc.dbo.Pricebook_Cost
 SET Cost = basePrice
-WHERE participationId >= 5000
+WHERE participationId >= 50000
 AND Cost <> basePrice
 
 DELETE plos
@@ -82,7 +82,7 @@ FROM mmc.product.participationLastOnSale plos
 INNER JOIN mmc.dbo.Pricebook_Cost pbc
 ON plos.uniqueId = pbc.uniqueId
 AND plos.PriceBookId = pbc.PricebookId
-AND pbc.participationId >= 5000
+AND pbc.participationId >= 50000
 WHERE 1=1
 ----
 

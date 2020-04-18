@@ -16,9 +16,9 @@ function random() {
 	return x - Math.floor(x);
 }
 
-var newId = 5000;
+var newId = 50000;
 
-db.participationItem.remove({ _id: { $gte: 5000 } });
+db.participationItem.remove({ _id: { $gte: 50000 } });
 
 db.loadTestUnalteredData
 	.find()

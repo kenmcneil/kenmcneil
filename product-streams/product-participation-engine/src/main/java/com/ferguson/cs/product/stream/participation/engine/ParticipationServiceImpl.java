@@ -39,36 +39,36 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: updating {} products for activation", participationId, rowsAffected);
 
 		rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
-		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
 		rowsAffected = participationDao.removeProductOwnershipForOldOwners(participationId);
-		LOG.debug("{}: {} products dis-owned from other participations", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} products dis-owned from other participations", participationId, rowsAffected);
 
 		rowsAffected = participationDao.updateProductSaleIds(participationId);
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
 
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
 
 		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate new discounts (if any)
 		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
 		// update modified date on each product modified
 		rowsAffected = participationDao.updateProductModifiedDates(processingDate, userId);
-		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
-		// TODO remove currentPriorityParticipation code
+		// TODO remove currentPriorityParticipation code (see SODEV-25037)
 		participationDao.syncToCurrentPriorityParticipation();
 
 		LOG.debug("{}: {} total rows updated to activate", participationId, totalRows);
@@ -82,49 +82,49 @@ public class ParticipationServiceImpl implements ParticipationService {
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, false);
-		LOG.debug("==== deactivating participation {} ====", participationId);
 		totalRows += rowsAffected;
+		LOG.debug("==== deactivating participation {} ====", participationId);
 
 		// determine what products are changing ownership and store into temp table
 		rowsAffected = participationDao.updateOwnerChangesForDeactivation(participationId);
-		LOG.debug("{}: updating {} products for deactivation", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: updating {} products for deactivation", participationId, rowsAffected);
 
 		// assign ownership of each unique id to any active fallback participations,
 		// but don't bother to disown from deactivating participation since it will be deleted at the end
 		rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
-		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
 		// update sale ids to fallback participations or to zeros
 		rowsAffected = participationDao.updateProductSaleIds(participationId);
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
 
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
 
 		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate fallback discounts (if any)
 		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
 		// update modified date on each product modified
 		rowsAffected = participationDao.updateProductModifiedDates(processingDate, userId);
-		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
 		// remove all records for this participation
 		rowsAffected = participationDao.deleteParticipation(participationId);
-		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
 		totalRows += rowsAffected;
+		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
 
-		// TODO remove currentPriorityParticipation code
+		// TODO remove currentPriorityParticipation code (see SODEV-25037)
 		participationDao.syncToCurrentPriorityParticipation();
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, totalRows);

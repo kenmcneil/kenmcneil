@@ -5,9 +5,9 @@
  * 		mongo mongodb-dev-1.build.internal:27017/core make-participation-fixtures.js
  */
 
-var newId = 5000;
+var newId = 50000;
 
-db.participationItem.remove({ _id: { $gte: 5000 } });
+db.participationItem.remove({ _id: { $gte: 50000 } });
 
 // This relies on the records in the loadTestUnalteredData collection in the dev database.
 // TODO Create new Participation records here instead of copying from this collection...

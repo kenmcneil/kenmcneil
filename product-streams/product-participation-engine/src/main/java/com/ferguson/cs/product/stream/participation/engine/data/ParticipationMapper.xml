@@ -311,7 +311,7 @@
 	</delete>
 
 	<insert id="syncToCurrentPriorityParticipation">
-		-- TODO remove currentPriorityParticipation code
+		-- TODO remove currentPriorityParticipation code (see SODEV-25037)
 		-- Keep currentPriorityParticipation up to date for things still using it.
 		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
 		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
