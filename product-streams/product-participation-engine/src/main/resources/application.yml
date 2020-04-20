@@ -1,0 +1,24 @@
+---
+
+logging:
+  level:
+    ROOT: ERROR
+    org.springframework: WARN
+
+info:
+  build:
+    artifact: "@project.build.finalName@"
+    version: "@project.version@"
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /app
+      exposure:
+        include: loggers,health
+  endpoint:
+    health:
+      enabled: true
+    loggers:
+      enabled: true
