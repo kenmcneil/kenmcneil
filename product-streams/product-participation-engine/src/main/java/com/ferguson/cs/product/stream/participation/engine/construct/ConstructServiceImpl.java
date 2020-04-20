@@ -3,8 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 import java.util.Collections;
 import java.util.Date;
 
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
