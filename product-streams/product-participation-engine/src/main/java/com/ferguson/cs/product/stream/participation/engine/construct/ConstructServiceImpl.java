@@ -55,8 +55,8 @@ public class ConstructServiceImpl implements ConstructService {
 	@Override
 	public void updateParticipationItemStatus(
 			int participationId,
-			@NonNull ParticipationItemStatus status,
-			@Nullable ParticipationItemUpdateStatus updateStatus,
+			ParticipationItemStatus status,
+			ParticipationItemUpdateStatus updateStatus,
 			Date processingDate
 	) {
 		ArgumentAssert.notNull(status, "status");

@@ -59,8 +59,7 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 	 * since those are the only needed values.
 	 */
 	@Override
-	@Nullable
-	public ParticipationItem findParticipationItemEvent(@NonNull ParticipationItemSearchCriteria criteria) {
+	public ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria) {
 		ArgumentAssert.notNull(criteria, "criteria");
 		Query query = new Query();
 		query.fields().include("id");

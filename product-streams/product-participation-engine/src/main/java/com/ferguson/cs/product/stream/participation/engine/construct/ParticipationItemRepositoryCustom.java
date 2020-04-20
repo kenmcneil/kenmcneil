@@ -30,6 +30,5 @@ public interface ParticipationItemRepositoryCustom {
 	 * @param criteria {@link ParticipationItemSearchCriteria} The criteria by which to filter results.
 	 * @return A {@link ParticipationItem} or null if none found.
 	 */
-	@Nullable
-	ParticipationItem findParticipationItemEvent(@NonNull ParticipationItemSearchCriteria criteria);
+	ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria);
 }
