@@ -2,9 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.Date;
 
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
@@ -30,6 +27,5 @@ public interface ParticipationItemRepositoryCustom {
 	 * @param criteria {@link ParticipationItemSearchCriteria} The criteria by which to filter results.
 	 * @return A {@link ParticipationItem} or null if none found.
 	 */
-	@Nullable
-	ParticipationItem findParticipationItemEvent(@NonNull ParticipationItemSearchCriteria criteria);
+	ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria);
 }

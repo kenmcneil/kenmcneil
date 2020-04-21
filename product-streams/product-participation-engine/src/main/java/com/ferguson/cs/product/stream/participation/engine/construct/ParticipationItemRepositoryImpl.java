@@ -8,8 +8,6 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
@@ -59,8 +57,7 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 	 * since those are the only needed values.
 	 */
 	@Override
-	@Nullable
-	public ParticipationItem findParticipationItemEvent(@NonNull ParticipationItemSearchCriteria criteria) {
+	public ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria) {
 		ArgumentAssert.notNull(criteria, "criteria");
 		Query query = new Query();
 		query.fields().include("id");
