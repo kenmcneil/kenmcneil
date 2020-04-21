@@ -19,9 +19,3 @@ datasource:
     username: wbsrvr_mmc
     password: 'Build12Dot24Cow!'
 
-  integration:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false
-    username: integration
-    password: 'N0f$d$2dWU$2d'
-

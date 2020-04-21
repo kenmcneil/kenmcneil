@@ -3,9 +3,7 @@ package com.ferguson.cs.product.stream.participation.engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ParticipationEngineTask {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationEngineTask.class);
 

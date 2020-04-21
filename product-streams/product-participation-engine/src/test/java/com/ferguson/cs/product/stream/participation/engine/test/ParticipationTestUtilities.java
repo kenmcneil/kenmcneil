@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -222,6 +223,7 @@ public class ParticipationTestUtilities {
 //		totalActiveParticipationToUpddate = 2; // # of Participation with status NEEDS_UPDATE
 //	}
 
+	@Autowired
 	public JdbcTemplate jdbcTemplate;
 
 	public Integer firstTemplateId;
@@ -238,10 +240,6 @@ public class ParticipationTestUtilities {
 
 	public static Date toDate(LocalDate localDate) {
 		return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-	}
-
-	public ParticipationTestUtilities(JdbcTemplate jdbcTemplate) {
-
 	}
 
 	public void insertParticipation(ParticipationItemFixture item) {

@@ -1,27 +1,24 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationEngineIT;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@SpringBootApplication(scanBasePackages= {"com.ferguson.cs.product.stream.participation.engine"})
-@Transactional
 public class ParticipationDaoIT extends BaseParticipationEngineIT {
 	@Autowired
-	ParticipationDao participationDao;
+	public ParticipationDao participationDao;
 
 	@Test
 	public void setParticipationIsActive_active_inactive() {
-//		ParticipationItemFixture values = new ParticipationItemFixture();
-//		values.setParticipationId(5000);
-//		values.setIsActive(false);
-//		insertParticipation(values);
-//		int rowsModified = participationDao.setParticipationIsActive(5000, true);
-//		Assertions.assertThat(rowsModified).isEqualTo(1);
+		ParticipationItemFixture values = new ParticipationItemFixture();
+		values.setParticipationId(50000);
+		values.setSaleId(2020);
+		values.setIsActive(false);
+		participationTestUtilities.insertParticipation(values);
+		int rowsModified = participationDao.setParticipationIsActive(50000, true);
+		Assertions.assertThat(rowsModified).isEqualTo(1);
 	}
 }

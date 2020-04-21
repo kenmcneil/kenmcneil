@@ -44,7 +44,7 @@ public class ParticipationProcessor {
 		while (item != null) {
 			try {
 				participationWriter.processUnpublish(item);
-				LOG.info("unpublished participation {} to draft status", item.getId());
+				LOG.info("participation {} unpublished to draft status", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + item.getId();
 				NewRelic.noticeError(errorMessage);
@@ -63,7 +63,7 @@ public class ParticipationProcessor {
 		while (item != null) {
 			try {
 				participationWriter.processActivation(item);
-				LOG.info("activated participation {}", item.getId());
+				LOG.info("participation {} activated by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + item.getId();
 				NewRelic.noticeError(errorMessage);
@@ -82,7 +82,7 @@ public class ParticipationProcessor {
 		while (item != null) {
 			try {
 				participationWriter.processDeactivation(item);
-				LOG.info("deactivated participation {} to archived status", item.getId());
+				LOG.info("participation {} deactivated and archived by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error deactivating participation " + item.getId();
 				NewRelic.noticeError(errorMessage);

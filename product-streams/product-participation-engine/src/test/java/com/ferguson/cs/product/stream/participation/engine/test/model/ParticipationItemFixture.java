@@ -20,8 +20,10 @@ public class ParticipationItemFixture {
 	private Integer startDateOffsetDays;
 	private Integer endDateOffsetDays;
 	private Integer userId;
-	private Boolean isActive;
-	private Integer saleId;
+	@Builder.Default
+	private Boolean isActive = false;
+	@Builder.Default
+	private Integer saleId = 0;
 	private List<Integer> uniqueIds;
 	private List<ParticipationCalculatedDiscountsFixture> calculatedDiscounts;
 
