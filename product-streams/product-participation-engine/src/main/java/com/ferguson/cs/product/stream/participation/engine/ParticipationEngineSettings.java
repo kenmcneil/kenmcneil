@@ -1,10 +1,8 @@
 package com.ferguson.cs.product.stream.participation.engine;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @ConfigurationProperties("participation-engine")
-@EnableScheduling
 public class ParticipationEngineSettings {
 	/** This user id is used to attribute changes made by the engine in event logs. */
 	private Integer taskUserId;
