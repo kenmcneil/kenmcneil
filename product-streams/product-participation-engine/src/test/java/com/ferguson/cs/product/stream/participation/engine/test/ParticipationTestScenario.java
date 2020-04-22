@@ -139,11 +139,11 @@ public class ParticipationTestScenario {
 		while (currentSimulatedDate.getTime() < futureDate.getTime()) {
 			processEventsAtCurrentSimulatedDate();
 
-			// advance by a day
+			// Advance by a day.
 			currentSimulatedDate = new Date(currentSimulatedDate.getTime() + TimeUnit.DAYS.toMillis(1));
 		}
 
-		// already incremented by day up to futureDate, now set current date to the exact future date given.
+		// Already incremented by day up to futureDate, now set current date to the exact future date given.
 		currentSimulatedDate = futureDate;
 	}
 
@@ -151,19 +151,18 @@ public class ParticipationTestScenario {
 	 * Process all currently pending user events and process any time-based events on the given day.
 	 */
 	private void processEventsAtCurrentSimulatedDate() {
-		// Use when(...) withPassthrough to get called when about to activate a participation,
-		// then call each mixin's beforeActivation,
-		// then activate, then call each mixin's afterActivation,
-		// ...
+		// To Do
+		// - Hook into methods called for various state transitions, in order to call Ingredient
+		//   lifecycle methods (beforeActivation, ...), which will verify state.
 
 		int unpublishQueueSize = pendingUnpublishParticipationQueue.size();
 
 		participationProcessor.process();
 
-		// verify unpublish event queue is empty now
+		// Verify unpublish event queue is empty now.
 		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
 
-		// verify that mongo update status was called once for each event that was in the pendingUnpublishParticipationQueue
+		// Verify that mongo update status was called once for each event that was in the pendingUnpublishParticipationQueue.
 		verify(constructService, times(unpublishQueueSize)).updateParticipationItemStatus(
 				anyInt(), eq(ParticipationItemStatus.DRAFT), isNull(), any(Date.class));
 	}
@@ -177,7 +176,7 @@ public class ParticipationTestScenario {
 	private void simulatePublishEvent(ParticipationItemFixture fixture) {
 		// If day offsets were used, convert to actual dates based on the current run date.
 		if (fixture.getStartDateOffsetDays() != null) {
-			// set start date to the beginning of the day
+			// Set start date to the beginning of the day.
 			fixture.setStartDate(Date.from(
 					LocalDate
 							.from(currentSimulatedDate.toInstant())
@@ -187,7 +186,7 @@ public class ParticipationTestScenario {
 		}
 
 		if (fixture.getEndDateOffsetDays() != null) {
-			// set end date to the end of the day
+			// Set end date to the end of the day.
 			fixture.setEndDate(Date.from(
 					LocalDate
 							.from(currentSimulatedDate.toInstant())

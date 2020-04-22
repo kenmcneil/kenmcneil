@@ -35,16 +35,17 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	public ParticipationProcessor participationProcessor;
 
 	/**
-	 * Set up dependencies.
+	 * Set up dependencies and wire up classes manually.
 	 *
 	 * No mocking/spying needed:
 	 *      ParticipationDao
+	 *      participationService
 	 *
 	 * Mock entire class
 	 *      ConstructService
 	 *
 	 * Spy on class to override specific methods
-	 *      ParticipationService
+	 *      participationProcessor
 	 *
 	 */
 	@Before
@@ -70,7 +71,7 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	 *          - mongo event record is added
 	 *      - verify the data for the participation is removed from sql
 	 */
-    @Test
+	@Test
 	public void engine_basicPublishAndUnpublish() {
 		// Make fixture participation with no schedule and no effects.
 	    // Currently saleId is required because it's not a nullable value in the database.

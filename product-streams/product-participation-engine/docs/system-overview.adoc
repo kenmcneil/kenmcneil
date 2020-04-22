@@ -56,7 +56,7 @@ When an effect activates and changes a pricebook price, the price and base price
 
 .System Diagram
 (diagram under construction)
-image::participation-lifecycle.png[Participations Architecture Diagram]
+//image::participation-lifecycle.png[Participations Architecture Diagram]
 
 == Components
 
