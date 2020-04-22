@@ -44,7 +44,8 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	 * Mock entire class
 	 *      ConstructService
 	 *
-	 * Spy on class to override specific methods
+	 * Spy on class to override specific methods or do things before/after a method is called
+	 *      participationWriter
 	 *      participationProcessor
 	 *
 	 */
@@ -54,7 +55,7 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 		MockitoAnnotations.initMocks(this);
 
 		participationService = new ParticipationServiceImpl(participationDao);
-		participationWriter = new ParticipationWriter(participationService, constructService);
+		participationWriter = spy(new ParticipationWriter(participationService, constructService));
 		participationProcessor = spy(new ParticipationProcessor(constructService, participationWriter));
 	}
 

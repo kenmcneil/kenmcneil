@@ -13,8 +13,10 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +51,7 @@ public class ParticipationTestScenario {
 	private Date currentSimulatedDate;
 
 	private List<ParticipationScenarioIngredient> ingredients;
+	private Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	private Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 
 	public ParticipationTestScenario(
@@ -73,6 +76,23 @@ public class ParticipationTestScenario {
 
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
+
+		// Whenever processUnpublish is called, first call beforeUnpublish for each ingredient.
+		// After real method is called, call afterUnpublish for each ingredient.
+		doAnswer(invocation -> {
+			beforeUnpublish(invocation.getArgument(0), invocation.getArgument(1));
+			invocation.callRealMethod();
+			afterUnpublish(invocation.getArgument(0), invocation.getArgument(1));
+			return null;
+		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
+	}
+
+	public void beforeUnpublish(ParticipationItem item, Date processingDate) {
+		ingredients.forEach(ingredient -> ingredient.beforeUnpublish(item, processingDate));
+	}
+
+	public void afterUnpublish(ParticipationItem item, Date processingDate) {
+		ingredients.forEach(ingredient -> ingredient.beforeUnpublish(item, processingDate));
 	}
 
 	public ParticipationTestScenario ingredients(ParticipationScenarioIngredient... params) {
@@ -94,10 +114,18 @@ public class ParticipationTestScenario {
 	}
 
 	/**
+	 * Keep track of fixtures used so they may be accessed by ingredients for verification.
+	 */
+	public void rememberFixture(ParticipationItemFixture fixture) {
+		fixtures.putIfAbsent(fixture.getParticipationId(), fixture);
+	}
+
+	/**
 	 * Publish the given Participation record. The Participation record is represented
 	 * by a ParticipationItemFixture object to make it easy to create test fixture data.
 	 */
 	public ParticipationTestScenario createUserPublishEvent(ParticipationItemFixture fixture) {
+		rememberFixture(fixture);
 		simulatePublishEvent(fixture);
 		return this;
 	}

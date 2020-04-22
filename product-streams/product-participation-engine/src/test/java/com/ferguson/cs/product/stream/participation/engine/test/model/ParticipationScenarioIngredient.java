@@ -2,6 +2,11 @@ package com.ferguson.cs.product.stream.participation.engine.test.model;
 
 import java.util.Date;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+
 public interface ParticipationScenarioIngredient {
-	void beforeActivation(ParticipationItemFixture p, Date runDate);
+
+	void beforeUnpublish(ParticipationItem item, Date processingDate);
+
+	void afterUnpublish(ParticipationItem item, Date processingDate);
 }
