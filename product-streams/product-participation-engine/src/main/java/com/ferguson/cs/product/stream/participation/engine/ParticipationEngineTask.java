@@ -24,13 +24,6 @@ public class ParticipationEngineTask {
 	@Scheduled(fixedDelayString = "${participation-engine.schedule-fixed-delay:60000}",
 			initialDelayString = "${participation-engine.schedule-initial-delay:2000}")
 	public void pollForEvents() {
-		// Process pending user events.
-		// This is currently implemented as mongodb queries on the participationItem collection.
-		participationProcessor.processPendingUnpublishes();
-
-		// Process pending time-based events for activation and deactivation.
-		// This is currently implemented as mongodb queries on the participationItem collection.
-		participationProcessor.processPendingDeactivations();
-		participationProcessor.processPendingActivations();
+		participationProcessor.process();
 	}
 }
