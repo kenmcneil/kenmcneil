@@ -5,8 +5,11 @@ import javax.annotation.Resource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.LocalCacheScope;
 import org.apache.ibatis.session.SqlSessionFactory;
+<<<<<<< HEAD
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
+=======
+>>>>>>> 4a36add7d9b0514a26795daa328c550fe60ed757
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,12 +36,15 @@ public abstract class BaseParticipationEngineIT extends BaseTest {
 	@Autowired
 	public ParticipationTestUtilities participationTestUtilities;
 
+<<<<<<< HEAD
 	@Before
 	public void before() {
 		disableLocalCache();
 		MockitoAnnotations.initMocks(this);
 	}
 
+=======
+>>>>>>> 4a36add7d9b0514a26795daa328c550fe60ed757
 	@TestConfiguration
 	public static class ParticipationTestConfiguration {
 		@Bean
