@@ -2,7 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine;
 
 import java.util.Date;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
 	private final ParticipationDao participationDao;
 
-	ParticipationServiceImpl(ParticipationDao participationDao) {
+	public ParticipationServiceImpl(ParticipationDao participationDao) {
 		this.participationDao = participationDao;
 	}
 
@@ -135,7 +134,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void unpublishParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
 
-		if (BooleanUtils.isTrue(participationDao.getParticipationIsActive(participationId))) {
+		if (participationDao.getParticipationIsActive(participationId)) {
 			// deactivate, which also deletes the participation records
 			deactivateParticipation(item, processingDate);
 		} else {

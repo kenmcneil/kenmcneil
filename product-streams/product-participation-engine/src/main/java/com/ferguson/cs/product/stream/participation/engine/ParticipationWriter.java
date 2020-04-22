@@ -19,8 +19,7 @@ public class ParticipationWriter {
 	}
 
 	@Transactional
-	public void processUnpublish(ParticipationItem item) {
-		Date processingDate = new Date();
+	public void processUnpublish(ParticipationItem item, Date processingDate) {
 		participationService.unpublishParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),
@@ -31,8 +30,7 @@ public class ParticipationWriter {
 	}
 
 	@Transactional
-	public void processActivation(ParticipationItem item) {
-		Date processingDate = new Date();
+	public void processActivation(ParticipationItem item, Date processingDate) {
 		participationService.activateParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),
@@ -43,8 +41,7 @@ public class ParticipationWriter {
 	}
 
 	@Transactional
-	public void processDeactivation(ParticipationItem item) {
-		Date processingDate = new Date();
+	public void processDeactivation(ParticipationItem item, Date processingDate) {
 		participationService.deactivateParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),

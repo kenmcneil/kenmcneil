@@ -8,12 +8,12 @@ import org.springframework.stereotype.Repository;
 public class ParticipationDaoImpl implements ParticipationDao {
 	private ParticipationMapper participationMapper;
 
-	ParticipationDaoImpl(ParticipationMapper participationMapper) {
+	public ParticipationDaoImpl(ParticipationMapper participationMapper) {
 		this.participationMapper = participationMapper;
 	}
 
 	@Override
-	public Boolean getParticipationIsActive(Integer participationId) {
+	public boolean getParticipationIsActive(Integer participationId) {
 		return participationMapper.getParticipationIsActive(participationId);
 	}
 

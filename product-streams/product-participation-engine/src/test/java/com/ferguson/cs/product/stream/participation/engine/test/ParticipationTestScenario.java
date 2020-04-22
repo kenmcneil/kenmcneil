@@ -1,8 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.test;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,16 +19,13 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
-import org.mockito.InjectMocks;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioIngredient;
 
@@ -36,22 +37,12 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
  * of a specific feature such as a Participation effect.
  */
 public class ParticipationTestScenario {
-	@MockBean
-	public ConstructService constructService;
-
-	@MockBean
-	public ParticipationService participationService;
-
-	@MockBean
-	public ParticipationWriter participationWriter;
-
-	@InjectMocks
-	public ParticipationProcessor participationProcessor;
-
-	@Autowired
-	public ParticipationDao participationDao;
-
-	@Autowired
+	// These must be mocked/injected in the test class that uses this class, and passed
+	// to the constructor.
+	private ConstructService constructService;
+	private ParticipationService participationService;
+	private ParticipationProcessor participationProcessor;
+	private ParticipationWriter participationWriter;
 	private ParticipationTestUtilities participationTestUtilities;
 
 	private Date originalSimulatedDate;
@@ -60,15 +51,28 @@ public class ParticipationTestScenario {
 	private List<ParticipationScenarioIngredient> ingredients;
 	private Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 
-	public ParticipationTestScenario() {
-		// Replace polling the database with polling the scenarios's test queue.
-		when(constructService.getNextPendingUnpublishParticipation()).thenAnswer(i -> pendingUnpublishParticipationQueue.poll());
+	public ParticipationTestScenario(
+			ConstructService constructService,
+			ParticipationService participationService,
+			ParticipationProcessor participationProcessor,
+			ParticipationWriter participationWriter,
+			ParticipationTestUtilities participationTestUtilities
+	) {
+		this.constructService = constructService;
+		this.participationService = participationService;
+		this.participationProcessor = participationProcessor;
+		this.participationWriter = participationWriter;
+		this.participationTestUtilities = participationTestUtilities;
+	}
 
-		// When unpublishParticipation is called, replace the original date with the simulated date.
-		doAnswer(invocation -> {
-			participationService.unpublishParticipation(invocation.getArgument(0), currentSimulatedDate);
-			return null;
-		}).when(participationService).unpublishParticipation(any(ParticipationItem.class), any(Date.class));
+	public void setupMocks() {
+		// Replace polling the database with polling the scenarios's test queue.
+		doAnswer(invocation -> pendingUnpublishParticipationQueue.poll())
+				.when(constructService)
+				.getNextPendingUnpublishParticipation();
+
+		// Whenever a processing date is requested, return the simulated date.
+		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
 	}
 
 	public ParticipationTestScenario ingredients(ParticipationScenarioIngredient... params) {
@@ -116,7 +120,7 @@ public class ParticipationTestScenario {
 	 * advancing time.
 	 */
 	public ParticipationTestScenario processEvents() {
-		processEventsOn(currentSimulatedDate);
+		processEventsAtCurrentSimulatedDate();
 		return this;
 	}
 
@@ -126,37 +130,42 @@ public class ParticipationTestScenario {
 	 * for any time in that day are processed.
 	 */
 	private void processEventsUpTo(Date futureDate) {
-		Date endOfDayDate = Date.from(
+		currentSimulatedDate = Date.from(
 				LocalDate
 						.from(currentSimulatedDate.toInstant())
 						.plusDays(1)
 						.atStartOfDay(ZoneId.systemDefault())
-						.toInstant()
-		);
-		while (endOfDayDate.getTime() < futureDate.getTime()) {
-			processEventsOn(endOfDayDate);
+						.toInstant());
+		while (currentSimulatedDate.getTime() < futureDate.getTime()) {
+			processEventsAtCurrentSimulatedDate();
 
 			// advance by a day
-			endOfDayDate = new Date(endOfDayDate.getTime() + TimeUnit.DAYS.toMillis(1));
+			currentSimulatedDate = new Date(currentSimulatedDate.getTime() + TimeUnit.DAYS.toMillis(1));
 		}
 
-		// already incremented by day to futureDate, set current date to the exact future date given.
+		// already incremented by day up to futureDate, now set current date to the exact future date given.
 		currentSimulatedDate = futureDate;
 	}
 
 	/**
 	 * Process all currently pending user events and process any time-based events on the given day.
 	 */
-	private void processEventsOn(Date simulatedDate) {
+	private void processEventsAtCurrentSimulatedDate() {
 		// Use when(...) withPassthrough to get called when about to activate a participation,
 		// then call each mixin's beforeActivation,
 		// then activate, then call each mixin's afterActivation,
 		// ...
 
-		// set the simulated date
+		int unpublishQueueSize = pendingUnpublishParticipationQueue.size();
 
 		participationProcessor.process();
 
+		// verify unpublish event queue is empty now
+		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
+
+		// verify that mongo update status was called once for each event that was in the pendingUnpublishParticipationQueue
+		verify(constructService, times(unpublishQueueSize)).updateParticipationItemStatus(
+				anyInt(), eq(ParticipationItemStatus.DRAFT), isNull(), any(Date.class));
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package com.ferguson.cs.product.stream.participation.engine;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +22,10 @@ public class ParticipationProcessor {
 	public ParticipationProcessor(ConstructService constructService, ParticipationWriter participationWriter) {
 		this.constructService = constructService;
 		this.participationWriter = participationWriter;
+	}
+
+	public Date getProcessingDate() {
+		return new Date();
 	}
 
 	/**
@@ -43,7 +49,7 @@ public class ParticipationProcessor {
 		ParticipationItem item = constructService.getNextPendingUnpublishParticipation();
 		while (item != null) {
 			try {
-				participationWriter.processUnpublish(item);
+				participationWriter.processUnpublish(item, getProcessingDate());
 				LOG.info("participation {} unpublished to draft status", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + item.getId();
@@ -62,7 +68,7 @@ public class ParticipationProcessor {
 		ParticipationItem item = constructService.getNextPendingActivationParticipation();
 		while (item != null) {
 			try {
-				participationWriter.processActivation(item);
+				participationWriter.processActivation(item, getProcessingDate());
 				LOG.info("participation {} activated by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + item.getId();
@@ -81,7 +87,7 @@ public class ParticipationProcessor {
 		ParticipationItem item = constructService.getNextPendingDeactivationParticipation();
 		while (item != null) {
 			try {
-				participationWriter.processDeactivation(item);
+				participationWriter.processDeactivation(item, getProcessingDate());
 				LOG.info("participation {} deactivated and archived by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error deactivating participation " + item.getId();

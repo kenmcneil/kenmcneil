@@ -18,7 +18,7 @@ public interface ParticipationDao {
 	 * @param participationId The id of a participation.
 	 * @return Returns true if a participation is currently active, else false.
 	 */
-	Boolean getParticipationIsActive(Integer participationId);
+	boolean getParticipationIsActive(Integer participationId);
 
 	// ACTIVATION
 

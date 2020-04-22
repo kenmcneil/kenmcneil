@@ -243,14 +243,17 @@ public class ParticipationTestUtilities {
 	}
 
 	public void insertParticipation(ParticipationItemFixture item) {
+		// Insert participationItemPartial record.
+		// Default to test user id if none specified.
 		jdbcTemplate.update(INSERT_PARTICIPATION_ITEM_PARTIAL_SQL,
 				item.getParticipationId(),
 				item.getSaleId(),
 				item.getStartDate(),
 				item.getEndDate(),
-				item.getUserId(),
+				item.getUserId() == null ? TEST_USERID : item.getUserId(),
 				item.getIsActive());
 
+		// Insert any participationProduct records.
 		if (!CollectionUtils.isEmpty(item.getUniqueIds())) {
 			for (Integer uId : item.getUniqueIds()){
 				jdbcTemplate.update(INSERT_PARTICIPATION_PRODUCT, item.getParticipationId(), uId, false);
@@ -261,8 +264,9 @@ public class ParticipationTestUtilities {
 			firstTemplateId = jdbcTemplate.queryForObject(SELECT_FIRST_CALCULATED_DISCOUNT_TEMPLATE, Integer.class);
 		}
 
+		// Insert any participationCalculatedDiscount records.
 		if (!CollectionUtils.isEmpty(item.getCalculatedDiscounts())) {
-			for (ParticipationCalculatedDiscountsFixture discount: item.getCalculatedDiscounts()){
+			for (ParticipationCalculatedDiscountsFixture discount: item.getCalculatedDiscounts()) {
 				jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
 						item.getParticipationId(),
 						discount.getPricebookId(),
