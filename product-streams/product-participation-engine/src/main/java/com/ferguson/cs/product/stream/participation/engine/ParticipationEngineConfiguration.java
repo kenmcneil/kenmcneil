@@ -12,13 +12,22 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
 	@Bean
-	public ParticipationWriter participationWriter(ParticipationService participationService, ConstructService constructService) {
+	public ParticipationWriter participationWriter(
+			ParticipationService participationService,
+			ConstructService constructService
+	) {
 		return new ParticipationWriter(participationService, constructService);
 	}
 
 	@Bean
-	public ParticipationProcessor participationProcessor(ConstructService constructService, ParticipationWriter participationWriter) {
-		return new ParticipationProcessor(constructService, participationWriter);
+	public ParticipationProcessor participationProcessor(
+			ParticipationEngineSettings participationEngineSettings,
+			ConstructService constructService,
+			ParticipationService participationService,
+			ParticipationWriter participationWriter
+	) {
+		return new ParticipationProcessor(
+				participationEngineSettings, constructService, participationService, participationWriter);
 	}
 
 	@Bean

@@ -10,21 +10,10 @@ public interface ConstructService {
 
 	/**
 	 * Query for and return a participation that is pending unpublish. Return null if none found.
+	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 * This is a user-initiated event.
 	 */
-	ParticipationItem getNextPendingUnpublishParticipation();
-
-	/**
-	 * Query for and return a participation that is pending activation. Return null if none found.
-	 * This is a time-based event.
-	 */
-	ParticipationItem getNextPendingActivationParticipation();
-
-	/**
-	 * Query for and return a participation that is pending deactivation. Return null if none found.
-	 * This is a time-based event.
-	 */
-	ParticipationItem getNextPendingDeactivationParticipation();
+	ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId);
 
 	/**
 	 * Update status fields and last-modified info in the given participation record,

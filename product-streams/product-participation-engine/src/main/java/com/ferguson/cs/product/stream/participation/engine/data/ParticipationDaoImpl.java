@@ -4,12 +4,19 @@ import java.util.Date;
 
 import org.springframework.stereotype.Repository;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+
 @Repository
 public class ParticipationDaoImpl implements ParticipationDao {
 	private ParticipationMapper participationMapper;
 
 	public ParticipationDaoImpl(ParticipationMapper participationMapper) {
 		this.participationMapper = participationMapper;
+	}
+
+	@Override
+	public ParticipationItem getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
+		return participationMapper.getNextParticipationPendingActivation(processingDate, minParticipationId);
 	}
 
 	@Override
@@ -84,6 +91,11 @@ public class ParticipationDaoImpl implements ParticipationDao {
 
 
 	// DEACTIVATION
+
+	@Override
+	public ParticipationItem getNextParticipationPendingDeactivation(Date processingDate, Integer minParticipationId) {
+		return participationMapper.getNextParticipationPendingDeactivation(processingDate, minParticipationId);
+	}
 
 	@Override
 	public int updateOwnerChangesForDeactivation(Integer participationId) {

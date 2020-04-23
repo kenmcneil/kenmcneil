@@ -17,13 +17,15 @@ public class ParticipationItemFixture {
 	private Integer participationId;
 	private Date startDate;
 	private Date endDate;
-	private Integer startDateOffsetDays;
-	private Integer endDateOffsetDays;
-	private Integer userId;
+	private Integer lastModifiedUserId;
 	@Builder.Default
 	private Boolean isActive = false;
 	@Builder.Default
 	private Integer saleId = 0;
+
+	private Integer startDateOffsetDays;
+	private Integer endDateOffsetDays;
+
 	private List<Integer> uniqueIds;
 	private List<ParticipationProductFixture> products;
 	private List<ParticipationCalculatedDiscountsFixture> calculatedDiscounts;
@@ -46,5 +48,4 @@ public class ParticipationItemFixture {
 			return this;
 		}
 	}
-
 }

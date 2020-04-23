@@ -16,11 +16,20 @@ import com.newrelic.api.agent.NewRelic;
 public class ParticipationProcessor {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
 
+	private final ParticipationEngineSettings participationEngineSettings;
 	private final ConstructService constructService;
+	private final ParticipationService participationService;
 	private final ParticipationWriter participationWriter;
 
-	public ParticipationProcessor(ConstructService constructService, ParticipationWriter participationWriter) {
+	public ParticipationProcessor(
+			ParticipationEngineSettings participationEngineSettings,
+			ConstructService constructService,
+			ParticipationService participationService,
+			ParticipationWriter participationWriter
+	) {
+		this.participationEngineSettings = participationEngineSettings;
 		this.constructService = constructService;
+		this.participationService = participationService;
 		this.participationWriter = participationWriter;
 	}
 
@@ -46,7 +55,7 @@ public class ParticipationProcessor {
 	 * Unpublish each participation that's pending unpublish.
 	 */
 	public void processPendingUnpublishes() {
-		ParticipationItem item = constructService.getNextPendingUnpublishParticipation();
+		ParticipationItem item = constructService.getNextPendingUnpublishParticipation(participationEngineSettings.getTestModeMinParticipationId());
 		while (item != null) {
 			try {
 				participationWriter.processUnpublish(item, getProcessingDate());
@@ -57,7 +66,7 @@ public class ParticipationProcessor {
 				throw new RuntimeException(errorMessage, e);
 			}
 
-			item = constructService.getNextPendingUnpublishParticipation();
+			item = constructService.getNextPendingUnpublishParticipation(participationEngineSettings.getTestModeMinParticipationId());
 		}
 	}
 
@@ -65,10 +74,11 @@ public class ParticipationProcessor {
 	 * Activate each participation that's pending activation.
 	 */
 	public void processPendingActivations() {
-		ParticipationItem item = constructService.getNextPendingActivationParticipation();
+		Date processingDate = getProcessingDate();
+		ParticipationItem item = participationService.getNextParticipationPendingActivation(processingDate);
 		while (item != null) {
 			try {
-				participationWriter.processActivation(item, getProcessingDate());
+				participationWriter.processActivation(item, processingDate);
 				LOG.info("participation {} activated by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + item.getId();
@@ -76,7 +86,8 @@ public class ParticipationProcessor {
 				throw new RuntimeException(errorMessage, e);
 			}
 
-			item = constructService.getNextPendingActivationParticipation();
+			processingDate = getProcessingDate();
+			item = participationService.getNextParticipationPendingActivation(processingDate);
 		}
 	}
 
@@ -84,10 +95,11 @@ public class ParticipationProcessor {
 	 * Deactivate each participation that's pending deactivation.
 	 */
 	public void processPendingDeactivations() {
-		ParticipationItem item = constructService.getNextPendingDeactivationParticipation();
+		Date processingDate = getProcessingDate();
+		ParticipationItem item = participationService.getNextParticipationPendingDeactivation(processingDate);
 		while (item != null) {
 			try {
-				participationWriter.processDeactivation(item, getProcessingDate());
+				participationWriter.processDeactivation(item, processingDate);
 				LOG.info("participation {} deactivated and archived by scheduling", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error deactivating participation " + item.getId();
@@ -95,7 +107,8 @@ public class ParticipationProcessor {
 				throw new RuntimeException(errorMessage, e);
 			}
 
-			item = constructService.getNextPendingDeactivationParticipation();
+			processingDate = getProcessingDate();
+			item = participationService.getNextParticipationPendingDeactivation(processingDate);
 		}
 	}
 }

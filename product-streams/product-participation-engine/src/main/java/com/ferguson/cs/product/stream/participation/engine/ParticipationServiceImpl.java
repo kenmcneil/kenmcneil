@@ -23,6 +23,18 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
+	public ParticipationItem getNextParticipationPendingActivation(Date processingDate) {
+		return participationDao.getNextParticipationPendingActivation(
+				processingDate, participationEngineSettings.getTestModeMinParticipationId());
+	}
+
+	@Override
+	public ParticipationItem getNextParticipationPendingDeactivation(Date processingDate) {
+		return participationDao.getNextParticipationPendingDeactivation(
+				processingDate, participationEngineSettings.getTestModeMinParticipationId());
+	}
+
+	@Override
 	public boolean getParticipationIsActive(Integer participationId) {
 		return participationDao.getParticipationIsActive(participationId);
 	}

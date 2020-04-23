@@ -1,9 +1,7 @@
 package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.Date;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -12,10 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.ferguson.cs.utilities.ArgumentAssert;
 
 @Repository
 public class ParticipationItemRepositoryImpl implements ParticipationItemRepositoryCustom {
@@ -57,59 +53,16 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 	 * since those are the only needed values.
 	 */
 	@Override
-	public ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria) {
-		ArgumentAssert.notNull(criteria, "criteria");
+	public ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId) {
 		Query query = new Query();
 		query.fields().include("id");
 		query.fields().include("lastModifiedUserId");
-
-		if (criteria.getId() != null) {
-			query.addCriteria(Criteria.where("_id").is(criteria.getId()));
-		}
-		else {
-			if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
-				query.addCriteria(Criteria.where("status").in(criteria.getStatuses()
-						.stream()
-						.map(ParticipationItemStatus::toString)
-						.collect(Collectors.toList())
-				));
-			}
-
-			if (criteria.getUpdateStatus() != null) {
-				query.addCriteria(Criteria.where("updateStatus").is(criteria.getUpdateStatus().toString()));
-			}
-
-			if (BooleanUtils.isTrue(criteria.getIsExpired())) {
-				query.addCriteria(
-						new Criteria().andOperator(
-								Criteria.where("schedule.to").exists(true),
-								Criteria.where("schedule.to").lt(new Date())));
-
-			}
-			else {
-				Date scheduledOn = criteria.getScheduledOn();
-				if (scheduledOn != null) {
-					query.addCriteria(
-							new Criteria().andOperator(
-									new Criteria().orOperator(
-											new Criteria().andOperator(
-													Criteria.where("schedule.from").exists(true),
-													Criteria.where("schedule.from").lte(scheduledOn)),
-											new Criteria().andOperator(
-													Criteria.where("schedule.from").exists(false),
-													Criteria.where("lastModifiedDate").lte(scheduledOn))),
-									new Criteria().orOperator(
-											new Criteria().andOperator(
-													Criteria.where("schedule.to").exists(true),
-													Criteria.where("schedule.to").gt(scheduledOn)),
-											Criteria.where("schedule.to").exists(false))));
-				}
-			}
-		}
+		query.addCriteria(Criteria.where("status").is(ParticipationItemStatus.PUBLISHED));
+		query.addCriteria(Criteria.where("updateStatus").is(ParticipationItemUpdateStatus.NEEDS_UNPUBLISH));
 
 		// For development / load testing.
-		if (participationEngineSettings.getTestModeEnabled()) {
-			query.addCriteria(Criteria.where("_id").gte(participationEngineSettings.getTestModeMinParticipationId()));
+		if (minParticipationId != null) {
+			query.addCriteria(Criteria.where("_id").gte(minParticipationId));
 		}
 
 		return coreMongoTemplate.findOne(query, ParticipationItem.class, PARTICIPATION_ITEM_COLLECTION_NAME);

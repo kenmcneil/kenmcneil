@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl;
@@ -22,6 +23,9 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	@Autowired
 	public ParticipationDao participationDao;
+
+	@Autowired
+	public ParticipationEngineSettings participationEngineSettings;
 
 	@MockBean
 	public ConstructService constructService;
@@ -49,9 +53,10 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 		disableLocalCache();
 		MockitoAnnotations.initMocks(this);
 
-		participationService = spy(new ParticipationServiceImpl(participationDao));
+		participationService = spy(new ParticipationServiceImpl(participationDao, participationEngineSettings));
 		participationWriter = new ParticipationWriter(participationService, constructService);
-		participationProcessor = spy(new ParticipationProcessor(constructService, participationWriter));
+		participationProcessor = spy(new ParticipationProcessor(
+				participationEngineSettings, constructService, participationService, participationWriter));
 	}
 
 	/**
@@ -99,32 +104,31 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	 *          - mongo event record is added
 	 *      - verify the data for the participation is removed from sql
 	 */
-	@Test
-	public void engine_basicSaleId_() {
-		// Make fixture participation with no effects.
-		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.participationId(5000)
-				.scheduleByDays(1, 3)
-				.build();
-
-		// Create the scenario.
-		scenario()
-				.lifecyleTests(
-						new ActivationDeactivationLifecycleTest()
-//						new SaleIdEffectLifecycleTest()
-				)
-				.createUserPublishEvent(p1)
-
-				.advanceToDay(4);
-	}
-
-
+//	@Test
+//	public void engine_basicSaleId_() {
+//		// Make fixture participation with no effects.
+//		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+//				.participationId(5000)
+//				.scheduleByDays(1, 3)
+//				.build();
+//
+//		// Create the scenario.
+//		scenario()
+//				.lifecyleTests(
+//						new ActivationDeactivationLifecycleTest()
+////						new SaleIdEffectLifecycleTest()
+//				)
+//				.createUserPublishEvent(p1)
+//
+//				.advanceToDay(4);
+//	}
 
 	/**
 	 * Create a new scenario instance and initialize it.
 	 */
 	private ParticipationTestScenario scenario() {
 		ParticipationTestScenario scenario = new ParticipationTestScenario(
+				participationEngineSettings,
 				constructService,
 				participationService,
 				participationProcessor,

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
@@ -40,6 +41,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 public class ParticipationTestScenario {
 	// These must be mocked/injected in the test class that uses this class, and passed
 	// to the constructor.
+	private ParticipationEngineSettings participationEngineSettings;
 	private ConstructService constructService;
 	private ParticipationService participationService;
 	private ParticipationProcessor participationProcessor;
@@ -53,11 +55,13 @@ public class ParticipationTestScenario {
 	private Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 
 	public ParticipationTestScenario(
+			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
 			ParticipationService participationService,
 			ParticipationProcessor participationProcessor,
 			ParticipationTestUtilities participationTestUtilities
 	) {
+		this.participationEngineSettings = participationEngineSettings;
 		this.constructService = constructService;
 		this.participationService = participationService;
 		this.participationProcessor = participationProcessor;
@@ -73,10 +77,12 @@ public class ParticipationTestScenario {
 	 * listeners.
 	 */
 	public void setupMocks() {
+		Integer minParticipationId = participationEngineSettings.getTestModeMinParticipationId();
+
 		// Replace polling the database with polling the scenarios's test queue.
 		doAnswer(invocation -> pendingUnpublishParticipationQueue.poll())
 				.when(constructService)
-				.getNextPendingUnpublishParticipation();
+				.getNextPendingUnpublishParticipation(minParticipationId);
 
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
@@ -108,6 +114,7 @@ public class ParticipationTestScenario {
 
 	public ParticipationTestScenario lifecyleTests(ParticipationScenarioLifecycleTest... params) {
 		lifecycleTests = Arrays.asList(params);
+		lifecycleTests.forEach(test -> test.init(participationTestUtilities));
 		return this;
 	}
 
@@ -126,8 +133,13 @@ public class ParticipationTestScenario {
 
 	/**
 	 * Keep track of fixtures used so they may be accessed by lifecycle tests for verification.
+	 * Also ensure critical values are set or defaulted, e.g. participationId and lastModifiedUserId.
 	 */
-	public void rememberFixture(ParticipationItemFixture fixture) {
+	public void initAndRememberFixture(ParticipationItemFixture fixture) {
+		Assertions.assertThat(fixture.getParticipationId()).isNotNull();
+		if (fixture.getLastModifiedUserId() == null) {
+			fixture.setLastModifiedUserId(ParticipationTestUtilities.TEST_USERID);
+		}
 		fixtures.putIfAbsent(fixture.getParticipationId(), fixture);
 	}
 
@@ -136,7 +148,7 @@ public class ParticipationTestScenario {
 	 * by a ParticipationItemFixture object to make it easy to create test fixture data.
 	 */
 	public ParticipationTestScenario createUserPublishEvent(ParticipationItemFixture fixture) {
-		rememberFixture(fixture);
+		initAndRememberFixture(fixture);
 		simulatePublishEvent(fixture);
 		return this;
 	}
@@ -148,7 +160,7 @@ public class ParticipationTestScenario {
 	public ParticipationTestScenario createUserUnpublishEvent(ParticipationItemFixture fixture) {
 		ParticipationItem p = new ParticipationItem();
 		p.setId(fixture.getParticipationId());
-		p.setLastModifiedUserId(fixture.getUserId());
+		p.setLastModifiedUserId(fixture.getLastModifiedUserId());
 		pendingUnpublishParticipationQueue.add(p);
 		return this;
 	}
@@ -243,27 +255,27 @@ public class ParticipationTestScenario {
 		lifecycleTests.forEach(test -> test.afterPublish(fixture, processingDate));
 	}
 
-	private void beforeActivate(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(item.getId()), processingDate));
+	private void beforeActivate(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void afterActivate(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterActivate(fixtures.get(item.getId()), processingDate));
+	private void afterActivate(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterActivate(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void beforeDeactivate(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getId()), processingDate));
+	private void beforeDeactivate(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void afterDeactivate(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterDeactivate(fixtures.get(item.getId()), processingDate));
+	private void afterDeactivate(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterDeactivate(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void beforeUnpublish(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getId()), processingDate));
+	private void beforeUnpublish(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void afterUnpublish(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterUnpublish(fixtures.get(item.getId()), processingDate));
+	private void afterUnpublish(ParticipationItem fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterUnpublish(fixtures.get(fixture.getId()), processingDate));
 	}
 }

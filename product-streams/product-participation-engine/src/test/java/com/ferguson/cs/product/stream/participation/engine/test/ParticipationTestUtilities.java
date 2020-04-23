@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -19,7 +22,6 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscountsFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProductFixture;
 
 @Service
 public class ParticipationTestUtilities {
@@ -190,43 +192,6 @@ public class ParticipationTestUtilities {
 	public static final String UPDATE_LATEST_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
 			"UPDATE mmc.product.latestBasePrice SET basePrice = ? WHERE uniqueId = ? AND pricebookId = ?";
 
-//	static {
-//		//static data - list of same size to create participationItem
-//		participationIdsList = new ArrayList<>(Arrays.asList(PARTICIPATION_ID_NEEDS_UPDATE, PARTICIPATION_ID_NEEDS_UNPUBLISH,
-//				PARTICIPATION_ID_NEEDS_CLEANUP, PARTICIPATION_ID_TO_EXPIRE, PARTICIPATION_ID_WITH_CONTENT_NEED_UPDATE));
-//		saleIdsList = new ArrayList<>(Arrays.asList(100, 200, 300, 400, 500));
-//
-//		uniqueIdsList = new ArrayList<>();
-//		uniqueIdsList.add(new ArrayList<>(Arrays.asList(1000, 2000, 3000, 4000, 5000)));                        // 5 uniqueIds for NEEDS_UPDATE
-//		uniqueIdsList.add(new ArrayList<>(Arrays.asList(4000, 5000, 6000, 7000, 8000, 9000, 10000, 11111)));    // 8 uniqueIds
-//		uniqueIdsList.add(new ArrayList<>(Arrays.asList(1111, 2222, 3333, 4444)));                              // 4 uniqueIds
-//		uniqueIdsList.add(new ArrayList<>(Arrays.asList(7000, 8000, 9000, 99999)));                             // 4 uniqueIds
-//		uniqueIdsList.add(new ArrayList<>(Arrays.asList(1100, 1200, 1300, 1400)));								// 4 uniqueIds
-//
-//		deletedUidsList = new ArrayList<>();
-//		deletedUidsList.add(new HashSet<>(Arrays.asList(5555, 7777, 8888)));                    // 3 uniqueIds
-//		deletedUidsList.add(new HashSet<>(singletonList(6666)));                                // 1
-//		deletedUidsList.add(new HashSet<>());
-//		deletedUidsList.add(new HashSet<>());
-//		deletedUidsList.add(new HashSet<>(singletonList(1000)));								// 1
-//
-//		updateStatusList = new ArrayList<>();
-//		updateStatusList.add(ParticipationItemUpdateStatus.NEEDS_UPDATE);
-//		updateStatusList.add(ParticipationItemUpdateStatus.NEEDS_UNPUBLISH);
-//		updateStatusList.add(ParticipationItemUpdateStatus.NEEDS_CLEANUP);
-//		updateStatusList.add(ParticipationItemUpdateStatus.NEEDS_UPDATE); // to test isExpire flag regardless of updateStatus
-//		updateStatusList.add(ParticipationItemUpdateStatus.NEEDS_UPDATE);
-//
-//		//Add up all the uniqueIds from uniqueIdsList & deletedUidsList and store the sum in totalProductUniqueIdsUsed
-//		uniqueIdsList.forEach(idList -> totalProductUniqueIdsUsed += idList.size());
-//		deletedUidsList.forEach((delList -> totalProductUniqueIdsUsed += delList.size()));
-//		totalProductUniqueIdsForUpdate = 9;     // size of the uniqueIds list in the participationItem with id = PARTICIPATION_ID_NEEDS_UPDATE
-//		totalProductUniqueIdsForDelete = totalProductUniqueIdsUsed - totalProductUniqueIdsForUpdate;    // sum of all uniqueIds and deleteUniqueId in ParticipationItems except the "NEEDS_UPDATE" status
-//		totalActiveParticipationToProcessed = participationIdsList.size();
-//		totalActiveParticipationToDelete = 3;// # of Participation with status NEEDS_UNPUBLISH, NEEDS_CLEANUP & Expired
-//		totalActiveParticipationToUpddate = 2; // # of Participation with status NEEDS_UPDATE
-//	}
-
 	@Autowired
 	public JdbcTemplate jdbcTemplate;
 
@@ -254,7 +219,7 @@ public class ParticipationTestUtilities {
 				item.getSaleId(),
 				item.getStartDate(),
 				item.getEndDate(),
-				item.getUserId() == null ? TEST_USERID : item.getUserId(),
+				item.getLastModifiedUserId() == null ? TEST_USERID : item.getLastModifiedUserId(),
 				item.getIsActive());
 
 		// Insert any participationProduct records.
@@ -282,28 +247,81 @@ public class ParticipationTestUtilities {
 		}
 	}
 
+	public List<Integer> getParticipationItemPartialId(int participationId) {
+		return jdbcTemplate.queryForList(SELECT_PARTICIPTATIONPARTIAL_ID_BY_PARTICIPATIONID,
+				new Object[]{participationId}, int.class);
+	}
+
+	public Integer getParticipationCalculatedDiscountCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
+				new Object[]{participationId}, Integer.class);
+	}
+
+	public Integer getParticipationProductCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_PARTICIPATIONPRODUCT_COUNT_BY_PARTICIPATIONID,
+				new Object[]{participationId}, Integer.class);
+	}
+
+	public Integer getParticipationSaleIdCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID,
+				new Object[]{participationId}, Integer.class);
+	}
+
+	public Integer getPricebookCostParticipationCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID,
+				new Object[]{participationId}, Integer.class);
+	}
+
 	/**
 	 * Check applicable tables for any references to the given participation id.
 	 */
-	public boolean isParticipationPresent(int id) {
-		return jdbcTemplate.queryForObject(SELECT_PARTICIPTATIONPARTIAL_ID_BY_PARTICIPATIONID, Integer.class) != null
-				|| jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
-				|| jdbcTemplate.queryForObject(SELECT_PARTICIPATIONPRODUCT_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
-				|| jdbcTemplate.queryForObject(SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
-				|| jdbcTemplate.queryForObject(SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID, Integer.class) != 0;
+	public boolean isParticipationPresent(int participationId) {
+		return getParticipationItemPartialId(participationId).size() > 0
+				|| getParticipationCalculatedDiscountCount(participationId) != 0
+				|| getParticipationProductCount(participationId) != 0
+				|| getParticipationSaleIdCount(participationId) != 0
+				|| getPricebookCostParticipationCount(participationId) != 0;
 	}
 
-	public ParticipationItemFixture getParticipationAsFixtureById(int id) {
-		ParticipationItemFixture fixture = jdbcTemplate.queryForObject(
-				SELECT_PARTICIPATION_BY_PARTICIPATIONID, ParticipationItemFixture.class);
-		if (fixture != null) {
-			fixture.setProducts(jdbcTemplate.queryForList(
-					SELECT_PARTICIPATIONPRODUCT_BY_PARTICIPATIONID, ParticipationProductFixture.class));
-			fixture.setCalculatedDiscounts(jdbcTemplate.queryForList(
-					SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID, ParticipationCalculatedDiscountsFixture.class));
-		}
-		return fixture;
+	// modified from https://stackoverflow.com/a/16390624/9488171
+	public static <T> ResultSetExtractor<T> singletonExtractor(
+			RowMapper<? extends T> mapper) {
+		return rs -> rs.next() ? mapper.mapRow(rs, 1) : null;
 	}
+
+	private static final ResultSetExtractor<ParticipationItemFixture> EXTRACTOR_PARTICIPATION_ITEM_FIXTURE =
+			singletonExtractor(BeanPropertyRowMapper.newInstance(ParticipationItemFixture.class));
+
+	public ParticipationItemFixture getParticipationAsFixtureById(int participationId) {
+		return jdbcTemplate.query(SELECT_PARTICIPATION_BY_PARTICIPATIONID,
+				EXTRACTOR_PARTICIPATION_ITEM_FIXTURE, participationId);
+	}
+
+//	public ParticipationItemFixture getParticipationAsFixtureById(int participationId) {
+//		return jdbcTemplate.queryForObject(
+//				SELECT_PARTICIPATION_BY_PARTICIPATIONID,
+//				new Object[]{participationId},
+//				BeanPropertyRowMapper.newInstance(ParticipationItemFixture.class));
+//
+//		//		List<ParticipationItemFixture> customers = jdbcTemplate.query(
+////				SELECT_PARTICIPATION_BY_PARTICIPATIONID,
+////				new BeanPropertyRowMapper(ParticipationItemFixture.class));
+//
+////		ParticipationItemFixture fixture = null;
+////
+////		List<ParticipationItemFixture> fixtures = jdbcTemplate.queryForList(
+////				SELECT_PARTICIPATION_BY_PARTICIPATIONID, new Object[]{participationId}, ParticipationItemFixture.class);
+////		if (fixtures.size() > 0) {
+////			fixture = fixtures.get(0);
+////			fixture.setProducts(jdbcTemplate.queryForList(
+////					SELECT_PARTICIPATIONPRODUCT_BY_PARTICIPATIONID, new Object[]{participationId}, ParticipationProductFixture.class));
+////			fixture.setCalculatedDiscounts(jdbcTemplate.queryForList(
+////					SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID,
+////					new Object[]{participationId}, ParticipationCalculatedDiscountsFixture.class));
+////		}
+////
+////		return fixture;
+//	}
 
 	/**
 	 * clean up any old seed data erroneously left in the db

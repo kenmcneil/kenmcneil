@@ -5,6 +5,17 @@ import java.util.Date;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 
 public interface ParticipationService {
+
+	/**
+	 * Get next participation that is pending activation at the given date.
+	 */
+	ParticipationItem getNextParticipationPendingActivation(Date processingDate);
+
+	/**
+	 * Get next participation that is pending deactivation at the given date.
+	 */
+	ParticipationItem getNextParticipationPendingDeactivation(Date processingDate);
+
 	/**
 	 * Determine if a participation is currently active.
 	 */

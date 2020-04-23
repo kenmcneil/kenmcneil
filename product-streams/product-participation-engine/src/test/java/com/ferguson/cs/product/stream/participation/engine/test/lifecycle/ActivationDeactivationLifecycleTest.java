@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 import java.util.Date;
 
 import org.assertj.core.api.Assertions;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -14,8 +13,11 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
  * to verify basic activation/deactivation works.
  */
 public class ActivationDeactivationLifecycleTest implements ParticipationScenarioLifecycleTest {
-	@Autowired
 	private ParticipationTestUtilities participationTestUtilities;
+
+	public void init(ParticipationTestUtilities participationTestUtilities) {
+		this.participationTestUtilities = participationTestUtilities;
+	}
 
 	/**
 	 * Verify there are no references to the participation yet.
