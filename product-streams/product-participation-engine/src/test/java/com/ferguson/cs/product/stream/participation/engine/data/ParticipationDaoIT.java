@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
