@@ -104,7 +104,7 @@ public interface ParticipationMapper {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod);
 
 	/**
 	 * Update product.modified to trigger product cache update.

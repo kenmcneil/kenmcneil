@@ -74,7 +74,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod);
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.

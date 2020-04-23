@@ -15,9 +15,11 @@ public class ParticipationServiceImpl implements ParticipationService {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
 
 	private final ParticipationDao participationDao;
+	private final ParticipationEngineSettings participationEngineSettings;
 
-	public ParticipationServiceImpl(ParticipationDao participationDao) {
+	public ParticipationServiceImpl(ParticipationDao participationDao, ParticipationEngineSettings participationEngineSettings) {
 		this.participationDao = participationDao;
+		this.participationEngineSettings = participationEngineSettings;
 	}
 
 	@Override
@@ -29,6 +31,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void activateParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
@@ -61,7 +64,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate new discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
@@ -82,6 +85,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void deactivateParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
 		int userId = item.getLastModifiedUserId();
+		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, false);
@@ -113,7 +117,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate fallback discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 

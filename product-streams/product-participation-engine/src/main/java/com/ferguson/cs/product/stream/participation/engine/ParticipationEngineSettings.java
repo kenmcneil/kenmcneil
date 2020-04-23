@@ -14,6 +14,7 @@ public class ParticipationEngineSettings {
 
 	/** How long to wait before the first Participation event processor is run in ms. */
 	private Integer scheduleInitialDelay;
+	private Integer coolOffPeriod;
 
 	/**
 	 * If true, only Participation records with id >= testModeMinParticipationId will be processed.
@@ -46,6 +47,14 @@ public class ParticipationEngineSettings {
 
 	public void setScheduleInitialDelay(Integer scheduleInitialDelay) {
 		this.scheduleInitialDelay = scheduleInitialDelay;
+	}
+
+	public Integer getCoolOffPeriod() {
+		return coolOffPeriod;
+	}
+
+	public void setCoolOffPeriod(Integer coolOffPeriod) {
+		this.coolOffPeriod = coolOffPeriod;
 	}
 
 	public Boolean getTestModeEnabled() {
