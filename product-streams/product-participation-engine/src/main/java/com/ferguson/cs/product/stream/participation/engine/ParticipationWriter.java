@@ -20,6 +20,9 @@ public class ParticipationWriter {
 
 	@Transactional
 	public void processUnpublish(ParticipationItem item, Date processingDate) {
+		if (participationService.getParticipationIsActive(item.getId())) {
+			participationService.deactivateParticipation(item, processingDate);
+		}
 		participationService.unpublishParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),
@@ -43,6 +46,7 @@ public class ParticipationWriter {
 	@Transactional
 	public void processDeactivation(ParticipationItem item, Date processingDate) {
 		participationService.deactivateParticipation(item, processingDate);
+		participationService.unpublishParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),
 				ParticipationItemStatus.ARCHIVED,

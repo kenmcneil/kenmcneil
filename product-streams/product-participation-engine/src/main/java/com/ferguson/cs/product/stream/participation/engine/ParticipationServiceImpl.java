@@ -5,7 +5,6 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -21,7 +20,11 @@ public class ParticipationServiceImpl implements ParticipationService {
 		this.participationDao = participationDao;
 	}
 
-	@Transactional
+	@Override
+	public boolean getParticipationIsActive(Integer participationId) {
+		return participationDao.getParticipationIsActive(participationId);
+	}
+
 	@Override
 	public void activateParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
@@ -68,12 +71,13 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
 		// TODO remove currentPriorityParticipation code (see SODEV-25037)
-		participationDao.syncToCurrentPriorityParticipation();
+		rowsAffected = participationDao.syncToCurrentPriorityParticipation();
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", participationId, rowsAffected);
 
 		LOG.debug("{}: {} total rows updated to activate", participationId, totalRows);
 	}
 
-	@Transactional
 	@Override
 	public void deactivateParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
@@ -118,29 +122,17 @@ public class ParticipationServiceImpl implements ParticipationService {
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
-		// remove all records for this participation
-		rowsAffected = participationDao.deleteParticipation(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
-
-		// TODO remove currentPriorityParticipation code (see SODEV-25037)
-		participationDao.syncToCurrentPriorityParticipation();
-
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, totalRows);
 	}
 
-	@Transactional
 	@Override
 	public void unpublishParticipation(ParticipationItem item, Date processingDate) {
 		int participationId = item.getId();
+		int rowsAffected = participationDao.deleteParticipation(participationId);
+		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
 
-		if (participationDao.getParticipationIsActive(participationId)) {
-			// deactivate, which also deletes the participation records
-			deactivateParticipation(item, processingDate);
-		} else {
-			// only delete the participation records
-			int rowsAffected = participationDao.deleteParticipation(participationId);
-			LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
-		}
+		// TODO remove currentPriorityParticipation code (see SODEV-25037)
+		rowsAffected = participationDao.syncToCurrentPriorityParticipation();
+		LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", participationId, rowsAffected);
 	}
 }

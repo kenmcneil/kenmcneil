@@ -99,7 +99,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	@Override
-	public void syncToCurrentPriorityParticipation() {
-		participationMapper.syncToCurrentPriorityParticipation();
+	public int syncToCurrentPriorityParticipation() {
+		return participationMapper.syncToCurrentPriorityParticipation();
 	}
 }

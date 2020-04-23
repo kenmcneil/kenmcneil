@@ -2,10 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import static org.mockito.Mockito.spy;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
@@ -20,7 +16,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationEngineIT;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestScenario;
-import com.ferguson.cs.product.stream.participation.engine.test.ingredients.ActivationDeactivationIngredient;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class ParticipationScenariosIT extends BaseParticipationEngineIT {
@@ -39,23 +35,22 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	 *
 	 * No mocking/spying needed:
 	 *      ParticipationDao
-	 *      participationService
+	 *      participationWriter
 	 *
-	 * Mock entire class
+	 * Mock entire class:
 	 *      ConstructService
 	 *
-	 * Spy on class to override specific methods or do things before/after a method is called
-	 *      participationWriter
-	 *      participationProcessor
-	 *
+	 * Spy on class to override specific methods or do things before/after a method is called:
+	 *      participationService: before / after activate, deactivate, unpublish
+	 *      participationProcessor: getProcessingDate
 	 */
 	@Before
 	public void before() {
 		disableLocalCache();
 		MockitoAnnotations.initMocks(this);
 
-		participationService = new ParticipationServiceImpl(participationDao);
-		participationWriter = spy(new ParticipationWriter(participationService, constructService));
+		participationService = spy(new ParticipationServiceImpl(participationDao));
+		participationWriter = new ParticipationWriter(participationService, constructService);
 		participationProcessor = spy(new ParticipationProcessor(constructService, participationWriter));
 	}
 
@@ -80,13 +75,9 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 				.participationId(50000)
 				.build();
 
-	    LocalDate today = LocalDate.now();
-	    LocalDate tomorrow = today.plusDays(10);
-
-		// Create the scenario and execute scenario steps in sequence.
+		// Create scenario and execute scenario steps in sequence.
 	    scenario()
-			    .ingredients(new ActivationDeactivationIngredient())
-			    .start(Date.from(tomorrow.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()))
+			    .lifecyleTests(new ActivationDeactivationLifecycleTest())
 			    .createUserPublishEvent(p1)
 			    .processEvents()
 			    .createUserUnpublishEvent(p1)
@@ -108,25 +99,24 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	 *          - mongo event record is added
 	 *      - verify the data for the participation is removed from sql
 	 */
-//	@Test
-//	public void engine_basicSaleId_() {
-//		// Make fixture participation with no effects.
-//		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-//				.participationId(5000)
-//				.scheduleByDays(1, 3)
-//				.build();
-//
-//		// Create the scenario.
-//		new ParticipationTestScenario()
-//				.ingredients(
-//						new ActivationDeactivationIngredient(),
-//						new SaleIdEffectIngredient()
-//				)
-//				.start(0)
-//				.createUserPublishEvent(p1)
-//
-//				.advanceToDay(4);
-//	}
+	@Test
+	public void engine_basicSaleId_() {
+		// Make fixture participation with no effects.
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.participationId(5000)
+				.scheduleByDays(1, 3)
+				.build();
+
+		// Create the scenario.
+		scenario()
+				.lifecyleTests(
+						new ActivationDeactivationLifecycleTest()
+//						new SaleIdEffectLifecycleTest()
+				)
+				.createUserPublishEvent(p1)
+
+				.advanceToDay(4);
+	}
 
 
 
@@ -138,7 +128,6 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 				constructService,
 				participationService,
 				participationProcessor,
-				participationWriter,
 				participationTestUtilities
 		);
 		scenario.setupMocks();

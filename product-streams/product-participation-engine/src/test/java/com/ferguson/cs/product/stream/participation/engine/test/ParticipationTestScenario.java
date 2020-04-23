@@ -24,18 +24,17 @@ import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioIngredient;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
 
 /**
  * Use to build up test scenarios to test expected behavior at various points
  * of processing Participation records and their effects. Each scenario instance has a list
- * of "ingredient" instances that will each be notified for state transition hooks such
- * as "beforeActivation." Each ingredient is responsible for testing end-to-end behavior
+ * of lifecycle test instances that will each be notified for state transition hooks such
+ * as beforeActivation. Each test is responsible for testing end-to-end behavior
  * of a specific feature such as a Participation effect.
  */
 public class ParticipationTestScenario {
@@ -44,13 +43,12 @@ public class ParticipationTestScenario {
 	private ConstructService constructService;
 	private ParticipationService participationService;
 	private ParticipationProcessor participationProcessor;
-	private ParticipationWriter participationWriter;
 	private ParticipationTestUtilities participationTestUtilities;
 
 	private Date originalSimulatedDate;
 	private Date currentSimulatedDate;
 
-	private List<ParticipationScenarioIngredient> ingredients;
+	private List<ParticipationScenarioLifecycleTest> lifecycleTests;
 	private Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	private Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 
@@ -58,16 +56,22 @@ public class ParticipationTestScenario {
 			ConstructService constructService,
 			ParticipationService participationService,
 			ParticipationProcessor participationProcessor,
-			ParticipationWriter participationWriter,
 			ParticipationTestUtilities participationTestUtilities
 	) {
 		this.constructService = constructService;
 		this.participationService = participationService;
 		this.participationProcessor = participationProcessor;
-		this.participationWriter = participationWriter;
 		this.participationTestUtilities = participationTestUtilities;
+
+		originalSimulatedDate = new Date();
+		currentSimulatedDate = originalSimulatedDate;
 	}
 
+	/**
+	 * Set up a variety of mocks and spies to enable simulating time and user events. Also
+	 * doAnswer is used to enable AOP-like behavior to call tests before and after
+	 * listeners.
+	 */
 	public void setupMocks() {
 		// Replace polling the database with polling the scenarios's test queue.
 		doAnswer(invocation -> pendingUnpublishParticipationQueue.poll())
@@ -77,26 +81,33 @@ public class ParticipationTestScenario {
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
 
-		// Whenever processUnpublish is called, first call beforeUnpublish for each ingredient.
-		// After real method is called, call afterUnpublish for each ingredient.
+		// Set up before and after calls for when an ACTIVATE event is processed.
+		doAnswer(invocation -> {
+			beforeActivate(invocation.getArgument(0), invocation.getArgument(1));
+			invocation.callRealMethod();
+			afterActivate(invocation.getArgument(0), invocation.getArgument(1));
+			return null;
+		}).when(participationService).activateParticipation(any(ParticipationItem.class), any(Date.class));
+
+		// Set up before and after calls for when an DEACTIVATE event is processed.
+		doAnswer(invocation -> {
+			beforeDeactivate(invocation.getArgument(0), invocation.getArgument(1));
+			invocation.callRealMethod();
+			afterDeactivate(invocation.getArgument(0), invocation.getArgument(1));
+			return null;
+		}).when(participationService).deactivateParticipation(any(ParticipationItem.class), any(Date.class));
+
+		// Set up before and after calls for when an UNPUBLISH event is processed.
 		doAnswer(invocation -> {
 			beforeUnpublish(invocation.getArgument(0), invocation.getArgument(1));
 			invocation.callRealMethod();
 			afterUnpublish(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
+		}).when(participationService).unpublishParticipation(any(ParticipationItem.class), any(Date.class));
 	}
 
-	public void beforeUnpublish(ParticipationItem item, Date processingDate) {
-		ingredients.forEach(ingredient -> ingredient.beforeUnpublish(item, processingDate));
-	}
-
-	public void afterUnpublish(ParticipationItem item, Date processingDate) {
-		ingredients.forEach(ingredient -> ingredient.beforeUnpublish(item, processingDate));
-	}
-
-	public ParticipationTestScenario ingredients(ParticipationScenarioIngredient... params) {
-		ingredients = Arrays.asList(params);
+	public ParticipationTestScenario lifecyleTests(ParticipationScenarioLifecycleTest... params) {
+		lifecycleTests = Arrays.asList(params);
 		return this;
 	}
 
@@ -114,7 +125,7 @@ public class ParticipationTestScenario {
 	}
 
 	/**
-	 * Keep track of fixtures used so they may be accessed by ingredients for verification.
+	 * Keep track of fixtures used so they may be accessed by lifecycle tests for verification.
 	 */
 	public void rememberFixture(ParticipationItemFixture fixture) {
 		fixtures.putIfAbsent(fixture.getParticipationId(), fixture);
@@ -179,18 +190,13 @@ public class ParticipationTestScenario {
 	 * Process all currently pending user events and process any time-based events on the given day.
 	 */
 	private void processEventsAtCurrentSimulatedDate() {
-		// To Do
-		// - Hook into methods called for various state transitions, in order to call Ingredient
-		//   lifecycle methods (beforeActivation, ...), which will verify state.
-
 		int unpublishQueueSize = pendingUnpublishParticipationQueue.size();
 
 		participationProcessor.process();
 
-		// Verify unpublish event queue is empty now.
+		// Verify unpublish event queue is empty now and that mongo update status was called
+		// once for each event that was in the queue.
 		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
-
-		// Verify that mongo update status was called once for each event that was in the pendingUnpublishParticipationQueue.
 		verify(constructService, times(unpublishQueueSize)).updateParticipationItemStatus(
 				anyInt(), eq(ParticipationItemStatus.DRAFT), isNull(), any(Date.class));
 	}
@@ -224,6 +230,40 @@ public class ParticipationTestScenario {
 							.toInstant()));
 		}
 
+		beforePublish(fixture, currentSimulatedDate);
 		participationTestUtilities.insertParticipation(fixture);
+		afterPublish(fixture, currentSimulatedDate);
+	}
+
+	private void beforePublish(ParticipationItemFixture fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforePublish(fixture, processingDate));
+	}
+
+	private void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterPublish(fixture, processingDate));
+	}
+
+	private void beforeActivate(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void afterActivate(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterActivate(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void beforeDeactivate(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void afterDeactivate(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterDeactivate(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void beforeUnpublish(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void afterUnpublish(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.afterUnpublish(fixtures.get(item.getId()), processingDate));
 	}
 }

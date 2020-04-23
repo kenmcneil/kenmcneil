@@ -6,6 +6,11 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 public interface ParticipationService {
 	/**
+	 * Determine if a participation is currently active.
+	 */
+	boolean getParticipationIsActive(Integer participationId);
+
+	/**
 	 * Activate a participation.
 	 */
 	void activateParticipation(ParticipationItem item, Date processingDate);

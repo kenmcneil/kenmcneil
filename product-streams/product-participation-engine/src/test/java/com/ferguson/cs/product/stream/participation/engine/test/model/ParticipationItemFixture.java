@@ -25,6 +25,7 @@ public class ParticipationItemFixture {
 	@Builder.Default
 	private Integer saleId = 0;
 	private List<Integer> uniqueIds;
+	private List<ParticipationProductFixture> products;
 	private List<ParticipationCalculatedDiscountsFixture> calculatedDiscounts;
 
 	public static class ParticipationItemFixtureBuilder {

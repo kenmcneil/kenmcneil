@@ -107,5 +107,5 @@ public interface ParticipationDao {
 	int deleteParticipation(Integer participationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	void syncToCurrentPriorityParticipation();
+	int syncToCurrentPriorityParticipation();
 }

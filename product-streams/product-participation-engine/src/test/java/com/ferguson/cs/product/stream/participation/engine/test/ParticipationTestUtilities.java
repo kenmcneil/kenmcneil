@@ -5,9 +5,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscountsFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProductFixture;
 
 @Service
 public class ParticipationTestUtilities {
@@ -133,7 +132,7 @@ public class ParticipationTestUtilities {
 			"WHERE saleId < 0";
 	public static final String MANUAL_MODIFIED_UPDATE =
 			"UPDATE mmc.product.modified SET modifiedDate = ? WHERE uniqueId = ?";
-	public static final String SELECT_PARTICIPTATION_ACTIVE_BY_PARTICIPATIONID =
+	public static final String SELECT_PARTICIPATION_BY_PARTICIPATIONID =
 			"SELECT * FROM mmc.product.participationItemPartial " +
 			"WHERE participationId = ?";
 	public static final String SELECT_PARTICIPTATIONPARTIAL_ID_BY_PARTICIPATIONID =
@@ -142,12 +141,19 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID =
 			"SELECT COUNT(*) FROM mmc.product.participationCalculatedDiscount " +
 			"WHERE participationId = ?";
-	public static final String SELECT_PARTICIPTATIONPRODUCT_BY_PARTICIPATIONID =
-			"SELECT uniqueId FROM mmc.product.participationProduct " +
+	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID =
+			"SELECT * FROM mmc.product.participationCalculatedDiscount " +
+					"WHERE participationId = ?";
+	public static final String SELECT_PARTICIPATIONPRODUCT_COUNT_BY_PARTICIPATIONID =
+			"SELECT COUNT(*) FROM mmc.product.participationProduct " +
+					"WHERE participationId = ?";
+	public static final String SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID =
+			"SELECT count(*) FROM mmc.product.sale WHERE participationId = ?";
+	public static final String SELECT_PARTICIPATIONPRODUCT_BY_PARTICIPATIONID =
+			"SELECT * FROM mmc.product.participationProduct " +
 			"WHERE participationId = ?";
-	public static final String SELECT_TRACKING_PARTICIPATIONID_BY_DELETINGJOBID =
-			"SELECT participationId FROM mmc.product.participationTracking " +
-			"WHERE deletingJobId = ?";
+	public static final String SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID =
+			"SELECT count(*) FROM mmc.dbo.pricebook_cost WHERE participationId = ?";
 	public static final String UPSERT_PRICEBOOK_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost " +
 					"SET basePrice = ?, " +
@@ -160,8 +166,6 @@ public class ParticipationTestUtilities {
 					"INSERT INTO mmc.dbo.PriceBook_Cost " +
 					"(uniqueId, priceBookId, basePrice, cost, userId, participationId) " +
 					"VALUES (?, ?, ?, ?, ?, ?)";
-	public static final String UPDATE_PARTICIPATION_TRACKING_TO_DELETABLE = "UPDATE mmc.product.participationTracking " +
-			"SET deletingJobId = ? WHERE uniqueId = ? AND saleId = ? AND participationId = ?";
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 	public static final String SELECT_PRICEBOOK_COST_BY_PARTICIPATIONID_UNIQUEID_PRICEBOOKID_USERID =
@@ -278,178 +282,28 @@ public class ParticipationTestUtilities {
 		}
 	}
 
-	protected ParticipationItemFixture readParticipationTestValues(int participationId) {
-		ParticipationItemFixture values = new ParticipationItemFixture();
-		values.setParticipationId(participationId);
-		return values;
+	/**
+	 * Check applicable tables for any references to the given participation id.
+	 */
+	public boolean isParticipationPresent(int id) {
+		return jdbcTemplate.queryForObject(SELECT_PARTICIPTATIONPARTIAL_ID_BY_PARTICIPATIONID, Integer.class) != null
+				|| jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
+				|| jdbcTemplate.queryForObject(SELECT_PARTICIPATIONPRODUCT_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
+				|| jdbcTemplate.queryForObject(SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID, Integer.class) != 0
+				|| jdbcTemplate.queryForObject(SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID, Integer.class) != 0;
 	}
 
-	public ParticipationItem createParticipationItemWithContentMap(
-			boolean createContent, Integer id,
-			Integer saleId,
-			Integer userId,
-			Date startDate, Date endDate,
-			List<Integer> uniqueIds,
-			Set<Integer> deletedUids,
-			ParticipationItemStatus status,
-			ParticipationItemUpdateStatus updateStatus
-	) {
-		ParticipationItem item = new ParticipationItem();
-		item.setId(id);
-
-		if (createContent) {
-			item.setContent(makeParticipationContent_v1(saleId, uniqueIds));
-		} else {
-			item.setSaleId(saleId);
-			item.setProductUniqueIds(uniqueIds);
+	public ParticipationItemFixture getParticipationAsFixtureById(int id) {
+		ParticipationItemFixture fixture = jdbcTemplate.queryForObject(
+				SELECT_PARTICIPATION_BY_PARTICIPATIONID, ParticipationItemFixture.class);
+		if (fixture != null) {
+			fixture.setProducts(jdbcTemplate.queryForList(
+					SELECT_PARTICIPATIONPRODUCT_BY_PARTICIPATIONID, ParticipationProductFixture.class));
+			fixture.setCalculatedDiscounts(jdbcTemplate.queryForList(
+					SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID, ParticipationCalculatedDiscountsFixture.class));
 		}
-
-		item.setLastModifiedUserId(userId);
-		item.setProductUniqueIds(uniqueIds);
-		item.setDeletedProductUniqueIds(deletedUids);
-		item.setStatus(status);
-		item.setUpdateStatus(updateStatus);
-
-		ParticipationItemSchedule schedule = new ParticipationItemSchedule();
-		schedule.setFrom(startDate);
-		schedule.setTo(endDate);
-		item.setSchedule(schedule);
-
-		return item;
+		return fixture;
 	}
-
-	public Map<String, Object> makeParticipationContent_v1(int saleId, List<Integer> productUniqueIds) {
-		Map<String, Object> contentMap = new HashMap<>();
-		contentMap.put("_type", "participation@1.0.0");
-
-		//Path to saleId "productSale.saleId"
-		Map<String, Object> saleIdMap = new HashMap<>();
-		saleIdMap.put("_type", "atom-product-sale@1.0.0");
-		saleIdMap.put("saleId", Integer.valueOf(saleId));
-		contentMap.put("productSale", saleIdMap);
-
-		//Path to uniqueIds list: "calculatedDiscounts.uniqueIds.list"";
-		Map<String, Object> productUniqueIdsMap = new HashMap<>();
-		productUniqueIdsMap.put("_type", "atom-list@1.0.0");
-		productUniqueIdsMap.put("list", productUniqueIds);
-
-		Map<String, Object> discountMap = new HashMap<>();
-		discountMap.put("_type", "atom-list@1.0.0");
-		discountMap.put("uniqueIds", productUniqueIdsMap);
-		contentMap.put("calculatedDiscounts", discountMap);
-
-		return contentMap;
-	}
-
-//	public Queue<ParticipationItem> getParticipationItemPageSearchResultQueue() {
-//		if (participationItemPageSearchResultQueue.isEmpty()) {
-////			populateParticipationItemPageSearchResultQueue();
-//		}
-//		return participationItemPageSearchResultQueue;
-//	}
-//
-//	public List<ParticipationItem> getParticipationItems() {
-//		return participationItems;
-//	}
-//
-//	public Stack<ParticipationItemUpdateStatus> getParticipationUpdateStatusStack() {
-//		return updateParticipationStatusStack;
-//	}
-
-//	public ParticipationIdToUpdateStatusMap getParticipationIdToUpdateStatusMap() {
-//		if (participationIdToUpdateStatusMap.getParticipationIdToUpdateStatusMap().isEmpty()) {
-//			createParticipationIdToUpdateStatusMap();
-//		}
-//
-//		return participationIdToUpdateStatusMap;
-//	}
-//
-//	/**
-//	 * Create the ParticipationIdToUpdateStatusMap instance using the participationItem from the participationItems List
-//	 */
-//	private void createParticipationIdToUpdateStatusMap() {
-//		if (participationItems == null || participationItems.isEmpty()) {
-//			participationItems = createParticipationItems();
-//		}
-//		for (ParticipationItem item : participationItems) {
-//			participationIdToUpdateStatusMap.addIfAbsent(item.getId(), item.getUpdateStatus());
-//
-//			//let add the updateStatus into the stack
-//			updateParticipationStatusStack.push(item.getUpdateStatus());
-//		}
-//	}
-
-//	private List<ParticipationItem> createParticipationItems() {
-//		LocalDate today = LocalDate.now();
-//		LocalDate twoDaysAgo = today.minus(2, ChronoUnit.DAYS);
-//		LocalDate nextWeek = today.plus(1, ChronoUnit.WEEKS);
-//		Date startDate;
-//		Date endDate;
-//		List<ParticipationItem> items = new ArrayList<>();
-//		for (int i = 0; i < participationIdsList.size(); i++) {
-//			Integer participationId = participationIdsList.get(i);
-//			if (participationId == PARTICIPATION_ID_NEEDS_CLEANUP || participationId == PARTICIPATION_ID_TO_EXPIRE) {
-//				startDate = toDate(twoDaysAgo);
-//				endDate = toDate(today);
-//			} else {
-//				startDate = toDate(today);
-//				endDate = toDate(nextWeek);
-//			}
-//			items.add(createParticipationItemWithContentMap( participationId == PARTICIPATION_ID_WITH_CONTENT_NEED_UPDATE,
-//					participationId,
-//					saleIdsList.get(i),
-//					USERID,
-//					startDate, endDate,
-//					uniqueIdsList.get(i),
-//					deletedUidsList.get(i),
-//					ParticipationItemStatus.PUBLISHED,
-//					updateStatusList.get(i)));
-//		}
-//		return items;
-//	}
-
-//	/**
-//	 * Populate ParticpationItem Queue with predefined static data in the right order as the criteria stack on the Reader
-//	 * so that we can return the mock data corresponding to the call to findMatchingParticipationItems
-//	 */
-//	private void populateParticipationItemPageSearchResultQueue() {
-//
-//		if (participationItems == null || participationItems.isEmpty()) {
-//			participationItems = createParticipationItems();
-//		}
-//		PagedSearchResults searchResults;
-//		List<ParticipationItem> expireList = new ArrayList<>();
-//		List<ParticipationItem> needUpdateList = new ArrayList<>();
-//		List<ParticipationItem> needUnpublished = new ArrayList<>();
-//
-//		for (ParticipationItem item : participationItems ) {
-//			switch (item.getId()) {
-//				case PARTICIPATION_ID_NEEDS_UPDATE:
-//				case PARTICIPATION_ID_WITH_CONTENT_NEED_UPDATE:
-//					needUpdateList.add(item);
-//					break;
-//				case PARTICIPATION_ID_NEEDS_UNPUBLISH:
-//					needUnpublished.add(item);
-//					break;
-//				case PARTICIPATION_ID_NEEDS_CLEANUP:
-//				case PARTICIPATION_ID_TO_EXPIRE:
-//					expireList.add(item);
-//					break;
-//
-//			}
-//		}
-//
-//		//adding this search result into the queue in the same order as the criteria stack
-//		searchResults = new PagedSearchResults(new Paging(1, needUpdateList.size(),needUpdateList.size(),1), needUpdateList);
-//		participationItemPageSearchResultQueue.add(searchResults);
-//
-//		searchResults = new PagedSearchResults(new Paging(1, needUnpublished.size(), needUnpublished.size(),1), needUnpublished);
-//		participationItemPageSearchResultQueue.add(searchResults);
-//
-//		// create the last PageSearchResult for Need Cleanup and expired item
-//		searchResults = new PagedSearchResults(new Paging(1,expireList.size(),expireList.size(),1), expireList);
-//		participationItemPageSearchResultQueue.add(searchResults);
-//	}
 
 	/**
 	 * clean up any old seed data erroneously left in the db
