@@ -52,7 +52,7 @@ public interface ParticipationDao {
 	 * @param participationId The id of the activating or deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int /*check*/updateProductSaleIds(Integer participationId);
+	int updateProductSaleIds(Integer participationId);
 
 	/**
 	 * Record last-on-sale base prices.
@@ -66,7 +66,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int /*check*/takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId);
+	int takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId);
 
 	/**
 	 * Apply calculated discounts to products becoming owned by a Participation.
@@ -82,7 +82,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int /*check*/updateProductModifiedDates(Date processingDate, Integer userId);
+	int updateProductModifiedDates(Date processingDate, Integer userId);
 
 
 	// DEACTIVATION
@@ -93,7 +93,7 @@ public interface ParticipationDao {
 	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int /*check*/updateOwnerChangesForDeactivation(Integer participationId);
+	int updateOwnerChangesForDeactivation(Integer participationId);
 
 
 	// MANUAL UNPUBLISH
@@ -104,8 +104,8 @@ public interface ParticipationDao {
 	 * @param participationId The id of the participation to delete from SQL.
 	 * @return The number of records modified.
 	 */
-	int /*check*/deleteParticipation(Integer participationId);
+	int deleteParticipation(Integer participationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	void /*NA*/syncToCurrentPriorityParticipation();
+	void syncToCurrentPriorityParticipation();
 }
