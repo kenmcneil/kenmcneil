@@ -90,7 +90,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 		rowsAffected = participationDao.updateProductSaleIds(53000);
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(new Date());
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(new Date(), 1);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		rowsAffected = participationDao.updateProductModifiedDates(new Date(), 1);
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
@@ -140,7 +140,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 		participationDao.addProductOwnershipForNewOwners(53000);
 		participationDao.updateProductSaleIds(53000);
 		participationDao.updateLastOnSaleBasePrices(new Date());
-		participationDao.applyNewCalculatedDiscounts(new Date(), 1);
+		participationDao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		participationDao.updateProductModifiedDates(new Date(), 1);
 
 		participationDao.setParticipationIsActive(53000, false);
