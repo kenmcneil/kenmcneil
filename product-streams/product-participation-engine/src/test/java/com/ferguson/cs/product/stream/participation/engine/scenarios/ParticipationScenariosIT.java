@@ -1,17 +1,14 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
-import static org.mockito.Mockito.spy;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
@@ -30,8 +27,13 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	@MockBean
 	public ConstructService constructService;
 
+	@SpyBean
 	public ParticipationService participationService;
+
+	@Autowired
 	public ParticipationWriter participationWriter;
+
+	@SpyBean
 	public ParticipationProcessor participationProcessor;
 
 	/**
@@ -51,12 +53,6 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	@Before
 	public void before() {
 		disableLocalCache();
-		MockitoAnnotations.initMocks(this);
-
-		participationService = spy(new ParticipationServiceImpl(participationDao, participationEngineSettings));
-		participationWriter = new ParticipationWriter(participationService, constructService);
-		participationProcessor = spy(new ParticipationProcessor(
-				participationEngineSettings, constructService, participationService, participationWriter));
 	}
 
 	/**

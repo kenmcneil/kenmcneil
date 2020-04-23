@@ -420,8 +420,10 @@ public class ParticipationTestUtilities {
 			}
 
 			//Retrieve calculatedDiscountTemplateId from the table
-			int templateId = jdbcTemplate.queryForObject(
+			Integer templateId = jdbcTemplate.queryForObject(
 					SELECT_FIRST_CALCULATED_DISCOUNT_TEMPLATE, Integer.class);
+			if (templateId == null) return;
+
 			//add pb22 % or amount Calculated Discount
 			jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
 					item.getId(),
