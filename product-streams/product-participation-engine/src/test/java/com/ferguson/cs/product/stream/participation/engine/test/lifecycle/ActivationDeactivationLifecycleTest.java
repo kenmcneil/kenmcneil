@@ -9,8 +9,8 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
 
 /**
- * Verify behavior when activating then deactivating with no schedule, no products, and no effects,
- * to verify basic activation/deactivation works.
+ * Verify that the basic publish, activate, deactivate, unpublish transitions work.
+ * Checks for existence of references to the participation, and isActive state.
  */
 public class ActivationDeactivationLifecycleTest implements ParticipationScenarioLifecycleTest {
 	private ParticipationTestUtilities participationTestUtilities;

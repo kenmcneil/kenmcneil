@@ -1,60 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 
-import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
-import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
-import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationEngineIT;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestScenario;
+import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationScenarioIT;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
-public class ParticipationScenariosIT extends BaseParticipationEngineIT {
-	@Autowired
-	public ParticipationDao participationDao;
-
-	@Autowired
-	public ParticipationEngineSettings participationEngineSettings;
-
-	@MockBean
-	public ConstructService constructService;
-
-	@SpyBean
-	public ParticipationService participationService;
-
-	@Autowired
-	public ParticipationWriter participationWriter;
-
-	@SpyBean
-	public ParticipationProcessor participationProcessor;
-
-	/**
-	 * Set up dependencies and wire up classes manually.
-	 *
-	 * No mocking/spying needed:
-	 *      ParticipationDao
-	 *      participationWriter
-	 *
-	 * Mock entire class:
-	 *      ConstructService
-	 *
-	 * Spy on class to override specific methods or do things before/after a method is called:
-	 *      participationService: before / after activate, deactivate, unpublish
-	 *      participationProcessor: getProcessingDate
-	 */
-	@Before
-	public void before() {
-		disableLocalCache();
-	}
-
+public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -71,18 +23,18 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 	@Test
 	public void engine_basicPublishAndUnpublish() {
 		// Make fixture participation with no schedule and no effects.
-	    // Currently saleId is required because it's not a nullable value in the database.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.participationId(50000)
 				.build();
 
-		// Create scenario and execute scenario steps in sequence.
-	    scenario()
-			    .lifecyleTests(new ActivationDeactivationLifecycleTest())
-			    .createUserPublishEvent(p1)
-			    .processEvents()
-			    .createUserUnpublishEvent(p1)
-	            .processEvents();
+		// Set up scenario
+		useLifecyleTests(new ActivationDeactivationLifecycleTest());
+
+		// Execute scenario steps in sequence.
+	    createUserPublishEvent(p1);
+	    processEvents();
+	    createUserUnpublishEvent(p1);
+	    processEvents();
 	}
 
 	/**
@@ -118,19 +70,4 @@ public class ParticipationScenariosIT extends BaseParticipationEngineIT {
 //
 //				.advanceToDay(4);
 //	}
-
-	/**
-	 * Create a new scenario instance and initialize it.
-	 */
-	private ParticipationTestScenario scenario() {
-		ParticipationTestScenario scenario = new ParticipationTestScenario(
-				participationEngineSettings,
-				constructService,
-				participationService,
-				participationProcessor,
-				participationTestUtilities
-		);
-		scenario.setupMocks();
-		return scenario;
-	}
 }

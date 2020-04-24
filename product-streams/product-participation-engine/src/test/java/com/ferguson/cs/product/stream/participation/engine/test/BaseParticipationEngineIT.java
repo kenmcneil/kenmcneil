@@ -5,6 +5,7 @@ import javax.annotation.Resource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.LocalCacheScope;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,11 @@ public abstract class BaseParticipationEngineIT extends BaseTest {
 		public BeanFactoryPostProcessor lazyBeanPostProcessor() {
 			return new LazyInitBeanFactoryPostProcessor();
 		}
+	}
+
+	@Before
+	public void before() {
+		disableLocalCache();
 	}
 
 	/**
