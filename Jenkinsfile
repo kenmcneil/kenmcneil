@@ -7,8 +7,6 @@ pipeline {
   environment {
     repositoryName = 'product-services'
     gitRepoUrl = "https://github.com/buildcom/${repositoryName}.git"
-    isSlackNotificationEnabled = false
-    slackChannelName = 'cs-release-coord'
     isRpmReleaseEnabled = false
     isDataFlowPostEnabled = true
     taskRegistrationUrl = 'https://dataflow.build.com'
@@ -96,24 +94,6 @@ pipeline {
                   steps {
                     setJiraLabels(repositoryName)
                     gitTag gitRepoUrl, repositoryName
-                  }
-                }
-                stage ('Wait For User Input') {
-                  steps {
-                    script {
-                      try {
-                        timeout(3) {
-                          if (isSlackNotificationEnabled.toBoolean()) {
-                            slackSend(channel: "${slackChannelName}", color: '#ffff00',
-                              message: "${repositoryName} master #${BUILD_NUMBER} is waiting for input. Please go to ${BUILD_URL}input. This link will expire in 3 minutes.")
-                          }
-                        }
-                      }
-                      catch (ignore) {
-                        // Treat neglect as a NO.
-
-                      }
-                    }
                   }
                 }
                 stage ('Wait For Tests') {
