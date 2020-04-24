@@ -98,24 +98,6 @@ pipeline {
                     gitTag gitRepoUrl, repositoryName
                   }
                 }
-                stage ('Wait For User Input') {
-                  steps {
-                    script {
-                      try {
-                        timeout(3) {
-                          if (isSlackNotificationEnabled.toBoolean()) {
-                            slackSend(channel: "${slackChannelName}", color: '#ffff00',
-                              message: "${repositoryName} master #${BUILD_NUMBER} is waiting for input. Please go to ${BUILD_URL}input. This link will expire in 3 minutes.")
-                          }
-                        }
-                      }
-                      catch (ignore) {
-                        // Treat neglect as a NO.
-
-                      }
-                    }
-                  }
-                }
                 stage ('Wait For Tests') {
                   options {
                     timeout(time: 5, unit: 'MINUTES')
