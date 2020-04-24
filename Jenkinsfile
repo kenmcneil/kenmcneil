@@ -7,8 +7,6 @@ pipeline {
   environment {
     repositoryName = 'product-services'
     gitRepoUrl = "https://github.com/buildcom/${repositoryName}.git"
-    isSlackNotificationEnabled = false
-    slackChannelName = 'cs-release-coord'
     isRpmReleaseEnabled = false
     isDataFlowPostEnabled = true
     taskRegistrationUrl = 'https://dataflow.build.com'
