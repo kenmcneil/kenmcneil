@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationScenarioIT;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
-public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
+public class BasicParticipationScenariosIT extends BaseParticipationScenarioIT {
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -20,14 +20,14 @@ public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
 	 *      - verify the data for the participation is removed from sql
 	 */
 	@Test
-	public void engine_basicPublishAndUnpublish() {
+	public void basic_publish_unpublish() {
 		// Make fixture participation with no schedule and no effects.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.participationId(50000)
 				.build();
 
 		// Set up scenario
-		useLifecyleTests(activationDeactivationLifecycleTest);
+		useLifecyleTests(basicLifecycleTest);
 
 		// Execute scenario steps in sequence.
 	    createUserPublishEvent(p1);

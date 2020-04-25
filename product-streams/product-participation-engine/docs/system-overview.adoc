@@ -1,9 +1,13 @@
 = Participation System Overview
-:toc: left
+:toc: macro
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../../asciidoctor.css
 :imagesdir: images
+
+link:../README.adoc[README] &raquo; System Overview
+
+toc::[]
 
 == Introduction
 
@@ -15,7 +19,7 @@ Participation records are scheduled by an <<#participation-author-term,author>> 
 
 === Priority and Overlap
 
-When a Participation activates, the <<#participation-effect-term, effects>> configured by the author are applied to the product variants it references. When a product variant is in multiple active participations, only the effects of the Participation with the highest priority will be applied to the product. It's possible that only some of the products in a Participation will actually be affected by it.
+When a Participation activates, the <<#participation-effect-term, effects>> configured by the author are applied to the product variants it references. When a product variant is in multiple <<#participation-active-term, active>> participations, only the effects of the Participation with the highest <<#participation-priority-term, priority>> will be applied to the product. It's possible that only some of the products in a Participation will actually be affected by it.
 
 Priority is implicitly defined--the record with the latest start date has the highest priority.
 
@@ -36,7 +40,7 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 
 |Sale ID
 |`saleId`, `uniqueIds` list
-|Set the sale id of the entered products in `uniqueIds` to `saleId`.
+|Set the <<#sale-id-term, sale id>> of the entered products in `uniqueIds` to `saleId`.
 
 |Calculated Discounts
 |`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`, `template`
@@ -197,13 +201,19 @@ The web stores and the native application consume prices and data either updated
 == Glossary
 
 [#participation-author-term]
-Participation Author:: An author is responsible for creating, publishing, and un-publishing records. Authors configure Participation records by entering the details for the desired effects and the dates to activate and deactivate the effects. Common author roles include merchandiser or marketer.
+Participation Author:: An _author_ is responsible for creating, publishing, and un-publishing records. Authors configure Participation records by entering the details for the desired effects and the dates to activate and deactivate the effects. Common author roles include merchandiser or marketer.
 
 [#participation-term]
 Participation:: A set of values entered by the author, including desired effects and their schedule and the record's published and activation statuses.
 
+[#participation-active-term]
+Active Participation:: When the engine applies a Participation's effect on its start date, it is then _active_. When the end date comes around and the engine removes the effects, it is no longer active.
+
+[#participation-priority-term]
+Participation Priority:: When there is more than one Participation active for a product variant at the same time, the Participation with the highest _priority_ becomes the owner. Priority is determined by the start date, with a later date having a higher priority.
+
 [#participation-effect-term]
-Participation Effect:: An effect is a specific change or set of changes made to product data and pricing, based on values entered by the author.
+Participation Effect:: An _effect_ is a specific change or set of changes made to product data and pricing, based on values entered by the author.
 
 [#sale-id-term]
 Sale ID:: The id of a ProductSale record, edited in OMC, which has a date range, a title, and a description. The id is used in various ways to link a product variant and other entities such as coupons in a marketing campaign.

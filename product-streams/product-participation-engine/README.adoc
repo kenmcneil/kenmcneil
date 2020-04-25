@@ -3,14 +3,17 @@
 :sectanchors:
 :stylesheet: ../../asciidoctor.cs
 :imagesdir: ../../images
+:icons: font
 
 == Documentation
 
 * link:docs/system-overview.adoc[Participation System Overview]
+* link:docs/scenario-tests.adoc[Scenario Tests]
+* link:docs/load-testing.adoc[Load Testing]
 
 == Development
 
-* See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] for the current application configuration.
+* See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] icon:external-link[] for the current application configuration.
 
 === Run Configuration
 

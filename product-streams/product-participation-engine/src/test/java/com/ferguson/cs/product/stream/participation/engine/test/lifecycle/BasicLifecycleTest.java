@@ -8,10 +8,10 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.BasePartic
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 /**
- * Verify that the basic publish, activate, deactivate, unpublish transitions work.
- * Checks for existence of references to the participation, and isActive state.
+ * Verify that the basic publish, activate, deactivate, and unpublish transitions work.
+ * Check for existence of references to the participation, and verify isActive state.
  */
-public class ActivationDeactivationLifecycleTest extends BaseParticipationScenarioLifecycleTest {
+public class BasicLifecycleTest extends BaseParticipationScenarioLifecycleTest {
 
 	/**
 	 * Verify there are no references to the participation yet.

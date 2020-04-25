@@ -1,10 +1,14 @@
 = Load Testing
-:toc: left
+:toc: macro
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../../asciidoctor.css
 :imagesdir: images
 :source-highlighter: coderay
+
+link:../README.adoc[README] &raquo; Load Testing
+
+toc::[]
 
 == Introduction
 
@@ -121,5 +125,5 @@ _TODO: get links to New Relic for mongodb and dev databases_
 
 * https://wiki.build.com/pages/viewpage.action?pageId=106662278[1st Load Test Planning Document]
 * https://wiki.build.com/display/PT/2019-11-14+Calculated+Discount+load+testing[1st load test results]
-* https://wiki.build.com/display/PT/2019-11-19+Calculated+Discounts+load+testing+II[[2nd load test results]
+* https://wiki.build.com/display/PT/2019-11-19+Calculated+Discounts+load+testing+II[2nd load test results]
 

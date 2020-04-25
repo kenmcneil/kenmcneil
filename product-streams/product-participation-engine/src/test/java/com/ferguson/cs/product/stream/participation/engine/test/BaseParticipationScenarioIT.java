@@ -37,7 +37,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -57,8 +57,8 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public ActivationDeactivationLifecycleTest activationDeactivationLifecycleTest() {
-			return new ActivationDeactivationLifecycleTest();
+		public BasicLifecycleTest activationDeactivationLifecycleTest() {
+			return new BasicLifecycleTest();
 		}
 
 		@Bean
@@ -98,7 +98,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	protected ParticipationProcessor participationProcessor;
 
 	@Autowired
-	protected ActivationDeactivationLifecycleTest activationDeactivationLifecycleTest;
+	protected BasicLifecycleTest basicLifecycleTest;
 
 	@Autowired
 	protected SchedulingLifecycleTest schedulingLifecycleTest;
