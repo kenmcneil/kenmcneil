@@ -23,8 +23,11 @@ import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
@@ -34,6 +37,8 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
@@ -46,7 +51,22 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
  * as beforeActivation. Each lifecycle test is responsible for testing end-to-end behavior
  * of a specific feature such as a Participation effect.
  */
+@Import(BaseParticipationScenarioIT.BaseParticipationScenarioITConfiguration.class)
 public abstract class BaseParticipationScenarioIT extends BaseParticipationEngineIT {
+
+	@TestConfiguration
+	public static class BaseParticipationScenarioITConfiguration {
+		@Bean
+		public ActivationDeactivationLifecycleTest activationDeactivationLifecycleTest() {
+			return new ActivationDeactivationLifecycleTest();
+		}
+
+		@Bean
+		public SchedulingLifecycleTest schedulingLifecycleTest() {
+			return new SchedulingLifecycleTest();
+		}
+	}
+
 	/*
 	 * No mocking/spying needed:
 	 *      ParticipationDao
@@ -77,6 +97,12 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	@SpyBean
 	protected ParticipationProcessor participationProcessor;
 
+	@Autowired
+	protected ActivationDeactivationLifecycleTest activationDeactivationLifecycleTest;
+
+	@Autowired
+	protected SchedulingLifecycleTest schedulingLifecycleTest;
+
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
@@ -103,7 +129,6 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 
 	public BaseParticipationScenarioIT useLifecyleTests(ParticipationScenarioLifecycleTest... params) {
 		lifecycleTests = Arrays.asList(params);
-		lifecycleTests.forEach(test -> test.init(participationTestUtilities));
 		return this;
 	}
 

@@ -4,20 +4,14 @@ import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
+import com.ferguson.cs.product.stream.participation.engine.test.model.BaseParticipationScenarioLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
 
 /**
  * Verify that the basic publish, activate, deactivate, unpublish transitions work.
  * Checks for existence of references to the participation, and isActive state.
  */
-public class ActivationDeactivationLifecycleTest implements ParticipationScenarioLifecycleTest {
-	private ParticipationTestUtilities participationTestUtilities;
-
-	public void init(ParticipationTestUtilities participationTestUtilities) {
-		this.participationTestUtilities = participationTestUtilities;
-	}
+public class ActivationDeactivationLifecycleTest extends BaseParticipationScenarioLifecycleTest {
 
 	/**
 	 * Verify there are no references to the participation yet.

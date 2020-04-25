@@ -6,20 +6,14 @@ import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
+import com.ferguson.cs.product.stream.participation.engine.test.model.BaseParticipationScenarioLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
 
 /**
  * Verify that scheduling works - it should be activated at the start date and deactivated
  * on the end date.
  */
-public class SchedulingLifecycleTest implements ParticipationScenarioLifecycleTest {
-	private ParticipationTestUtilities participationTestUtilities;
-
-	public void init(ParticipationTestUtilities participationTestUtilities) {
-		this.participationTestUtilities = participationTestUtilities;
-	}
+public class SchedulingLifecycleTest extends BaseParticipationScenarioLifecycleTest {
 
 	@Override
 	public void beforePublish(ParticipationItemFixture fixture, Date processingDate) {

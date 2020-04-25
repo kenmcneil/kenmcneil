@@ -3,8 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 import org.junit.Test;
 
 import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationScenarioIT;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
@@ -29,7 +27,7 @@ public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
 				.build();
 
 		// Set up scenario
-		useLifecyleTests(new ActivationDeactivationLifecycleTest());
+		useLifecyleTests(activationDeactivationLifecycleTest);
 
 		// Execute scenario steps in sequence.
 	    createUserPublishEvent(p1);
@@ -49,7 +47,7 @@ public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
 				.scheduleByDays(1, 3)
 				.build();
 
-		useLifecyleTests(new SchedulingLifecycleTest());
+		useLifecyleTests(schedulingLifecycleTest);
 
 		createUserPublishEvent(p1);
 		advanceToDay(4);

@@ -20,7 +20,7 @@ import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-@Import(BaseParticipationEngineIT.ParticipationTestConfiguration.class)
+@Import(BaseParticipationEngineIT.BaseParticipationTestConfiguration.class)
 @Transactional("coreTransactionManager")
 public abstract class BaseParticipationEngineIT extends BaseTest {
 	@Resource
@@ -33,7 +33,7 @@ public abstract class BaseParticipationEngineIT extends BaseTest {
 	public ParticipationTestUtilities participationTestUtilities;
 
 	@TestConfiguration
-	public static class ParticipationTestConfiguration {
+	public static class BaseParticipationTestConfiguration {
 		@Bean
 		public BeanFactoryPostProcessor lazyBeanPostProcessor() {
 			return new LazyInitBeanFactoryPostProcessor();
