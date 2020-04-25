@@ -1,12 +1,15 @@
 package com.ferguson.cs.product.stream.participation.engine.test.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @Builder
@@ -29,6 +32,10 @@ public class ParticipationItemFixture {
 	private List<Integer> uniqueIds;
 	private List<ParticipationProductFixture> products;
 	private List<ParticipationCalculatedDiscountsFixture> calculatedDiscounts;
+
+	@Builder.Default
+	@Setter(AccessLevel.PRIVATE)
+	private List<LifecycleState> stateLog = new ArrayList<>();
 
 	public static class ParticipationItemFixtureBuilder {
 		public ParticipationItemFixtureBuilder schedule(Date startDate, Date endDate) {

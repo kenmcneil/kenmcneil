@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationScenarioIT;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ActivationDeactivationLifecycleTest;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTest;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
@@ -35,39 +36,23 @@ public class ParticipationScenariosIT extends BaseParticipationScenarioIT {
 	    processEvents();
 	    createUserUnpublishEvent(p1);
 	    processEvents();
+		verifySimpleLifecycle(p1);
 	}
 
 	/**
-	 * Test scenario:
-	 *   - user publishes P(products(1, 2), saleId(3333))
-	 *   - after activation
-	 *      - verify sale id is applied to the products
-	 *      - verify engine activation event is created
-	 *          - mongo status is updated
-	 *          - mongo event record is added
-	 *   - after deactivation
-	 *      - verify sale id is removed from the products at deactivation
-	 *      - verify engine deactivation event is created
-	 *          - mongo status is updated
-	 *          - mongo event record is added
-	 *      - verify the data for the participation is removed from sql
+	 * Test scheduled activation and deactivation.
 	 */
-//	@Test
-//	public void engine_basicSaleId_() {
-//		// Make fixture participation with no effects.
-//		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-//				.participationId(5000)
-//				.scheduleByDays(1, 3)
-//				.build();
-//
-//		// Create the scenario.
-//		scenario()
-//				.lifecyleTests(
-//						new ActivationDeactivationLifecycleTest()
-////						new SaleIdEffectLifecycleTest()
-//				)
-//				.createUserPublishEvent(p1)
-//
-//				.advanceToDay(4);
-//	}
+	@Test
+	public void engine_basicScheduling() {
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.participationId(50000)
+				.scheduleByDays(1, 3)
+				.build();
+
+		useLifecyleTests(new SchedulingLifecycleTest());
+
+		createUserPublishEvent(p1);
+		advanceToDay(4);
+		verifySimpleLifecycle(p1);
+	}
 }

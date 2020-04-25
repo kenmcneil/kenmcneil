@@ -50,10 +50,6 @@ FROM mmc.product.currentPriorityParticipation
 WHERE participationId >= 50000
 
 DELETE
-FROM mmc.product.participationTracking
-WHERE participationId >= 50000
-
-DELETE
 FROM mmc.product.participationProduct
 WHERE participationId >= 50000
 
@@ -88,7 +84,7 @@ WHERE 1=1
 
 === Create Participation record fixtures
 
-It's useful to use a script to create records in the participationItem collection, to easily run a test repeatedly with many testing records.
+It's helpful to use a script to create records in the participationItem collection, to easily run a test repeatedly with many testing records.
 
 .Previous fixture generator scripts
 * link:../load-testing/make-participation-fixtures.js[make-participation-fixtures.js]

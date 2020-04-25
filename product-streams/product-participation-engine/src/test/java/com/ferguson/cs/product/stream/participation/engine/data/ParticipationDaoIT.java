@@ -18,17 +18,6 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 	public ParticipationDao participationDao;
 
 	@Test
-	public void setParticipationIsActive_active_inactive() {
-		ParticipationItemFixture values = new ParticipationItemFixture();
-		values.setParticipationId(50000);
-		values.setSaleId(2020);
-		values.setIsActive(false);
-		participationTestUtilities.insertParticipation(values);
-		int rowsModified = participationDao.setParticipationIsActive(50000, true);
-		Assertions.assertThat(rowsModified).isEqualTo(1);
-	}
-
-	@Test
 	public void setParticipationIsActive_getParticipationIsActive() {
 
 		ParticipationItemFixture values = new ParticipationItemFixture();
@@ -100,10 +89,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 				new Object[] { 123456 }, int.class);
 		Assertions.assertThat(resultSaleId).isEqualTo(3030);
 
-		int calcDiscountsCount = jdbcTemplate.queryForObject(
-				participationTestUtilities.SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
-				new Object[] { 53000 },
-				Integer.class);
+		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(2);
 	}
 
@@ -158,10 +144,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 				new Object[] { 123456 }, int.class);
 		Assertions.assertThat(resultSaleId).isNotEqualTo(3030);
 
-		int calcDiscountsCount = jdbcTemplate.queryForObject(
-				participationTestUtilities.SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
-				new Object[] { 53000 },
-				Integer.class);
+		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
 	}
 

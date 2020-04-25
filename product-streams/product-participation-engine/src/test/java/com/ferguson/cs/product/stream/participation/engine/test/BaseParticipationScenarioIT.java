@@ -34,6 +34,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
+import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
 
@@ -125,6 +126,8 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 */
 	public void initAndRememberFixture(ParticipationItemFixture fixture) {
 		Assertions.assertThat(fixture.getParticipationId()).isNotNull();
+		Assertions.assertThat(fixture.getParticipationId()).isGreaterThanOrEqualTo(
+				participationEngineSettings.getTestModeMinParticipationId());
 		if (fixture.getLastModifiedUserId() == null) {
 			fixture.setLastModifiedUserId(ParticipationTestUtilities.TEST_USERID);
 		}
@@ -161,6 +164,44 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	public BaseParticipationScenarioIT processEvents() {
 		processEventsAtCurrentSimulatedDate();
 		return this;
+	}
+
+	/*
+	 * Lifecycle state transitions
+	 *
+	 * A list of state changes that must have occurred for the ingredient to report success.
+	 *
+	 *  - Possible states: published, activated, deactivated, unpublished
+	 *  - All allowed transitions:
+	 *      Empty state -> PUBLISHED
+	 *      PUBLISHED -> (PUBLISHED, ACTIVATED, UNPUBLISHED)
+	 *      ACTIVATED -> DEACTIVATED
+	 *      DEACTIVATED -> UNPUBLISHED
+	 *      UNPUBLISHED -> Deleted in SQL
+	 */
+
+	/**
+	 * Verify that the given participation experienced all the basic lifecycle states,
+	 * in order from start to finish, with no extra states. Extra states could happen
+	 * when the user performs actions such as unpublish and then publish. Another example
+	 * is when an author publishes P, then Publish-Changes P, then it activates, which
+	 * would result in: PUBLISHED, PUBLISHED, ACTIVATED, DEACTIVATED, UNPUBLISHED.
+	 */
+	public void verifySimpleLifecycle(ParticipationItemFixture p) {
+		Assertions.assertThat(p.getStateLog()).containsExactly(
+				LifecycleState.PUBLISHED,
+				LifecycleState.ACTIVATED,
+				LifecycleState.DEACTIVATED,
+				LifecycleState.UNPUBLISHED
+		);
+	}
+
+	/**
+	 * Verify that the given participation experienced all the basic lifecycle states,
+	 * in order from start to finish, with no extra states
+	 */
+	public void verifyLifecycleLogMatches(ParticipationItemFixture p, LifecycleState... states) {
+		Assertions.assertThat(p.getStateLog()).containsExactly(states);
 	}
 
 	/**
@@ -212,7 +253,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	private void processEventsUpTo(Date futureDate) {
 		currentSimulatedDate = Date.from(
 				LocalDate
-						.from(currentSimulatedDate.toInstant())
+						.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
 						.plusDays(1)
 						.atStartOfDay(ZoneId.systemDefault())
 						.toInstant());
@@ -254,7 +295,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 			// Set start date to the beginning of the day.
 			fixture.setStartDate(Date.from(
 					LocalDate
-							.from(currentSimulatedDate.toInstant())
+							.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
 							.plusDays(fixture.getStartDateOffsetDays())
 							.atStartOfDay(ZoneId.systemDefault())
 							.toInstant()));
@@ -264,7 +305,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 			// Set end date to the end of the day.
 			fixture.setEndDate(Date.from(
 					LocalDate
-							.from(currentSimulatedDate.toInstant())
+							.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
 							.plusDays(fixture.getEndDateOffsetDays() + 1)
 							.atStartOfDay(ZoneId.systemDefault())
 							.minus(1, ChronoUnit.MINUTES)
@@ -282,29 +323,36 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 
 	private void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
 		lifecycleTests.forEach(test -> test.afterPublish(fixture, processingDate));
+		fixture.getStateLog().add(LifecycleState.PUBLISHED);
 	}
 
 	private void beforeActivate(ParticipationItem fixture, Date processingDate) {
 		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(fixture.getId()), processingDate));
 	}
 
-	private void afterActivate(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterActivate(fixtures.get(fixture.getId()), processingDate));
+	private void afterActivate(ParticipationItem item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getId());
+		lifecycleTests.forEach(test -> test.afterActivate(fixture, processingDate));
+		fixture.getStateLog().add(LifecycleState.ACTIVATED);
 	}
 
-	private void beforeDeactivate(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(fixture.getId()), processingDate));
+	private void beforeDeactivate(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getId()), processingDate));
 	}
 
-	private void afterDeactivate(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterDeactivate(fixtures.get(fixture.getId()), processingDate));
+	private void afterDeactivate(ParticipationItem item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getId());
+		lifecycleTests.forEach(test -> test.afterDeactivate(fixture, processingDate));
+		fixture.getStateLog().add(LifecycleState.DEACTIVATED);
 	}
 
-	private void beforeUnpublish(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(fixture.getId()), processingDate));
+	private void beforeUnpublish(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getId()), processingDate));
 	}
 
-	private void afterUnpublish(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.afterUnpublish(fixtures.get(fixture.getId()), processingDate));
+	private void afterUnpublish(ParticipationItem item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getId());
+		lifecycleTests.forEach(test -> test.afterUnpublish(fixture, processingDate));
+		fixture.getStateLog().add(LifecycleState.UNPUBLISHED);
 	}
 }
