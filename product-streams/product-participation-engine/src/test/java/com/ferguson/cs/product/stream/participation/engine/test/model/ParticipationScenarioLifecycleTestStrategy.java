@@ -7,7 +7,7 @@ import java.util.Date;
  * The beforePublish and afterPublish events are simulated since publish is currently handled
  * in core-services when the user publishes their Participation.
  */
-public interface ParticipationScenarioLifecycleTest {
+public interface ParticipationScenarioLifecycleTestStrategy {
 	void beforePublish(ParticipationItemFixture fixture, Date processingDate);
 
 	void afterPublish(ParticipationItemFixture fixture, Date processingDate);

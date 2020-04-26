@@ -219,7 +219,7 @@ Participation Effect:: An _effect_ is a specific change or set of changes made t
 Sale ID:: The id of a ProductSale record, edited in OMC, which has a date range, a title, and a description. The id is used in various ways to link a product variant and other entities such as coupons in a marketing campaign.
 
 [#product-variant-term]
-Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_.
+Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_. For more detail on product terminology see link:../../../README.adoc#build-terms-to-product-domain-terms[Build Terms to Product Domain Terms].
 
 == References
 

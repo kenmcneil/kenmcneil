@@ -2,10 +2,10 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
 
-import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationScenarioIT;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
-public class BasicParticipationScenariosIT extends BaseParticipationScenarioIT {
+public class BasicScenariosIT extends ParticipationScenarioITBase {
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -27,14 +27,14 @@ public class BasicParticipationScenariosIT extends BaseParticipationScenarioIT {
 				.build();
 
 		// Set up scenario
-		useLifecyleTests(basicLifecycleTest);
+		useTestStrategies(basicLifecycleTestStrategy);
 
 		// Execute scenario steps in sequence.
 	    createUserPublishEvent(p1);
 	    processEvents();
 	    createUserUnpublishEvent(p1);
 	    processEvents();
-		verifySimpleLifecycle(p1);
+		verifySimpleLifecycleLog(p1);
 	}
 
 	/**
@@ -47,10 +47,10 @@ public class BasicParticipationScenariosIT extends BaseParticipationScenarioIT {
 				.scheduleByDays(1, 3)
 				.build();
 
-		useLifecyleTests(schedulingLifecycleTest);
+		useTestStrategies(schedulingLifecycleTestStrategy);
 
 		createUserPublishEvent(p1);
 		advanceToDay(4);
-		verifySimpleLifecycle(p1);
+		verifySimpleLifecycleLog(p1);
 	}
 }

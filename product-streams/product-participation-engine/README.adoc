@@ -1,9 +1,8 @@
 = Participation Engine
 :sectlinks:
 :sectanchors:
-:stylesheet: ../../asciidoctor.cs
+:stylesheet: ../../asciidoctor.css
 :imagesdir: ../../images
-:icons: font
 
 == Documentation
 
@@ -11,11 +10,21 @@
 * link:docs/scenario-tests.adoc[Scenario Tests]
 * link:docs/load-testing.adoc[Load Testing]
 
+== Production / Runbook
+
+* Also see link:https://wiki.build.com/display/CON/Participations+and+Product+Pricing+Runbook[production issues / runbook] [small]#[&nearr;]# information on the wiki.
+
+=== Monitoring
+
+NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.
+
+=== Configuration
+
+See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] [small]#[&nearr;]# on github for the current application configuration.
+
 == Development
 
-* See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] icon:external-link[] for the current application configuration.
-
-=== Run Configuration
+=== Local Run Configuration
 
 This is a persistent application, as opposed to a data flow application that runs once and then stops. When running, it will continue to poll for events periodically. Use your IDE stop button to stop the application or ctrl-c if running in the terminal.
 
@@ -23,11 +32,11 @@ This is a persistent application, as opposed to a data flow application that run
 * Use `com.ferguson.cs.product.stream.participation.engine.ParticipationEngineApplication` for the main class.
 * Enter desired VM options (see table below).
 
-==== Database
+=== Database
 
 The engine makes direct connections to MongoDB and SQL servers.
 
-===== MongoDB and SQL
+==== MongoDB and SQL
 
 There is one development MongoDB server, and three dev SQL servers. Because of this, regardless of which SQL database is used, the same set of Participation records are processed on each run.
 
@@ -37,17 +46,20 @@ These practices should be followed when not using cicdev1 to avoid missing or in
 * If you want to use a Participation that was published or activated in a different SQL database, then unpublish it and publish it again, to ensure the data is in your configured database when you run the engine.
 * Also consider manually cleaning up SQL data for specific Participation records being used for development. See link:docs/load-testing.adoc[load testing] for more information.
 
-==== Log output
+=== Log output
 
 The engine emits a log message for each event handled at the INFO level. Additional engine logging can be enabled at DEBUG level.
 
-==== Load Testing
+=== Load Testing
 
 When test mode is enabled, participations below a given id are omitted from processing. This allows running the engine on only your load testing Participation records, omitting any other records present in the database. Also useful when during development.
 
 * See link:docs/load-testing.adoc[load testing docs].
 
-==== Configuration properties
+=== Configuration properties
+
+* See current link:https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] [small]#[&nearr;]# in the configuration repo.
+* See link:src/test/resources/application-unit.yml[application-unit.yml] for unit / integration test config.
 
 |===
 |Config|Effect|VM Arguments
@@ -92,6 +104,6 @@ a|Runs with `localdev` by default. You should not need to change it. +
 
 |===
 
-== Monitoring
+=== Development / Debugging
 
-NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.
+* See link:docs/developer-helpers.adoc[Development / Debugging]

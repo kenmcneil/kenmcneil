@@ -9,26 +9,28 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.stream.participation.engine.test.BaseParticipationEngineIT;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscountsFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
-public class ParticipationDaoIT extends BaseParticipationEngineIT {
+public class ParticipationDaoIT extends ParticipationEngineITBase {
 	@Autowired
 	public ParticipationDao participationDao;
 
 	@Test
 	public void setParticipationIsActive_getParticipationIsActive() {
 
-		ParticipationItemFixture values = new ParticipationItemFixture();
-		values.setParticipationId(52000);
-		values.setSaleId(2020);
-		values.setIsActive(false);
-		participationTestUtilities.insertParticipation(values);
-		values.setParticipationId(53000);
-		values.setSaleId(3030);
-		values.setIsActive(false);
-		participationTestUtilities.insertParticipation(values);
+		participationTestUtilities.insertParticipationFixture(
+				ParticipationItemFixture.builder()
+						.participationId(52000)
+						.saleId(2020)
+						.build());
+
+		participationTestUtilities.insertParticipationFixture(
+				ParticipationItemFixture.builder()
+						.participationId(53000)
+						.saleId(3030)
+						.build());
 
 		participationDao.setParticipationIsActive(52000, false);
 		participationDao.setParticipationIsActive(53000, true);
@@ -50,18 +52,20 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 	@Test
 	public void participation_owns_products_with_discounts() {
 
-		List<ParticipationCalculatedDiscountsFixture> discounts = new ArrayList<>();
-		ParticipationCalculatedDiscountsFixture discount1 = new ParticipationCalculatedDiscountsFixture();
+		int calculatedDiscountTemplateId = participationTestUtilities.insertCalculatedDiscountTemplateAndType();
+
+		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
+		ParticipationCalculatedDiscount discount1 = new ParticipationCalculatedDiscount();
 		discount1.setPricebookId(1);
 		discount1.setChangeValue(.25);
 		discount1.setIsPercent(true);
-		discount1.setTemplateId(1);
+		discount1.setTemplateId(calculatedDiscountTemplateId);
 		discounts.add(discount1);
-		ParticipationCalculatedDiscountsFixture discount22 = new ParticipationCalculatedDiscountsFixture();
+		ParticipationCalculatedDiscount discount22 = new ParticipationCalculatedDiscount();
 		discount22.setPricebookId(22);
 		discount22.setChangeValue(.25);
 		discount22.setIsPercent(false);
-		discount22.setTemplateId(1);
+		discount22.setTemplateId(calculatedDiscountTemplateId);
 		discounts.add(discount22);
 		ParticipationItemFixture values = new ParticipationItemFixture();
 		values.setParticipationId(53000);
@@ -69,7 +73,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 		values.setIsActive(true);
 		values.setUniqueIds(Arrays.asList(123456, 234567));
 		values.setCalculatedDiscounts(discounts);
-		participationTestUtilities.insertParticipation(values);
+		participationTestUtilities.insertParticipationFixture(values);
 
 		int rowsAffected = participationDao.setParticipationIsActive(53000, true);
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
@@ -101,18 +105,20 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 	@Test
 	public void participation_disowns_products_with_discounts() {
 
-		List<ParticipationCalculatedDiscountsFixture> discounts = new ArrayList<>();
-		ParticipationCalculatedDiscountsFixture discount1 = new ParticipationCalculatedDiscountsFixture();
+		int calculatedDiscountTemplateId = participationTestUtilities.insertCalculatedDiscountTemplateAndType();
+
+		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
+		ParticipationCalculatedDiscount discount1 = new ParticipationCalculatedDiscount();
 		discount1.setPricebookId(1);
 		discount1.setChangeValue(.25);
 		discount1.setIsPercent(true);
-		discount1.setTemplateId(1);
+		discount1.setTemplateId(calculatedDiscountTemplateId);
 		discounts.add(discount1);
-		ParticipationCalculatedDiscountsFixture discount22 = new ParticipationCalculatedDiscountsFixture();
+		ParticipationCalculatedDiscount discount22 = new ParticipationCalculatedDiscount();
 		discount22.setPricebookId(22);
 		discount22.setChangeValue(.25);
 		discount22.setIsPercent(true);
-		discount22.setTemplateId(1);
+		discount22.setTemplateId(calculatedDiscountTemplateId);
 		discounts.add(discount22);
 		ParticipationItemFixture values = new ParticipationItemFixture();
 		values.setParticipationId(53000);
@@ -120,7 +126,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 		values.setIsActive(false);
 		values.setUniqueIds(Arrays.asList(123456, 234567));
 		values.setCalculatedDiscounts(discounts);
-		participationTestUtilities.insertParticipation(values);
+		participationTestUtilities.insertParticipationFixture(values);
 		participationDao.setParticipationIsActive(53000, true);
 		participationDao.updateOwnerChangesForActivation(53000);
 		participationDao.addProductOwnershipForNewOwners(53000);
@@ -155,7 +161,7 @@ public class ParticipationDaoIT extends BaseParticipationEngineIT {
 		values.setParticipationId(50000);
 		values.setSaleId(2020);
 		values.setIsActive(false);
-		participationTestUtilities.insertParticipation(values);
+		participationTestUtilities.insertParticipationFixture(values);
 
 		int rowsAffected = participationDao.deleteParticipation(50000);
 

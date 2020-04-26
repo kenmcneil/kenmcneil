@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParticipationProductFixture {
+public class ParticipationProduct {
+	Integer id;
 	Integer participationId;
 	Integer uniqueId;
 	Boolean isOwner;

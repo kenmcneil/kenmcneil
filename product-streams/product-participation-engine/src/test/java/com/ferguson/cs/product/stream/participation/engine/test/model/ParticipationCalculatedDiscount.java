@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParticipationCalculatedDiscountsFixture {
+public class ParticipationCalculatedDiscount {
+	private Integer id;
 	private Integer pricebookId;
 	private Double changeValue;
 	private Boolean isPercent;

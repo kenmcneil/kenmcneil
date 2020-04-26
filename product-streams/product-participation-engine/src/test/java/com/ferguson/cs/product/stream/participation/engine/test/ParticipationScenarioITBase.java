@@ -37,11 +37,12 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTest;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTest;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTestStrategy;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectLifecycleTestStrategy;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTestStrategy;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTest;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTestStrategy;
 
 /**
  * Subclass this to create scenarios that test expected behavior at various points
@@ -51,19 +52,24 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
  * as beforeActivation. Each lifecycle test is responsible for testing end-to-end behavior
  * of a specific feature such as a Participation effect.
  */
-@Import(BaseParticipationScenarioIT.BaseParticipationScenarioITConfiguration.class)
-public abstract class BaseParticipationScenarioIT extends BaseParticipationEngineIT {
+@Import(ParticipationScenarioITBase.BaseParticipationScenarioITConfiguration.class)
+public abstract class ParticipationScenarioITBase extends ParticipationEngineITBase {
 
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public BasicLifecycleTest activationDeactivationLifecycleTest() {
-			return new BasicLifecycleTest();
+		public BasicLifecycleTestStrategy activationDeactivationLifecycleTest() {
+			return new BasicLifecycleTestStrategy();
 		}
 
 		@Bean
-		public SchedulingLifecycleTest schedulingLifecycleTest() {
-			return new SchedulingLifecycleTest();
+		public SchedulingLifecycleTestStrategy schedulingLifecycleTest() {
+			return new SchedulingLifecycleTestStrategy();
+		}
+
+		@Bean
+		public SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTest() {
+			return new SaleIdEffectLifecycleTestStrategy();
 		}
 	}
 
@@ -76,7 +82,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 *      ConstructService
 	 *
 	 * Spy on class to override specific methods or do things before/after a method is called:
-	 *      participationService: before / after activate, deactivate, unpublish
+	 *      participationService: before / after each transition: publish, activate, deactivate, unpublish
 	 *      participationProcessor: getProcessingDate
 	 */
 	@Autowired
@@ -98,17 +104,22 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	protected ParticipationProcessor participationProcessor;
 
 	@Autowired
-	protected BasicLifecycleTest basicLifecycleTest;
+	protected BasicLifecycleTestStrategy basicLifecycleTestStrategy;
 
 	@Autowired
-	protected SchedulingLifecycleTest schedulingLifecycleTest;
+	protected SchedulingLifecycleTestStrategy schedulingLifecycleTestStrategy;
+
+	@Autowired
+	protected SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTestStrategy;
 
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
-	protected List<ParticipationScenarioLifecycleTest> lifecycleTests;
+	protected List<ParticipationScenarioLifecycleTestStrategy> lifecycleTests;
 	protected Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	protected Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
+
+	private int nextTestParticipationId;
 
 	private boolean ranBeforeAll = false;
 
@@ -125,24 +136,34 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 		// Default the simulated scenario start date.
 		originalSimulatedDate = new Date();
 		currentSimulatedDate = originalSimulatedDate;
+
+		// Start the participation ids used for text fixtures at the test-mode min id.
+		nextTestParticipationId = participationEngineSettings.getTestModeMinParticipationId();
 	}
 
-	public BaseParticipationScenarioIT useLifecyleTests(ParticipationScenarioLifecycleTest... params) {
+	public ParticipationScenarioITBase useTestStrategies(ParticipationScenarioLifecycleTestStrategy... params) {
 		lifecycleTests = Arrays.asList(params);
 		return this;
 	}
 
-	public BaseParticipationScenarioIT startOn(Date simulatedRunDate) {
+	public ParticipationScenarioITBase startOn(Date simulatedRunDate) {
 		originalSimulatedDate = simulatedRunDate;
 		currentSimulatedDate = simulatedRunDate;
 		return this;
 	}
 
-	public BaseParticipationScenarioIT advanceToDay(int dayNumber) {
+	public ParticipationScenarioITBase advanceToDay(int dayNumber) {
 		Date futureDate = new Date(originalSimulatedDate.getTime() + TimeUnit.DAYS.toMillis(dayNumber));
 		Assertions.assertThat(futureDate).isAfterOrEqualsTo(currentSimulatedDate);
 		processEventsUpTo(futureDate);
 		return this;
+	}
+
+	/**
+	 * Returns a new test participation fixture id.
+	 */
+	private int getNextTestParticipationId() {
+		return nextTestParticipationId++;
 	}
 
 	/**
@@ -153,9 +174,15 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 		Assertions.assertThat(fixture.getParticipationId()).isNotNull();
 		Assertions.assertThat(fixture.getParticipationId()).isGreaterThanOrEqualTo(
 				participationEngineSettings.getTestModeMinParticipationId());
+
+		if (fixture.getParticipationId() == null) {
+			fixture.setParticipationId(getNextTestParticipationId());
+		}
+
 		if (fixture.getLastModifiedUserId() == null) {
 			fixture.setLastModifiedUserId(ParticipationTestUtilities.TEST_USERID);
 		}
+
 		fixtures.putIfAbsent(fixture.getParticipationId(), fixture);
 	}
 
@@ -163,7 +190,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 * Publish the given Participation record. The Participation record is represented
 	 * by a ParticipationItemFixture object to make it easy to create test fixture data.
 	 */
-	public BaseParticipationScenarioIT createUserPublishEvent(ParticipationItemFixture fixture) {
+	public ParticipationScenarioITBase createUserPublishEvent(ParticipationItemFixture fixture) {
 		initAndRememberFixture(fixture);
 		simulatePublishEvent(fixture);
 		return this;
@@ -173,7 +200,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 * Simulate a user unpublish event. Adds to list of records that will be returned by
 	 * constructService.getNextPendingUnpublishParticipation.
 	 */
-	public BaseParticipationScenarioIT createUserUnpublishEvent(ParticipationItemFixture fixture) {
+	public ParticipationScenarioITBase createUserUnpublishEvent(ParticipationItemFixture fixture) {
 		ParticipationItem p = new ParticipationItem();
 		p.setId(fixture.getParticipationId());
 		p.setLastModifiedUserId(fixture.getLastModifiedUserId());
@@ -186,7 +213,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 * Use when either time advancing is not important, or events need to be processed again before
 	 * advancing time.
 	 */
-	public BaseParticipationScenarioIT processEvents() {
+	public ParticipationScenarioITBase processEvents() {
 		processEventsAtCurrentSimulatedDate();
 		return this;
 	}
@@ -212,7 +239,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 	 * is when an author publishes P, then Publish-Changes P, then it activates, which
 	 * would result in: PUBLISHED, PUBLISHED, ACTIVATED, DEACTIVATED, UNPUBLISHED.
 	 */
-	public void verifySimpleLifecycle(ParticipationItemFixture p) {
+	public void verifySimpleLifecycleLog(ParticipationItemFixture p) {
 		Assertions.assertThat(p.getStateLog()).containsExactly(
 				LifecycleState.PUBLISHED,
 				LifecycleState.ACTIVATED,
@@ -338,7 +365,7 @@ public abstract class BaseParticipationScenarioIT extends BaseParticipationEngin
 		}
 
 		beforePublish(fixture, currentSimulatedDate);
-		participationTestUtilities.insertParticipation(fixture);
+		participationTestUtilities.insertParticipationFixture(fixture);
 		afterPublish(fixture, currentSimulatedDate);
 	}
 
