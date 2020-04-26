@@ -2,6 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.test;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,9 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
 @Service
 public class ParticipationTestUtilities {
@@ -63,19 +69,8 @@ public class ParticipationTestUtilities {
 					"(templateType) " +
 					"VALUES (?)";
 
-	public static final String SELECT_SALE_ID =
-			"SELECT saleId FROM mmc.product.sale WHERE uniqueId = ?";
-
-	public static final String SELECT_PARTICIPATION_PARTIAL_BY_PARTICIPATIONID =
-			"SELECT * FROM mmc.product.participationItemPartial " +
-					"WHERE participationId = ?";
-
 	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID =
 			"SELECT COUNT(*) FROM mmc.product.participationCalculatedDiscount " +
-					"WHERE participationId = ?";
-
-	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID =
-			"SELECT * FROM mmc.product.participationCalculatedDiscount " +
 					"WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_PRODUCT_COUNT_BY_PARTICIPATIONID =
@@ -85,12 +80,26 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID =
 			"SELECT count(*) FROM mmc.product.sale WHERE participationId = ?";
 
+	public static final String SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID =
+			"SELECT count(*) FROM mmc.dbo.pricebook_cost WHERE participationId = ?";
+
+	public static final String SELECT_PARTICIPATION_PARTIAL_BY_PARTICIPATIONID =
+			"SELECT * FROM mmc.product.participationItemPartial " +
+					"WHERE participationId = ?";
+
 	public static final String SELECT_PARTICIPATION_PRODUCT_BY_PARTICIPATIONID =
 			"SELECT * FROM mmc.product.participationProduct " +
 					"WHERE participationId = ?";
 
-	public static final String SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID =
-			"SELECT count(*) FROM mmc.dbo.pricebook_cost WHERE participationId = ?";
+	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID =
+			"SELECT * FROM mmc.product.participationCalculatedDiscount " +
+					"WHERE participationId = ?";
+
+	public static final String SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID =
+			"SELECT * FROM mmc.product.sale WHERE uniqueId IN ( :uniqueIds )";
+
+	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
+			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
 
 	public static final String UPSERT_PRICEBOOK_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost " +
@@ -163,6 +172,8 @@ public class ParticipationTestUtilities {
 
 	@Autowired
 	public JdbcTemplate jdbcTemplate;
+
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	/**
 	 * Returns the id of a calculated discount template record. If not populated yet, insert
@@ -254,6 +265,23 @@ public class ParticipationTestUtilities {
 				participationId);
 	}
 
+	public List<ProductSaleParticipation> getProductSaleLinks(List<Integer> uniqueIds) {
+		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
+		return getNamedParameterJdbcTemplate().query(SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
+				namedParameters, BeanPropertyRowMapper.newInstance(ProductSaleParticipation.class));
+	}
+
+	public ProductSaleParticipation getProductSaleLink(int uniqueId) {
+		List<ProductSaleParticipation> sales = getProductSaleLinks(Collections.singletonList(uniqueId));
+		return sales.size() > 0 ? sales.get(0) : null;
+	}
+
+	public List<ProductModified> getProductModifieds(List<Integer> uniqueIds) {
+		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
+		return getNamedParameterJdbcTemplate().query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
+				namedParameters, BeanPropertyRowMapper.newInstance(ProductModified.class));
+	}
+
 	/**
 	 * Check applicable tables for any references to the given participation id.
 	 */
@@ -282,5 +310,12 @@ public class ParticipationTestUtilities {
 			return stmt;
 		}, keyHolder);
 		return keyHolder.getKey();
+	}
+
+	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
+		if (namedParameterJdbcTemplate == null) {
+			namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+		}
+		return namedParameterJdbcTemplate;
 	}
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
 public class ParticipationDaoIT extends ParticipationEngineITBase {
 	@Autowired
@@ -89,9 +90,8 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 
 		// Check final state
-		int resultSaleId = jdbcTemplate.queryForObject(participationTestUtilities.SELECT_SALE_ID,
-				new Object[] { 123456 }, int.class);
-		Assertions.assertThat(resultSaleId).isEqualTo(3030);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleLink(123456);
+		Assertions.assertThat(link.getSaleId()).isEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(2);
@@ -146,9 +146,8 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		participationDao.deleteParticipation(53000);
 
 		// Check final state
-		int resultSaleId = jdbcTemplate.queryForObject(participationTestUtilities.SELECT_SALE_ID,
-				new Object[] { 123456 }, int.class);
-		Assertions.assertThat(resultSaleId).isNotEqualTo(3030);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleLink(123456);
+		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);

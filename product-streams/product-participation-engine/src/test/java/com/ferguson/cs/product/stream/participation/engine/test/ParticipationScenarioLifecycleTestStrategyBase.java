@@ -34,8 +34,4 @@ public abstract class ParticipationScenarioLifecycleTestStrategyBase implements 
 	public void beforeUnpublish(ParticipationItemFixture fixture, Date processingDate) {}
 
 	public void afterUnpublish(ParticipationItemFixture fixture, Date processingDate) {}
-
-//	private boolean nullAllowedIsEqualTo() {
-//
-//	}
 }

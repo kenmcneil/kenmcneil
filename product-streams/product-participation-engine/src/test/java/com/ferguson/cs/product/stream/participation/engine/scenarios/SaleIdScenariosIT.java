@@ -10,17 +10,8 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	/**
 	 * Test scenario:
 	 *   - user publishes P(saleId(2020), products(100, 101))
-	 *   - after activation
-	 *      - verify sale id is applied to the products
-	 *      - verify engine activation event is created
-	 *          - mongo status is updated
-	 *          - mongo event record is added
-	 *   - after deactivation
-	 *      - verify sale id is removed from the products at deactivation
-	 *      - verify engine deactivation event is created
-	 *          - mongo status is updated
-	 *          - mongo event record is added
-	 *      - verify the data for the participation is removed from sql
+	 *   - verify sale id has been applied to the products after activation
+	 *   - verify sale id has been removed from the products after deactivation
 	 */
 	@Test
 	public void engine_basicSaleIdEffect() {

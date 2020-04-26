@@ -37,6 +37,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTestStrategy;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectLifecycleTestStrategy;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTestStrategy;
@@ -76,13 +77,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	/*
 	 * No mocking/spying needed:
 	 *      ParticipationDao
-	 *      participationWriter
 	 *
 	 * Mock entire class:
 	 *      ConstructService
 	 *
 	 * Spy on class to override specific methods or do things before/after a method is called:
-	 *      participationService: before / after each transition: publish, activate, deactivate, unpublish
+	 *      participationWriter: after processActivation, processDeactivation, processUnpublish
+	 *      participationService: before and after processActivation, processDeactivation, processUnpublish
 	 *      participationProcessor: getProcessingDate
 	 */
 	@Autowired
@@ -97,7 +98,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@SpyBean
 	protected ParticipationService participationService;
 
-	@Autowired
+	@SpyBean
 	protected ParticipationWriter participationWriter;
 
 	@SpyBean
@@ -272,6 +273,39 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
 
+		// After participationWriter processActivation, processDeactivation, or processUnpublish
+		// methods are called, check that the "processed" event was created (really a mongo call to set
+		// the ParticipationItem status).
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			verify(constructService, times(1)).updateParticipationItemStatus(
+					anyInt(),
+					eq(ParticipationItemStatus.PUBLISHED),
+					eq(ParticipationItemUpdateStatus.NEEDS_CLEANUP),
+					any(Date.class));
+			return null;
+		}).when(participationWriter).processActivation(any(ParticipationItem.class), any(Date.class));
+
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			verify(constructService, times(1)).updateParticipationItemStatus(
+					anyInt(),
+					eq(ParticipationItemStatus.ARCHIVED),
+					isNull(),
+					any(Date.class));
+			return null;
+		}).when(participationWriter).processDeactivation(any(ParticipationItem.class), any(Date.class));
+
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			verify(constructService, times(1)).updateParticipationItemStatus(
+					anyInt(),
+					eq(ParticipationItemStatus.DRAFT),
+					isNull(),
+					any(Date.class));
+			return null;
+		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
+
 		// Set up before and after calls for when an ACTIVATE event is processed.
 		doAnswer(invocation -> {
 			beforeActivate(invocation.getArgument(0), invocation.getArgument(1));
@@ -324,15 +358,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 * Process all currently pending user events and process any time-based events on the given day.
 	 */
 	private void processEventsAtCurrentSimulatedDate() {
-		int unpublishQueueSize = pendingUnpublishParticipationQueue.size();
-
 		participationProcessor.process();
 
-		// Verify unpublish event queue is empty now and that mongo update status was called
-		// once for each event that was in the queue.
+		// Verify that all pending unpublish events were processed.
 		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
-		verify(constructService, times(unpublishQueueSize)).updateParticipationItemStatus(
-				anyInt(), eq(ParticipationItemStatus.DRAFT), isNull(), any(Date.class));
 	}
 
 	/**
