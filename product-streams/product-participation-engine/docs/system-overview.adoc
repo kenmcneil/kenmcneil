@@ -60,7 +60,7 @@ When an effect activates and changes a pricebook price, the price and base price
 
 When prices are updated, product storage updates are triggered, which updates pricing data in product storage cache records in MongoDB.
 
-* For more information on downstream consumption of price changes see https://github.com/buildcom/core-services/blob/master/docs/product-domain/product-domain-layout.adoc
+* For more information on downstream consumption of price changes see link:https://github.com/buildcom/core-services/blob/master/docs/product-domain/product-domain-layout.adoc[Product Data Access & Services].
 
 == System Diagram
 

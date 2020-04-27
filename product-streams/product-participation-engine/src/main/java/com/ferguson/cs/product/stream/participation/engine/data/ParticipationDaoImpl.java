@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.springframework.stereotype.Repository;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Repository
 public class ParticipationDaoImpl implements ParticipationDao {
@@ -15,7 +15,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public ParticipationItem getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
+	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
 		return participationMapper.getNextParticipationPendingActivation(processingDate, minParticipationId);
 	}
 
@@ -89,12 +89,9 @@ public class ParticipationDaoImpl implements ParticipationDao {
 		return participationMapper.updateProductModifiedDates(processingDate, userId);
 	}
 
-
-	// DEACTIVATION
-
 	@Override
-	public ParticipationItem getNextParticipationPendingDeactivation(Date processingDate, Integer minParticipationId) {
-		return participationMapper.getNextParticipationPendingDeactivation(processingDate, minParticipationId);
+	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId) {
+		return participationMapper.getNextExpiredParticipation(processingDate, minParticipationId);
 	}
 
 	@Override

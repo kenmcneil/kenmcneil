@@ -2,7 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 public interface ParticipationDao {
 
@@ -28,7 +28,7 @@ public interface ParticipationDao {
 	 * Get next participation that is pending activation at the given date.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
-	ParticipationItem getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
+	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
 	 * Create the participationOwnerChanges temp table and fill it with the ownership
@@ -96,10 +96,10 @@ public interface ParticipationDao {
 	// DEACTIVATION
 
 	/**
-	 * Get next participation that is pending deactivation at the given date.
+	 * Get next participation that is expired and may be pending deactivation, at the given date.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
-	ParticipationItem getNextParticipationPendingDeactivation(Date processingDate, Integer minParticipationId);
+	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	/**
 	 * Create the participationOwnerChanges temp table and fill it with the ownership

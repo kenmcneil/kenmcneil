@@ -38,6 +38,7 @@ import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTestStrategy;
@@ -243,16 +244,16 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 * would result in: PUBLISHED, PUBLISHED, ACTIVATED, DEACTIVATED, UNPUBLISHED.
 	 */
 	public void verifySimpleLifecycleLog(ParticipationItemFixture... fixtures) {
-		Arrays.stream(fixtures).forEach(fixture -> {
-			Assertions.assertThat(fixture.getStateLog())
+		Arrays.stream(fixtures).forEach(fixture ->
+				Assertions.assertThat(fixture.getStateLog())
 					.as(fixture.toString())
 					.containsExactly(
 					LifecycleState.PUBLISHED,
 					LifecycleState.ACTIVATED,
 					LifecycleState.DEACTIVATED,
 					LifecycleState.UNPUBLISHED
-			);
-		});
+			)
+		);
 	}
 
 	/**
@@ -303,7 +304,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			Mockito.clearInvocations(constructService);
 
 			return null;
-		}).when(participationWriter).processActivation(any(ParticipationItem.class), any(Date.class));
+		}).when(participationWriter).processActivation(any(ParticipationItemPartial.class), any(Date.class));
 
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
@@ -317,7 +318,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			Mockito.clearInvocations(constructService);
 
 			return null;
-		}).when(participationWriter).processDeactivation(any(ParticipationItem.class), any(Date.class));
+		}).when(participationWriter).processDeactivation(any(ParticipationItemPartial.class), any(Date.class));
 
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
@@ -331,7 +332,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			Mockito.clearInvocations(constructService);
 
 			return null;
-		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
+		}).when(participationWriter).processUnpublish(any(ParticipationItemPartial.class), any(Date.class));
 
 		// Set up before and after calls for when an ACTIVATE event is processed.
 		doAnswer(invocation -> {
@@ -339,7 +340,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			invocation.callRealMethod();
 			afterActivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).activateParticipation(any(ParticipationItem.class), any(Date.class));
+		}).when(participationService).activateParticipation(any(ParticipationItemPartial.class), any(Date.class));
 
 		// Set up before and after calls for when an DEACTIVATE event is processed.
 		doAnswer(invocation -> {
@@ -347,7 +348,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			invocation.callRealMethod();
 			afterDeactivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).deactivateParticipation(any(ParticipationItem.class), any(Date.class));
+		}).when(participationService).deactivateParticipation(any(ParticipationItemPartial.class), any(Date.class));
 
 		// Set up before and after calls for when an UNPUBLISH event is processed.
 		doAnswer(invocation -> {
@@ -355,7 +356,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			invocation.callRealMethod();
 			afterUnpublish(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).unpublishParticipation(any(ParticipationItem.class), any(Date.class));
+		}).when(participationService).unpublishParticipation(any(ParticipationItemPartial.class), any(Date.class));
 	}
 
 	/**
@@ -434,32 +435,32 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		fixture.getStateLog().add(LifecycleState.PUBLISHED);
 	}
 
-	private void beforeActivate(ParticipationItem fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(fixture.getId()), processingDate));
+	private void beforeActivate(ParticipationItemPartial fixture, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(fixture.getParticipationId()), processingDate));
 	}
 
-	private void afterActivate(ParticipationItem item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getId());
+	private void afterActivate(ParticipationItemPartial item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterActivate(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.ACTIVATED);
 	}
 
-	private void beforeDeactivate(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getId()), processingDate));
+	private void beforeDeactivate(ParticipationItemPartial item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getParticipationId()), processingDate));
 	}
 
-	private void afterDeactivate(ParticipationItem item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getId());
+	private void afterDeactivate(ParticipationItemPartial item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterDeactivate(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.DEACTIVATED);
 	}
 
-	private void beforeUnpublish(ParticipationItem item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getId()), processingDate));
+	private void beforeUnpublish(ParticipationItemPartial item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getParticipationId()), processingDate));
 	}
 
-	private void afterUnpublish(ParticipationItem item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getId());
+	private void afterUnpublish(ParticipationItemPartial item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterUnpublish(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.UNPUBLISHED);
 	}

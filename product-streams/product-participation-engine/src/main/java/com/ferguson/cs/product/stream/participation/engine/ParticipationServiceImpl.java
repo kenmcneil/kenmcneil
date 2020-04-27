@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Service
 public class ParticipationServiceImpl implements ParticipationService {
@@ -23,14 +23,14 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
-	public ParticipationItem getNextParticipationPendingActivation(Date processingDate) {
+	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate) {
 		return participationDao.getNextParticipationPendingActivation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
 	@Override
-	public ParticipationItem getNextParticipationPendingDeactivation(Date processingDate) {
-		return participationDao.getNextParticipationPendingDeactivation(
+	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate) {
+		return participationDao.getNextExpiredParticipation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
@@ -40,8 +40,8 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
-	public void activateParticipation(ParticipationItem item, Date processingDate) {
-		int participationId = item.getId();
+	public void activateParticipation(ParticipationItemPartial item, Date processingDate) {
+		int participationId = item.getParticipationId();
 		int userId = item.getLastModifiedUserId();
 		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int totalRows = 0;
@@ -94,8 +94,8 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
-	public void deactivateParticipation(ParticipationItem item, Date processingDate) {
-		int participationId = item.getId();
+	public void deactivateParticipation(ParticipationItemPartial item, Date processingDate) {
+		int participationId = item.getParticipationId();
 		int userId = item.getLastModifiedUserId();
 		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
 		int totalRows = 0;
@@ -142,9 +142,9 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
-	public void unpublishParticipation(ParticipationItem item, Date processingDate) {
+	public void unpublishParticipation(ParticipationItemPartial item, Date processingDate) {
 		int totalRows = 0;
-		int participationId = item.getId();
+		int participationId = item.getParticipationId();
 		int rowsAffected = participationDao.deleteParticipation(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);

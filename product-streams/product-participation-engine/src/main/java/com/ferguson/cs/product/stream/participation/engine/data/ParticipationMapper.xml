@@ -311,10 +311,15 @@
 			participationId = #{participationId}
 	</delete>
 
-	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItem">
+	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-			participationId AS id,
-			lastModifiedUserId
+			id,
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
@@ -327,15 +332,19 @@
 		ORDER BY startDate
 	</select>
 
-	<select id="getNextParticipationPendingDeactivation" parameterType="map" resultType="ParticipationItem">
+	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-			participationId AS id,
-			lastModifiedUserId
+			id,
+		    participationId,
+		    saleId,
+		    startDate,
+		    endDate,
+		    lastModifiedUserId,
+		    isActive
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
-			isActive = 1
-			AND endDate IS NOT NULL
+			endDate IS NOT NULL
 			AND endDate &lt; #{processingDate}
 		<if test="minParticipationId != null">
 			AND participationId >= #{minParticipationId}

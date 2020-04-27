@@ -4,9 +4,9 @@ import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioLifecycleTestStrategyBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemPartial;
 
 /**
  * Verify that the basic publish, activate, deactivate, and unpublish transitions work.

@@ -19,9 +19,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;

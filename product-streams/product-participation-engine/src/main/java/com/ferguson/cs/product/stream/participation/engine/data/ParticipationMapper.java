@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Mapper
 public interface ParticipationMapper {
@@ -147,13 +147,14 @@ public interface ParticipationMapper {
 	 * Get next participation that is pending activation at the given date.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
-	ParticipationItem getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
+	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
-	 * Get next participation that is pending deactivation at the given date.
+	 * Get next participation that is expired at the given date.
+	 * Returns Participation records that are expired whether active or not.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
-	ParticipationItem getNextParticipationPendingDeactivation(Date processingDate, Integer minParticipationId);
+	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	int syncToCurrentPriorityParticipation();
