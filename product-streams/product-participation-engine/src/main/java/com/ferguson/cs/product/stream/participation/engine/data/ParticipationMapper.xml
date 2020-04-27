@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationMapper">
+
+	<select id="getParticipationIsActive" parameterType="int" resultType="Boolean">
+		SELECT
+			isActive
+		FROM
+			mmc.product.participationItemPartial
+		WHERE
+			participationId = #{participationId}
+	</select>
+
+	<update id="setParticipationIsActive" parameterType="map">
+		UPDATE
+			mmc.product.participationItemPartial
+		SET
+			isActive = #{isActive}
+		WHERE
+			participationId = #{participationId}
+	</update>
+
+	<update id="updateOwnerChangesForDeactivation" parameterType="int">
+		-- Must set isActive=0 on the deactivating participation first.
+		DROP TABLE IF EXISTS ##participationOwnerChanges;
+		CREATE TABLE ##participationOwnerChanges (
+			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
+			,[oldParticipationId] [int]
+			,[newParticipationId] [int]
+		);
+		WITH newOwner AS (
+			-- find new owners for owned products in P
+			-- products that are becoming un-owned are not returned
+			SELECT TOP (1) WITH TIES
+				 allpp.uniqueId,
+				 allpp.participationId
+			FROM
+				 mmc.product.participationProduct allpp
+			JOIN
+				 mmc.product.participationProduct AS pp
+				 ON pp.uniqueId = allpp.uniqueId
+					 AND pp.participationId = #{participationId}
+					 AND pp.isOwner = 1
+			JOIN
+				 mmc.product.participationItemPartial AS allp
+				 ON allp.participationId = allpp.participationId
+					 AND allp.isActive = 1
+			ORDER BY
+				 ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
+		)
+		INSERT INTO ##participationOwnerChanges
+		SELECT
+			uniqueId,
+			#{participationId} AS oldParticipationId,
+			newOwner.participationId
+		FROM
+			newOwner;
+		INSERT INTO ##participationOwnerChanges
+		SELECT
+			pp.uniqueId AS uniqueId,
+			#{participationId} AS oldParticipationId,
+			NULL AS newParticipationId
+		FROM
+			mmc.product.participationProduct AS pp
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = pp.participationId
+			LEFT JOIN
+				##participationOwnerChanges as poc
+				ON poc.uniqueId = pp.uniqueId
+		WHERE
+			pp.participationId = #{participationId}
+		  AND pp.isOwner = 1
+		  AND poc.uniqueId IS NULL
+	</update>
+
+	<update id="updateOwnerChangesForActivation" parameterType="int">
+		-- Must set isActive=1 on the activating participation first.
+		DROP TABLE IF EXISTS ##participationOwnerChanges;
+		CREATE TABLE ##participationOwnerChanges (
+			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
+			,[oldParticipationId] [int]
+			,[newParticipationId] [int]
+		);
+		WITH newOwner AS (
+			-- find products in P that will be owned by P (activating products)
+			SELECT TOP (1) WITH TIES
+				allpp.uniqueId,
+				allpp.participationId
+			FROM
+				mmc.product.participationProduct allpp
+			JOIN
+				mmc.product.participationProduct AS pp
+				ON pp.uniqueId = allpp.uniqueId
+					AND pp.participationId = #{participationId}
+			JOIN
+				mmc.product.participationItemPartial AS allp
+				ON allp.participationId = allpp.participationId
+					AND allp.isActive = 1
+			 ORDER BY
+				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
+		)
+		INSERT INTO ##participationOwnerChanges
+		SELECT
+			newOwner.uniqueId,
+			pp.participationId AS oldParticipationId,
+			newOwner.participationId AS newParticipationId
+		FROM
+			newOwner
+		JOIN
+			mmc.product.participationItemPartial AS p
+			ON p.participationId = newOwner.participationId
+		LEFT JOIN
+			mmc.product.participationProduct AS pp
+			ON pp.uniqueId = newOwner.uniqueId
+				AND pp.participationId != newOwner.participationId
+				AND pp.isOwner = 1
+		WHERE
+			newOwner.participationId = #{participationId}
+	</update>
+
+	<update id="addProductOwnershipForNewOwners">
+		-- set ownership flag for products becoming owned by a different participation
+		UPDATE
+			owner
+		SET
+			isOwner = 1
+		FROM
+			mmc.product.participationProduct AS owner
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = owner.uniqueId
+				AND oc.newParticipationId = owner.participationId
+		WHERE
+			owner.isOwner = 0
+	</update>
+
+	<update id="removeProductOwnershipForOldOwners">
+		-- Remove ownership from the old owners of products that the activating participation now owns.
+		-- Note that this is not needed for a deactivating participation since its participationProduct
+		-- rows will be deleted.
+		UPDATE
+			owner
+		SET
+			owner.isOwner = 0
+		FROM
+			mmc.product.participationProduct AS owner
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = owner.uniqueId
+				AND oc.oldParticipationId = owner.participationId
+		WHERE
+			owner.isOwner = 1
+	</update>
+
+	<update id="updateProductSaleIds">
+		UPDATE
+			sale
+		SET
+			sale.saleId = COALESCE(p.saleId, 0)
+			,sale.participationId = COALESCE(p.participationId, 0)
+		FROM
+			mmc.product.sale AS sale
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = sale.uniqueId
+		LEFT JOIN
+			mmc.product.participationItemPartial AS p
+			ON p.participationId = oc.newParticipationId
+	</update>
+
+	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
+		-- Record the base price for prices going off sale, for pricebook prices
+		-- that already exist in the last on sale table.
+		UPDATE
+		    lastOnSale
+		SET
+			lastOnSale.basePrice = pbcost.basePrice
+			,lastOnSale.saleDate = #{processingDate}
+		FROM
+			mmc.product.participationLastOnSale AS lastOnSale
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = lastOnSale.uniqueId
+		JOIN
+			mmc.dbo.pricebook_cost AS pbcost
+			ON pbcost.uniqueId = lastOnSale.uniqueId
+				AND pbcost.pricebookId = lastOnSale.pricebookId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+				AND discount.pricebookId = pbcost.pricebookId
+	</update>
+
+	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
+		-- Record the base price for prices going off sale, for pricebook prices
+		-- that don't exist in the last on sale table.
+		INSERT INTO
+			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice)
+		SELECT
+			pbcost.pricebookId, pbcost.uniqueId, #{processingDate}, pbcost.basePrice
+		FROM
+			mmc.dbo.pricebook_cost AS pbcost
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+				AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS los
+			ON los.uniqueId = pbcost.uniqueId
+				AND los.pricebookId = pbcost.pricebookId
+		WHERE
+			los.uniqueId IS NULL
+	</insert>
+
+	<update id="takePricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
+		-- Set cost to a pending base price if present, else to basePrice.
+		-- Set basePrice to a pending base price if present.
+		-- Set participationId and userId.
+		-- The cost and basePrice columns are updated in this one query in order to prevent multiple log entries with no price change.
+		UPDATE
+			pbcost
+		SET
+			pbcost.cost = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
+			pbcost.basePrice = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
+			pbcost.participationId = 0,
+			pbcost.userId = #{userId}
+		FROM
+			MMC.dbo.pricebook_cost AS pbcost
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+				AND discount.pricebookId = pbcost.pricebookId
+		JOIN
+			mmc.product.latestBasePrice AS lbp
+			ON lbp.uniqueId = pbcost.uniqueId
+				AND lbp.pricebookId = pbcost.pricebookId
+	</update>
+	<update id="applyNewCalculatedDiscounts" parameterType="map">
+		-- Apply calculated discounts to products becoming owned by a Participation.
+		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
+		-- for the calculations. Rounds the discounted price down to 2 decimal places.
+		UPDATE
+			pbcost
+		SET
+			pbcost.cost = ROUND(IIF(
+					discount.isPercent = 1,
+					COALESCE(las.basePrice, pbcost.basePrice) * discount.changeValue,
+					COALESCE(las.basePrice, pbcost.basePrice) + discount.changeValue
+			    ), 2, 1),
+		    pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
+			pbcost.participationId = discount.participationId,
+			pbcost.userId = #{userId}
+		FROM
+			MMC.dbo.pricebook_cost AS pbcost
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.newParticipationId
+				AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS las
+			ON las.uniqueId = pbcost.uniqueId
+				AND las.pricebookId = pbcost.pricebookId
+				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriod}
+	</update>
+
+	<update id="updateProductModifiedDates" parameterType="map">
+		UPDATE
+			modified
+		SET
+			modified.modifiedDate = #{processingDate},
+			modified.modifiedBy = users.username
+		FROM
+			mmc.product.modified
+		JOIN
+			##participationOwnerChanges AS oc
+			ON oc.uniqueId = modified.uniqueId
+		JOIN
+			omc.dbo.users AS users
+			ON users.userId = #{userId}
+	</update>
+
+	<delete id="deleteParticipationProductsByParticipationId" parameterType="int">
+		DELETE FROM
+			mmc.product.participationProduct
+		WHERE
+			participationId = #{participationId}
+	</delete>
+
+	<delete id="deleteParticipationCalculatedDiscountsByParticipationId" parameterType="int">
+		DELETE FROM
+			mmc.product.participationCalculatedDiscount
+		WHERE
+			participationId = #{participationId}
+	</delete>
+
+	<delete id="deleteParticipationItemPartialByParticipationId" parameterType="int">
+		DELETE FROM
+			mmc.product.participationItemPartial
+		WHERE
+			participationId = #{participationId}
+	</delete>
+
+	<insert id="syncToCurrentPriorityParticipation">
+		-- TODO remove currentPriorityParticipation code (see SODEV-25037)
+		-- Keep currentPriorityParticipation up to date for things still using it.
+		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
+		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
+		SELECT
+			pp.uniqueId,
+			pip.saleId,
+			pp.participationId
+		FROM mmc.product.participationProduct AS pp
+		JOIN mmc.product.participationItemPartial AS pip
+			ON pip.participationId = pp.participationId
+				AND pip.isActive = 1
+		WHERE pp.isOwner = 1
+	</insert>
+</mapper>

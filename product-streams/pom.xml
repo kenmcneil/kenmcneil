@@ -5,11 +5,14 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
-		<version>1.0.58-SNAPSHOT</version>
+		<version>1.0.65-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>product-streams</artifactId>
 	<packaging>pom</packaging>
 	<name>product-streams</name>
 
+	<modules>
+		<module>product-participation-engine</module>
+	</modules>
 </project>

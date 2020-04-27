@@ -7,14 +7,11 @@ pipeline {
   environment {
     repositoryName = 'product-services'
     gitRepoUrl = "https://github.com/buildcom/${repositoryName}.git"
-    isSlackNotificationEnabled = false
-    slackChannelName = 'cs-release-coord'
     isRpmReleaseEnabled = false
     isDataFlowPostEnabled = true
     taskRegistrationUrl = 'https://dataflow.build.com'
     dataFlowCredGuid = '94e928b1-16b3-4608-8236-9765fe66069a'
     jarGroupId = 'com.ferguson.cs.product'
-    isRelease = false
     mavenModel = null
     startingVersion = null
     releaseVersion = null
@@ -99,29 +96,6 @@ pipeline {
                     gitTag gitRepoUrl, repositoryName
                   }
                 }
-                stage ('Wait For User Input') {
-                  steps {
-                    script {
-                      try {
-                        timeout(3) {
-                          if (isSlackNotificationEnabled.toBoolean()) {
-                            slackSend(channel: "${slackChannelName}", color: '#ffff00',
-                              message: "${repositoryName} master #${BUILD_NUMBER} is waiting for input. Please go to ${BUILD_URL}input. This link will expire in 3 minutes.")
-                          }
-                          isRelease = input message: "Would you like to make a release of ${startingVersion.replace("-SNAPSHOT", "")}?",
-                            parameters: [
-                              booleanParam(defaultValue: false, description: '''UNCHECKED - Build and deploy SNAPSHOT.\nCHECKED - Build and deploy RELEASE.''',
-                              name: 'RELEASE')
-                            ]
-                        }
-                      }
-                      catch (ignore) {
-                        // Treat neglect as a NO.
-                        isRelease = false
-                      }
-                    }
-                  }
-                }
                 stage ('Wait For Tests') {
                   options {
                     timeout(time: 5, unit: 'MINUTES')
@@ -135,9 +109,6 @@ pipeline {
                   }
                 }
                 stage ('Release Deploy') {
-                  when {
-                    expression { isRelease.toBoolean() }
-                  }
                   stages {
                     stage ('Maven Deploy & Git Release') {
                       steps {
@@ -188,14 +159,16 @@ pipeline {
                       }
                       environment {
                         workspace = pwd()
+                        rpmAppName = 'participation-engine'
                       }
                       steps {
+                        sh 'mvn package'
                         withEnv(["HOME=${workspace}"]) {
-                          sh 'rpmdev-setuptree'
-                          sh 'mkdir rpmbuild/BUILDROOT'
-                          sh 'find . \\( -type d -name "rpmbuild" -prune \\) -or \\( -name "*.jar" -or -name "*.conf" \\) -and -type f -exec mv -f {} rpmbuild/SOURCES/ \\;'
-                          sh "ls rpm-specs/ | parallel sed -i \"s/1\\.0\\.0/${releaseVersion}/\" rpm-specs/{}"
-                          sh 'ls rpm-specs/ | parallel --jobs 0 rpmbuild -bb rpm-specs/{}'
+                          sh "rpmdev-setuptree"
+                          sh "mkdir rpmbuild/BUILDROOT"
+                          sh "sed -e \"s/0.0.0/${BUILD_NUMBER}/g\" -e \"s/myapp/${rpmAppName}/g\" rpm.spec > ${rpmAppName}.spec"
+                          sh "find . -name ${rpmAppName}.jar -exec mv -f {} rpmbuild/SOURCES/ \\;"
+                          sh "rpmbuild -bb ${rpmAppName}.spec"
                         }
                         uploadToArtifactory "rpmbuild/RPMS/noarch/*.rpm", 'buildcom-yum'
                       }
@@ -242,9 +215,6 @@ pipeline {
                   }
                 }
                 stage ('Non-Release Deploy') {
-                  when {
-                    expression { !isRelease.toBoolean() }
-                  }
                   steps {
                     withMaven(maven: 'MavenAuto', mavenSettingsConfig: "${mavenSettingsConfig}") {
                       // No request for release, create and deploy snapshot with latest code.

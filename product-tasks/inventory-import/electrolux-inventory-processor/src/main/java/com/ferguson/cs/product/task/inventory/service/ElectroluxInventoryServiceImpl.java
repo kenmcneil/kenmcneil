@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,7 +31,6 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 	private final InventoryImportSettings inventoryImportSettings;
 	private final ElectroluxFeignClient electroluxFeignClient;
 	private final ElectroluxInventoryDao electroluxInventoryDao;
-	private static final Map<String,String> NEW_RDC_MAP = new HashMap<>();
 
 
 	private static final Logger log = LoggerFactory.getLogger(ElectroluxInventoryServiceImpl.class);
@@ -42,15 +40,6 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 		this.inventoryImportSettings = inventoryImportSettings;
 		this.electroluxFeignClient = electroluxFeignClient;
 		this.electroluxInventoryDao = electroluxInventoryDao;
-
-		NEW_RDC_MAP.put("68x","US01");
-		NEW_RDC_MAP.put("64x","US11");
-		NEW_RDC_MAP.put("66x","US21");
-		NEW_RDC_MAP.put("52x","US31");
-		NEW_RDC_MAP.put("72x","US41");
-		NEW_RDC_MAP.put("41x","US51");
-		NEW_RDC_MAP.put("55x","US71");
-		NEW_RDC_MAP.put("56x","US81");
 	}
 
 	@Override
@@ -77,12 +66,12 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 				ElectroluxInventoryResponse response = null;
 				try {
 					response = electroluxFeignClient
-							.getElectroluxInventoryData(NEW_RDC_MAP.get(warehouse.getValue()), commaDelmitedSkus);
+							.getElectroluxInventoryData(warehouse.getValue(), commaDelmitedSkus);
 				} catch (Exception e) {
 					log.error("Failed to get Electrolux stock for vendor {}. Cause: {}", warehouse.getKey(),e.toString());
 				}
 				if(response != null && !CollectionUtils.isEmpty(response.getInventoryResponse())) {
-					response.getInventoryResponse().stream().filter(r->r.getWarehouseCode().equalsIgnoreCase(NEW_RDC_MAP.get(warehouse.getValue()))).forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
+					response.getInventoryResponse().stream().filter(r->r.getWarehouseCode().equalsIgnoreCase(warehouse.getValue())).forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
 				}
 			} catch (IOException e) {
 				log.error("Failed to write Electrolux inventory file: {}",e.toString());

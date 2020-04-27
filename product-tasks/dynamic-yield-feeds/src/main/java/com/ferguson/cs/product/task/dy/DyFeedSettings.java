@@ -18,6 +18,15 @@ public class DyFeedSettings {
 	private String tempFilePrefix = "productfeed";
 	private String tempFileSuffix = ".csv";
 	private Map<Integer, String> siteUsername = new HashMap<>();
+	private List<String> excludedBrands;
+
+	public List<String> getExcludedBrands() {
+		return excludedBrands;
+	}
+
+	public void setExcludedBrands(List<String> excludedBrands) {
+		this.excludedBrands = excludedBrands;
+	}
 
 	private List<Integer> restrictionPolicies = new ArrayList<>();
 

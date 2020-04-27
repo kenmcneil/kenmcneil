@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.ferguson.cs.product</groupId>
+		<artifactId>product-streams</artifactId>
+		<version>1.0.65-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>product-participation-engine</artifactId>
+	<packaging>jar</packaging>
+
+	<description>Workflow processor to handle user- and time-based events for participation records.</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-utilities</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-starter-service</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-test-utilities</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>buildcom-release</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<snapshots/>
+			<id>snapshots</id>
+			<name>buildcom-snapshot</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>central</id>
+			<name>chico-artifactory-releases</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-maven-release</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>chico-artifactory-snapshots</name>
+			<url>https://chico-artifactory.impdir.com/artifactory/buildcom-maven-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>
