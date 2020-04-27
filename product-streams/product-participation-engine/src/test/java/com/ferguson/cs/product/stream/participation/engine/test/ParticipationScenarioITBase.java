@@ -19,9 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -43,6 +45,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleId
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTestStrategy;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTestStrategy;
 
 /**
@@ -172,13 +175,12 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 * Also ensure critical values are set or defaulted, e.g. participationId and lastModifiedUserId.
 	 */
 	public void initAndRememberFixture(ParticipationItemFixture fixture) {
-		Assertions.assertThat(fixture.getParticipationId()).isNotNull();
-		Assertions.assertThat(fixture.getParticipationId()).isGreaterThanOrEqualTo(
-				participationEngineSettings.getTestModeMinParticipationId());
-
 		if (fixture.getParticipationId() == null) {
 			fixture.setParticipationId(getNextTestParticipationId());
 		}
+
+		Assertions.assertThat(fixture.getParticipationId()).isGreaterThanOrEqualTo(
+				participationEngineSettings.getTestModeMinParticipationId());
 
 		if (fixture.getLastModifiedUserId() == null) {
 			fixture.setLastModifiedUserId(ParticipationTestUtilities.TEST_USERID);
@@ -234,19 +236,23 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 
 	/**
-	 * Verify that the given participation experienced all the basic lifecycle states,
+	 * Verify that the given participation(s) experienced all the basic lifecycle states,
 	 * in order from start to finish, with no extra states. Extra states could happen
 	 * when the user performs actions such as unpublish and then publish. Another example
 	 * is when an author publishes P, then Publish-Changes P, then it activates, which
 	 * would result in: PUBLISHED, PUBLISHED, ACTIVATED, DEACTIVATED, UNPUBLISHED.
 	 */
-	public void verifySimpleLifecycleLog(ParticipationItemFixture p) {
-		Assertions.assertThat(p.getStateLog()).containsExactly(
-				LifecycleState.PUBLISHED,
-				LifecycleState.ACTIVATED,
-				LifecycleState.DEACTIVATED,
-				LifecycleState.UNPUBLISHED
-		);
+	public void verifySimpleLifecycleLog(ParticipationItemFixture... fixtures) {
+		Arrays.stream(fixtures).forEach(fixture -> {
+			Assertions.assertThat(fixture.getStateLog())
+					.as(fixture.toString())
+					.containsExactly(
+					LifecycleState.PUBLISHED,
+					LifecycleState.ACTIVATED,
+					LifecycleState.DEACTIVATED,
+					LifecycleState.UNPUBLISHED
+			);
+		});
 	}
 
 	/**
@@ -255,6 +261,15 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 	public void verifyLifecycleLogMatches(ParticipationItemFixture p, LifecycleState... states) {
 		Assertions.assertThat(p.getStateLog()).containsExactly(states);
+	}
+
+	public void verifyParticipationOwnsExactly(ParticipationItemFixture fixture, Integer... expectedUniqueIds) {
+		List<Integer> ownedUniqueIds = participationTestUtilities
+				.getParticipationProducts(fixture.getParticipationId()).stream()
+				.filter(ParticipationProduct::getIsOwner)
+				.map(ParticipationProduct::getUniqueId)
+				.collect(Collectors.toList());
+		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedUniqueIds));
 	}
 
 	/**
@@ -283,6 +298,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					eq(ParticipationItemStatus.PUBLISHED),
 					eq(ParticipationItemUpdateStatus.NEEDS_CLEANUP),
 					any(Date.class));
+
+			// Prep for next time it's called.
+			Mockito.clearInvocations(constructService);
+
 			return null;
 		}).when(participationWriter).processActivation(any(ParticipationItem.class), any(Date.class));
 
@@ -293,6 +312,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					eq(ParticipationItemStatus.ARCHIVED),
 					isNull(),
 					any(Date.class));
+
+			// Prep for next time it's called.
+			Mockito.clearInvocations(constructService);
+
 			return null;
 		}).when(participationWriter).processDeactivation(any(ParticipationItem.class), any(Date.class));
 
@@ -303,6 +326,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					eq(ParticipationItemStatus.DRAFT),
 					isNull(),
 					any(Date.class));
+
+			// Prep for next time it's called.
+			Mockito.clearInvocations(constructService);
+
 			return null;
 		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
 

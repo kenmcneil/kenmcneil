@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 
 import lombok.AccessLevel;
@@ -63,6 +64,16 @@ public class ParticipationItemFixture {
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)
 	private List<LifecycleState> stateLog = new ArrayList<>();
+
+	public String toString() {
+		return String.format("Participation(id(%s), saleId(%s), products(%s), schedule(%s, %s))",
+				participationId,
+				saleId,
+				StringUtils.join(uniqueIds, ", "),
+				startDateOffsetDays != null ? startDateOffsetDays : startDate,
+				endDateOffsetDays != null ? endDateOffsetDays : endDate
+		);
+	}
 
 	public static class ParticipationItemFixtureBuilder {
 		/**
