@@ -61,25 +61,29 @@ When test mode is enabled, participations below a given id are omitted from proc
 * See current link:https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] [small]#[&nearr;]# in the configuration repo.
 * See link:src/test/resources/application-unit.yml[application-unit.yml] for unit / integration test config.
 
+.Configuration for running locally
 |===
 |Config|Effect|VM Arguments
 
-|Database
+|SQL Database
 |Use CICDEV1
-|_Default_
+|(_dev default_) `jdbc:sqlserver://chico-db-stable.build.internal\CICDEV1;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false`
 
-|Database
+|SQL Database
 |Use CICDEV2
-a|`-Ddatasource.core.url="jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false"`
+a|(_localdev default_) `-Ddatasource.core.url="jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false"`
 
-|Database
+|SQL Database
 |Use CICDEV3
 a|`-Ddatasource.core.url="jdbc:sqlserver://chico-db-debug.build.internal\CICDEV3;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false"`
 
-|Database
-|Set mongodb server
+|MongoDB Database
+|Custom MongoDB server
 a|`-Dspring.data.mongodb.uri=mongodb://XXXXXX`
 
+|MongoDB Database
+|Use mongo-dev-1
+a|(_localdev / dev default_) `-Dspring.data.mongodb.uri=mongodb://mongodb-dev-1.build.internal:27017`
 
 |Logging
 |Debug steps performed by the engine

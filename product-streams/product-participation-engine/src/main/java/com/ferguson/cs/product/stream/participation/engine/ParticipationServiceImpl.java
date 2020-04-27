@@ -143,12 +143,17 @@ public class ParticipationServiceImpl implements ParticipationService {
 
 	@Override
 	public void unpublishParticipation(ParticipationItem item, Date processingDate) {
+		int totalRows = 0;
 		int participationId = item.getId();
 		int rowsAffected = participationDao.deleteParticipation(participationId);
+		totalRows += rowsAffected;
 		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
 
 		// TODO remove currentPriorityParticipation code (see SODEV-25037)
 		rowsAffected = participationDao.syncToCurrentPriorityParticipation();
+		totalRows += rowsAffected;
 		LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", participationId, rowsAffected);
+
+		LOG.debug("{}: {} total rows updated to unpublish", participationId, totalRows);
 	}
 }

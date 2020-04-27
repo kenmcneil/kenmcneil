@@ -54,7 +54,13 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 
 === Price Changes
 
-When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and any pending base price changes are applied.
+When a calculated discount effect is activated, discounts are applied to pricebook prices and the off-sale prices are preserved. On deactivation off-sale prices are restored, which takes the products off sale. Overlap logic and safeguards provide assurance that the sale description and end date are accurate and that we are showing accurate information to customers. Discounts touch several areas of the SQL database and product storage cache system, and the client applications (web store, native app) consume data provided by the participation system.
+
+When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved but not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and the most recent of any pending base price changes are applied.
+
+When prices are updated, product storage updates are triggered, which updates pricing data in product storage cache records in MongoDB.
+
+* For more information on downstream consumption of price changes see https://github.com/buildcom/core-services/blob/master/docs/product-domain/product-domain-layout.adoc
 
 == System Diagram
 
@@ -71,8 +77,6 @@ The UI of the Participations System. Participation Authors use Construct to edit
 ==== Participation records
 
 Participation records are edited and versioned with the same Construct Atomic Form Editor library that is used to edit content records. This provides a flexible and familiar interface to users to manage sales. Author-entered data is structured and validated by versioned schemas that allow new backwards-compatible features to be added as needed.
-
-When a calculated discount effect is activated, discounts are applied to pricebook prices and the off-sale prices are preserved. On deactivation off-sale prices are restored, which takes the products off sale. Overlap logic and safeguards provide assurance that the sale description and end date are accurate and that we are showing accurate information to customers. Discounts touch several areas of the SQL database and product storage cache system, and the client applications (web store, native app) consume data provided by the participation system.
 
 Construct stores records in MongoDB. The engine application copies published Participations into SQL to track active records and activate and deactivate Participation effects. When a record is unpublished or deactivated, its information is deleted from the SQL tables.
 
