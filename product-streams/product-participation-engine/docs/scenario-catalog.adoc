@@ -1,0 +1,47 @@
+= Scenario Catalog
+:toc: macro
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+:source-highlighter: coderay
+:sectnums:
+
+link:../README.adoc[README] &raquo; link:scenario-tests.adoc[Scenario Tests] &raquo; Scenario Catalog
+
+toc::[]
+
+== Audience
+
+This document is written for a general audience, with some developer-specific information present.
+
+== Introduction
+
+Scenarios are end-to-end tests for one or more Participations that test behavior of the system over time as Participation records are published, activated, deactivated, and unpublished.
+
+In the scenario details below, the letter P is used to denote a Participation record. If there is more than one Participation in the scenario, a number is included too, e.g. P1, P2, ...
+
+== Scenarios for Sale ID
+
+Test the Sale ID effect.
+
+== Scenarios for Calculated Discounts
+
+Test calculated discounts and expected price changes.
+
+== Scenarios to test Overlapping participations
+
+Test ownership of products when multiple Participations overlap.
+
+=== Test a short P1 overlapping a longer-running P2.
+
+[source,text]
+P1 -------=====------------
+P2 --====================--
+
+* Expect that at activation P1 takes ownership of any of its products that are currently owned by P2.
+* Expect at P1 deactivation that P2 takes ownership back of the product that were overlapping.
+
+== Scenarios for Was pricing
+
+

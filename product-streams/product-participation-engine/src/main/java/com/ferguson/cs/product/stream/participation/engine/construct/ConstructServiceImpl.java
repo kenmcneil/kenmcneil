@@ -31,23 +31,8 @@ public class ConstructServiceImpl implements ConstructService {
 	}
 
 	@Override
-	public ParticipationItem getNextPendingActivationParticipation() {
-		ParticipationItemSearchCriteria criteria = createSearchCriteria(
-				ParticipationItemUpdateStatus.NEEDS_UPDATE, false);
-		criteria.setScheduledOn(new Date());
-		return participationItemRepository.findParticipationItemEvent(criteria);
-	}
-
-	@Override
-	public ParticipationItem getNextPendingDeactivationParticipation() {
-		ParticipationItemSearchCriteria criteria = createSearchCriteria(null, true);
-		return participationItemRepository.findParticipationItemEvent(criteria);
-	}
-
-	@Override
-	public ParticipationItem getNextPendingUnpublishParticipation() {
-		ParticipationItemSearchCriteria criteria = createSearchCriteria(ParticipationItemUpdateStatus.NEEDS_UNPUBLISH, false);
-		return participationItemRepository.findParticipationItemEvent(criteria);
+	public ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId) {
+		return participationItemRepository.getNextPendingUnpublishParticipation(minParticipationId);
 	}
 
 	@Override

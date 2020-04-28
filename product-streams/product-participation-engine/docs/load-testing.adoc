@@ -1,10 +1,14 @@
 = Load Testing
-:toc: left
+:toc: macro
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../../asciidoctor.css
 :imagesdir: images
 :source-highlighter: coderay
+
+link:../README.adoc[README] &raquo; Load Testing
+
+toc::[]
 
 == Introduction
 
@@ -30,8 +34,10 @@ Load testing is important to do before releasing database structure changes or m
 
 Use the load test configuration properties when running the engine:
 
-[source%nowrap]
+[source]
+----
 -DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=50000
+----
 
 The docs below use 50000 for the min value--modify if desired.
 
@@ -40,17 +46,13 @@ The docs below use 50000 for the min value--modify if desired.
 Delete test data before running each test to avoid data from any previous runs interfering with new tests.
 
 .SQL queries to clear test data
-[source,sql]
+[source,sql%collapsible]
 ----
 -- Clear all Participation data for participations with id >= 50000
 -- and reset any modified prices or other data.
 
 DELETE
 FROM mmc.product.currentPriorityParticipation
-WHERE participationId >= 50000
-
-DELETE
-FROM mmc.product.participationTracking
 WHERE participationId >= 50000
 
 DELETE
@@ -88,11 +90,18 @@ WHERE 1=1
 
 === Create Participation record fixtures
 
-It's useful to use a script to create records in the participationItem collection, to easily run a test repeatedly with many testing records.
+It's helpful to use a script to create records in the participationItem collection, to easily run a test repeatedly with many testing records.
 
 .Previous fixture generator scripts
 * link:../load-testing/make-participation-fixtures.js[make-participation-fixtures.js]
 * link:../load-testing/make-participation-fixtures-large.js[make-participation-fixtures-large.js]
+
+Run javascript files like those in mongodb shell like this:
+
+[source,shell script]
+----
+mongo mongodb-dev-1.build.internal:27017/core make-participation-fixtures.js
+----
 
 === Publish fixtures
 
@@ -123,7 +132,9 @@ _TODO: get links to New Relic for mongodb and dev databases_
 
 == References
 
+* The development/debugging page has a section on link:developer-helpers.adoc#current-database-state-queries[Current database state queries] that can help get a picture of the database state at any point in the load test process.
+
 * https://wiki.build.com/pages/viewpage.action?pageId=106662278[1st Load Test Planning Document]
 * https://wiki.build.com/display/PT/2019-11-14+Calculated+Discount+load+testing[1st load test results]
-* https://wiki.build.com/display/PT/2019-11-19+Calculated+Discounts+load+testing+II[[2nd load test results]
+* https://wiki.build.com/display/PT/2019-11-19+Calculated+Discounts+load+testing+II[2nd load test results]
 

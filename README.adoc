@@ -42,7 +42,7 @@ The following are useful links to help clarify domain terminology and design dec
 == Assertions
 
 - This service will have limited multi-tenant capabilities. A per-channel taxonomy can be used to filter which products are available on a given channel. If product data must be altered prior to sydnication to downstream systems, either multiple instances of this service must be used or the downstream listener must apply the mutations.
-- The product data ingested into this service is assumed to already have been through the enrichment process. 
+- The product data ingested into this service is assumed to already have been through the enrichment process.
 - The storage mechanism for product data will not be visible to any systems external to the product service. This requirements means that the service must provide an API for getting data in/out of the underlying storage mechanism.
 - The domain terminology defined by this service will be based off of industry standards.
 
@@ -61,7 +61,7 @@ The core product data is used to represent products that will be sold within an 
 A manufacturer and the manufacturer's assigned product ID are enough to identify a product family but a more specific identifier must be used to identify a product variant. The global identifier that is used by ferguson to reference a product variant is called an MPN (Master Product Number) ID. Additionally, there are alternate identifiers that can be assigned to a product variant and these identifiers are modeled as an identifier type ((GTIN, SKU, UPC, etc) and the actual identifier value.
 
 === Product Attributes
-A product attribute is a characteristic of the product. The attribute's datatype, validation rules, and enumerated values are defined via a reusable, codified attribute definition. 
+A product attribute is a characteristic of the product. The attribute's datatype, validation rules, and enumerated values are defined via a reusable, codified attribute definition.
 
 IMPORTANT: The use of codified attribute definitions is important as those definitions can be used in both category and product attributes. This commonality provides the ability to define search facets from the category attributes and match those to products that have the same attribute definition.
 
@@ -98,7 +98,7 @@ IMPORTANT: "Attributes are to be re-used across the whole category tree and are 
 
 === Product Catalog
 
-A product catalog is the "front facing" hierarchy that drive's a storefront's navigation system. There is a strong relationship between the product taxonomy, in that the product catalog can be derived from a taxonomy, however, unlike a taxonomy, a product may be placed multiple times within the catalog. The product catalog is curated and maintained to support branding, merchandising, and promotions of products within the store. 
+A product catalog is the "front facing" hierarchy that drive's a storefront's navigation system. There is a strong relationship between the product taxonomy, in that the product catalog can be derived from a taxonomy, however, unlike a taxonomy, a product may be placed multiple times within the catalog. The product catalog is curated and maintained to support branding, merchandising, and promotions of products within the store.
 
 === Product Catalog Category
 
@@ -106,13 +106,20 @@ A category within a the product catalog can be derived using search expressions 
 
 == Product Pricing
 
-IMPORTANT: We have not yet started modeling pricing.
-
-The pricing of products is really a marketing/merchandising function, however, it is important to provide price syndication such that down stream systems are notified of any price changes. 
+The pricing of products is really a marketing/merchandising function, however, it is important to provide price syndication such that down stream systems are notified of any price changes.
 
 A pricing "profile" represents the retail pricing for products and allows for different pricing across stores and/or for consumer groups (Example: pros vs non-pros).
 
 - Pricing Profiles/Pricebooks
+
+=== Participation System
+
+The Participation System enables creating scheduled effects on products, including setting the Sale ID and discounting prices.
+
+- See the link:product-streams/product-participation-engine/README.adoc[Participation documention].
+
+NOTE: The Participation System is not yet based on a streaming architecture.
+
 
 == Product Inventory
 
@@ -120,7 +127,7 @@ IMPORTANT: We have not yet started modeling product inventory
 
 The inventory feed may/may not belong in the product service, as an argument can be made that it might be better to locate this feed within the order management system. For now, we will assume the inventory will be hosted in this service but will be modularized (and encapsulated) to make it easy to move.
 
-- Vendor Inventory 
+- Vendor Inventory
 
 == Related Data
 
@@ -163,7 +170,7 @@ Build.com has a psuedo taxonomy structure that consists of a "type", an "applica
 
 This structure will be imported into the product domain service as a "master" product catalog where the classification structure is type->application->handletype.
 
-IMPORTANT: If you hear the term "tah", this is referring to the legacy product classification within the type->application->handle type in the master product catalog. Every product sold by build.com is assigned a "tah" value. The quality of the data structured in the existing "type", "applicaiton", and "handle types" varies widely. 
+IMPORTANT: If you hear the term "tah", this is referring to the legacy product classification within the type->application->handle type in the master product catalog. Every product sold by build.com is assigned a "tah" value. The quality of the data structured in the existing "type", "applicaiton", and "handle types" varies widely.
 
 === Build Terms to Product Domain Terms
 

@@ -7,7 +7,7 @@ pipeline {
   environment {
     repositoryName = 'product-services'
     gitRepoUrl = "https://github.com/buildcom/${repositoryName}.git"
-    isRpmReleaseEnabled = false
+    isRpmReleaseEnabled = true
     isDataFlowPostEnabled = true
     taskRegistrationUrl = 'https://dataflow.build.com'
     dataFlowCredGuid = '94e928b1-16b3-4608-8236-9765fe66069a'

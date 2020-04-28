@@ -4,12 +4,19 @@ import java.util.Date;
 
 import org.springframework.stereotype.Repository;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+
 @Repository
 public class ParticipationDaoImpl implements ParticipationDao {
 	private ParticipationMapper participationMapper;
 
-	ParticipationDaoImpl(ParticipationMapper participationMapper) {
+	public ParticipationDaoImpl(ParticipationMapper participationMapper) {
 		this.participationMapper = participationMapper;
+	}
+
+	@Override
+	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
+		return participationMapper.getNextParticipationPendingActivation(processingDate, minParticipationId);
 	}
 
 	@Override
@@ -71,10 +78,10 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod) {
+	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any calculated discounts to pricebook prices.
-		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
+		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
 	}
 
 	@Override
@@ -82,8 +89,10 @@ public class ParticipationDaoImpl implements ParticipationDao {
 		return participationMapper.updateProductModifiedDates(processingDate, userId);
 	}
 
-
-	// DEACTIVATION
+	@Override
+	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId) {
+		return participationMapper.getNextExpiredParticipation(processingDate, minParticipationId);
+	}
 
 	@Override
 	public int updateOwnerChangesForDeactivation(Integer participationId) {
@@ -99,7 +108,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	@Override
-	public void syncToCurrentPriorityParticipation() {
-		participationMapper.syncToCurrentPriorityParticipation();
+	public int syncToCurrentPriorityParticipation() {
+		return participationMapper.syncToCurrentPriorityParticipation();
 	}
 }

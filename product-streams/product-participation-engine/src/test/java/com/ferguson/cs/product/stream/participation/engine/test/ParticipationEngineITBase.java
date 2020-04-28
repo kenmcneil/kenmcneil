@@ -5,6 +5,7 @@ import javax.annotation.Resource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.LocalCacheScope;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,9 +20,9 @@ import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
-@Import(BaseParticipationEngineIT.ParticipationTestConfiguration.class)
+@Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
 @Transactional("coreTransactionManager")
-public abstract class BaseParticipationEngineIT extends BaseTest {
+public abstract class ParticipationEngineITBase extends BaseTest {
 	@Resource
 	SqlSessionFactory sqlSessionFactory;
 
@@ -32,11 +33,16 @@ public abstract class BaseParticipationEngineIT extends BaseTest {
 	public ParticipationTestUtilities participationTestUtilities;
 
 	@TestConfiguration
-	public static class ParticipationTestConfiguration {
+	public static class BaseParticipationTestConfiguration {
 		@Bean
 		public BeanFactoryPostProcessor lazyBeanPostProcessor() {
 			return new LazyInitBeanFactoryPostProcessor();
 		}
+	}
+
+	@Before
+	public void before() {
+		disableLocalCache();
 	}
 
 	/**

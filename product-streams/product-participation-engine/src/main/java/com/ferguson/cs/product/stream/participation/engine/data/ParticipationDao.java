@@ -2,6 +2,8 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+
 public interface ParticipationDao {
 
 	// ACTIVATION / DEACTIVATION
@@ -21,6 +23,12 @@ public interface ParticipationDao {
 	Boolean getParticipationIsActive(Integer participationId);
 
 	// ACTIVATION
+
+	/**
+	 * Get next participation that is pending activation at the given date.
+	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 */
+	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
 	 * Create the participationOwnerChanges temp table and fill it with the ownership
@@ -74,7 +82,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.
@@ -86,6 +94,12 @@ public interface ParticipationDao {
 
 
 	// DEACTIVATION
+
+	/**
+	 * Get next participation that is expired and may be pending deactivation, at the given date.
+	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 */
+	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	/**
 	 * Create the participationOwnerChanges temp table and fill it with the ownership
@@ -107,5 +121,5 @@ public interface ParticipationDao {
 	int deleteParticipation(Integer participationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	void syncToCurrentPriorityParticipation();
+	int syncToCurrentPriorityParticipation();
 }

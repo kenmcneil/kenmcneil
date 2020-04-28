@@ -3,6 +3,9 @@
 participation-engine:
   schedule-fixed-delay: -1
   schedule-initial-delay: -1
+  test-mode-enabled: true
+  test-mode-min-participation-id: 50000
+  cool-off-period: 15
 
 logging:
   level:
@@ -18,4 +21,3 @@ datasource:
     url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=participation-engine;sendStringParametersAsUnicode=false
     username: wbsrvr_mmc
     password: 'Build12Dot24Cow!'
-

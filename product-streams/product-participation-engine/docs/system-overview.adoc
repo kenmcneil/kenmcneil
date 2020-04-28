@@ -1,9 +1,13 @@
 = Participation System Overview
-:toc: left
+:toc: macro
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../../asciidoctor.css
 :imagesdir: images
+
+link:../README.adoc[README] &raquo; System Overview
+
+toc::[]
 
 == Introduction
 
@@ -15,7 +19,7 @@ Participation records are scheduled by an <<#participation-author-term,author>> 
 
 === Priority and Overlap
 
-When a Participation activates, the <<#participation-effect-term, effects>> configured by the author are applied to the product variants it references. When a product variant is in multiple active participations, only the effects of the Participation with the highest priority will be applied to the product. It's possible that only some of the products in a Participation will actually be affected by it.
+When a Participation activates, the <<#participation-effect-term, effects>> configured by the author are applied to the product variants it references. When a product variant is in multiple <<#participation-active-term, active>> participations, only the effects of the Participation with the highest <<#participation-priority-term, priority>> will be applied to the product. It's possible that only some of the products in a Participation will actually be affected by it.
 
 Priority is implicitly defined--the record with the latest start date has the highest priority.
 
@@ -29,13 +33,14 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 
 === Effects
 
+[#participation-effects-table]
 .Effects available for use currently
 |===
 |Effect|Input|Changes
 
 |Sale ID
 |`saleId`, `uniqueIds` list
-|Set the sale id of the entered products in `uniqueIds` to `saleId`.
+|Set the <<#sale-id-term, sale id>> of the entered products in `uniqueIds` to `saleId`.
 
 |Calculated Discounts
 |`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`, `template`
@@ -49,7 +54,13 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 
 === Price Changes
 
-When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and any pending base price changes are applied.
+When a calculated discount effect is activated, discounts are applied to pricebook prices and the off-sale prices are preserved. On deactivation off-sale prices are restored, which takes the products off sale. Overlap logic and safeguards provide assurance that the sale description and end date are accurate and that we are showing accurate information to customers. Discounts touch several areas of the SQL database and product storage cache system, and the client applications (web store, native app) consume data provided by the participation system.
+
+When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved but not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and the most recent of any pending base price changes are applied.
+
+When prices are updated, product storage updates are triggered, which updates pricing data in product storage cache records in MongoDB.
+
+* For more information on downstream consumption of price changes see link:https://github.com/buildcom/core-services/blob/master/docs/product-domain/product-domain-layout.adoc[Product Data Access & Services].
 
 == System Diagram
 
@@ -66,8 +77,6 @@ The UI of the Participations System. Participation Authors use Construct to edit
 ==== Participation records
 
 Participation records are edited and versioned with the same Construct Atomic Form Editor library that is used to edit content records. This provides a flexible and familiar interface to users to manage sales. Author-entered data is structured and validated by versioned schemas that allow new backwards-compatible features to be added as needed.
-
-When a calculated discount effect is activated, discounts are applied to pricebook prices and the off-sale prices are preserved. On deactivation off-sale prices are restored, which takes the products off sale. Overlap logic and safeguards provide assurance that the sale description and end date are accurate and that we are showing accurate information to customers. Discounts touch several areas of the SQL database and product storage cache system, and the client applications (web store, native app) consume data provided by the participation system.
 
 Construct stores records in MongoDB. The engine application copies published Participations into SQL to track active records and activate and deactivate Participation effects. When a record is unpublished or deactivated, its information is deleted from the SQL tables.
 
@@ -196,19 +205,25 @@ The web stores and the native application consume prices and data either updated
 == Glossary
 
 [#participation-author-term]
-Participation Author:: An author is responsible for creating, publishing, and un-publishing records. Authors configure Participation records by entering the details for the desired effects and the dates to activate and deactivate the effects. Common author roles include merchandiser or marketer.
+Participation Author:: An _author_ is responsible for creating, publishing, and un-publishing records. Authors configure Participation records by entering the details for the desired effects and the dates to activate and deactivate the effects. Common author roles include merchandiser or marketer.
 
 [#participation-term]
 Participation:: A set of values entered by the author, including desired effects and their schedule and the record's published and activation statuses.
 
+[#participation-active-term]
+Active Participation:: When the engine applies a Participation's effect on its start date, it is then _active_. When the end date comes around and the engine removes the effects, it is no longer active.
+
+[#participation-priority-term]
+Participation Priority:: When there is more than one Participation active for a product variant at the same time, the Participation with the highest _priority_ becomes the owner. Priority is determined by the start date, with a later date having a higher priority.
+
 [#participation-effect-term]
-Participation Effect:: An effect is a specific change or set of changes made to product data and pricing, based on values entered by the author.
+Participation Effect:: An _effect_ is a specific change or set of changes made to product data and pricing, based on values entered by the author.
 
 [#sale-id-term]
 Sale ID:: The id of a ProductSale record, edited in OMC, which has a date range, a title, and a description. The id is used in various ways to link a product variant and other entities such as coupons in a marketing campaign.
 
 [#product-variant-term]
-Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_.
+Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_. For more detail on product terminology see link:../../../README.adoc#build-terms-to-product-domain-terms[Build Terms to Product Domain Terms].
 
 == References
 

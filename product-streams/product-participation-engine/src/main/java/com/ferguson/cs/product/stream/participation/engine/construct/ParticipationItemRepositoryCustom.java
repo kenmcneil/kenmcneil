@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 import java.util.Date;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSearchCriteria;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 
@@ -22,10 +21,9 @@ public interface ParticipationItemRepositoryCustom {
 	);
 
 	/**
-	 * Query the participation item collection and return the first result found.
+	 * Query the participation item collection for a pending unpublish status and return the first result found.
 	 * Populates only id and lastModifiedUserId properties.
-	 * @param criteria {@link ParticipationItemSearchCriteria} The criteria by which to filter results.
 	 * @return A {@link ParticipationItem} or null if none found.
 	 */
-	ParticipationItem findParticipationItemEvent(ParticipationItemSearchCriteria criteria);
+	ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId);
 }

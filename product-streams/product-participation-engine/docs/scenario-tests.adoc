@@ -1,0 +1,114 @@
+= Scenario Tests
+:toc: macro
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+:source-highlighter: coderay
+:sectnums:
+
+link:../README.adoc[README] &raquo; Scenario Tests
+
+toc::[]
+
+== Audience
+
+This targets developers mostly, due to the very specific components and behaviors of the Participation engine that are described. The linked scenario catalog is useful for all readers.
+
+== Introduction
+
+Scenarios are end-to-end tests for one or more Participations that test behavior of the engine over time as Participations are published, activated, deactivated, and unpublished.
+
+There are different types of Participation records, and each has different effects. The first simply allows setting the SaleId. The second built on the original version to add optional calculated discounts. Effectively, there is one participation type with one required effect (sale id) and one optional effect (calculated discounts).
+
+Scenarios are created by choosing a set of desired lifecycle tests, and then describing user actions over time. When the scenario is executed, the simulated user actions are performed and the response of the engine is verified by the lifecycle tests. Additional tests that are specific to the scenario may be added to  at any point in the timeline of the scenario.
+
+Lifecycle tests may be combined together to test specific combinations, such as "schedule + saleId + calculated discounts."
+
+To support new effects and participation record types, the lifecycle tests are grouped as follows:
+
+* Shared scenarios to test base features that are common among all participation types.
+* Scenarios that test specific Participation effects.
+
+See the link:system-overview.adoc#participation-effects-table[effects table] for details on effects.
+
+== Scenario Catalog
+
+See the link:scenario-catalog.adoc[scenario catalog] for a complete list of scenarios.
+
+== Lifecycle tests
+
+Lifecycle tests are used when writing a scenario test.
+
+=== Common tests
+
+These lifecycle tests apply to all Participation types.
+
+==== Basic Lifecycle tests
+
+Verify that publish, activate, deactivate, and unpublish state transitions work. Checks for existence of references to the participation and the is-active state before and after each transition.
+
+Tests only the state transitions of the Participation itself, with no testing of schedule, products, or effects.
+
+.Expectations
+* *Before publish*: no references to the Participation in the database -- "data not present"
+* *After publish*: the participation's data is in the participationItemPartial table -- "data present"
+* *Before activation*: not active, data present
+* *After activation*: active, data present
+* *After deactivation*: active, data present
+* *Before unpublish*: not active, data present
+* *After unpublish*: data not present
+
+==== Scheduling lifecycle tests
+
+Test that activation and deactivation of a Participation occurs on the start and end dates respectively.
+
+This lifecycyle test may be used to verify behavior with various start and end date combinations:
+
+* No start date, no end date
+* No start date, end date
+* Start date, no end date
+* Start date, end date
+
+Note that validation in specific Participation types may prevent some combinations, e.g. end date is required.
+
+=== Tests for Effects
+
+==== Sale ID
+
+Test the Sale ID effect.
+
+==== Calculated Discounts
+
+Test the price and other data changes made by calculated discounts as they activate and deactivate.
+
+==== Overlapping Participations
+
+The Sale ID and Calculated Discount effects both use priority to determine ownership when product overlap.
+
+A Participation owns a product when it is link:system-overview.adoc#participation-active-term[active] and has the highest link:system-overview.adoc#participation-priority-term[priority] among other active Participations also referencing the product.
+
+Participations overlap when they share products and are scheduled to be active at the same time.
+
+The product ownership lifecycle test will help with verifying that priority and overlap logic is performed correctly.
+
+== Scenario tests
+
+Participation records use versioned definition schemas to provide the UI for authors to enter data. The schema used in a record determines the type of the record.
+
+.Current record types
+* participation@1.0.0 - Sale ID
+* participation@1.1.0 - Sale ID + Calculated Discounts
+
+Each Participation type should have its own IT class to verify the behavior and interactions of the effects allowed by that type.
+
+All scenarios are documented in the link:scenario-catalog.adoc[Scenario Catalog].
+
+=== Scenarios for Sale ID
+
+Test the Sale ID effect for `participation@{1.0.0, 1.1.0}` versions.
+
+=== Scenarios for Sale ID + Calculated Discounts
+
+Test Sale ID effect for `participation@1.1.0`.
+Test Calculated Discount effect for `participation@1.1.0`.

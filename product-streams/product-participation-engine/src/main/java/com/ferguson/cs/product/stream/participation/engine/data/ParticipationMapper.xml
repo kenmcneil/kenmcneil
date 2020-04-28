@@ -242,6 +242,7 @@
 			ON lbp.uniqueId = pbcost.uniqueId
 				AND lbp.pricebookId = pbcost.pricebookId
 	</update>
+
 	<update id="applyNewCalculatedDiscounts" parameterType="map">
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
@@ -270,7 +271,7 @@
 			mmc.product.participationLastOnSale AS las
 			ON las.uniqueId = pbcost.uniqueId
 				AND las.pricebookId = pbcost.pricebookId
-				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriod}
+				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
 
 	<update id="updateProductModifiedDates" parameterType="map">
@@ -309,6 +310,47 @@
 		WHERE
 			participationId = #{participationId}
 	</delete>
+
+	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItemPartial">
+		SELECT TOP 1
+			id,
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive
+		FROM
+			mmc.product.participationItemPartial
+		WHERE
+		    isActive = 0
+			AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
+			AND (endDate > #{processingDate} OR endDate IS NULL)
+			<if test="minParticipationId != null">
+				AND participationId >= #{minParticipationId}
+			</if>
+		ORDER BY startDate
+	</select>
+
+	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
+		SELECT TOP 1
+			id,
+		    participationId,
+		    saleId,
+		    startDate,
+		    endDate,
+		    lastModifiedUserId,
+		    isActive
+		FROM
+			mmc.product.participationItemPartial
+		WHERE
+			endDate IS NOT NULL
+			AND endDate &lt; #{processingDate}
+		<if test="minParticipationId != null">
+			AND participationId >= #{minParticipationId}
+		</if>
+		ORDER BY endDate
+	</select>
 
 	<insert id="syncToCurrentPriorityParticipation">
 		-- TODO remove currentPriorityParticipation code (see SODEV-25037)
