@@ -16,7 +16,7 @@ pipeline {
     startingVersion = null
     releaseVersion = null
     mavenSettingsConfig = 'org.jenkinsci.plugins.configfiles.maven.MavenSettingsConfig1426267345601'
-    mavenCommandOptions = "--fail-at-end --batch-mode --quiet --settings settings.xml -Dmaven.repo.local=.localMavenRepo"
+    mavenCommandOptions = "--fail-at-end --batch-mode --quiet --settings settings.xml -Dmaven.repo.local=.localMavenRepo -Dlogback.configurationFile=logback-test-build.xml"
     testCompletedSuccessfully = false
     skipCI = false
   }
@@ -98,10 +98,10 @@ pipeline {
                 }
                 stage ('Wait For Tests') {
                   options {
-                    timeout(time: 5, unit: 'MINUTES')
+                    timeout(time: 10, unit: 'MINUTES')
                   }
                   steps {
-                    waitUntil {
+                    waitUntil (initialRecurrencePeriod: 5000, quiet: true) {
                       script {
                         testCompletedSuccessfully.toBoolean()
                       }
@@ -211,14 +211,6 @@ pipeline {
                           }
                         }
                       }
-                    }
-                  }
-                }
-                stage ('Non-Release Deploy') {
-                  steps {
-                    withMaven(maven: 'MavenAuto', mavenSettingsConfig: "${mavenSettingsConfig}") {
-                      // No request for release, create and deploy snapshot with latest code.
-                      sh 'mvn deploy -DskipTests'
                     }
                   }
                 }
