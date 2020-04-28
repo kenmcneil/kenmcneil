@@ -101,7 +101,8 @@ pipeline {
                     timeout(time: 10, unit: 'MINUTES')
                   }
                   steps {
-                    waitUntil (initialRecurrencePeriod: 5000, quiet: true) {
+                    // TODO add "quiet: true" when we have workflow-basic-steps-plugin with release v2.20
+                    waitUntil (initialRecurrencePeriod: 10000) {
                       script {
                         testCompletedSuccessfully.toBoolean()
                       }
