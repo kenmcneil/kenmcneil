@@ -35,7 +35,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	}
 
 	@Override
-	public boolean getParticipationIsActive(Integer participationId) {
+	public Boolean getParticipationIsActive(Integer participationId) {
 		return participationDao.getParticipationIsActive(participationId);
 	}
 
@@ -43,7 +43,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void activateParticipation(ParticipationItemPartial item, Date processingDate) {
 		int participationId = item.getParticipationId();
 		int userId = item.getLastModifiedUserId();
-		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
+		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
@@ -76,7 +76,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate new discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
@@ -97,7 +97,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 	public void deactivateParticipation(ParticipationItemPartial item, Date processingDate) {
 		int participationId = item.getParticipationId();
 		int userId = item.getLastModifiedUserId();
-		int coolOffPeriod = participationEngineSettings.getCoolOffPeriod();
+		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
 		int totalRows = 0;
 
 		int rowsAffected = participationDao.setParticipationIsActive(participationId, false);
@@ -129,7 +129,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
 		// activate fallback discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 

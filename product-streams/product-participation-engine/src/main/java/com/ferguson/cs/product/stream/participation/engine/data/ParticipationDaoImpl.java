@@ -20,7 +20,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public boolean getParticipationIsActive(Integer participationId) {
+	public Boolean getParticipationIsActive(Integer participationId) {
 		return participationMapper.getParticipationIsActive(participationId);
 	}
 
@@ -78,10 +78,10 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod) {
+	public int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any calculated discounts to pricebook prices.
-		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriod);
+		return participationMapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
 	}
 
 	@Override

@@ -20,7 +20,7 @@ public interface ParticipationDao {
 	 * @param participationId The id of a participation.
 	 * @return Returns true if a participation is currently active, else false.
 	 */
-	boolean getParticipationIsActive(Integer participationId);
+	Boolean getParticipationIsActive(Integer participationId);
 
 	// ACTIVATION
 
@@ -82,7 +82,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.

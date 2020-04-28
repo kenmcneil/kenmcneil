@@ -14,7 +14,7 @@ public interface ParticipationMapper {
 	 * @param participationId The id of a participation.
 	 * @return Returns true if a participation is currently active, else false.
 	 */
-	boolean getParticipationIsActive(Integer participationId);
+	Boolean getParticipationIsActive(Integer participationId);
 
 	/**
 	 * Mark a participation as active or inactive.
@@ -106,7 +106,7 @@ public interface ParticipationMapper {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, Integer coolOffPeriod);
+	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update product.modified to trigger product cache update.

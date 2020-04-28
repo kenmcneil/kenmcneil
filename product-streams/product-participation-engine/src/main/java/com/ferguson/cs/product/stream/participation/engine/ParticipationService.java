@@ -19,7 +19,7 @@ public interface ParticipationService {
 	/**
 	 * Determine if a participation is currently active.
 	 */
-	boolean getParticipationIsActive(Integer participationId);
+	Boolean getParticipationIsActive(Integer participationId);
 
 	/**
 	 * Activate a participation.
