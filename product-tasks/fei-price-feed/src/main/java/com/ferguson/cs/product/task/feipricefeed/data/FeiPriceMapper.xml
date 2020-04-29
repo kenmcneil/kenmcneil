@@ -64,7 +64,7 @@
 		AND status.status IN ('stock','nonstock')
 		AND containerType.type = 'Product'
 		<if test="lastRanDate != null">
-		AND pricebookCostLog.Update_DateTime &gt; DATEADD(day,-7, #{lastRanDate})
+		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
 		ORDER BY mpn
 	</select>
