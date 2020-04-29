@@ -1,0 +1,14 @@
+[
+  {
+    "appName": "product-task-fei-price-feed",
+    "name": "upload-fei-full-price-file",
+    "jobName": "uploadFeiFullPriceFile",
+    "heapSize": "512m"
+  },
+  {
+    "appName": "product-task-fei-price-feed",
+    "name": "upload-fei-price-changes-file",
+    "jobName": "uploadFeiPriceChangesFile",
+    "heapSize": "512m"
+  }
+]

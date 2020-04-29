@@ -9,6 +9,7 @@
 		<module>product-task-distribution-center-quick-ship</module>
 		<module>wiser-feeds</module>
 		<module>dynamic-yield-feeds</module>
+		<module>fei-price-feed</module>
 	</modules>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
