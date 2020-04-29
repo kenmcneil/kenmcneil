@@ -37,7 +37,6 @@ import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataFieldExtracto
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataJobListener;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemReader;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemWriter;
-import com.ferguson.cs.product.task.feipricefeed.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
 import com.ferguson.cs.product.task.feipricefeed.service.FeiPriceService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
@@ -142,15 +141,9 @@ public class FeiPriceTaskConfiguration {
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("PM_%s_OMNI_%s.CSV", runNumber, dateString);
 		feiFileSystemResource
-				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getTemporaryFilePath() + filename));
+				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getStorageFilePath()+ filename));
 		return new FlatFileItemWriterBuilder<String>().resource(feiFileSystemResource.getFileSystemResource()).name("aggregateWriter")
 				.lineAggregator(new PassThroughLineAggregator<>()).build();
-	}
-
-	@Bean
-	@StepScope
-	public UploadFileTasklet uploadFileTasklet(FeiPriceConfiguration.FeiGateway feiGateway, FeiFileSystemResource feiFileSystemResource) {
-		return new UploadFileTasklet(feiFileSystemResource, feiGateway);
 	}
 
 	@Bean
@@ -189,19 +182,14 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
-	public Step uploadFeiPriceFile(UploadFileTasklet uploadFileTasklet) {
-		return taskBatchJobFactory.getStepBuilder("uploadFeiPriceFile").tasklet(uploadFileTasklet).build();
-	}
-
-	@Bean
-	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step uploadFeiPriceFile) {
-		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener()).start(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).next(uploadFeiPriceFile).build();
+	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
+		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener()).start(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).build();
 
 	}
 
 	@Bean
-	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step uploadFeiPriceFile) {
-		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener()).start(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).next(uploadFeiPriceFile).build();
+	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
+		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener()).start(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).build();
 	}
 
 	@Bean

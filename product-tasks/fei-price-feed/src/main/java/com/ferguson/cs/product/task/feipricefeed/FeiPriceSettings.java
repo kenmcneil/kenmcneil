@@ -11,11 +11,7 @@ import org.springframework.stereotype.Component;
 public class FeiPriceSettings {
 	private Map<String,String> locations;
 	private String temporaryFilePath;
-	private String ftpUrl;
-	private Integer ftpPort;
-	private String ftpUsername;
-	private String ftpPassword;
-	private String ftpFolder;
+	private String storageFilePath;
 	private List<String> whiteLabelBrands;
 
 	public Map<String, String> getLocations() {
@@ -34,51 +30,19 @@ public class FeiPriceSettings {
 		this.temporaryFilePath = temporaryFilePath;
 	}
 
-	public String getFtpUrl() {
-		return ftpUrl;
-	}
-
-	public void setFtpUrl(String ftpUrl) {
-		this.ftpUrl = ftpUrl;
-	}
-
-	public Integer getFtpPort() {
-		return ftpPort;
-	}
-
-	public void setFtpPort(Integer ftpPort) {
-		this.ftpPort = ftpPort;
-	}
-
-	public String getFtpUsername() {
-		return ftpUsername;
-	}
-
-	public void setFtpUsername(String ftpUsername) {
-		this.ftpUsername = ftpUsername;
-	}
-
-	public String getFtpPassword() {
-		return ftpPassword;
-	}
-
-	public void setFtpPassword(String ftpPassword) {
-		this.ftpPassword = ftpPassword;
-	}
-
-	public String getFtpFolder() {
-		return ftpFolder;
-	}
-
-	public void setFtpFolder(String ftpFolder) {
-		this.ftpFolder = ftpFolder;
-	}
-
 	public List<String> getWhiteLabelBrands() {
 		return whiteLabelBrands;
 	}
 
 	public void setWhiteLabelBrands(List<String> whiteLabelBrands) {
 		this.whiteLabelBrands = whiteLabelBrands;
+	}
+
+	public String getStorageFilePath() {
+		return storageFilePath;
+	}
+
+	public void setStorageFilePath(String storageFilePath) {
+		this.storageFilePath = storageFilePath;
 	}
 }
