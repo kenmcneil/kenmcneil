@@ -5,6 +5,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -283,7 +284,21 @@ public class ParticipationTestUtilities {
 	}
 
 	/**
-	 * Check applicable tables for any references to the given participation id.
+	 * Check applicable tables for any references to the given participation id
+	 * with assertions.
+	 */
+	public void assertParticipationNotPresent(ParticipationItemFixture fixture) {
+		int participationId = fixture.getParticipationId();
+		String fixtureAsString = fixture.toString();
+		Assertions.assertThat(getParticipationItemPartial(participationId)).as("Unexpected participationItemPartial record: " + fixtureAsString).isNull();
+		Assertions.assertThat(getParticipationCalculatedDiscountCount(participationId)).as("Unexpected participationCalculatedDiscount record: " + fixtureAsString).isEqualTo(0);
+		Assertions.assertThat(getParticipationProductCount(participationId)).as("Unexpected participationProduct record: " + fixtureAsString).isEqualTo(0);
+		Assertions.assertThat(getParticipationSaleIdCount(participationId)).as("Unexpected participation id in product.sale record: " + fixtureAsString).isEqualTo(0);
+		Assertions.assertThat(getPricebookCostParticipationCount(participationId)).as("Unexpected participation id in pricebook_cost record: " + fixtureAsString).isEqualTo(0);
+	}
+
+	/**
+	 * Check applicable tables for any references to the given participation id and return true/false.
 	 */
 	public boolean isParticipationPresent(int participationId) {
 		return getParticipationItemPartial(participationId) != null

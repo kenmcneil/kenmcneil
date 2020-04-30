@@ -19,7 +19,7 @@ public class BasicLifecycleTestStrategy extends ParticipationScenarioLifecycleTe
 	 */
 	@Override
 	public void beforePublish(ParticipationItemFixture fixture, Date processingDate) {
-		Assertions.assertThat(participationTestUtilities.isParticipationPresent(fixture.getParticipationId())).isFalse();
+		participationTestUtilities.assertParticipationNotPresent(fixture);
 	}
 
 	/**
@@ -98,6 +98,6 @@ public class BasicLifecycleTestStrategy extends ParticipationScenarioLifecycleTe
 	 */
 	@Override
 	public void afterUnpublish(ParticipationItemFixture fixture, Date processingDate) {
-		Assertions.assertThat(participationTestUtilities.isParticipationPresent(fixture.getParticipationId())).isFalse();
+		participationTestUtilities.assertParticipationNotPresent(fixture);
 	}
 }

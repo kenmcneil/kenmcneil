@@ -98,10 +98,11 @@ pipeline {
                 }
                 stage ('Wait For Tests') {
                   options {
-                    timeout(time: 5, unit: 'MINUTES')
+                    timeout(time: 10, unit: 'MINUTES')
                   }
                   steps {
-                    waitUntil {
+                    // TODO add "quiet: true" when we have workflow-basic-steps-plugin with release v2.20
+                    waitUntil (initialRecurrencePeriod: 10000) {
                       script {
                         testCompletedSuccessfully.toBoolean()
                       }
@@ -211,14 +212,6 @@ pipeline {
                           }
                         }
                       }
-                    }
-                  }
-                }
-                stage ('Non-Release Deploy') {
-                  steps {
-                    withMaven(maven: 'MavenAuto', mavenSettingsConfig: "${mavenSettingsConfig}") {
-                      // No request for release, create and deploy snapshot with latest code.
-                      sh 'mvn deploy -DskipTests'
                     }
                   }
                 }

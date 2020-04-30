@@ -69,15 +69,15 @@ WHERE participationId >= 50000
 
 UPDATE
 mmc.product.sale
-SET saleId = 0
+SET participationId = 0
 WHERE participationId >= 50000
 
 -- reset any prices on sale to off-sale values
 UPDATE
 mmc.dbo.Pricebook_Cost
-SET Cost = basePrice
+SET Cost = basePrice, participationId = 0
 WHERE participationId >= 50000
-AND Cost <> basePrice
+	AND (Cost != basePrice OR participationId != 0)
 
 DELETE plos
 FROM mmc.product.participationLastOnSale plos
