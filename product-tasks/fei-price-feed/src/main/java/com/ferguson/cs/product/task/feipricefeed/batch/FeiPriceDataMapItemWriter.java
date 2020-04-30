@@ -1,8 +1,10 @@
 package com.ferguson.cs.product.task.feipricefeed.batch;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 	private final Map<String, FeiPriceData> feiPriceDataMap;
 	private FeiPriceSettings feiPriceSettings;
 	private FeiPriceDataComparator feiPriceDataComparator = new FeiPriceDataComparator();
+	private Set<FeiPriceData> duplicateData;
 
 	public FeiPriceDataMapItemWriter(Map<String, FeiPriceData> feiPriceDataMap) {
 		this.feiPriceDataMap = feiPriceDataMap;
@@ -23,6 +26,11 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 	@Autowired
 	public void setFeiPriceSettings(FeiPriceSettings feiPriceSettings) {
 		this.feiPriceSettings = feiPriceSettings;
+	}
+
+	@Autowired
+	public void setDuplicateData(Set<FeiPriceData> duplicateData) {
+		this.duplicateData = duplicateData;
 	}
 
 	@Override
@@ -73,6 +81,10 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 				}
 
 				//Doesn't meet any of the criteria to pick a higher priority
+				if(BigDecimal.valueOf(o1.getPrice()).compareTo(BigDecimal.valueOf(o2.getPrice())) != 0) {
+					duplicateData.add(o1);
+					duplicateData.add(o2);
+				}
 				return 0;
 			};
 		}

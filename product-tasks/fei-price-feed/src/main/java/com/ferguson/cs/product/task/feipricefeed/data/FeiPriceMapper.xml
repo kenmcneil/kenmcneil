@@ -3,6 +3,7 @@
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.task.feipricefeed.data.FeiPriceMapper">
 	<resultMap id="feiPriceDataMap" type="FeiPriceData">
+		<result column="uniqueId" property="uniqueId"/>
 		<result column="mpid" property="mpid"/>
 		<result column="price" property="price"/>
 		<result column="brand" property="brand" />
@@ -10,7 +11,7 @@
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT pricebook.cost price, vendorMap.MPN mpn, manufacturer.name brand, status.status
+		SELECT product.uniqueId, pricebook.cost price, vendorMap.MPN mpn, manufacturer.name brand, status.status
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -25,6 +26,7 @@
 		INNER JOIN omc.dbo.Vendor_Mapping vendorMap
 		ON 'Ferguson' = vendorMap.Vendor
 		AND vendorMap.MPN IS NOT NULL
+		AND vendorMap.MPN != ''
 		AND family.productId = vendorMap.ProductID
 		AND finish.finish = vendorMap.Finish
 		AND manufacturer.Name = vendorMap.Manufacturer
@@ -33,6 +35,7 @@
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND containerType.type = 'Product'
+
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
