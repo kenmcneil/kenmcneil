@@ -10,10 +10,8 @@ participation-engine:
 logging:
   level:
     ROOT: ERROR
-    org.springframework: WARN
-    org.springframework.cloud: INFO
-    org.springframework.web: INFO
-    com.build: DEBUG
+    com.ferguson.cs: WARN
+spring.main.banner-mode: "OFF"
 
 datasource:
   core:

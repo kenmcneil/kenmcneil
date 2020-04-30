@@ -16,7 +16,7 @@ pipeline {
     startingVersion = null
     releaseVersion = null
     mavenSettingsConfig = 'org.jenkinsci.plugins.configfiles.maven.MavenSettingsConfig1426267345601'
-    mavenCommandOptions = "--fail-at-end --batch-mode --quiet --settings settings.xml -Dmaven.repo.local=.localMavenRepo -Dlogback.configurationFile=logback-test-build.xml"
+    mavenCommandOptions = "--fail-at-end --batch-mode --quiet --settings settings.xml -Dmaven.repo.local=.localMavenRepo"
     testCompletedSuccessfully = false
     skipCI = false
   }

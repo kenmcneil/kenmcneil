@@ -4,6 +4,7 @@ logging:
   level:
     ROOT: ERROR
     org.springframework: WARN
+    com.ferguson.cs: INFO
 
 info:
   build:
