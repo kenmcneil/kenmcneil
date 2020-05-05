@@ -2,14 +2,15 @@
 
 spring:
   application:
-    # Name is used to lookup configuration on the configuration server and for service discovery.
-    name: product-services-participation-engine
+    name: participation-engine
   profiles:
     active: localdev
   cloud:
     config:
       # The label/branch that will be used to retrieve configuration from the configuration server.
       label: master
+      # Name is used to look up configuration on the configuration server and for service discovery.
+      name: product-services-participation-engine
       fail-fast: true
       uri: http://config
       username: config
