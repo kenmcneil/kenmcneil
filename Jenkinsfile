@@ -160,7 +160,7 @@ pipeline {
                       }
                       environment {
                         workspace = pwd()
-                        rpmAppName = 'product-services-participation-engine'
+                        rpmAppName = 'participation-engine'
                       }
                       steps {
                         sh 'mvn package'
