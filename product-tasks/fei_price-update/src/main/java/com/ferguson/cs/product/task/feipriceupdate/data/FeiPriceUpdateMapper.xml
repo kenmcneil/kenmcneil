@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper">
+	
+	<insert id="createTempTable" parameterType="java.lang.String">
+	  CREATE TABLE [tempData].[dbo].[${_parameter}]
+	  (
+	        [uniqueId] [int],
+	       	[mpid] [int],
+	        [price] [decimal],
+	        [priceRule] [varchar] (64)
+
+	  )
+	</insert>
+	
+	<insert id="insertTempPriceUpdateRecord" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+		INSERT INTO tempData.dbo.${item.tempTableName}
+		(
+			uniqueId,
+			mpid,
+			price,
+			priceRule
+		) VALUES (
+			#{item.uniqueId},
+			#{item.mpid},
+			#{item.price},
+			#{item.priceRule}
+		)
+	</insert>
+	
+	<insert id="insertTempFeiOnlyPriceUpdate" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+	
+			INSERT INTO tempData.dbo.${item.tempTableName}
+			(
+				uniqueId,
+				mpid,
+				price,
+				priceRule
+			)
+			select uniqueId, mpid,price,priceRule
+			from 
+			(
+				select #{item.uniqueId} as uniqueId, 
+				#{item.mpid} as mpid, 
+				#{item.price} as price, 
+				#{item.priceRule} as priceRule
+			) t
+			WHERE EXISTS 
+			(
+				select productUniqueId from tempData.dbo.temp_brian_test where productUniqueId = #{item.uniqueId}
+			)
+	</insert>
+	
+	<update id="dropTempTable" parameterType="java.lang.String">
+		DROP TABLE IF EXISTS tempData.dbo.${_parameter}
+	</update>
+
+</mapper>

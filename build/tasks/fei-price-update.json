@@ -1,0 +1,9 @@
+[
+  {
+    "appName": "fei-price-update",
+    "name": "fei-price-update",
+    "jobName": "feiPriceUpdateJob",
+    "heapSize": "512m"
+  }
+
+]
