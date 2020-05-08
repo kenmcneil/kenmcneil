@@ -55,9 +55,19 @@
 			INNER JOIN mmc.dbo.PriceBook_Cost pbc
 				ON p.uniqueId = pbc.uniqueId
 				AND pbc.priceBookId = 1
+			LEFT JOIN omc.dbo.orderShippedDateComparison osdc
+				ON ppv.productuniqueid = osdc.uniqueId
+				AND osdc.shippingEstimateMethodId = 6 <!-- Only care about lead times from override tool -->
 		WHERE
 			<!-- Product status Stock -->
 			p.statusId = ${@com.ferguson.cs.vendor.quickship.model.product.ProductStatus@STOCK.getIntValue()}
+			AND
+			<!-- If a lead time override was set it has to be 0 days to meet quick ship -->
+			(
+				osdc.inStockDaysLow is null
+				OR
+				osdc.instockdaysLow = 0
+			)
 			<!-- Primary Vendor List -->
 			<if test="criteria.getVendorIdList != null">
 				AND
