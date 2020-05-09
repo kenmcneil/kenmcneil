@@ -414,4 +414,22 @@
 		FROM
 		    string_split(@uniqueidList,',');
 	</insert>
+
+	<insert id="insertParticipationCalculatedDiscounts" parameterType="map">
+		INSERT INTO mmc.product.participationCalculatedDiscount (
+			participationId,
+			priceBookId,
+			changeValue,
+			isPercent,
+			templateId
+		)
+		VALUES
+		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
+			#{calculatedDiscount.participationId},
+			#{calculatedDiscount.priceBookId},
+			#{calculatedDiscount.changeValue},
+			#{calculatedDiscount.isPercent},
+			#{calculatedDiscount.templateId}
+		</foreach>
+	</insert>
 </mapper>

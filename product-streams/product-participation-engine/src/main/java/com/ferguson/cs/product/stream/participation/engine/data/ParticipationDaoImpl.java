@@ -105,7 +105,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	@Override
 	public int deleteParticipationV1Data(int participationId) {
 		return participationMapper.deleteParticipationProducts(participationId)
-		+ participationMapper.deleteParticipationCalculatedDiscounts(participationId);
+				+ participationMapper.deleteParticipationCalculatedDiscounts(participationId);
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 			int participationId,
 			List<ParticipationCalculatedDiscount> calculatedDiscounts
 	) {
-		int rowsAffected = participationMapper.deleteCalculatedDiscountsOfParticipation(participationId);
+		int rowsAffected = participationMapper.deleteParticipationCalculatedDiscounts(participationId);
 		if(!calculatedDiscounts.isEmpty()) {
 			rowsAffected += participationMapper.insertParticipationCalculatedDiscounts(calculatedDiscounts);
 		}

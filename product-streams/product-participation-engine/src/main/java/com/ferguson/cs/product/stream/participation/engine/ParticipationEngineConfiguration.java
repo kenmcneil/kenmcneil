@@ -6,6 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.construct.ConstructServiceImpl;
+import com.ferguson.cs.product.stream.participation.engine.construct.ContentEventRepository;
+import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
 
@@ -13,6 +17,26 @@ import com.ferguson.cs.product.stream.participation.engine.lifecycle.Participati
 @EnableScheduling
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
+	@Bean
+	public ConstructService constructService(
+			ParticipationEngineSettings participationEngineSettings,
+			ContentEventRepository contentEventRepository,
+			ParticipationItemRepository participationItemRepository
+	) {
+		return new ConstructServiceImpl(participationEngineSettings, contentEventRepository,
+				participationItemRepository);
+	}
+
+	@Bean
+	public ParticipationService participationService(
+			ParticipationDao participationDao,
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationLifecycleService participationLifecycleService
+	) {
+		return new ParticipationServiceImpl(participationDao, participationEngineSettings,
+				participationLifecycleService);
+	}
+
 	@Bean
 	public ParticipationWriter participationWriter(
 			ParticipationService participationService,
@@ -28,8 +52,8 @@ public class ParticipationEngineConfiguration {
 			ParticipationService participationService,
 			ParticipationWriter participationWriter
 	) {
-		return new ParticipationProcessor(
-				participationEngineSettings, constructService, participationService, participationWriter);
+		return new ParticipationProcessor(participationEngineSettings, constructService,
+				participationService, participationWriter);
 	}
 
 	@Bean
@@ -38,6 +62,14 @@ public class ParticipationEngineConfiguration {
 			ParticipationEngineSettings participationEngineSettings
 	) {
 		return new ParticipationEngineTask(participationProcessor, participationEngineSettings);
+	}
+
+	@Bean
+	public ParticipationV1Lifecycle participationV1Lifecycle(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationDao participationDao
+	) {
+		return new ParticipationV1Lifecycle(participationEngineSettings, participationDao);
 	}
 
 	@Bean

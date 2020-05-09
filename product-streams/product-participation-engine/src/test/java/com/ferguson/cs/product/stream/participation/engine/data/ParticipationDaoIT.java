@@ -143,7 +143,8 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		int rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		participationDao.updateProductModifiedDates(new Date(), 1);
-		participationDao.deleteParticipation(53000);
+		participationDao.deleteParticipationV1Data(53000);
+		participationDao.deleteParticipationItemPartial(53000);
 
 		// Check final state
 		ProductSaleParticipation link = participationTestUtilities.getProductSaleLink(123456);
@@ -162,9 +163,9 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		values.setIsActive(false);
 		participationTestUtilities.insertParticipationFixture(values);
 
-		int rowsAffected = participationDao.deleteParticipation(50000);
+		int rowsAffected = participationDao.deleteParticipationV1Data(50000)
+			+ participationDao.deleteParticipationItemPartial(50000);
 
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
 	}
-
 }

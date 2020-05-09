@@ -169,10 +169,5 @@ public interface ParticipationMapper {
 	 */
 	int insertParticipationProducts(int participationId, String uniqueIdsListAsString);
 
-	/**
-	 * Delete the calculated discounts for a Participation.
-	 */
-	int deleteCalculatedDiscountsOfParticipation(int participationId);
-
 	int insertParticipationCalculatedDiscounts(List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

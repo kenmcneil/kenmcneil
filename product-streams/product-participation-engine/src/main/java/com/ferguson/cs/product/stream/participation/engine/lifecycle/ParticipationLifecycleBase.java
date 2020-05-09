@@ -3,12 +3,9 @@ package com.ferguson.cs.product.stream.participation.engine.lifecycle;
 import java.util.Date;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
-
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
-@Component
 public abstract class ParticipationLifecycleBase {
 
 	/**

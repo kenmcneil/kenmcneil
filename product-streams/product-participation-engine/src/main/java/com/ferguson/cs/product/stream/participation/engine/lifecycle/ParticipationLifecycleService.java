@@ -2,8 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine.lifecycle;
 
 import java.util.Date;
 
-import org.springframework.stereotype.Service;
-
 import com.ferguson.cs.product.stream.participation.engine.model.ContentErrorMessage;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -16,13 +14,12 @@ import lombok.RequiredArgsConstructor;
  * content type, which is the schema name of the content type definition used to create
  * the record's content.
  */
-@Service
 @RequiredArgsConstructor
 public class ParticipationLifecycleService {
 
 	public static final String CONTENT_MAP_KEY_TYPE = "_type";
 
-	private final ParticipationV1Lifecycle calculatedDiscountsV1Lifecycle;
+	private final ParticipationV1Lifecycle participationV1Lifecycle;
 
 	/**
 	 * Get the content._type return with the minor and patch version removed, in the form
@@ -54,11 +51,12 @@ public class ParticipationLifecycleService {
 	 */
 	public ParticipationLifecycleBase getLifecycleFor(String contentType) {
 		if (contentType == null) {
-			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
+			// All records that existed prior to adding the content type are of type participation@1.
+			return participationV1Lifecycle;
 		}
 
 		if (contentType.startsWith(ParticipationV1Lifecycle.NAME_WITH_MAJOR_VERSION + ".")) {
-			return calculatedDiscountsV1Lifecycle;
+			return participationV1Lifecycle;
 		}
 
 		throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
@@ -72,7 +70,7 @@ public class ParticipationLifecycleService {
 	 */
 	public int activateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		// Run all type-specific activation queries.
-		int affectedRows = calculatedDiscountsV1Lifecycle.activate(itemPartial, processingDate);
+		int affectedRows = participationV1Lifecycle.activate(itemPartial, processingDate);
 		// affectedRows += itemizedDiscountsV1Lifecycle.activate(itemPartial, processingDate);
 		// ...
 		return affectedRows;
@@ -86,7 +84,7 @@ public class ParticipationLifecycleService {
 	 */
 	public int deactivateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		// Run all type-specific activation queries.
-		int affectedRows = calculatedDiscountsV1Lifecycle.deactivate(itemPartial, processingDate);
+		int affectedRows = participationV1Lifecycle.deactivate(itemPartial, processingDate);
 		// affectedRows += itemizedDiscountsV1Lifecycle.deactivate(itemPartial, processingDate);
 		// ...
 		return affectedRows;
@@ -101,7 +99,7 @@ public class ParticipationLifecycleService {
 	 */
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		// Run all type-specific activation queries.
-		int affectedRows = calculatedDiscountsV1Lifecycle.deactivate(itemPartial, processingDate);
+		int affectedRows = participationV1Lifecycle.deactivate(itemPartial, processingDate);
 		// affectedRows += itemizedDiscountsV1Lifecycle.deactivate(itemPartial, processingDate);
 		// ...
 		return affectedRows;

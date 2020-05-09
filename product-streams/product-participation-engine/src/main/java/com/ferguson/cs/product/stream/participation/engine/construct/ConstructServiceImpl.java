@@ -2,8 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.Date;
 
-import org.springframework.stereotype.Service;
-
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ContentEvent;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -11,7 +9,6 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.utilities.ArgumentAssert;
 
-@Service
 public class ConstructServiceImpl implements ConstructService {
 
 	private final ParticipationEngineSettings participationEngineSettings;
