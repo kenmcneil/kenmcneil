@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
 
 @Configuration
 @EnableScheduling
@@ -36,5 +38,12 @@ public class ParticipationEngineConfiguration {
 			ParticipationEngineSettings participationEngineSettings
 	) {
 		return new ParticipationEngineTask(participationProcessor, participationEngineSettings);
+	}
+
+	@Bean
+	public ParticipationLifecycleService participationLifecycleStrategyFactory(
+			ParticipationV1Lifecycle calculatedDiscountsV1Lifecycle
+	) {
+		return new ParticipationLifecycleService(calculatedDiscountsV1Lifecycle);
 	}
 }

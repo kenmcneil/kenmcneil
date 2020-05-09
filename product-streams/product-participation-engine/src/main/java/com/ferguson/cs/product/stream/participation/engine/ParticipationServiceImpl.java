@@ -5,8 +5,12 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Service
@@ -16,10 +20,16 @@ public class ParticipationServiceImpl implements ParticipationService {
 
 	private final ParticipationDao participationDao;
 	private final ParticipationEngineSettings participationEngineSettings;
+	private final ParticipationLifecycleService participationLifecycleService;
 
-	public ParticipationServiceImpl(ParticipationDao participationDao, ParticipationEngineSettings participationEngineSettings) {
+	public ParticipationServiceImpl(
+			ParticipationDao participationDao,
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationLifecycleService participationLifecycleService
+	) {
 		this.participationDao = participationDao;
 		this.participationEngineSettings = participationEngineSettings;
+		this.participationLifecycleService = participationLifecycleService;
 	}
 
 	@Override
@@ -39,23 +49,35 @@ public class ParticipationServiceImpl implements ParticipationService {
 		return participationDao.getParticipationIsActive(participationId);
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	@Override
-	public void activateParticipation(ParticipationItemPartial item, Date processingDate) {
-		int participationId = item.getParticipationId();
-		int userId = item.getLastModifiedUserId();
-		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
-		int totalRows = 0;
+	public void publishParticipation(ParticipationItem item, Date processingDate) {
+		participationLifecycleService.getLifecycleFor(participationLifecycleService.getContentType(item))
+				.publish(item, processingDate);
+	}
 
-		int rowsAffected = participationDao.setParticipationIsActive(participationId, true);
-		totalRows += rowsAffected;
+	/**
+	 * Run (1) set-up queries common to all content types including calculating new product ownership
+	 * for overlaps, (2) type-specific activation/deactivation queries for override/fallback,
+	 * and (3) run common finish-up queries.
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	@Override
+	public void activateParticipation(ParticipationItemPartial itemPartial, Date processingDate) {
+		int participationId = itemPartial.getParticipationId();
+		int userId = itemPartial.getLastModifiedUserId() == null
+				? participationEngineSettings.getTaskUserId()
+				: itemPartial.getLastModifiedUserId();
+
 		LOG.debug("==== activating participation {} ====", participationId);
 
-		// determine what products are changing ownership and store into temp table
-		rowsAffected = participationDao.updateOwnerChangesForActivation(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: updating {} products for activation", participationId, rowsAffected);
+		int totalRows = participationDao.setParticipationIsActive(participationId, true);
 
-		rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
+		// determine what products are changing ownership and store into temp table
+		// -- not logging returned row-modified count since it's not always accurate
+		participationDao.updateOwnerChangesForActivation(participationId);
+
+		int rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
@@ -63,75 +85,45 @@ public class ParticipationServiceImpl implements ParticipationService {
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products dis-owned from other participations", participationId, rowsAffected);
 
-		rowsAffected = participationDao.updateProductSaleIds(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
-
-		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
-
-		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
-
-		// activate new discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
+		// Run type-specific activation queries.
+		totalRows += participationLifecycleService.activateByType(itemPartial, processingDate);
 
 		// update modified date on each product modified
 		rowsAffected = participationDao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
-		// TODO remove currentPriorityParticipation code (see SODEV-25037)
-		rowsAffected = participationDao.syncToCurrentPriorityParticipation();
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", participationId, rowsAffected);
-
 		LOG.debug("{}: {} total rows updated to activate", participationId, totalRows);
 	}
 
+	/**
+	 * Run (1) set-up queries common to all content types including calculating new product ownership
+	 * for overlaps, (2) type-specific activation/deactivation queries for override/fallback,
+	 * and (3) run common finish-up queries.
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
 	@Override
-	public void deactivateParticipation(ParticipationItemPartial item, Date processingDate) {
-		int participationId = item.getParticipationId();
-		int userId = item.getLastModifiedUserId();
-		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
-		int totalRows = 0;
+	public void deactivateParticipation(ParticipationItemPartial itemPartial, Date processingDate) {
+		int participationId = itemPartial.getParticipationId();
+		int userId = itemPartial.getLastModifiedUserId() == null
+				? participationEngineSettings.getTaskUserId()
+				: itemPartial.getLastModifiedUserId();
 
-		int rowsAffected = participationDao.setParticipationIsActive(participationId, false);
-		totalRows += rowsAffected;
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
+		int totalRows = participationDao.setParticipationIsActive(participationId, false);
+
 		// determine what products are changing ownership and store into temp table
-		rowsAffected = participationDao.updateOwnerChangesForDeactivation(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: updating {} products for deactivation", participationId, rowsAffected);
+		participationDao.updateOwnerChangesForDeactivation(participationId);
 
 		// assign ownership of each unique id to any active fallback participations,
 		// but don't bother to disown from deactivating participation since it will be deleted at the end
-		rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
+		int rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
-		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
+		LOG.debug("{}: {} products with new participation owxnership", participationId, rowsAffected);
 
-		// update sale ids to fallback participations or to zeros
-		rowsAffected = participationDao.updateProductSaleIds(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
-
-		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
-
-		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
-
-		// activate fallback discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
+		// Run type-specific deactivation queries.
+		totalRows += participationLifecycleService.deactivateByType(itemPartial, processingDate);
 
 		// update modified date on each product modified
 		rowsAffected = participationDao.updateProductModifiedDates(processingDate, userId);
@@ -141,19 +133,25 @@ public class ParticipationServiceImpl implements ParticipationService {
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, totalRows);
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	@Override
-	public void unpublishParticipation(ParticipationItemPartial item, Date processingDate) {
-		int totalRows = 0;
-		int participationId = item.getParticipationId();
-		int rowsAffected = participationDao.deleteParticipation(participationId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} rows removed to delete participation", participationId, rowsAffected);
+	public void unpublishParticipation(ParticipationItemPartial itemPartial, Date processingDate) {
+		int participationId = itemPartial.getParticipationId();
 
-		// TODO remove currentPriorityParticipation code (see SODEV-25037)
-		rowsAffected = participationDao.syncToCurrentPriorityParticipation();
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", participationId, rowsAffected);
+		// Run type-specific unpublish queries for the Participation being unpublished. The unpublish handler
+		// must delete any records added in publish().
+		int rowsAffected = participationLifecycleService.getLifecycleFor(itemPartial.getContentType())
+				.unpublish(itemPartial, processingDate);
 
-		LOG.debug("{}: {} total rows updated to unpublish", participationId, totalRows);
+		rowsAffected += participationDao.deleteParticipationItemPartial(participationId);
+
+		LOG.debug("{}: {} total rows deleted to unpublish participation", participationId, rowsAffected);
+	}
+
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
+	@Transactional
+	@Override
+	public int syncToCurrentPriorityParticipation() {
+		return participationDao.syncToCurrentPriorityParticipation();
 	}
 }

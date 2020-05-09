@@ -21,7 +21,7 @@ import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
-@Transactional("coreTransactionManager")
+@Transactional
 public abstract class ParticipationEngineITBase extends BaseTest {
 	@Resource
 	SqlSessionFactory sqlSessionFactory;

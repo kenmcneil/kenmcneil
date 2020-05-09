@@ -2,9 +2,11 @@ package com.ferguson.cs.product.stream.participation.engine;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
@@ -19,24 +21,29 @@ public class ParticipationWriter {
 	}
 
 	@Transactional
-	public void processUnpublish(ParticipationItemPartial item, Date processingDate) {
-		if (participationService.getParticipationIsActive(item.getParticipationId())) {
-			participationService.deactivateParticipation(item, processingDate);
+	public void processPublish(ParticipationItem item, Date processingDate) {
+		if (BooleanUtils.isTrue(participationService.getParticipationIsActive(item.getId()))) {
+			participationService.deactivateParticipation(
+					ParticipationItemPartial.builder()
+							.participationId(item.getId())
+							.lastModifiedUserId(item.getLastModifiedUserId())
+							.build(),
+					processingDate);
 		}
-		participationService.unpublishParticipation(item, processingDate);
+		participationService.publishParticipation(item, processingDate);
 		constructService.updateParticipationItemStatus(
-				item.getParticipationId(),
-				ParticipationItemStatus.DRAFT,
-				null,
+				item.getId(),
+				ParticipationItemStatus.PUBLISHED,
+				ParticipationItemUpdateStatus.NEEDS_UPDATE,
 				processingDate
 		);
 	}
 
 	@Transactional
-	public void processActivation(ParticipationItemPartial item, Date processingDate) {
-		participationService.activateParticipation(item, processingDate);
+	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
+		participationService.activateParticipation(itemPartial, processingDate);
 		constructService.updateParticipationItemStatus(
-				item.getParticipationId(),
+				itemPartial.getParticipationId(),
 				ParticipationItemStatus.PUBLISHED,
 				ParticipationItemUpdateStatus.NEEDS_CLEANUP,
 				processingDate
@@ -44,14 +51,28 @@ public class ParticipationWriter {
 	}
 
 	@Transactional
-	public void processDeactivation(ParticipationItemPartial item, Date processingDate) {
-		if (item.getIsActive()) {
-			participationService.deactivateParticipation(item, processingDate);
+	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
+		if (itemPartial.getIsActive()) {
+			participationService.deactivateParticipation(itemPartial, processingDate);
 		}
-		participationService.unpublishParticipation(item, processingDate);
+		participationService.unpublishParticipation(itemPartial, processingDate);
 		constructService.updateParticipationItemStatus(
-				item.getParticipationId(),
+				itemPartial.getParticipationId(),
 				ParticipationItemStatus.ARCHIVED,
+				null,
+				processingDate
+		);
+	}
+
+	@Transactional
+	public void processUnpublish(ParticipationItemPartial itemPartial, Date processingDate) {
+		if (participationService.getParticipationIsActive(itemPartial.getParticipationId())) {
+			participationService.deactivateParticipation(itemPartial, processingDate);
+		}
+		participationService.unpublishParticipation(itemPartial, processingDate);
+		constructService.updateParticipationItemStatus(
+				itemPartial.getParticipationId(),
+				ParticipationItemStatus.DRAFT,
 				null,
 				processingDate
 		);

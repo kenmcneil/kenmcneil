@@ -97,7 +97,7 @@
 				mmc.product.participationItemPartial AS allp
 				ON allp.participationId = allpp.participationId
 					AND allp.isActive = 1
-			 ORDER BY
+			ORDER BY
 				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
 		INSERT INTO ##participationOwnerChanges
@@ -137,8 +137,7 @@
 
 	<update id="removeProductOwnershipForOldOwners">
 		-- Remove ownership from the old owners of products that the activating participation now owns.
-		-- Note that this is not needed for a deactivating participation since its participationProduct
-		-- rows will be deleted.
+		-- This is not needed for a deactivating participation since its participationProduct rows will be deleted.
 		UPDATE
 			owner
 		SET
@@ -290,21 +289,21 @@
 			ON users.userId = #{userId}
 	</update>
 
-	<delete id="deleteParticipationProductsByParticipationId" parameterType="int">
+	<delete id="deleteParticipationProducts" parameterType="int">
 		DELETE FROM
 			mmc.product.participationProduct
 		WHERE
 			participationId = #{participationId}
 	</delete>
 
-	<delete id="deleteParticipationCalculatedDiscountsByParticipationId" parameterType="int">
+	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
 		DELETE FROM
 			mmc.product.participationCalculatedDiscount
 		WHERE
 			participationId = #{participationId}
 	</delete>
 
-	<delete id="deleteParticipationItemPartialByParticipationId" parameterType="int">
+	<delete id="deleteParticipationItemPartial" parameterType="int">
 		DELETE FROM
 			mmc.product.participationItemPartial
 		WHERE
@@ -313,7 +312,6 @@
 
 	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-			id,
 			participationId,
 			saleId,
 			startDate,
@@ -334,7 +332,6 @@
 
 	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-			id,
 		    participationId,
 		    saleId,
 		    startDate,
@@ -366,5 +363,55 @@
 			ON pip.participationId = pp.participationId
 				AND pip.isActive = 1
 		WHERE pp.isOwner = 1
+	</insert>
+
+	<insert id="upsertParticipationItemPartial" parameterType="map">
+		IF EXISTS (
+				SELECT id FROM mmc.product.participationItemPartial
+				WHERE participationId = #{itemPartial.participationId}
+			)
+			BEGIN
+				UPDATE
+				    mmc.product.participationItemPartial
+				SET
+					saleId = #{itemPartial.saleId},
+					startDate = #{itemPartial.startDate},
+					endDate = #{itemPartial.endDate, jdbcType=TIMESTAMP},
+					lastModifiedUserId = #{itemPartial.lastModifiedUserId},
+					isActive = #{itemPartial.isActive}
+				WHERE
+					participationId = #{itemPartial.participationId}
+			END
+		ELSE
+			BEGIN
+				INSERT INTO mmc.product.participationItemPartial (
+					participationId,
+					saleId,
+					startDate,
+					endDate,
+					lastModifiedUserId
+				)
+				VALUES (
+					#{itemPartial.participationId},
+					#{itemPartial.saleId},
+					#{itemPartial.startDate},
+					#{itemPartial.endDate, jdbcType=TIMESTAMP},
+					#{itemPartial.lastModifiedUserId}
+				);
+			END
+	</insert>
+
+	<insert id="insertParticipationProducts" parameterType="map">
+		DECLARE @participationId INT = #{participationId}
+		DECLARE @uniqueidList VARCHAR(MAX) = #{productUniqueIds}
+
+		INSERT INTO mmc.product.participationProduct (
+		    participationId, uniqueId
+		)
+		SELECT
+			@participationId as participationId,
+			value as uniqueId
+		FROM
+		    string_split(@uniqueidList,',');
 	</insert>
 </mapper>

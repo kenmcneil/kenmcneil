@@ -2,6 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine;
 
 import java.util.Date;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 public interface ParticipationService {
@@ -22,17 +23,26 @@ public interface ParticipationService {
 	Boolean getParticipationIsActive(Integer participationId);
 
 	/**
+	 * Publish a participation record by upserting its data in to SQL. Expects a fully-populated
+	 * ParticipationItem record from Construct, so all the data to insert is present.
+	 */
+	void publishParticipation(ParticipationItem item, Date processingDate);
+
+	/**
 	 * Activate a participation.
 	 */
-	void activateParticipation(ParticipationItemPartial item, Date processingDate);
+	void activateParticipation(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Deactivate a participation.
 	 */
-	void deactivateParticipation(ParticipationItemPartial item, Date processingDate);
+	void deactivateParticipation(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Unpublish a participation.
 	 */
-	void unpublishParticipation(ParticipationItemPartial item, Date processingDate);
+	void unpublishParticipation(ParticipationItemPartial itemPartial, Date processingDate);
+
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
+	int syncToCurrentPriorityParticipation();
 }
