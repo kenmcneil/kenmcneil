@@ -41,9 +41,9 @@ public class ParticipationEngineConfiguration {
 	}
 
 	@Bean
-	public ParticipationLifecycleService participationLifecycleStrategyFactory(
-			ParticipationV1Lifecycle calculatedDiscountsV1Lifecycle
+	public ParticipationLifecycleService participationLifecycleService(
+			ParticipationV1Lifecycle participationV1Lifecycle
 	) {
-		return new ParticipationLifecycleService(calculatedDiscountsV1Lifecycle);
+		return new ParticipationLifecycleService(participationV1Lifecycle);
 	}
 }

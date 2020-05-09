@@ -41,13 +41,12 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTestStrategy;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectLifecycleTestStrategy;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTestStrategy;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTestStrategy;
 
 /**
  * Subclass this to create scenarios that test expected behavior at various points
@@ -63,18 +62,18 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public BasicLifecycleTestStrategy activationDeactivationLifecycleTest() {
-			return new BasicLifecycleTestStrategy();
+		public BasicTestLifecycle activationDeactivationLifecycleTest() {
+			return new BasicTestLifecycle();
 		}
 
 		@Bean
-		public SchedulingLifecycleTestStrategy schedulingLifecycleTest() {
-			return new SchedulingLifecycleTestStrategy();
+		public SchedulingTestLifecycle schedulingLifecycleTest() {
+			return new SchedulingTestLifecycle();
 		}
 
 		@Bean
-		public SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTest() {
-			return new SaleIdEffectLifecycleTestStrategy();
+		public SaleIdEffectTestLifecycle saleIdEffectLifecycleTest() {
+			return new SaleIdEffectTestLifecycle();
 		}
 	}
 
@@ -109,18 +108,18 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	protected ParticipationProcessor participationProcessor;
 
 	@Autowired
-	protected BasicLifecycleTestStrategy basicLifecycleTestStrategy;
+	protected BasicTestLifecycle basicTestLifecycle;
 
 	@Autowired
-	protected SchedulingLifecycleTestStrategy schedulingLifecycleTestStrategy;
+	protected SchedulingTestLifecycle schedulingTestLifecycle;
 
 	@Autowired
-	protected SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTestStrategy;
+	protected SaleIdEffectTestLifecycle saleIdEffectTestLifecycle;
 
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
-	protected List<ParticipationScenarioLifecycleTestStrategy> lifecycleTests;
+	protected List<ParticipationScenarioTestLifecycle> lifecycleTests;
 	protected Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	protected Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 
@@ -146,7 +145,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		nextTestParticipationId = participationEngineSettings.getTestModeMinParticipationId();
 	}
 
-	public ParticipationScenarioITBase useTestStrategies(ParticipationScenarioLifecycleTestStrategy... params) {
+	public ParticipationScenarioITBase useTestStrategies(ParticipationScenarioTestLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
 		return this;
 	}

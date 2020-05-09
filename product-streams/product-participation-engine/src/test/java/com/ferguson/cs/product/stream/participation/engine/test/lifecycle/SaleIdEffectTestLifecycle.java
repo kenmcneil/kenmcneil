@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioLifecycleTestStrategyBase;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 
@@ -17,7 +17,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
  *
  * TODO: Check ownership priority when the start dates are exactly the same in two overlapping Participations.
  */
-public class SaleIdEffectLifecycleTestStrategy extends ParticipationScenarioLifecycleTestStrategyBase {
+public class SaleIdEffectTestLifecycle extends ParticipationScenarioTestLifecycle {
 
 	/**
 	 * Verify that the product.sale table does not have any records marked with this Participation's id.

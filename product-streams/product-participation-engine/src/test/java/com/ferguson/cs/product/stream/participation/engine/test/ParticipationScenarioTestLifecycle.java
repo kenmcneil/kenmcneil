@@ -6,16 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTestStrategy;
 
 /**
- * Lifecycle tests should extend this class rather than implementing ParticipationScenarioLifecycleTestStrategy,
- * so dependencies are autowired.
- *
+ * All scenario lifecycle test classes should extend this class.
  * The before* and after* methods are concrete so that subclasses need not implement them.
  */
 @Component
-public abstract class ParticipationScenarioLifecycleTestStrategyBase implements ParticipationScenarioLifecycleTestStrategy {
+public abstract class ParticipationScenarioTestLifecycle {
 	@Autowired
 	protected ParticipationTestUtilities participationTestUtilities;
 

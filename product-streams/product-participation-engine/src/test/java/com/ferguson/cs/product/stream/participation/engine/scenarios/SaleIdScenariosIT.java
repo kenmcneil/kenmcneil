@@ -23,7 +23,7 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(0, 1)
 				.build();
 
-		useTestStrategies(basicLifecycleTestStrategy, saleIdEffectLifecycleTestStrategy);
+		useTestStrategies(basicTestLifecycle, saleIdEffectTestLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(2);
@@ -53,7 +53,7 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(3, 6)
 				.build();
 
-		useTestStrategies(saleIdEffectLifecycleTestStrategy);
+		useTestStrategies(saleIdEffectTestLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);

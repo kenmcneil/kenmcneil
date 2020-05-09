@@ -7,14 +7,14 @@ import java.util.Date;
 import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioLifecycleTestStrategyBase;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 /**
  * Verify that scheduling works - it should be activated at the start date and deactivated
  * on the end date.
  */
-public class SchedulingLifecycleTestStrategy extends ParticipationScenarioLifecycleTestStrategyBase {
+public class SchedulingTestLifecycle extends ParticipationScenarioTestLifecycle {
 
 	/**
 	 * Verify not activating before the start date, and not activating if after the end date.

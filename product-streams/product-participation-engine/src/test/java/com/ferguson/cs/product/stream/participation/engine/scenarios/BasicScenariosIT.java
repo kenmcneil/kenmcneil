@@ -27,7 +27,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		// Set up scenario
-		useTestStrategies(basicLifecycleTestStrategy);
+		useTestStrategies(basicTestLifecycle);
 
 		// Execute scenario steps in sequence.
 	    createUserPublishEvent(p1);
@@ -47,7 +47,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(1, 3)
 				.build();
 
-		useTestStrategies(schedulingLifecycleTestStrategy);
+		useTestStrategies(schedulingTestLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(4);
