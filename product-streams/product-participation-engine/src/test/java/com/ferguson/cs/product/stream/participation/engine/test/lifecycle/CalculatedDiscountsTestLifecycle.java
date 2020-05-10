@@ -1,89 +1,107 @@
 package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.data.Offset;
+import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Verify that calculated discounts effects e.g. price changes are correct.
  */
-public class CalculatedDiscountsTestLifecycle extends ParticipationScenarioTestLifecycle {
+@RequiredArgsConstructor
+public class CalculatedDiscountsTestLifecycle implements ParticipationTestLifecycle {
+	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
-	 *
-	 */
-	@Override
-	public void beforePublish(ParticipationItemFixture fixture, Date processingDate) {
-	}
-
-	/**
-	 *
+	 * Verify any calculated discounts in fixture were published to SQL.
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-
+		List<ParticipationCalculatedDiscount> discountsFromFixture =
+				fixture.getCalculatedDiscounts() == null ? Collections.emptyList() : fixture.getCalculatedDiscounts();
+		List<ParticipationCalculatedDiscount> discountsFromDb = participationTestUtilities
+				.getParticipationCalculatedDiscounts(fixture.getParticipationId());
+		Assertions.assertThat(discountsFromDb).containsExactlyInAnyOrderElementsOf(discountsFromFixture);
 	}
 
 	/**
-	 * Verify the participation is present but not active yet.
+	 * Verify no pricebook_cost rows have this participationId.
 	 */
 	@Override
 	public void beforeActivate(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-		Assertions.assertThat(itemPartial).isNotNull();
-		Assertions.assertThat(itemPartial.getIsActive()).isFalse();
+		Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
+				.as("Unexpected participation id in pricebook_cost record: " + fixture)
+				.isEqualTo(0);
 	}
 
 	/**
-	 * Verify the participation is present and has been activated.
+	 * Verify any discounts were applied. Check the cost, basePrice, userId, and participationId columns for each pricebook price.
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-		Assertions.assertThat(itemPartial).isNotNull();
-		Assertions.assertThat(itemPartial.getIsActive()).isTrue();
+		List<ParticipationCalculatedDiscount> discountsFromFixture = fixture.getCalculatedDiscounts();
+		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
+			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
+
+			// Verify the number of discounted prices is count(pricebookIds) * count(expectedUniqueIds).
+			Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
+					.isEqualTo(discountsFromFixture.size() * expectedUniqueIds.size());
+
+			// Verify that pricebook_cost record values are correct for each pricebook discount.
+			discountsFromFixture.forEach(discount -> {
+				List<PricebookCost> pricebookCosts = participationTestUtilities.getPricebookCosts(
+						expectedUniqueIds, Collections.singletonList(discount.getPricebookId()));
+				pricebookCosts.forEach(pbcost -> {
+					Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
+					Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
+					Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
+					Double expectedCost = discount.getIsPercent()
+							? Math.floor(100.0 * discount.getChangeValue() * pbcost.getBasePrice()) / 100.0
+							: discount.getChangeValue() + pbcost.getBasePrice();
+					Assertions.assertThat(pbcost.getCost()).isCloseTo(expectedCost, Offset.offset(.001));
+				});
+			});
+		}
 	}
 
 	/**
-	 * Verify the participation is present and active.
-	 */
-	@Override
-	public void beforeDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-		Assertions.assertThat(itemPartial).isNotNull();
-		Assertions.assertThat(itemPartial.getIsActive()).isTrue();
-	}
-
-	/**
-	 * Verify the participation is present and no longer active.
+	 * Verify the discounts have been removed, and pricebook_cost values indicate it either
+	 * reverted to another participation or have expected values.
+	 * Verify all prices that were discounted are in the lastOnSale table now.
+	 * Verify pending basePrice updates from latestBasePrice table were applied to pricebook_cost.basePrice.
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-		Assertions.assertThat(itemPartial).isNotNull();
-		Assertions.assertThat(itemPartial.getIsActive()).isFalse();
-	}
+		List<ParticipationCalculatedDiscount> discountsFromFixture = fixture.getCalculatedDiscounts();
+		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
+			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 
-	/**
-	 * Verify that the participation is still present but inactive.
-	 */
-	@Override
-	public void beforeUnpublish(ParticipationItemFixture fixture, Date processingDate) {
-		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
-		Assertions.assertThat(itemPartial).isNotNull();
-		Assertions.assertThat(itemPartial.getIsActive()).isFalse();
-	}
+			// Verify the number of discounted prices is count(pricebookIds) * count(expectedUniqueIds).
+			Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
+					.isEqualTo(0);
 
-	/**
-	 * Verify there are no references to the participation anymore.
-	 */
-	@Override
-	public void afterUnpublish(ParticipationItemFixture fixture, Date processingDate) {
-		participationTestUtilities.assertParticipationNotPresent(fixture);
+			// Verify that pricebook_cost record values are correct for each pricebook discount.
+			discountsFromFixture.forEach(discount -> {
+				List<PricebookCost> pricebookCosts = participationTestUtilities.getPricebookCosts(
+						expectedUniqueIds, Collections.singletonList(discount.getPricebookId()));
+				pricebookCosts.forEach(pbcost -> {
+					Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
+					Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(0);
+					Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
+					Assertions.assertThat(pbcost.getCost()).isEqualTo(pbcost.getBasePrice());
+				});
+			});
+		}
 	}
 }

@@ -59,7 +59,10 @@ public class ParticipationItemFixture {
 	private List<Integer> expectedOwnedUniqueIds;
 
 	/**
-	 * Use in tests to populate records in the participationCalculatedDiscount table.
+	 * Use in tests to populate records in the participationCalculatedDiscount table. The participationId
+	 * may be omitted--since the id can be optionally be automatically added, the scenario test won't have it
+	 * available to populate here. If left out, participationId will be set in all calculated discounts automatically.
+	 * The templateId can also be null, and will be set to a valid templateId before inserting to the database.
 	 */
 	private List<ParticipationCalculatedDiscount> calculatedDiscounts;
 
@@ -115,6 +118,19 @@ public class ParticipationItemFixture {
 		public ParticipationItemFixtureBuilder expectedOwnedUniqueIds(Integer... ids) {
 			Assertions.assertThat(ids).allSatisfy(id -> Assertions.assertThat(id).isNotNull());
 			this.expectedOwnedUniqueIds = Arrays.asList(ids);
+			return this;
+		}
+
+		/**
+		 * For use in tests to populate calculated discounts. Values must not be null.
+		 */
+		public ParticipationItemFixtureBuilder calculatedDiscounts(ParticipationCalculatedDiscount... discounts) {
+			Assertions.assertThat(discounts).allSatisfy(discount -> {
+				Assertions.assertThat(discount).isNotNull();
+				Assertions.assertThat(discount.getPricebookId()).isNotNull();
+				Assertions.assertThat(discount.getChangeValue()).isNotNull();
+			});
+			this.calculatedDiscounts = Arrays.asList(discounts);
 			return this;
 		}
 	}

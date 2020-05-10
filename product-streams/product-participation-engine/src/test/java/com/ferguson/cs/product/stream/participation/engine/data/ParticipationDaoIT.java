@@ -53,7 +53,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 	@Test
 	public void participation_owns_products_with_discounts() {
 
-		int calculatedDiscountTemplateId = participationTestUtilities.insertCalculatedDiscountTemplateAndType();
+		int calculatedDiscountTemplateId = participationTestUtilities.getDefaultCalculatedDiscountTemplateId();
 
 		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
 		ParticipationCalculatedDiscount discount1 = new ParticipationCalculatedDiscount();
@@ -90,7 +90,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 
 		// Check final state
-		ProductSaleParticipation link = participationTestUtilities.getProductSaleLink(123456);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
 		Assertions.assertThat(link.getSaleId()).isEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
@@ -105,7 +105,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 	@Test
 	public void participation_disowns_products_with_discounts() {
 
-		int calculatedDiscountTemplateId = participationTestUtilities.insertCalculatedDiscountTemplateAndType();
+		int calculatedDiscountTemplateId = participationTestUtilities.getDefaultCalculatedDiscountTemplateId();
 
 		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
 		ParticipationCalculatedDiscount discount1 = new ParticipationCalculatedDiscount();
@@ -147,7 +147,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		participationDao.deleteParticipationItemPartial(53000);
 
 		// Check final state
-		ProductSaleParticipation link = participationTestUtilities.getProductSaleLink(123456);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
 		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);

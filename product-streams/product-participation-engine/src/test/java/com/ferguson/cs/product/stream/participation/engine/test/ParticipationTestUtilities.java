@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,17 +17,17 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
-@Service
 public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
 	public static final int TEST_USERID_2 = 2345;
@@ -85,6 +84,9 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PRICEBOOK_COST_COUNT_BY_PARTICIPATIONID =
 			"SELECT count(*) FROM mmc.dbo.pricebook_cost WHERE participationId = ?";
 
+	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE =
+			"SELECT TOP 1 id FROM mmc.product.participationCalculatedDiscountTemplate";
+
 	public static final String SELECT_PARTICIPATION_PARTIAL_BY_PARTICIPATIONID =
 			"SELECT * FROM mmc.product.participationItemPartial " +
 					"WHERE participationId = ?";
@@ -106,12 +108,8 @@ public class ParticipationTestUtilities {
 
 	public static final String UPSERT_PRICEBOOK_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost " +
-					"SET basePrice = ?, " +
-					"cost = ?, " +
-					"userId = ?, " +
-					"participationId = ? " +
-					"WHERE UniqueId = ? " +
-					"AND PriceBookId = ? " +
+					"SET basePrice = ?, cost = ?, userId = ?, participationId = ? " +
+					"WHERE UniqueId = ? AND PriceBookId = ? " +
 					"IF @@ROWCOUNT = 0 " +
 					"INSERT INTO mmc.dbo.PriceBook_Cost " +
 					"(uniqueId, priceBookId, basePrice, cost, userId, participationId) " +
@@ -125,11 +123,9 @@ public class ParticipationTestUtilities {
 					"WHERE participationId = ? AND UniqueId = ? AND PriceBookId = ? AND userId = ? ";
 
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT Cost FROM mmc.dbo.PriceBook_Cost " +
-					"WHERE UniqueId = ? AND PriceBookId = ?";
-
-	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID_PARTICIPATIONID_USERID =
-			"SELECT Cost FROM mmc.dbo.PriceBook_Cost WHERE UniqueId = ? AND pricebookId = ? AND participationId = ? AND userId = ?";
+			"SELECT cost, basePrice, userId, participationId " +
+					"FROM mmc.dbo.PriceBook_Cost " +
+					"WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
 
 	public static final String INSERT_PARTICIPATION_LASTONSALE =
 			"INSERT INTO mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice) " +
@@ -173,20 +169,77 @@ public class ParticipationTestUtilities {
 	private static final ResultSetExtractor<ParticipationItemPartial> SINGLETON_PARTICIPATION_ITEM_FIXTURE_EXTRACTOR =
 			singletonExtractor(new BeanPropertyRowMapper<>(ParticipationItemPartial.class));
 
-	@Autowired
-	public JdbcTemplate jdbcTemplate;
+	private final JdbcTemplate jdbcTemplate;
+	private final ParticipationEngineSettings participationEngineSettings;
+	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	private int nextTestParticipationId;
+
+	public ParticipationTestUtilities(JdbcTemplate jdbcTemplate, ParticipationEngineSettings participationEngineSettings) {
+		this.jdbcTemplate = jdbcTemplate;
+		this.participationEngineSettings = participationEngineSettings;
+		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+	}
 
 	/**
-	 * Returns the id of a calculated discount template record. If not populated yet, insert
-	 * a fixture record for it and for a type. Will return the same id on subsequent calls.
+	 * Ensure there's a calculated discount template record and return its id.
 	 */
-	public int insertCalculatedDiscountTemplateAndType() {
-		int templateTypeId = insert(INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE_TYPE,
-				"TEST_TEMPLATE_TYPE").intValue();
-		return insert(INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE,
-				templateTypeId, "TEST GET ${percent}% OFF!", "TEST GET __% OFF!", true).intValue();
+	public int getDefaultCalculatedDiscountTemplateId() {
+		Integer templateId = jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE,
+				Integer.class);
+		if (templateId == null) {
+			int templateTypeId = insert(INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE_TYPE,
+					"TEST_TEMPLATE_TYPE").intValue();
+			templateId = insert(INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE,
+					templateTypeId, "TEST GET ${percent}% OFF!", "TEST GET __% OFF!", true).intValue();
+		}
+		return templateId;
+	}
+
+	/**
+	 * Set initial participation id to given value.
+	 */
+	public void setInitialParticipationId(int id) {
+		nextTestParticipationId = id;
+	}
+
+	/**
+	 * Returns a new test participation fixture id. Participation ids are not auto ids in the
+	 * participationItemPartial table.
+	 */
+	public int getNextTestParticipationId() {
+		return nextTestParticipationId++;
+	}
+
+	/**
+	 * Validate values and fill in any allowed null values with defaults.
+	 * Validate that the participationId is either null or not in use yet. If null, an id is generated.
+	 * Validate calculated discounts to ensure their participationId values are either null or same as the
+	 * fixture's participationId. If null, use the fixture's participationId.
+	 */
+	public void validateAndSetDefaults(ParticipationItemFixture fixture) {
+		if (fixture.getParticipationId() == null) {
+			fixture.setParticipationId(getNextTestParticipationId());
+		}
+		if (fixture.getLastModifiedUserId() == null) {
+			fixture.setLastModifiedUserId(TEST_USERID);
+		}
+		if (fixture.getIsActive() == null) {
+			fixture.setIsActive(false);
+		}
+		if (!CollectionUtils.isEmpty(fixture.getCalculatedDiscounts())) {
+			fixture.getCalculatedDiscounts().forEach(discount -> {
+				if (discount.getParticipationId() == null) {
+					discount.setParticipationId(fixture.getParticipationId());
+				} else {
+					Assertions.assertThat(discount.getParticipationId()).isEqualTo(fixture.getParticipationId());
+				}
+				if (discount.getTemplateId() == null) {
+					discount.setTemplateId(getDefaultCalculatedDiscountTemplateId());
+				}
+			});
+
+		}
 	}
 
 	/**
@@ -197,34 +250,36 @@ public class ParticipationTestUtilities {
 	 * Defaults isActive to false if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
+		validateAndSetDefaults(fixture);
+
 		// Insert participationItemPartial record.
 		jdbcTemplate.update(INSERT_PARTICIPATION_ITEM_PARTIAL_SQL,
 				fixture.getParticipationId(),
 				fixture.getSaleId(),
 				fixture.getStartDate(),
 				fixture.getEndDate(),
-				fixture.getLastModifiedUserId() == null ? TEST_USERID : fixture.getLastModifiedUserId(),
-				fixture.getIsActive() == null ? false : fixture.getIsActive()
+				fixture.getLastModifiedUserId(),
+				fixture.getIsActive()
 		);
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
 		if (!CollectionUtils.isEmpty(fixture.getUniqueIds())) {
-			for (Integer uId : fixture.getUniqueIds()) {
-				jdbcTemplate.update(INSERT_PARTICIPATION_PRODUCT, fixture.getParticipationId(), uId, false);
-			}
+			fixture.getUniqueIds().forEach(uniqueId -> {
+				jdbcTemplate.update(INSERT_PARTICIPATION_PRODUCT, fixture.getParticipationId(), uniqueId, false);
+			});
 		}
 
 		// Insert any participationCalculatedDiscount records.
 		if (!CollectionUtils.isEmpty(fixture.getCalculatedDiscounts())) {
-			for (ParticipationCalculatedDiscount discount : fixture.getCalculatedDiscounts()) {
+			fixture.getCalculatedDiscounts().forEach(discount -> {
 				jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
-						fixture.getParticipationId(),
+						discount.getParticipationId(),
 						discount.getPricebookId(),
 						discount.getChangeValue(),
 						discount.getIsPercent(),
 						discount.getTemplateId()
 				);
-			}
+			});
 		}
 	}
 
@@ -268,21 +323,28 @@ public class ParticipationTestUtilities {
 				participationId);
 	}
 
-	public List<ProductSaleParticipation> getProductSaleLinks(List<Integer> uniqueIds) {
+	public List<ProductSaleParticipation> getProductSaleParticipations(List<Integer> uniqueIds) {
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
-		return getNamedParameterJdbcTemplate().query(SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
+		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
 				namedParameters, BeanPropertyRowMapper.newInstance(ProductSaleParticipation.class));
 	}
 
-	public ProductSaleParticipation getProductSaleLink(int uniqueId) {
-		List<ProductSaleParticipation> sales = getProductSaleLinks(Collections.singletonList(uniqueId));
+	public ProductSaleParticipation getProductSaleParticipation(int uniqueId) {
+		List<ProductSaleParticipation> sales = getProductSaleParticipations(Collections.singletonList(uniqueId));
 		return sales.size() > 0 ? sales.get(0) : null;
 	}
 
 	public List<ProductModified> getProductModifieds(List<Integer> uniqueIds) {
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
-		return getNamedParameterJdbcTemplate().query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
+		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
 				namedParameters, BeanPropertyRowMapper.newInstance(ProductModified.class));
+	}
+
+	public List<PricebookCost> getPricebookCosts(List<Integer> uniqueIds, List<Integer> pricebookIds) {
+		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds)
+				.addValue("pricebookIds", pricebookIds);
+		return namedParameterJdbcTemplate.query(SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID,
+				namedParameters, BeanPropertyRowMapper.newInstance(PricebookCost.class));
 	}
 
 	/**
@@ -337,12 +399,5 @@ public class ParticipationTestUtilities {
 			return stmt;
 		}, keyHolder);
 		return keyHolder.getKey();
-	}
-
-	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
-		if (namedParameterJdbcTemplate == null) {
-			namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
-		}
-		return namedParameterJdbcTemplate;
 	}
 }

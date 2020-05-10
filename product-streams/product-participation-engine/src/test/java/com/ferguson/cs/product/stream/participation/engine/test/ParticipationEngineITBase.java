@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
@@ -27,13 +28,18 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 	SqlSessionFactory sqlSessionFactory;
 
 	@Autowired
-	public JdbcTemplate jdbcTemplate;
-
-	@Autowired
 	public ParticipationTestUtilities participationTestUtilities;
 
 	@TestConfiguration
 	public static class BaseParticipationTestConfiguration {
+		@Bean
+		public ParticipationTestUtilities participationTestUtilities(
+				JdbcTemplate jdbcTemplate,
+				ParticipationEngineSettings participationEngineSettings
+		) {
+			return new ParticipationTestUtilities(jdbcTemplate, participationEngineSettings);
+		}
+
 		@Bean
 		public BeanFactoryPostProcessor lazyBeanPostProcessor() {
 			return new LazyInitBeanFactoryPostProcessor();

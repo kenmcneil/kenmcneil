@@ -5,14 +5,19 @@ import java.util.Date;
 import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Verify that the basic publish, activate, deactivate, and unpublish transitions work.
  * Check for existence of references to the participation, and verify isActive state.
  */
-public class BasicTestLifecycle extends ParticipationScenarioTestLifecycle {
+@RequiredArgsConstructor
+public class BasicTestLifecycle implements ParticipationTestLifecycle {
+	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
 	 * Verify there are no references to the participation yet.

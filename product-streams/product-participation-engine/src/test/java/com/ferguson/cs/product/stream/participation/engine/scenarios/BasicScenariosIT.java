@@ -1,11 +1,20 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class BasicScenariosIT extends ParticipationScenarioITBase {
+	@Autowired
+	protected BasicTestLifecycle basicTestLifecycle;
+
+	@Autowired
+	protected SchedulingTestLifecycle schedulingTestLifecycle;
+
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -27,7 +36,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		// Set up scenario
-		useTestStrategies(basicTestLifecycle);
+		testLifecycles(basicTestLifecycle);
 
 		// Execute scenario steps in sequence.
 	    createUserPublishEvent(p1);
@@ -47,7 +56,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(1, 3)
 				.build();
 
-		useTestStrategies(schedulingTestLifecycle);
+		testLifecycles(schedulingTestLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(4);
