@@ -9,8 +9,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 

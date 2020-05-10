@@ -8,6 +8,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -46,7 +45,6 @@ import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleId
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 
 /**
  * Subclass this to create scenarios that test expected behavior at various points
@@ -245,13 +243,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	public void verifySimpleLifecycleLog(ParticipationItemFixture... fixtures) {
 		Arrays.stream(fixtures).forEach(fixture ->
 				Assertions.assertThat(fixture.getStateLog())
-					.as(fixture.toString())
-					.containsExactly(
-					LifecycleState.PUBLISHED,
-					LifecycleState.ACTIVATED,
-					LifecycleState.DEACTIVATED,
-					LifecycleState.UNPUBLISHED
-			)
+						.as(fixture.toString())
+						.containsExactly(
+								LifecycleState.PUBLISHED,
+								LifecycleState.ACTIVATED,
+								LifecycleState.DEACTIVATED,
+								LifecycleState.UNPUBLISHED
+						)
 		);
 	}
 
@@ -264,11 +262,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	public void verifyParticipationOwnsExactly(ParticipationItemFixture fixture, Integer... expectedUniqueIds) {
-		List<Integer> ownedUniqueIds = participationTestUtilities
-				.getParticipationProducts(fixture.getParticipationId()).stream()
-				.filter(ParticipationProduct::getIsOwner)
-				.map(ParticipationProduct::getUniqueId)
-				.collect(Collectors.toList());
+		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedUniqueIds));
 	}
 

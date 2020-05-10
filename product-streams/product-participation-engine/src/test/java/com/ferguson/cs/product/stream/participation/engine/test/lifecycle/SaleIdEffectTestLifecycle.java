@@ -2,14 +2,12 @@ package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 
 /**
  * Verify that the Participation's saleId is set/unset on its uniqueIds in the product.sale table.
@@ -34,11 +32,7 @@ public class SaleIdEffectTestLifecycle extends ParticipationScenarioTestLifecycl
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		List<Integer> ownedUniqueIds = participationTestUtilities
-				.getParticipationProducts(fixture.getParticipationId()).stream()
-				.filter(ParticipationProduct::getIsOwner)
-				.map(ParticipationProduct::getUniqueId)
-				.collect(Collectors.toList());
+		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 
 		// Verify product ownership.
 		List<Integer> expectedUniqueIds = CollectionUtils.isEmpty(fixture.getExpectedOwnedUniqueIds())

@@ -30,7 +30,7 @@ public class ParticipationItem {
 	private Integer targetParticipationItemId;
 	private Integer saleId;
 	private String description;
-	private List<Integer> productUniqueIds; // to maintain insertion order
+	private List<Integer> productUniqueIds;
 	private ParticipationItemSchedule schedule;
 	private ParticipationItemStatus status;
 	private Set<Integer> starringUserIds;

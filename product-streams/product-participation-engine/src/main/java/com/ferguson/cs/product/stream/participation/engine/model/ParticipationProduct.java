@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.stream.participation.engine.test.model;
+package com.ferguson.cs.product.stream.participation.engine.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParticipationProduct {
-	Integer id;
 	Integer participationId;
 	Integer uniqueId;
 	Boolean isOwner;

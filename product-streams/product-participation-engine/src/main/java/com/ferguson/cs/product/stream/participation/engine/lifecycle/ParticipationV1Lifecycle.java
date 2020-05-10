@@ -206,7 +206,7 @@ public class ParticipationV1Lifecycle extends ParticipationLifecycleBase {
 	 * Extract the value of saleId in the content map using the predefined path for this version.
 	 * @return saleId
 	 */
-	private List<Integer> getUniqueIds(ParticipationItem item) {
+	public List<Integer> getUniqueIds(ParticipationItem item) {
 		List<Integer> ids = getAtPath(item, PRODUCT_UNIQUE_IDS_PATH);
 		return ids == null ? new ArrayList<>() : ids;
 	}
@@ -214,7 +214,7 @@ public class ParticipationV1Lifecycle extends ParticipationLifecycleBase {
 	/**
 	 * Return list of participation calculated discounts for pb1 and pb22 if they are present in the content map.
 	 */
-	private List<ParticipationCalculatedDiscount> getParticipationCalculatedDiscounts(ParticipationItem item) {
+	public List<ParticipationCalculatedDiscount> getParticipationCalculatedDiscounts(ParticipationItem item) {
 		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
 
 		// Calculated discounts are optional.
@@ -243,7 +243,7 @@ public class ParticipationV1Lifecycle extends ParticipationLifecycleBase {
 		return discounts;
 	}
 
-	private ParticipationCalculatedDiscount makeCalculatedDiscount(
+	public ParticipationCalculatedDiscount makeCalculatedDiscount(
 			Integer participationId,
 			Integer pricebookId,
 			String discountAmount,

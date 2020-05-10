@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
@@ -89,11 +90,12 @@ public class ParticipationTestUtilities {
 					"WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_PRODUCT_BY_PARTICIPATIONID =
-			"SELECT * FROM mmc.product.participationProduct " +
+			"SELECT participationId, uniqueId, isOwner FROM mmc.product.participationProduct " +
 					"WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID =
-			"SELECT * FROM mmc.product.participationCalculatedDiscount " +
+			"SELECT participationId, priceBookId, changeValue, isPercent, templateId " +
+					"FROM mmc.product.participationCalculatedDiscount " +
 					"WHERE participationId = ?";
 
 	public static final String SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID =
@@ -281,6 +283,16 @@ public class ParticipationTestUtilities {
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
 		return getNamedParameterJdbcTemplate().query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
 				namedParameters, BeanPropertyRowMapper.newInstance(ProductModified.class));
+	}
+
+	/**
+	 * Load the products for a participation and return list of the unique ids that are owned.
+	 */
+	public List<Integer> getOwnedUniqueIds(int participationId) {
+		return getParticipationProducts(participationId).stream()
+				.filter(ParticipationProduct::getIsOwner)
+				.map(ParticipationProduct::getUniqueId)
+				.collect(Collectors.toList());
 	}
 
 	/**
