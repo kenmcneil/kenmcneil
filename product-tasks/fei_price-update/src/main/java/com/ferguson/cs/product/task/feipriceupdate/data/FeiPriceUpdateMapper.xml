@@ -2,14 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper">
+
+	<resultMap id="feiPriceUpdateDataMap" type="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+		<result column="uniqueId" property="uniqueId"/>
+		<result column="mpid" property="mpid"/>
+		<result column="price" property="price"/>
+		<result column="priceRule" property="priceRule"/>
+		<result column="baseCategoryId" property="baseCategoryId"/>
+		<result column="manufacturerId" property="manufacturerId"/>
+	</resultMap>
+
+	<select id="getTempFeiPriceUpdateData"  parameterType="java.lang.String" resultMap="feiPriceUpdateDataMap">
+		SELECT 
+			uniqueId,
+			mpid,
+			price,
+			priceRule,
+			baseCategoryId,
+			manufacturerId
+			
+		FROM 
+		 	 tempData.dbo.${item.tempTableName}
+	</select>
 	
 	<insert id="createTempTable" parameterType="java.lang.String">
 	  CREATE TABLE [tempData].[dbo].[${_parameter}]
 	  (
 	        [uniqueId] [int],
 	       	[mpid] [int],
-	        [price] [decimal],
-	        [priceRule] [varchar] (64)
+	        [price] [decimal](18,2),
+	        [priceRule] [varchar] (64),
+	        [baseCategoryId]  [int],
+	        [manufacturerId] [int]
 
 	  )
 	</insert>
@@ -20,40 +44,91 @@
 			uniqueId,
 			mpid,
 			price,
-			priceRule
+			priceRule,
+			baseCategoryId,
+			manufacturerId
 		) VALUES (
 			#{item.uniqueId},
 			#{item.mpid},
 			#{item.price},
-			#{item.priceRule}
+			#{item.pricebookId},
+			#{item.priceRule},
+			#{item.baseCategoryId},
+			#{manufacturerId}
 		)
 	</insert>
 	
-	<insert id="insertTempFeiOnlyPriceUpdate" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+<insert id="insertTempFeiOnlyPriceUpdate" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
 	
 			INSERT INTO tempData.dbo.${item.tempTableName}
 			(
 				uniqueId,
 				mpid,
 				price,
-				priceRule
+				priceRule,
+				baseCategoryId,
+				manufacturerId
 			)
-			select uniqueId, mpid,price,priceRule
+			select t.uniqueId, t.mpid, t.price, t.priceRule, t.baseCategoryId, t.manufacturerId
 			from 
 			(
 				select #{item.uniqueId} as uniqueId, 
 				#{item.mpid} as mpid, 
 				#{item.price} as price, 
-				#{item.priceRule} as priceRule
+				#{item.priceRule} as priceRule,
+				(select base_category_id from mmc.dbo.product_base_category where uniqueId =  #{item.uniqueId}) as baseCategoryId,
+				( select manufacturer.id manufacturerId
+					FROM mmc.product.product product
+		 			INNER JOIN mmc.product.family productFamily WITH(NOLOCK) ON product.familyId = productFamily.id
+		 			INNER JOIN mmc.dbo.manufacturer manufacturer WITH(NOLOCK) ON productFamily.manufacturerId = manufacturer.id
+					WHERE product.uniqueId = #{item.uniqueId}) as manufacturerId
 			) t
 			WHERE EXISTS 
 			(
 				select productUniqueId from tempData.dbo.temp_brian_test where productUniqueId = #{item.uniqueId}
 			)
+
 	</insert>
 	
 	<update id="dropTempTable" parameterType="java.lang.String">
 		DROP TABLE IF EXISTS tempData.dbo.${_parameter}
 	</update>
-
+	
+	<!-- PDM Cost upload Job -->
+	<insert id="insertCostUpdateJob" parameterType="CostUpdateJob" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO tempData.dbo.costUpdateJob(
+			processType,
+			jobName,
+			userId,
+			createdOn,
+			processOn,
+			status
+		) VALUES (
+			#{processType},
+			#{jobName},
+			#{userId},
+			getDate(),
+			#{processOn},
+			#{status}
+		)
+	</insert>
+	
+	<insert id="insertPriceBookCostUpdates" parameterType="PriceBookSync" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO tempData.dbo.pricebookCostUpdates(
+			costUpdateJobId,
+			uniqueId,
+			listPrice,
+			priceBookId,
+			cost,
+			deletePricebookCost
+		) VALUES (
+			#{jobId},
+			#{uniqueId},
+			#{listPrice},
+			#{priceBookId},
+			#{cost},
+			#{isDelete}
+		)
+	</insert>
+	
 </mapper>

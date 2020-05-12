@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 
-public class FeiPriceUpdateTempTableTasklet implements Tasklet {
-	
+public class CreateTempTableTasklet implements Tasklet {
+
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 	private final FeiPriceUpdateService feiPriceUpdateService;
-	
-	public FeiPriceUpdateTempTableTasklet(
+
+	public CreateTempTableTasklet(
 			FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService) {
 		this.feiPriceUpdateService = feiPriceUpdateService;

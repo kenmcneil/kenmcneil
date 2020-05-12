@@ -11,4 +11,6 @@ public class FeiPriceUpdateItem {
 	private Double price;
 	private String priceRule;
 	private Integer mpid;
+	private Integer baseCategoryId;
+	private Integer manufacturerId;
 }

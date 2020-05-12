@@ -28,7 +28,16 @@ public class FeiPriceUpdateJobListener implements JobExecutionListener {
 
 	@Override
 	public void afterJob(JobExecution jobExecution) {
-		feiPriceUpdateService.dropTempTable(feiPriceUpdateSettings.getTempTableName());
+		//feiPriceUpdateService.dropTempTable(feiPriceUpdateSettings.getTempTableName());
+		
+//		try {
+//			Resource[] files = new PathMatchingResourcePatternResolver().getResources("file:" + feiPriceSettings.getTemporaryFilePath() + "*");
+//			for(Resource file : files) {
+//				FileUtils.deleteQuietly(file.getFile());
+//			}
+//		} catch (IOException e) {
+//			LOG.error("Failed to clean up temporary CSVs. Exception: {}",e.toString());
+//		}
 	}
 
 }
