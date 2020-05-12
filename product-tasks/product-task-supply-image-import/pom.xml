@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.ferguson.cs.product</groupId>
     <artifactId>product-tasks</artifactId>
-    <version>1.0.72-SNAPSHOT</version>
+    <version>1.0.72</version>
   </parent>
   <artifactId>product-task-supply-image-import</artifactId>
   
