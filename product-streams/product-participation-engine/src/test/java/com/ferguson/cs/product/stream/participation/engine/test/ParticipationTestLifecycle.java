@@ -10,7 +10,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 
 /**
  * All scenario lifecycle test classes must implement this class. Each before* and
- * after* methods is default in case implementer doesn't need it.
+ * after* method is defaulted in case implementer doesn't need it.
  */
 public interface ParticipationTestLifecycle {
 	/**

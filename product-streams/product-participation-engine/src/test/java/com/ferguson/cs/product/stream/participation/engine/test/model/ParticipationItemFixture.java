@@ -8,8 +8,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +15,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This acts as a bridge between the ParticipationItem data structure from Construct, and the set
+ * of classes that represent the Participation data normalized in the SQL database:
+ *   -  participationProduct
+ *   -  participationCalculatedDiscount
+ *   -  participationItemPartial
+ * SQL tables that represent the record.
+ * A ParticipationItem record may be defined in code
+ * The Participation record is represented by this object
+ * 	 * ParticipationItemFixture object to make it easy to create test fixture data.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -31,6 +40,14 @@ public class ParticipationItemFixture {
 	private Boolean isActive = false;
 	@Builder.Default
 	private Integer saleId = 0;
+	@Builder.Default
+	private Boolean isSimulatedPublish = false;
+
+	/**
+	 * Controls how the ParticipationItem.content map is created. The map will be created based on
+	 * the schema definition for the content type. Required unless simulatedPublish is true.
+	 */
+	private String contentType;
 
 	/**
 	 * Use in tests to have the start date be automatically set relative to the simulation start date.
@@ -64,19 +81,20 @@ public class ParticipationItemFixture {
 	 * available to populate here. If left out, participationId will be set in all calculated discounts automatically.
 	 * The templateId can also be null, and will be set to a valid templateId before inserting to the database.
 	 */
-	private List<ParticipationCalculatedDiscount> calculatedDiscounts;
+	private List<CalculatedDiscountFixture> calculatedDiscountFixtures;
 
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)
 	private List<LifecycleState> stateLog = new ArrayList<>();
 
 	public String toString() {
-		return String.format("Participation(id(%s), saleId(%s), products(%s), schedule(%s, %s))",
+		return String.format("Participation(id(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s)",
 				participationId,
 				saleId,
 				StringUtils.join(uniqueIds, ", "),
 				startDateOffsetDays != null ? startDateOffsetDays : startDate,
-				endDateOffsetDays != null ? endDateOffsetDays : endDate
+				endDateOffsetDays != null ? endDateOffsetDays : endDate,
+				contentType
 		);
 	}
 
@@ -124,13 +142,20 @@ public class ParticipationItemFixture {
 		/**
 		 * For use in tests to populate calculated discounts. Values must not be null.
 		 */
-		public ParticipationItemFixtureBuilder calculatedDiscounts(ParticipationCalculatedDiscount... discounts) {
-			Assertions.assertThat(discounts).allSatisfy(discount -> {
-				Assertions.assertThat(discount).isNotNull();
-				Assertions.assertThat(discount.getPricebookId()).isNotNull();
-				Assertions.assertThat(discount.getChangeValue()).isNotNull();
+		public ParticipationItemFixtureBuilder calculatedDiscounts(CalculatedDiscountFixture... discountFixtures) {
+			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
+				Assertions.assertThat(discountFixture).isNotNull();
+				Assertions.assertThat(discountFixture.getPricebookId()).isNotNull();
+				Assertions.assertThat(discountFixture.getDiscountAmount()).isNotNull();
+				Assertions.assertThat(discountFixture.getIsPercent()).isNotNull();
 			});
-			this.calculatedDiscounts = Arrays.asList(discounts);
+			this.calculatedDiscountFixtures = Arrays.asList(discountFixtures);
+			return this;
+		}
+
+
+		public ParticipationItemFixtureBuilder simulatedPublish() {
+			this.isSimulatedPublish = true;
 			return this;
 		}
 	}

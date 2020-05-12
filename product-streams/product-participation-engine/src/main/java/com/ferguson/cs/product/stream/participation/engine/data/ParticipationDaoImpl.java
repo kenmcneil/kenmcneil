@@ -57,7 +57,7 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int updateProductSaleIds(int participationId) {
+	public int updateProductSaleIds() {
 		return participationMapper.updateProductSaleIds();
 	}
 
@@ -103,9 +103,13 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int deleteParticipationV1Data(int participationId) {
-		return participationMapper.deleteParticipationProducts(participationId)
-				+ participationMapper.deleteParticipationCalculatedDiscounts(participationId);
+	public int deleteParticipationProducts(int participationId) {
+		return participationMapper.deleteParticipationProducts(participationId);
+	}
+
+	@Override
+	public int deleteParticipationCalculatedDiscounts(int participationId) {
+		return participationMapper.deleteParticipationCalculatedDiscounts(participationId);
 	}
 
 	@Override
@@ -126,13 +130,16 @@ public class ParticipationDaoImpl implements ParticipationDao {
 
 	@Override
 	public int upsertParticipationProducts(int participationId, List<Integer> uniqueIds) {
-		String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
 		int rowsAffected = participationMapper.deleteParticipationProducts(participationId);
-		return rowsAffected + participationMapper.insertParticipationProducts(participationId, csvUniqueIds);
+		if (!uniqueIds.isEmpty()) {
+			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
+			rowsAffected += participationMapper.insertParticipationProducts(participationId, csvUniqueIds);
+		}
+		return rowsAffected;
 	}
 
 	/**
-	 * Upsert p22 and p1 calculated discounts for the Participation. Removes any existing calculated
+	 * Upsert calculated discounts for the Participation. Removes any existing calculated
 	 * discount records, then inserts any calculated discount records.
 	 */
 	@Override

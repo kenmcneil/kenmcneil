@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
+import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
@@ -57,5 +58,13 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 	public void disableLocalCache() {
 		Configuration config = sqlSessionFactory.getConfiguration();
 		config.setLocalCacheScope(LocalCacheScope.STATEMENT);
+	}
+
+	public CalculatedDiscountFixture percentCalculatedDiscount(int pricebookId, int percentDiscount) {
+		return new CalculatedDiscountFixture(pricebookId, percentDiscount, true, null);
+	}
+
+	public CalculatedDiscountFixture amountCalculatedDiscount(int pricebookId, int amountDiscount) {
+		return new CalculatedDiscountFixture(pricebookId, amountDiscount, false, null);
 	}
 }

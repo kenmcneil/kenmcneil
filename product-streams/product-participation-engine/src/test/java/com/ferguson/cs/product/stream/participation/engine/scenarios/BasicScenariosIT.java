@@ -27,19 +27,22 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	 *          - mongo status is updated
 	 *          - mongo event record is added
 	 *      - verify the data for the participation is removed from sql
+	 *
+	 * This also tests that the engine can work with a "base" participation with no effects.
 	 */
 	@Test
-	public void basic_publish_unpublish() {
+	public void engine_publish_unpublish() {
 		// Make fixture participation with no schedule and no effects.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.participationId(50000)
+				.saleId(999)
 				.build();
 
 		// Set up scenario
 		testLifecycles(basicTestLifecycle);
 
 		// Execute scenario steps in sequence.
-	    createUserPublishEvent(p1);
+		manualPublish(p1);
 	    processEvents();
 	    createUserUnpublishEvent(p1);
 	    processEvents();
@@ -58,7 +61,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 
 		testLifecycles(schedulingTestLifecycle);
 
-		createUserPublishEvent(p1);
+		manualPublish(p1);
 		advanceToDay(4);
 		verifySimpleLifecycleLog(p1);
 	}

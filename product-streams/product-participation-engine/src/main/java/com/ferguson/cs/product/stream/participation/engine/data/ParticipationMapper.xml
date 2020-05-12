@@ -22,8 +22,8 @@
 
 	<update id="updateOwnerChangesForDeactivation" parameterType="int">
 		-- Must set isActive=0 on the deactivating participation first.
-		DROP TABLE IF EXISTS ##participationOwnerChanges;
-		CREATE TABLE ##participationOwnerChanges (
+		DROP TABLE IF EXISTS ##participationOwnerChange;
+		CREATE TABLE ##participationOwnerChange (
 			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
 			,[oldParticipationId] [int]
 			,[newParticipationId] [int]
@@ -48,14 +48,14 @@
 			ORDER BY
 				 ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO ##participationOwnerChanges
+		INSERT INTO ##participationOwnerChange
 		SELECT
 			uniqueId,
 			#{participationId} AS oldParticipationId,
 			newOwner.participationId
 		FROM
 			newOwner;
-		INSERT INTO ##participationOwnerChanges
+		INSERT INTO ##participationOwnerChange
 		SELECT
 			pp.uniqueId AS uniqueId,
 			#{participationId} AS oldParticipationId,
@@ -66,7 +66,7 @@
 				mmc.product.participationItemPartial AS p
 				ON p.participationId = pp.participationId
 			LEFT JOIN
-				##participationOwnerChanges as poc
+				##participationOwnerChange as poc
 				ON poc.uniqueId = pp.uniqueId
 		WHERE
 			pp.participationId = #{participationId}
@@ -76,8 +76,8 @@
 
 	<update id="updateOwnerChangesForActivation" parameterType="int">
 		-- Must set isActive=1 on the activating participation first.
-		DROP TABLE IF EXISTS ##participationOwnerChanges;
-		CREATE TABLE ##participationOwnerChanges (
+		DROP TABLE IF EXISTS ##participationOwnerChange;
+		CREATE TABLE ##participationOwnerChange (
 			[uniqueId] [int] NOT NULL PRIMARY KEY CLUSTERED
 			,[oldParticipationId] [int]
 			,[newParticipationId] [int]
@@ -100,7 +100,7 @@
 			ORDER BY
 				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO ##participationOwnerChanges
+		INSERT INTO ##participationOwnerChange
 		SELECT
 			newOwner.uniqueId,
 			pp.participationId AS oldParticipationId,
@@ -128,7 +128,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = owner.uniqueId
 				AND oc.newParticipationId = owner.participationId
 		WHERE
@@ -145,7 +145,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = owner.uniqueId
 				AND oc.oldParticipationId = owner.participationId
 		WHERE
@@ -161,7 +161,7 @@
 		FROM
 			mmc.product.sale AS sale
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = sale.uniqueId
 		LEFT JOIN
 			mmc.product.participationItemPartial AS p
@@ -179,7 +179,7 @@
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = lastOnSale.uniqueId
 		JOIN
 			mmc.dbo.pricebook_cost AS pbcost
@@ -201,7 +201,7 @@
 		FROM
 			mmc.dbo.pricebook_cost AS pbcost
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -230,7 +230,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -260,7 +260,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -282,7 +282,7 @@
 		FROM
 			mmc.product.modified
 		JOIN
-			##participationOwnerChanges AS oc
+			##participationOwnerChange AS oc
 			ON oc.uniqueId = modified.uniqueId
 		JOIN
 			omc.dbo.users AS users
@@ -365,22 +365,22 @@
 		WHERE pp.isOwner = 1
 	</insert>
 
-	<insert id="upsertParticipationItemPartial" parameterType="map">
+	<insert id="upsertParticipationItemPartial">
 		IF EXISTS (
 				SELECT id FROM mmc.product.participationItemPartial
-				WHERE participationId = #{itemPartial.participationId}
+				WHERE participationId = #{participationId}
 			)
 			BEGIN
 				UPDATE
 				    mmc.product.participationItemPartial
 				SET
-					saleId = #{itemPartial.saleId},
-					startDate = #{itemPartial.startDate},
-					endDate = #{itemPartial.endDate, jdbcType=TIMESTAMP},
-					lastModifiedUserId = #{itemPartial.lastModifiedUserId},
-					isActive = #{itemPartial.isActive}
+					saleId = #{saleId},
+					startDate = #{startDate, jdbcType=TIMESTAMP},
+					endDate = #{endDate, jdbcType=TIMESTAMP},
+					lastModifiedUserId = #{lastModifiedUserId},
+					isActive = #{isActive}
 				WHERE
-					participationId = #{itemPartial.participationId}
+					participationId = #{participationId}
 			END
 		ELSE
 			BEGIN
@@ -392,18 +392,18 @@
 					lastModifiedUserId
 				)
 				VALUES (
-					#{itemPartial.participationId},
-					#{itemPartial.saleId},
-					#{itemPartial.startDate},
-					#{itemPartial.endDate, jdbcType=TIMESTAMP},
-					#{itemPartial.lastModifiedUserId}
+					#{participationId},
+					#{saleId},
+					#{startDate, jdbcType=TIMESTAMP},
+					#{endDate, jdbcType=TIMESTAMP},
+					#{lastModifiedUserId}
 				);
 			END
 	</insert>
 
 	<insert id="insertParticipationProducts" parameterType="map">
 		DECLARE @participationId INT = #{participationId}
-		DECLARE @uniqueidList VARCHAR(MAX) = #{productUniqueIds}
+		DECLARE @uniqueidList VARCHAR(MAX) = #{csvUniqueIds}
 
 		INSERT INTO mmc.product.participationProduct (
 		    participationId, uniqueId
@@ -415,10 +415,10 @@
 		    string_split(@uniqueidList,',');
 	</insert>
 
-	<insert id="insertParticipationCalculatedDiscounts" parameterType="map">
+	<insert id="insertParticipationCalculatedDiscounts">
 		INSERT INTO mmc.product.participationCalculatedDiscount (
 			participationId,
-			priceBookId,
+			pricebookId,
 			changeValue,
 			isPercent,
 			templateId
@@ -426,7 +426,7 @@
 		VALUES
 		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
 			#{calculatedDiscount.participationId},
-			#{calculatedDiscount.priceBookId},
+			#{calculatedDiscount.pricebookId},
 			#{calculatedDiscount.changeValue},
 			#{calculatedDiscount.isPercent},
 			#{calculatedDiscount.templateId}

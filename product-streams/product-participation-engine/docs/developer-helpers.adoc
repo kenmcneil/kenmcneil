@@ -20,7 +20,8 @@ toc::[]
 -- SHOW CURRENT TABLE VALUES FOR TEST FIXTURES
 -------------------------------------------------
 
-select * from mmc.product.participationOwnerChanges;
+-- There may not be a simple way to query the temp table for product ownership change.
+-- select * from ##participationOwnerChange;
 
 SELECT * FROM mmc.product.participationProduct AS pp
 where pp.participationId in (50000, 50001);

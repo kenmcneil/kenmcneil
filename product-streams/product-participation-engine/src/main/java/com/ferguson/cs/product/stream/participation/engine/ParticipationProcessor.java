@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.newrelic.api.agent.NewRelic;
@@ -15,22 +16,22 @@ import com.newrelic.api.agent.NewRelic;
  * Poll for time-based events and process them.
  */
 public class ParticipationProcessor {
-	private final static Logger LOG = LoggerFactory.getLogger(ParticipationServiceImpl.class);
+	private final static Logger LOG = LoggerFactory.getLogger(ParticipationProcessor.class);
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ConstructService constructService;
-	private final ParticipationService participationService;
+	private final ParticipationLifecycleService participationLifecycleService;
 	private final ParticipationWriter participationWriter;
 
 	public ParticipationProcessor(
 			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
-			ParticipationService participationService,
+			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
 		this.participationEngineSettings = participationEngineSettings;
 		this.constructService = constructService;
-		this.participationService = participationService;
+		this.participationLifecycleService = participationLifecycleService;
 		this.participationWriter = participationWriter;
 	}
 
@@ -85,7 +86,7 @@ public class ParticipationProcessor {
 				LOG.info("participation {} unpublished to draft status", item.getParticipationId());
 
 				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationService.syncToCurrentPriorityParticipation();
+				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
 				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + item.getParticipationId();
@@ -102,14 +103,14 @@ public class ParticipationProcessor {
 	 */
 	public void processPendingActivations() {
 		Date processingDate = getProcessingDate();
-		ParticipationItemPartial item = participationService.getNextParticipationPendingActivation(processingDate);
+		ParticipationItemPartial item = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
 		while (item != null) {
 			try {
 				participationWriter.processActivation(item, processingDate);
 				LOG.info("participation {} activated by scheduling", item.getParticipationId());
 
 				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationService.syncToCurrentPriorityParticipation();
+				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
 				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + item.getParticipationId();
@@ -118,7 +119,7 @@ public class ParticipationProcessor {
 			}
 
 			processingDate = getProcessingDate();
-			item = participationService.getNextParticipationPendingActivation(processingDate);
+			item = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
 		}
 	}
 
@@ -127,7 +128,7 @@ public class ParticipationProcessor {
 	 */
 	public void processPendingDeactivations() {
 		Date processingDate = getProcessingDate();
-		ParticipationItemPartial item = participationService.getNextExpiredParticipation(processingDate);
+		ParticipationItemPartial item = participationLifecycleService.getNextExpiredParticipation(processingDate);
 		while (item != null) {
 			try {
 				participationWriter.processDeactivation(item, processingDate);
@@ -138,7 +139,7 @@ public class ParticipationProcessor {
 				}
 
 				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationService.syncToCurrentPriorityParticipation();
+				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
 				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
 			} catch (Exception e) {
 				String errorMessage = "Error deactivating or unpublishing participation " + item.getParticipationId();
@@ -147,7 +148,7 @@ public class ParticipationProcessor {
 			}
 
 			processingDate = getProcessingDate();
-			item = participationService.getNextExpiredParticipation(processingDate);
+			item = participationLifecycleService.getNextExpiredParticipation(processingDate);
 		}
 	}
 

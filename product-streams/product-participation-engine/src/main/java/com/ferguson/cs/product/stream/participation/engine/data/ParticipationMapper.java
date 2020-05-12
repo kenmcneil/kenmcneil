@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -27,7 +28,7 @@ public interface ParticipationMapper {
 	int setParticipationIsActive(int participationId, Boolean isActive);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by deactivating the specified participation.
 	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
@@ -35,7 +36,7 @@ public interface ParticipationMapper {
 	int updateOwnerChangesForDeactivation(int participationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by activating the specified participation.
 	 * @param participationId The id of the activating participation.
 	 * @return The number of records modified.
@@ -167,7 +168,7 @@ public interface ParticipationMapper {
 	/**
 	 * Insert products for a Participation for the list of uniqueIds given in CSV format.
 	 */
-	int insertParticipationProducts(int participationId, String uniqueIdsListAsString);
+	int insertParticipationProducts(int participationId, String csvUniqueIds);
 
-	int insertParticipationCalculatedDiscounts(List<ParticipationCalculatedDiscount> calculatedDiscounts);
+	int insertParticipationCalculatedDiscounts(@Param("calculatedDiscounts") List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

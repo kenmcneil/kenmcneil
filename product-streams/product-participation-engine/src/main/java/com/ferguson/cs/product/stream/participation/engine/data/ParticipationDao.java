@@ -33,7 +33,7 @@ public interface ParticipationDao {
 	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by activating the specified participation.
 	 * @param participationId The id of the activating participation.
 	 * @return The number of records modified.
@@ -57,12 +57,10 @@ public interface ParticipationDao {
 	int removeProductOwnershipForOldOwners(int participationId);
 
 	/**
-	 * Update saleIds for the products owned by the activating participation.
-	 *
-	 * @param participationId The id of the activating or deactivating participation.
+	 * Update saleIds for products becoming newly-owned.
 	 * @return The number of records modified.
 	 */
-	int updateProductSaleIds(int participationId);
+	int updateProductSaleIds();
 
 	/**
 	 * Record last-on-sale base prices.
@@ -101,7 +99,7 @@ public interface ParticipationDao {
 	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by deactivating the specified participation.
 	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
@@ -109,11 +107,18 @@ public interface ParticipationDao {
 	int updateOwnerChangesForDeactivation(int participationId);
 
 	/**
-	 * Delete participation@1 data: products, calculated discounts.
-	 * @param participationId The id of the participation from which to delete data specific to this type.
+	 * Delete participationProduct rows for the given Participation.
+	 * @param participationId The id of the participation from which to delete products.
 	 * @return The number of records modified.
 	 */
-	int deleteParticipationV1Data(int participationId);
+	int deleteParticipationProducts(int participationId);
+
+	/**
+	 * Delete participationCalculatedDiscount rows the given Participation.
+	 * @param participationId The id of the participation from which to delete calculated discounts.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationCalculatedDiscounts(int participationId);
 
 	/**
 	 * Delete the partial participation record. Non-type specific.

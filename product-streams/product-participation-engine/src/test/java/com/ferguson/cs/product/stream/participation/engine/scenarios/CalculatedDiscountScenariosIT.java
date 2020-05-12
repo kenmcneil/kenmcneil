@@ -3,6 +3,7 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
@@ -28,13 +29,14 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	 *   - sale id has been removed from the products after deactivation
 	 */
 	@Test
-	public void engine_basicSaleIdEffect() {
+	public void engine_basicCalculatedDiscountEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationV1Lifecycle.CONTENT_TYPE)
 				.saleId(2020)
 				.uniqueIds(100, 101)
 				.calculatedDiscounts(
-						fromPercentDiscount(1, 10),
-						fromPercentDiscount(22, 10)
+						percentCalculatedDiscount(1, 10),
+						percentCalculatedDiscount(22, 10)
 				)
 				.scheduleByDays(0, 2)
 				.build();

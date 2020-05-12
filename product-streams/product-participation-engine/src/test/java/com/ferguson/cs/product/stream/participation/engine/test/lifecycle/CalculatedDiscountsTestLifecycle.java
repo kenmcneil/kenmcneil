@@ -1,11 +1,13 @@
 package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 
+import static com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities.nullSafeStream;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.data.Offset;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
@@ -28,8 +30,9 @@ public class CalculatedDiscountsTestLifecycle implements ParticipationTestLifecy
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		List<ParticipationCalculatedDiscount> discountsFromFixture =
-				fixture.getCalculatedDiscounts() == null ? Collections.emptyList() : fixture.getCalculatedDiscounts();
+		List<ParticipationCalculatedDiscount> discountsFromFixture = nullSafeStream(fixture.getCalculatedDiscountFixtures())
+				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+				.collect(Collectors.toList());
 		List<ParticipationCalculatedDiscount> discountsFromDb = participationTestUtilities
 				.getParticipationCalculatedDiscounts(fixture.getParticipationId());
 		Assertions.assertThat(discountsFromDb).containsExactlyInAnyOrderElementsOf(discountsFromFixture);
@@ -50,7 +53,9 @@ public class CalculatedDiscountsTestLifecycle implements ParticipationTestLifecy
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		List<ParticipationCalculatedDiscount> discountsFromFixture = fixture.getCalculatedDiscounts();
+		List<ParticipationCalculatedDiscount> discountsFromFixture = nullSafeStream(fixture.getCalculatedDiscountFixtures())
+				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
 			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 
@@ -69,7 +74,7 @@ public class CalculatedDiscountsTestLifecycle implements ParticipationTestLifecy
 					Double expectedCost = discount.getIsPercent()
 							? Math.floor(100.0 * discount.getChangeValue() * pbcost.getBasePrice()) / 100.0
 							: discount.getChangeValue() + pbcost.getBasePrice();
-					Assertions.assertThat(pbcost.getCost()).isCloseTo(expectedCost, Offset.offset(.001));
+					Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
 				});
 			});
 		}
@@ -83,7 +88,9 @@ public class CalculatedDiscountsTestLifecycle implements ParticipationTestLifecy
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		List<ParticipationCalculatedDiscount> discountsFromFixture = fixture.getCalculatedDiscounts();
+		List<ParticipationCalculatedDiscount> discountsFromFixture = nullSafeStream(fixture.getCalculatedDiscountFixtures())
+				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
 			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 

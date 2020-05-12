@@ -2,9 +2,12 @@ package com.ferguson.cs.product.stream.participation.engine.test;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
@@ -15,6 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.CollectionUtils;
@@ -51,9 +55,8 @@ public class ParticipationTestUtilities {
 					"VALUES (?, ?, ?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_PRODUCT =
-			"INSERT INTO mmc.product.participationProduct " +
-					"(participationId, uniqueId, isOwner) " +
-					"VALUES (?, ?, ?)";
+			"INSERT INTO mmc.product.participationProduct VALUES " +
+					"(:participationId, :uniqueId, :isOwner)";
 
 	public static final String INSERT_PARTICIPATION_CALCULATED_DISCOUNT =
 			"INSERT INTO mmc.product.participationCalculatedDiscount " +
@@ -169,6 +172,15 @@ public class ParticipationTestUtilities {
 	private static final ResultSetExtractor<ParticipationItemPartial> SINGLETON_PARTICIPATION_ITEM_FIXTURE_EXTRACTOR =
 			singletonExtractor(new BeanPropertyRowMapper<>(ParticipationItemPartial.class));
 
+	/**
+	 * Helper to stream a possibly-null collection.
+	 */
+	public static <T> Stream<T> nullSafeStream(Collection<T> collection) {
+		return Optional.ofNullable(collection)
+				.map(Collection::stream)
+				.orElseGet(Stream::empty);
+	}
+
 	private final JdbcTemplate jdbcTemplate;
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -227,18 +239,12 @@ public class ParticipationTestUtilities {
 		if (fixture.getIsActive() == null) {
 			fixture.setIsActive(false);
 		}
-		if (!CollectionUtils.isEmpty(fixture.getCalculatedDiscounts())) {
-			fixture.getCalculatedDiscounts().forEach(discount -> {
-				if (discount.getParticipationId() == null) {
-					discount.setParticipationId(fixture.getParticipationId());
-				} else {
-					Assertions.assertThat(discount.getParticipationId()).isEqualTo(fixture.getParticipationId());
-				}
-				if (discount.getTemplateId() == null) {
-					discount.setTemplateId(getDefaultCalculatedDiscountTemplateId());
+		if (!CollectionUtils.isEmpty(fixture.getCalculatedDiscountFixtures())) {
+			fixture.getCalculatedDiscountFixtures().forEach(discountFixture -> {
+				if (discountFixture.getTemplateId() == null) {
+					discountFixture.setTemplateId(getDefaultCalculatedDiscountTemplateId());
 				}
 			});
-
 		}
 	}
 
@@ -264,23 +270,20 @@ public class ParticipationTestUtilities {
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
 		if (!CollectionUtils.isEmpty(fixture.getUniqueIds())) {
-			fixture.getUniqueIds().forEach(uniqueId -> {
-				jdbcTemplate.update(INSERT_PARTICIPATION_PRODUCT, fixture.getParticipationId(), uniqueId, false);
-			});
+			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(fixture.getUniqueIds());
+			namedParameterJdbcTemplate.batchUpdate(INSERT_PARTICIPATION_PRODUCT, batch);
 		}
 
 		// Insert any participationCalculatedDiscount records.
-		if (!CollectionUtils.isEmpty(fixture.getCalculatedDiscounts())) {
-			fixture.getCalculatedDiscounts().forEach(discount -> {
-				jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
+		nullSafeStream(fixture.getCalculatedDiscountFixtures())
+				.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+				.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
 						discount.getParticipationId(),
 						discount.getPricebookId(),
 						discount.getChangeValue(),
 						discount.getIsPercent(),
-						discount.getTemplateId()
+						discount.getTemplateId())
 				);
-			});
-		}
 	}
 
 	public Integer getParticipationCalculatedDiscountCount(int participationId) {

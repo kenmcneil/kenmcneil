@@ -11,6 +11,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ContentEven
 import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
 
 @Configuration
@@ -28,32 +29,22 @@ public class ParticipationEngineConfiguration {
 	}
 
 	@Bean
-	public ParticipationService participationService(
-			ParticipationDao participationDao,
-			ParticipationEngineSettings participationEngineSettings,
-			ParticipationLifecycleService participationLifecycleService
-	) {
-		return new ParticipationServiceImpl(participationDao, participationEngineSettings,
-				participationLifecycleService);
-	}
-
-	@Bean
 	public ParticipationWriter participationWriter(
-			ParticipationService participationService,
+			ParticipationLifecycleService participationLifecycleService,
 			ConstructService constructService
 	) {
-		return new ParticipationWriter(participationService, constructService);
+		return new ParticipationWriter(participationLifecycleService, constructService);
 	}
 
 	@Bean
 	public ParticipationProcessor participationProcessor(
 			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
-			ParticipationService participationService,
+			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
 		return new ParticipationProcessor(participationEngineSettings, constructService,
-				participationService, participationWriter);
+				participationLifecycleService, participationWriter);
 	}
 
 	@Bean
@@ -74,8 +65,11 @@ public class ParticipationEngineConfiguration {
 
 	@Bean
 	public ParticipationLifecycleService participationLifecycleService(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationDao participationDao,
 			ParticipationV1Lifecycle participationV1Lifecycle
 	) {
-		return new ParticipationLifecycleService(participationV1Lifecycle);
+		return new ParticipationLifecycleServiceImpl(participationEngineSettings, participationDao,
+				participationV1Lifecycle);
 	}
 }
