@@ -57,7 +57,7 @@
 				AND pbc.priceBookId = 1
 			LEFT JOIN omc.dbo.orderShippedDateComparison osdc
 				ON ppv.productuniqueid = osdc.uniqueId
-				AND osdc.shippingEstimateMethodId = 6 <!-- Only care about lead times from override tool which are 6 -->
+				AND osdc.shippingEstimateMethodId = 6 <!-- Only care about lead times from override tool that are product specific which is 6 -->
 		WHERE
 			<!-- Product status Stock -->
 			p.statusId = ${@com.ferguson.cs.vendor.quickship.model.product.ProductStatus@STOCK.getIntValue()}
