@@ -11,7 +11,20 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 /**
  * Each type of Participation will implement this interface to handle its specific effects.
- * The ParticipationLifecycleService calls lifecycle methods for each Participation processed by the engine.
+ * The ParticipationLifecycleService calls lifecycle methods for each Participation
+ * processed by the engine.
+ *
+ * Each type of Participation is responsible for keeping track of entities owned by
+ * Participation records of its type. A Participation type must apply and remove its
+ * effects as ownership of its entities change due to activation or deactivation events.
+ * Some Participation types may work together and allow overriding and fallback of
+ * entities, such as calculated discounts and itemized discounts. Some types may be
+ * completely independent from all other types.
+ * The Participation's contentTypeId is used in lifecycle events to call its
+ * lifecycle event handlers.
+ *
+ * Each handler should return the sum of rows modified in all DB operations for
+ * logging/debugging.
  */
 public interface ParticipationLifecycle {
 	/**
@@ -20,46 +33,41 @@ public interface ParticipationLifecycle {
 	String getContentType();
 
 	/**
-	 * Publish the Participation record to SQL. Should return the sum of rows
-	 * modified in all DB operations (for logging). The publish handler is fully responsible
+	 * Publish the Participation record to SQL. The publish handler is fully responsible
 	 * for inserting or updating all of its data that needs to be stored in SQL.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int publish(ParticipationItem item, Date processingDate);
 
 	/**
-	 * Activate the Participation's effects. Should return the sum of rows modified in
-	 * all DB operations (for logging).
+	 * Activate the Participation and set up for applying effects in activateEffects
+	 * handler.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int activate(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
-	 * Apply effects for any entities becoming owned, such as participationProducts. The implementing
-	 * method must only apply effects for entities in Participations of its type; i.e. filter
-	 * effect queries by contentTypeId.
+	 * Apply effects for any entities becoming owned, such as participationProducts.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int activateEffects(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
-	 * Deactivate the Participation's effects. Should return the sum of rows modified
-	 * in all DB operations (for logging).
+	 * Deactivate the Participation, and prepare to deactivate its effects on owned
+	 * entities.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int deactivate(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
-	 * Deactivate effects on any records becoming owned by the activating or deactivating Participation.
-	 * The implementing method must only apply effects for entities in Participations of its type; i.e.
-	 * filter effect queries by contentTypeId.
+	 * Remove effects on entities that are losing ownership either from deactivation
+	 * or from an overriding higher priority Participation.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
-	 * Unpublish the Participation by removing its data from SQL. Should return the sum of
-	 * rows modified in all DB operations (for logging).
+	 * Unpublish the Participation by removing its data from SQL.
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	int unpublish(ParticipationItemPartial itemPartial, Date processingDate);

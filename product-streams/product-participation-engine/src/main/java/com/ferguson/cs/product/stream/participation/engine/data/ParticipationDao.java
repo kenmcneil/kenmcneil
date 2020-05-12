@@ -60,7 +60,13 @@ public interface ParticipationDao {
 	 * Update saleIds for products becoming newly-owned.
 	 * @return The number of records modified.
 	 */
-	int updateProductSaleIds();
+	int activateProductSaleIds();
+
+	/**
+	 * Set saleIds for products becoming un-owned to 0.
+	 * @return The number of records modified.
+	 */
+	int deactivateProductSaleIds();
 
 	/**
 	 * Record last-on-sale base prices.

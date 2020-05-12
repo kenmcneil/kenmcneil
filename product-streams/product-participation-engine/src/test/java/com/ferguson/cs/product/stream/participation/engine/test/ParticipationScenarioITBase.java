@@ -416,7 +416,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	private void processEventsAtCurrentSimulatedDate() {
 		participationProcessor.process();
 
-		// Verify that all pending unpublish events were processed.
+		// Verify that all pending publish and unpublish events were processed.
+		Assertions.assertThat(pendingPublishParticipationQueue.size()).isEqualTo(0);
 		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
 	}
 
@@ -427,7 +428,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 	private Date dateOffsetByDaysAtEndOfDay(Date from, int days) {
 		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.systemDefault()))
-				.plusDays(days).atStartOfDay(ZoneId.systemDefault())
+				.plusDays(days + 1).atStartOfDay(ZoneId.systemDefault())
 				.minus(1, ChronoUnit.MINUTES).toInstant());
 	}
 
@@ -499,7 +500,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	private ObjectNode atPath(ObjectNode obj, String format, String... parts) {
-		return (ObjectNode)obj.at(String.format(format, Arrays.asList(parts)));
+		return (ObjectNode)obj.at(String.format(format, (Object[])parts));
 	}
 
 	/**
@@ -520,8 +521,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			String discountTypeFieldName = discount1.getIsPercent() ? "percentDiscount" : "amountDiscount";
 			String pathToDiscount = "/priceDiscounts/calculatedDiscount/" + discountTypeFieldName + "/%s";
 			atPath(content, pathToDiscount, "template").put("selected", discount1.getTemplateId());
-			atPath(content, pathToDiscount, "pricebookId1").put("text", discount1.getDiscountAmount());
-			atPath(content, pathToDiscount, "pricebookId22").put("text", discount22.getDiscountAmount());
+			atPath(content, pathToDiscount, "pricebookId1").put("text", discount1.getDiscountAmount().toString());
+			atPath(content, pathToDiscount, "pricebookId22").put("text", discount22.getDiscountAmount().toString());
 		} else {
 			content = getContentTemplate("participationV1-content-no-discount.json");
 		}

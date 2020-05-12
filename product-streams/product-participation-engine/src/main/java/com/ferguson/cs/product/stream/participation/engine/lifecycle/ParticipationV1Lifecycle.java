@@ -130,8 +130,10 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		// determine what products are changing ownership and store into temp table
+		// Determine what products are changing ownership and store into temp table,
+		// and update ownership data.
 		// -- not logging returned row-modified count since it's not always accurate
+
 		participationDao.updateOwnerChangesForActivation(participationId);
 
 		int rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
@@ -151,32 +153,24 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	}
 
 	/**
-	 * Run queries to activate the saleId and any calculated discounts effects for uniqueIds
+	 * Run queries to activate the saleId and any calculated discounts effects for new uniqueId owners
 	 * in participationOwnerChange where newParticipationId is not null.
 	 */
 	@Override
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
-		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
 		int participationId = itemPartial.getParticipationId();
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		int rowsAffected = participationDao.updateProductSaleIds();
+		int rowsAffected = participationDao.activateProductSaleIds();
 		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
+		LOG.debug("{}: {} product sale ids set", participationId, rowsAffected);
 
-		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
+		// activate any new calculated discounts
+		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId,
+				participationEngineSettings.getCoolOffPeriod().toMinutes());
 		totalRows += rowsAffected;
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
-
-		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
-
-		// activate new discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
+		LOG.debug("{}: {} prices discounted by calculated discounts", participationId, rowsAffected);
 
 		return totalRows;
 	}
@@ -184,9 +178,6 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	/**
 	 * Calculate the owner changes table, update product ownership, and trigger product storage cache
 	 * update by updating each product's modified date.
-	 *
-	 * Run queries to remove sale id and calculated discount effects from products in
-	 * participationOwnerChange rows where newParticipationId is not null.
 	 *
 	 * Apply queries specific to sale id and calculated discount deactivation. All queries used here are filtered to the uniqueIds
 	 * in change table rows where newParticipationId is not null.
@@ -203,8 +194,9 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		// Determine what products are changing ownership and store into temp table.
 		participationDao.updateOwnerChangesForDeactivation(participationId);
 
-		// Assign ownership of each unique id to any active fallback participations, but don't
-		// bother to disown from deactivating participation since it will be deleted at the end.
+		// Assign ownership of each unique id to any active fallback participations, but
+		// don't bother to update ownership on participationProduct rows of the deactivating
+		// participation since they will be deleted when unpublished.
 		int rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products with new participation owxnership", participationId, rowsAffected);
@@ -218,20 +210,19 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	}
 
 	/**
-	 * Run queries to deactivate the saleId and any calculated discounts effects for uniqueIds
-	 * in participationOwnerChange where oldParticipationId is not null.
+	 * Remove sale id and calculated discount effects from products in participationOwnerChange
+	 * where oldParticipationId is not null.
 	 */
 	@Override
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
-		long coolOffPeriodMinutes = participationEngineSettings.getCoolOffPeriod().toMinutes();
 		int participationId = itemPartial.getParticipationId();
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		// update sale ids to fallback participations or to zeros
-		int rowsAffected = participationDao.updateProductSaleIds();
+		// Set saleIds for products becoming un-owned to 0.
+		int rowsAffected = participationDao.deactivateProductSaleIds();
 		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
+		LOG.debug("{}: {} product sale ids disowned", participationId, rowsAffected);
 
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
 		totalRows += rowsAffected;
@@ -240,11 +231,6 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
-
-		// activate fallback discounts (if any)
-		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} prices put on sale from calculated discounts", participationId, rowsAffected);
 
 		return totalRows;
 	}

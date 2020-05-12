@@ -102,10 +102,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	}
 
 	/**
-	 * Call deactivate methods for each Participation type. Each lifecycle class should handle deactivating products
-	 * and other changes needed for rows in the owner-changes table where oldParticipationId is not null.
-	 * Each lifecycle class must only process products in Participations of its type; i.e filter by contentTypeId.
-	 * Expects that the product owner-changes table is initialized.
+	 * Call deactivate methods for each Participation type: call deactivate for this item;
+	 * call deactivate effects for this item; and finally call activateEffects for all types.
 	 */
 	public int deactivateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
@@ -115,18 +113,18 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		int affectedRows = participationDao.setParticipationIsActive(participationId, false);
 
-		// (1) Apply effect-specific queries for deactivating this Participation. Perform set up
+		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
 		affectedRows += deactivatingLifecycle.deactivate(itemPartial, processingDate);
 
-		// (2) Apply effects for all Participation types, for entities being dis-owned by the
+		// (2) Remove effects of the deactivating record from un-owned entities.
+		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
+
+		// (3) Apply effects for all Participation types, for entities being dis-owned by the
 		// deactivating Participation that are becoming owned by other active Participations.
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
-
-		// (3) Apply effects of the activating itemPartial record to newly-owned entities.
-		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
 

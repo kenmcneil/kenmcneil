@@ -258,9 +258,11 @@ public class ParticipationTestUtilities {
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
 		validateAndSetDefaults(fixture);
 
+		int participationId = fixture.getParticipationId();
+
 		// Insert participationItemPartial record.
 		jdbcTemplate.update(INSERT_PARTICIPATION_ITEM_PARTIAL_SQL,
-				fixture.getParticipationId(),
+				participationId,
 				fixture.getSaleId(),
 				fixture.getStartDate(),
 				fixture.getEndDate(),
@@ -270,13 +272,17 @@ public class ParticipationTestUtilities {
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
 		if (!CollectionUtils.isEmpty(fixture.getUniqueIds())) {
-			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(fixture.getUniqueIds());
+			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
+					fixture.getUniqueIds().stream()
+							.map(uniqueId -> new ParticipationProduct(participationId, uniqueId, false))
+							.collect(Collectors.toList())
+			);
 			namedParameterJdbcTemplate.batchUpdate(INSERT_PARTICIPATION_PRODUCT, batch);
 		}
 
 		// Insert any participationCalculatedDiscount records.
 		nullSafeStream(fixture.getCalculatedDiscountFixtures())
-				.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+				.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
 				.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
 						discount.getParticipationId(),
 						discount.getPricebookId(),

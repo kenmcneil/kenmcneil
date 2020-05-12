@@ -57,9 +57,15 @@ public class ParticipationDaoImpl implements ParticipationDao {
 	}
 
 	@Override
-	public int updateProductSaleIds() {
-		return participationMapper.updateProductSaleIds();
+	public int activateProductSaleIds() {
+		return participationMapper.activateProductSaleIds();
 	}
+
+	@Override
+	public int deactivateProductSaleIds() {
+		return participationMapper.deactivateProductSaleIds();
+	}
+
 
 	@Override
 	public int updateLastOnSaleBasePrices(Date processingDate) {

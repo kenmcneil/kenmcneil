@@ -79,22 +79,26 @@ public class ParticipationProcessor {
 	 * Unpublish each participation that's pending unpublish.
 	 */
 	public void processPendingUnpublishes() {
-		ParticipationItemPartial item = getNextPendingUnpublishParticipation();
-		while (item != null) {
+		ParticipationItemPartial itemPartial = getNextPendingUnpublishParticipation();
+		while (itemPartial != null) {
 			try {
-				participationWriter.processUnpublish(item, getProcessingDate());
-				LOG.info("participation {} unpublished to draft status", item.getParticipationId());
+				boolean wasActive = participationLifecycleService.getParticipationIsActive(itemPartial.getParticipationId());
+
+				participationWriter.processUnpublish(itemPartial, getProcessingDate());
+				LOG.info("participation {} unpublished to draft status", itemPartial.getParticipationId());
 
 				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
+				if (wasActive) {
+					int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
+					LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
+				}
 			} catch (Exception e) {
-				String errorMessage = "Error unpublishing participation " + item.getParticipationId();
+				String errorMessage = "Error unpublishing participation " + itemPartial.getParticipationId();
 				NewRelic.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
-			item = getNextPendingUnpublishParticipation();
+			itemPartial = getNextPendingUnpublishParticipation();
 		}
 	}
 
@@ -103,23 +107,24 @@ public class ParticipationProcessor {
 	 */
 	public void processPendingActivations() {
 		Date processingDate = getProcessingDate();
-		ParticipationItemPartial item = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
-		while (item != null) {
+		ParticipationItemPartial itemPartial = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
+
+		while (itemPartial != null) {
 			try {
-				participationWriter.processActivation(item, processingDate);
-				LOG.info("participation {} activated by scheduling", item.getParticipationId());
+				participationWriter.processActivation(itemPartial, processingDate);
+				LOG.info("participation {} activated by scheduling", itemPartial.getParticipationId());
 
 				// TODO remove currentPriorityParticipation code (see SODEV-25037)
 				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
+				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
 			} catch (Exception e) {
-				String errorMessage = "Error activating participation " + item.getParticipationId();
+				String errorMessage = "Error activating participation " + itemPartial.getParticipationId();
 				NewRelic.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
 			processingDate = getProcessingDate();
-			item = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
+			itemPartial = participationLifecycleService.getNextParticipationPendingActivation(processingDate);
 		}
 	}
 
@@ -128,27 +133,27 @@ public class ParticipationProcessor {
 	 */
 	public void processPendingDeactivations() {
 		Date processingDate = getProcessingDate();
-		ParticipationItemPartial item = participationLifecycleService.getNextExpiredParticipation(processingDate);
-		while (item != null) {
+		ParticipationItemPartial itemPartial = participationLifecycleService.getNextExpiredParticipation(processingDate);
+		while (itemPartial != null) {
 			try {
-				participationWriter.processDeactivation(item, processingDate);
-				if (item.getIsActive()) {
-					LOG.info("expired participation {} deactivated and unpublished with archived status", item.getParticipationId());
-				} else {
-					LOG.info("never activated expired participation {} unpublished with archived status", item.getParticipationId());
-				}
+				participationWriter.processDeactivation(itemPartial, processingDate);
+				if (itemPartial.getIsActive()) {
+					LOG.info("expired participation {} deactivated and unpublished with archived status", itemPartial.getParticipationId());
 
-				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", item.getParticipationId(), rowsAffected);
+					// TODO remove currentPriorityParticipation code (see SODEV-25037)
+					int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
+					LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
+				} else {
+					LOG.info("never activated expired participation {} unpublished with archived status", itemPartial.getParticipationId());
+				}
 			} catch (Exception e) {
-				String errorMessage = "Error deactivating or unpublishing participation " + item.getParticipationId();
+				String errorMessage = "Error deactivating or unpublishing participation " + itemPartial.getParticipationId();
 				NewRelic.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
 			processingDate = getProcessingDate();
-			item = participationLifecycleService.getNextExpiredParticipation(processingDate);
+			itemPartial = participationLifecycleService.getNextExpiredParticipation(processingDate);
 		}
 	}
 

@@ -42,7 +42,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 	 * composite test for the following dao methods:
 	 *      updateOwnerChangesForActivation(Integer participationId)
 	 *      addProductOwnershipForNewOwners(Integer participationId)
-	 *      updateProductSaleIds(Integer participationId)
+	 *      activateProductSaleIds(Integer participationId)
 	 *      applyNewCalculatedDiscounts(Date processingDate, Integer userId)
 	 *      updateProductModifiedDates(Date processingDate, Integer userId)
 	 */
@@ -65,7 +65,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		participationDao.updateOwnerChangesForActivation(53000);
 		rowsAffected = participationDao.addProductOwnershipForNewOwners(53000);
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
-		rowsAffected = participationDao.updateProductSaleIds();
+		rowsAffected = participationDao.activateProductSaleIds();
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(new Date());
 		rowsAffected = participationDao.applyNewCalculatedDiscounts(new Date(), 1, 15);
@@ -103,7 +103,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		participationDao.setParticipationIsActive(53000, true);
 		participationDao.updateOwnerChangesForActivation(53000);
 		participationDao.addProductOwnershipForNewOwners(53000);
-		participationDao.updateProductSaleIds();
+		participationDao.activateProductSaleIds();
 		participationDao.updateLastOnSaleBasePrices(new Date());
 		participationDao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		participationDao.updateProductModifiedDates(new Date(), 1);
@@ -111,7 +111,7 @@ public class ParticipationDaoIT extends ParticipationEngineITBase {
 		participationDao.setParticipationIsActive(53000, false);
 		participationDao.updateOwnerChangesForDeactivation(53000);
 		participationDao.addProductOwnershipForNewOwners(53000);
-		participationDao.updateProductSaleIds();
+		participationDao.deactivateProductSaleIds();
 		participationDao.updateLastOnSaleBasePrices(new Date());
 		int rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
