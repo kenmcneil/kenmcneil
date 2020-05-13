@@ -27,7 +27,7 @@ public class FeiPricebookWriter implements ItemWriter<PriceBookSync> {
 	@SuppressWarnings({"unchecked"})
 	@Override
 	public void write(List<? extends PriceBookSync> items) throws Exception {
-
+		System.out.println("Writing pricebook records");
 		for (PriceBookSync item : (List<PriceBookSync>)items) {
 			feiPriceUpdateService.insertPriceBookCostUpdates(item);
 		}			

@@ -25,7 +25,7 @@ public class FeiPriceBookProcessor  implements ItemProcessor<FeiPriceUpdateItem,
 		priceBookSync.setJobId(this.executionContext.getInt("JobId"));
 		priceBookSync.setUniqueId(item.getUniqueId());
 		priceBookSync.setCost(item.getPrice());
-		priceBookSync.setPriceBookId(1);
+		priceBookSync.setPriceBookId(item.getPricebookId());
 		priceBookSync.setIsDelete(false);
 		
 		return priceBookSync;

@@ -21,19 +21,15 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.MultiResourceItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.ferguson.cs.product.task.feipriceupdate.batch.CreateCostUpdateJobTasklet;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemProcessor;
@@ -85,8 +81,9 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 	
 	  @Bean
-	  public FeiPriceUpdateItemProcessor processor() {
-	    return new FeiPriceUpdateItemProcessor();
+	  @StepScope
+	  public FeiPriceUpdateItemProcessor processor(FeiPriceUpdateService feiPriceUpdateService) {
+	    return new FeiPriceUpdateItemProcessor(feiPriceUpdateService);
 	  }
 	  
 	  @Bean
@@ -97,7 +94,7 @@ public class FeiPriceUpdateTaskConfiguration {
 			.start(createTempTableStep(feiPriceUpdateSettings,feiPriceUpdateService))
 	        .next(processInputFileStep(feiPriceUpdateSettings,feiPriceUpdateService))
 	        .next(createCostUploadJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService))
-	        .next(createCostUploadJobStep(feiPriceUpdateSettings, feiPriceUpdateService))
+//	        .next(createCostUploadJobStep(feiPriceUpdateSettings, feiPriceUpdateService))
 	        .build();
 	  }
 	  
@@ -113,7 +110,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	        .<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000)
 	        .reader(allFilesReader())
 	        .faultTolerant()
-	        .processor(processor())
+	        .processor(processor(feiPriceUpdateService))
 	        .writer(feiPriceUpdateItemWriter(feiPriceUpdateService))
 	        .build();
 	  }

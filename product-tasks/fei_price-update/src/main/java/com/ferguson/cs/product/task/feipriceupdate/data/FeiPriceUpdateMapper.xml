@@ -3,13 +3,17 @@
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper">
 
-	<resultMap id="feiPriceUpdateDataMap" type="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+	<resultMap id="feiPriceUpdateDataMap" type="FeiPriceUpdateItem">
 		<result column="uniqueId" property="uniqueId"/>
 		<result column="mpid" property="mpid"/>
 		<result column="price" property="price"/>
 		<result column="priceRule" property="priceRule"/>
 		<result column="baseCategoryId" property="baseCategoryId"/>
 		<result column="manufacturerId" property="manufacturerId"/>
+		<result column="umrpId" property="umrpId"/>
+		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
+		<result column="pricebookId" property="pricebookId"/>
+		
 	</resultMap>
 
 	<select id="getTempFeiPriceUpdateData"  parameterType="java.lang.String" resultMap="feiPriceUpdateDataMap">
@@ -19,10 +23,29 @@
 			price,
 			priceRule,
 			baseCategoryId,
-			manufacturerId
-			
+			manufacturerId,
+			umrpId,
+			feiOwnedProductId,
+			pricebookId
 		FROM 
 		 	 tempData.dbo.${item.tempTableName}
+	</select>
+	
+	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
+		select 
+			p.uniqueId as uniqueId,
+			bc.base_category_id as baseCategoryId,
+			m.id as manufacturerId,
+			umrp.id as umrpId,
+			fei.productUniqueId as feiOwnedProductId
+		from
+			mmc.product.product p with(NOLOCK)
+			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
+			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
+			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
+			LEFT OUTER JOIN manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.id
+			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId		
+		WHERE p.uniqueId =#{uniqueId}
 	</select>
 	
 	<insert id="createTempTable" parameterType="java.lang.String">
@@ -33,12 +56,14 @@
 	        [price] [decimal](18,2),
 	        [priceRule] [varchar] (64),
 	        [baseCategoryId]  [int],
-	        [manufacturerId] [int]
-
+	        [manufacturerId] [int],
+	        [umrpId] [int],
+	        [feiOwnedProductId] [int],
+	        [pricebookId] [int]
 	  )
 	</insert>
 	
-	<insert id="insertTempPriceUpdateRecord" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
+	<insert id="insertTempPriceUpdateRecord" parameterType="FeiPriceUpdateItem">
 		INSERT INTO tempData.dbo.${item.tempTableName}
 		(
 			uniqueId,
@@ -46,48 +71,21 @@
 			price,
 			priceRule,
 			baseCategoryId,
-			manufacturerId
+			manufacturerId,
+			umrpId,
+			feiOwnedProductId,
+			pricebookId
 		) VALUES (
 			#{item.uniqueId},
 			#{item.mpid},
 			#{item.price},
-			#{item.pricebookId},
 			#{item.priceRule},
 			#{item.baseCategoryId},
-			#{manufacturerId}
+			#{item.manufacturerId},
+			#{item.umrpId},
+			#{item.feiOwnedProductId},
+			#{item.pricebookId}
 		)
-	</insert>
-	
-<insert id="insertTempFeiOnlyPriceUpdate" parameterType="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
-	
-			INSERT INTO tempData.dbo.${item.tempTableName}
-			(
-				uniqueId,
-				mpid,
-				price,
-				priceRule,
-				baseCategoryId,
-				manufacturerId
-			)
-			select t.uniqueId, t.mpid, t.price, t.priceRule, t.baseCategoryId, t.manufacturerId
-			from 
-			(
-				select #{item.uniqueId} as uniqueId, 
-				#{item.mpid} as mpid, 
-				#{item.price} as price, 
-				#{item.priceRule} as priceRule,
-				(select base_category_id from mmc.dbo.product_base_category where uniqueId =  #{item.uniqueId}) as baseCategoryId,
-				( select manufacturer.id manufacturerId
-					FROM mmc.product.product product
-		 			INNER JOIN mmc.product.family productFamily WITH(NOLOCK) ON product.familyId = productFamily.id
-		 			INNER JOIN mmc.dbo.manufacturer manufacturer WITH(NOLOCK) ON productFamily.manufacturerId = manufacturer.id
-					WHERE product.uniqueId = #{item.uniqueId}) as manufacturerId
-			) t
-			WHERE EXISTS 
-			(
-				select productUniqueId from tempData.dbo.temp_brian_test where productUniqueId = #{item.uniqueId}
-			)
-
 	</insert>
 	
 	<update id="dropTempTable" parameterType="java.lang.String">
@@ -129,6 +127,23 @@
 			#{cost},
 			#{isDelete}
 		)
+	</insert>
+	
+	<insert id="loadPriceBookCostUpdatesFromTempTable" parameterType="PricebookLoadCriteria" useGeneratedKeys="true" keyProperty="id">
+		insert into tempData.dbo.pricebookCostUpdates (
+			costUpdateJobId,
+			uniqueId,
+			pricebookId,
+			cost,
+			deletePricebookCost
+			)
+		select 
+			#{jobId},
+			uniqueId,
+			pricebookId,
+			price,
+			0 
+		FROM tempData.dbo.${tempTableName}
 	</insert>
 	
 </mapper>

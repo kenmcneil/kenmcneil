@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -11,6 +12,7 @@ import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceJobStatus;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceType;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookSync;
 
 @Service("feiPriceUpdateService")
@@ -39,11 +41,6 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 	}
 	
 	@Override
-	public void insertTempFeiOnlyPriceUpdate(String tempTableName, FeiPriceUpdateItem item) {
-		feiPriceUpdateDao.insertTempFeiOnlyPriceUpdate(tempTableName, item);
-	}
-	
-	@Override
 	public CostUpdateJob createCostUploadJob(String fileName, CostPriceType type, Date processOn, Integer userId) {
 		Assert.notNull(fileName, "Unable to create cost update job, file name is null.");
 		Assert.notNull(type, "Unable to create cost update job, Cost Price Type object is null.");
@@ -62,8 +59,19 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 		return costUpdateJob;
 	}
 	
+	@Override
 	public void insertPriceBookCostUpdates(PriceBookSync priceBookSync) {
 		feiPriceUpdateDao.insertPriceBookCostUpdates(priceBookSync);
+	}
+	
+	@Override
+	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item) {
+		return feiPriceUpdateDao.getPriceUpdateProductDetails(item);
+	}
+
+	@Override
+	public void loadPriceBookCostUpdatesFromTempTable(PriceBookLoadCriteria priceBookLoadCriteria) {
+		feiPriceUpdateDao.loadPriceBookCostUpdatesFromTempTable(priceBookLoadCriteria);
 	}
 		
 }

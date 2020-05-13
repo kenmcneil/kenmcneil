@@ -16,5 +16,6 @@ public class FeiPriceUpdateSettings {
 	private String temporaryFilePath;
 	private String inputFilePath;
 	private String tempTableName;
+	private Integer costUpdateJobUserid;
 	
 }
