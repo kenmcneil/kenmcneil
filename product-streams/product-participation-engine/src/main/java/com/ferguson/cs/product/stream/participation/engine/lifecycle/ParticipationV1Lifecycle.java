@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
@@ -86,13 +87,11 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	private static final String PERCENT_DISCOUNT_KEY = "percentDiscount";
 	private static final String PRICE_DISCOUNTS_KEY = "priceDiscounts";
 
-	public static final String CONTENT_TYPE = "participation@1";
-
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationDao participationDao;
 
-	public String getContentType() {
-		return CONTENT_TYPE;
+	public ParticipationContentType getContentType() {
+		return ParticipationContentType.PARTICIPATION_V1;
 	}
 
 	/**
@@ -199,7 +198,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		// participation since they will be deleted when unpublished.
 		int rowsAffected = participationDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
-		LOG.debug("{}: {} products with new participation owxnership", participationId, rowsAffected);
+		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
 		// update modified date on each product modified
 		rowsAffected = participationDao.updateProductModifiedDates(processingDate, userId);

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
@@ -30,7 +31,7 @@ public interface ParticipationLifecycle {
 	/**
 	 * Implementer must return the content type it handles.
 	 */
-	String getContentType();
+	ParticipationContentType getContentType();
 
 	/**
 	 * Publish the Participation record to SQL. The publish handler is fully responsible

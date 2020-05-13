@@ -485,7 +485,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
 				.build();
 
-		if ("participation@1".equals(fixture.getContentType())) {
+		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
@@ -527,8 +527,11 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			content = getContentTemplate("participationV1-content-no-discount.json");
 		}
 
-		// Set the required values in content.
-		content.put("_type", fixture.getContentType());
+		// Set the required values in content. It's ok to use only the major version, as in "participation@1"
+		// instead of "participation@1.0.0", since the minor and patch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
 

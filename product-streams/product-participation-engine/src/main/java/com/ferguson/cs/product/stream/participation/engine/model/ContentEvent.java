@@ -12,11 +12,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * This class represents an event relating to a content or Participation record.
- * Events are added to the contentEvent collection to form a log of events. User
- * actions in Construct such as Publish, and engine events such as "Activated" are
- * added to the log. Currently there is a tight coupling between the engine and construct
- * since both applications read and write to the Construct's database.
+ * This class represents an event relating to a content or Participation record,
+ * in Construct's MongoDB database. Events are added to the contentEvent collection
+ * to form a log of events. User actions in Construct such as Publish, and engine
+ * events such as "Activated" are added to the log. Currently there is a tight
+ * coupling between the engine and Construct because the engine directly queries
+ * Construct's database.
  */
 @Data
 @Builder

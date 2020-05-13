@@ -8,6 +8,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,22 +18,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * This acts as a bridge between the ParticipationItem data structure from Construct, and the set
- * of classes that represent the Participation data normalized in the SQL database:
+ * This bridges the ParticipationItem from Construct and the set of classes that
+ * represents the Participation data normalized in the SQL database:
  *   -  participationProduct
  *   -  participationCalculatedDiscount
  *   -  participationItemPartial
- * SQL tables that represent the record.
- * A ParticipationItem record may be defined in code
- * The Participation record is represented by this object
- * 	 * ParticipationItemFixture object to make it easy to create test fixture data.
+ * This class is used in tests to make it easy to create test fixture data.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParticipationItemFixture {
-
 	private Integer participationId;
 	private Date startDate;
 	private Date endDate;
@@ -47,7 +45,7 @@ public class ParticipationItemFixture {
 	 * Controls how the ParticipationItem.content map is created. The map will be created based on
 	 * the schema definition for the content type. Required unless simulatedPublish is true.
 	 */
-	private String contentType;
+	private ParticipationContentType contentType;
 
 	/**
 	 * Use in tests to have the start date be automatically set relative to the simulation start date.

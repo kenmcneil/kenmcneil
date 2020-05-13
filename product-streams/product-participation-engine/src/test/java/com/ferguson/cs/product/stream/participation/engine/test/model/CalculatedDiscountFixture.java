@@ -24,7 +24,7 @@ public class CalculatedDiscountFixture {
 
 	/**
 	 * Convert author-valued fixture to values ready to insert into SQL. The participationId
-	 * param may be null, if so it will be filled in before inserting into SQL.
+	 * param may be null; if so it will be filled in before inserting into SQL.
 	 */
 	public ParticipationCalculatedDiscount toParticipationCalculatedDiscount(Integer participationId) {
 		return new ParticipationCalculatedDiscount(

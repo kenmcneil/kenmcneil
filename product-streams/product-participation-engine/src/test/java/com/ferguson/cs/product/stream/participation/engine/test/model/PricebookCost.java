@@ -1,19 +1,18 @@
 package com.ferguson.cs.product.stream.participation.engine.test.model;
 
-import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * This represents a record in the mmc.dbo.Pricebook_Cost table.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PricebookCost implements Serializable {
-	private static final long serialVersionUID = 4L;
-
+public class PricebookCost {
 	private Integer uniqueId;
 	private Integer pricebookId;
 	private Double cost;

@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
@@ -34,11 +33,8 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 	@TestConfiguration
 	public static class BaseParticipationTestConfiguration {
 		@Bean
-		public ParticipationTestUtilities participationTestUtilities(
-				JdbcTemplate jdbcTemplate,
-				ParticipationEngineSettings participationEngineSettings
-		) {
-			return new ParticipationTestUtilities(jdbcTemplate, participationEngineSettings);
+		public ParticipationTestUtilities participationTestUtilities(JdbcTemplate jdbcTemplate) {
+			return new ParticipationTestUtilities(jdbcTemplate);
 		}
 
 		@Bean

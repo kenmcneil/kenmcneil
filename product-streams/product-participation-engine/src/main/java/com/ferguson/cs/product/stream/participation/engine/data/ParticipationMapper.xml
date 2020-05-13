@@ -189,7 +189,7 @@
 	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
 		-- Update the base price and sale date of pricebook prices that already exist in the table.
 		UPDATE
-		    lastOnSale
+			lastOnSale
 		SET
 			lastOnSale.basePrice = pbcost.basePrice
 			,lastOnSale.saleDate = #{processingDate}
@@ -270,8 +270,8 @@
 					discount.isPercent = 1,
 					COALESCE(las.basePrice, pbcost.basePrice) * discount.changeValue,
 					COALESCE(las.basePrice, pbcost.basePrice) + discount.changeValue
-			    ), 2, 1),
-		    pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
+				), 2, 1),
+			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
 			pbcost.participationId = discount.participationId,
 			pbcost.userId = #{userId}
 		FROM
@@ -338,7 +338,7 @@
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
-		    isActive = 0
+			isActive = 0
 			AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
 			AND (endDate > #{processingDate} OR endDate IS NULL)
 			<if test="minParticipationId != null">
@@ -349,12 +349,12 @@
 
 	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-		    participationId,
-		    saleId,
-		    startDate,
-		    endDate,
-		    lastModifiedUserId,
-		    isActive
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
@@ -389,7 +389,7 @@
 			)
 			BEGIN
 				UPDATE
-				    mmc.product.participationItemPartial
+					mmc.product.participationItemPartial
 				SET
 					saleId = #{saleId},
 					startDate = #{startDate, jdbcType=TIMESTAMP},
@@ -406,14 +406,16 @@
 					saleId,
 					startDate,
 					endDate,
-					lastModifiedUserId
+					lastModifiedUserId,
+					isActive
 				)
 				VALUES (
 					#{participationId},
 					#{saleId},
 					#{startDate, jdbcType=TIMESTAMP},
 					#{endDate, jdbcType=TIMESTAMP},
-					#{lastModifiedUserId}
+					#{lastModifiedUserId},
+					#{isActive}
 				);
 			END
 	</insert>
@@ -423,13 +425,14 @@
 		DECLARE @uniqueidList VARCHAR(MAX) = #{csvUniqueIds}
 
 		INSERT INTO mmc.product.participationProduct (
-		    participationId, uniqueId
+			participationId, uniqueId, isOwner
 		)
 		SELECT
 			@participationId as participationId,
-			value as uniqueId
+			value as uniqueId,
+			0
 		FROM
-		    string_split(@uniqueidList,',');
+			string_split(@uniqueidList,',');
 	</insert>
 
 	<insert id="insertParticipationCalculatedDiscounts">

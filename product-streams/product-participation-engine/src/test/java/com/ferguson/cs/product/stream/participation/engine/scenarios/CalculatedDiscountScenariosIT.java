@@ -3,7 +3,7 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
@@ -31,7 +31,7 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_basicCalculatedDiscountEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.contentType(ParticipationV1Lifecycle.CONTENT_TYPE)
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
 				.uniqueIds(100, 101)
 				.calculatedDiscounts(

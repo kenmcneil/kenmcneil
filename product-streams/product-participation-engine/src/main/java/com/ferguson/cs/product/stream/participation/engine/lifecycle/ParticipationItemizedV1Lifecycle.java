@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
@@ -29,13 +30,11 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle {
-	public static final String CONTENT_TYPE = "participation-itemized@1";
-
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationDao participationDao;
 
-	public String getContentType() {
-		return CONTENT_TYPE;
+	public ParticipationContentType getContentType() {
+		return ParticipationContentType.PARTICIPATION_ITEMIZED_V1;
 	}
 
 	@Override

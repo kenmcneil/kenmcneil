@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.stream.participation.engine.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document
-public class ParticipationItem {
+public class ParticipationItem implements Serializable {
+	private static final long serialVersionUID = 2L;
+
 	@Id
 	private Integer id;
 	private Integer sourceParticipationItemId;

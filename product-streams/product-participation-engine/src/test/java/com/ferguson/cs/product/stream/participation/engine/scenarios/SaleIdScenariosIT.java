@@ -3,7 +3,7 @@ package com.ferguson.cs.product.stream.participation.engine.scenarios;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
@@ -27,7 +27,7 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_basicSaleIdEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.contentType(ParticipationV1Lifecycle.CONTENT_TYPE)
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
 				.uniqueIds(100, 101)
 				.scheduleByDays(0, 1)
@@ -52,14 +52,14 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_overlappingSaleIdEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.contentType(ParticipationV1Lifecycle.CONTENT_TYPE)
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2000)
 				.uniqueIds(100, 101)
 				.scheduleByDays(0, 10)
 				.build();
 
 		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
-				.contentType(ParticipationV1Lifecycle.CONTENT_TYPE)
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2001)
 				.uniqueIds(101, 102)
 				.scheduleByDays(3, 6)

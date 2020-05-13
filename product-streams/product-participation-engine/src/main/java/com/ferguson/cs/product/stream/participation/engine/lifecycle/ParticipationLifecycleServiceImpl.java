@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ContentErrorMessage;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ValidationException;
@@ -23,15 +24,14 @@ import com.ferguson.cs.product.stream.participation.engine.model.ValidationExcep
  *
  * When adding a new Participation type to the engine, add its bean to the
  * ParticipationLifecycleService constructor in ParticipationEngineConfiguration.
- *
  */
 public class ParticipationLifecycleServiceImpl implements ParticipationLifecycleService {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationLifecycleServiceImpl.class);
 
 	private static final String CONTENT_TYPE_KEY = "_type";
-	private static final String defaultContentTypeNameWithMajorVersion = "participation@1";
+	private static final ParticipationContentType defaultContentType = ParticipationContentType.PARTICIPATION_V1;
 
-	private final Map<String, ParticipationLifecycle> lifecyclesByContentType;
+	private final Map<ParticipationContentType, ParticipationLifecycle> lifecyclesByContentType;
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationDao participationDao;
@@ -64,8 +64,18 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * adding its effect-specific records.
 	 */
 	public int publishByType(ParticipationItem item, Date processingDate) {
-		int rowsAffected = getLifecycleFor(getContentTypeNameWithMajorVersion(item)).publish(item, processingDate);
+		LOG.debug("==== publishing participation {} ====", item.getId());
+
+		// Get content enum type based on _type in the content. Must be a valid content type.
+		ParticipationContentType contentType = ParticipationContentType
+				.fromNameWithMajorVersion(getContentTypeNameWithMajorVersion(item));
+		if (contentType == null) {
+			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
+		}
+
+		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
+
 		return rowsAffected;
 	}
 
@@ -77,7 +87,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 */
 	public int activateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		ParticipationLifecycle activatingLifecycle = getLifecycleFor(itemPartial.getContentType());
+		ParticipationLifecycle activatingLifecycle = getLifecycle(itemPartial.getContentTypeId());
 
 		LOG.debug("==== activating participation {} ====", participationId);
 
@@ -107,7 +117,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 */
 	public int deactivateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		ParticipationLifecycle deactivatingLifecycle = getLifecycleFor(itemPartial.getContentType());
+		ParticipationLifecycle deactivatingLifecycle = getLifecycle(itemPartial.getContentTypeId());
 
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
@@ -136,7 +146,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * deleting effect-specific records it added when it published the Participation.
 	 */
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
-		int rowsAffected = getLifecycleFor(itemPartial.getContentType()).unpublish(itemPartial, processingDate);
+		int rowsAffected = getLifecycle(itemPartial.getContentTypeId()).unpublish(itemPartial, processingDate);
 		LOG.debug("{}: {} total rows deleted to unpublish participation", itemPartial.getParticipationId(), rowsAffected);
 		return rowsAffected;
 	}
@@ -180,16 +190,17 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 	/**
 	 * Get a lifecycle instance for the type of the given Participation. For compatibility
-	 * with the records already in SQL (currently published records), a null contentType
-	 * defaults to "participation@1".
+	 * with records with a null contentTypeId, value defaults to "participation@1". A validation
+	 * exception is thrown if no content type with that id exists, or if no lifecycle bean
+	 * for that content type was registered in lifecyclesByContentType.
 	 */
-	private ParticipationLifecycle getLifecycleFor(String contentTypeNameWithMajorVersion) {
-		String defaultedType = contentTypeNameWithMajorVersion == null
-				? defaultContentTypeNameWithMajorVersion
-				: contentTypeNameWithMajorVersion;
+	private ParticipationLifecycle getLifecycle(Integer contentTypeId) {
+		ParticipationContentType defaultedContentTypeId = contentTypeId == null
+				? defaultContentType
+				: ParticipationContentType.fromContentTypeId(contentTypeId);
 
-		if (lifecyclesByContentType.containsKey(defaultedType)) {
-			return lifecyclesByContentType.get(defaultedType);
+		if (lifecyclesByContentType.containsKey(defaultedContentTypeId)) {
+			return lifecyclesByContentType.get(defaultedContentTypeId);
 		}
 
 		throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());

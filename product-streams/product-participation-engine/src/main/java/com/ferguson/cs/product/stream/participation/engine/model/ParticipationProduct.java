@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * This represents one row from the participationProduct table.
+ * This represents one row from the mmc.product.participationProduct table.
+ * The primary key [id] is intentionally omitted since it is never referenced,
+ * and to avoid confusing it with the participationId.
  */
 @Data
 @Builder

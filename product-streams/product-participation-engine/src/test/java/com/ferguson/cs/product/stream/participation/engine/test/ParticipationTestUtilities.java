@@ -23,7 +23,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
@@ -34,20 +33,6 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSal
 
 public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
-	public static final int TEST_USERID_2 = 2345;
-	public static final int SEED_SALEID = -820;
-	public static final int WINNING_SALEID = -810;
-	public static final int SEED_UNIQUEID = 820000;
-	public static final int SEED_PARTICIPATION_ID = -82;
-	public static final int WINNING_PARTICIPATION_ID = -81;
-	public static final int PB22_ID = 22;
-	public static final int PB1_ID = 1;
-	public static final double PB22_20PERCENT_DISCOUNT_OFFSET = 0.80;
-	public static final double PB1_10PERCENT_DISCOUNT_OFFSET = 0.90;
-	public static final int PB22_AMOUNT_DISCOUNT_20 = -20;
-	public static final int PB1_AMOUNT_DISCOUNT_10 = -10;
-	public static final double PB22_SEED_BASEPRICE = 100.00;
-	public static final double PB1_SEED_BASEPRICE = 110.00;
 
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
 			"INSERT INTO mmc.product.participationItemPartial " +
@@ -69,7 +54,7 @@ public class ParticipationTestUtilities {
 					"VALUES (?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE_TYPE =
-			"INSERT INTO mmc.product.participationCalculatedDiscountTemplateType     " +
+			"INSERT INTO mmc.product.participationCalculatedDiscountTemplateType " +
 					"(templateType) " +
 					"VALUES (?)";
 
@@ -121,10 +106,6 @@ public class ParticipationTestUtilities {
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 
-	public static final String SELECT_PRICEBOOK_COST_BY_PARTICIPATIONID_UNIQUEID_PRICEBOOKID_USERID =
-			"SELECT Cost FROM mmc.dbo.PriceBook_Cost " +
-					"WHERE participationId = ? AND UniqueId = ? AND PriceBookId = ? AND userId = ? ";
-
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
 			"SELECT cost, basePrice, userId, participationId " +
 					"FROM mmc.dbo.PriceBook_Cost " +
@@ -139,30 +120,6 @@ public class ParticipationTestUtilities {
 
 	public static final String UPDATE_LATEST_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
 			"UPDATE mmc.product.latestBasePrice SET basePrice = ? WHERE uniqueId = ? AND pricebookId = ?";
-
-	private static final String MANUAL_DELETE_PARTICIPATIONPRODUCT_BY_NEGATIVE_PARTICIPATIONID =
-			"DELETE FROM mmc.product.participationProduct " +
-					"WHERE participationId < 0";
-
-	private static final String MANUAL_DELETE_PARTICIPATIONPRODUCT_BY_TESTIDS =
-			"DELETE FROM mmc.product.participationProduct " +
-					"WHERE uniqueId IN (" + SEED_UNIQUEID + ", " + SEED_UNIQUEID + 100 + ")";
-
-	private static final String MANUAL_DELETE_PARTIAL_BY_TEST_PARTICIPATIONID =
-			"DELETE FROM mmc.product.participationItemPartial " +
-					"WHERE participationId < 0";
-
-	private static final String MANUAL_OFFSALE_UPDATE =
-			"UPDATE mmc.product.sale SET saleId = 0 " +
-					"WHERE saleId < 0";
-
-	private static final String MANUAL_DELETE_CALCULATED_DISCOUNT_BY_TEST_PARTICIPATIONID =
-			"DELETE FROM mmc.product.participationCalculatedDiscount " +
-					"WHERE participationId < 0";
-
-	private static final String MANUAL_DELETE_PRICEBOOK_COST_BY_TEST_PARTICIPATIONID =
-			"DELETE FROM mmc.dbo.PriceBook_Cost " +
-					"WHERE participationId < 0";
 
 	// modified from https://stackoverflow.com/a/16390624/9488171
 	private static <T> ResultSetExtractor<T> singletonExtractor(RowMapper<? extends T> mapper) {
@@ -182,14 +139,12 @@ public class ParticipationTestUtilities {
 	}
 
 	private final JdbcTemplate jdbcTemplate;
-	private final ParticipationEngineSettings participationEngineSettings;
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	private int nextTestParticipationId;
 
-	public ParticipationTestUtilities(JdbcTemplate jdbcTemplate, ParticipationEngineSettings participationEngineSettings) {
+	public ParticipationTestUtilities(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
-		this.participationEngineSettings = participationEngineSettings;
 		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
 	}
 
