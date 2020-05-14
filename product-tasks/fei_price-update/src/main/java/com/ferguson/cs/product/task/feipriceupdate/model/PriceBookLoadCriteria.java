@@ -13,5 +13,5 @@ public class PriceBookLoadCriteria implements Serializable {
 	
 	private Integer jobId;
 	private String tempTableName;
-
+	private Boolean deleteCost;
 }

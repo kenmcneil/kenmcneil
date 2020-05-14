@@ -1,30 +1,16 @@
 package com.ferguson.cs.product.task.feipriceupdate.data;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ParameterizedPreparedStatementSetter;
 import org.springframework.util.Assert;
 
-import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceJobStatus;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
-import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookSync;
-import com.ferguson.cs.product.task.feipriceupdate.model.ProductSyncJob;
+
 
 public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
-	
+
 	private FeiPriceUpdateMapper feiPriceUpdateMapper;
-	
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
-	
+
 	public FeiPriceUpdateDaoImpl(FeiPriceUpdateMapper feiPriceUpdateMapper) {
 		this.feiPriceUpdateMapper = feiPriceUpdateMapper;
 	}
@@ -37,37 +23,53 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 	public void dropTempTable(String tempTableName) {
 		Assert.notNull(tempTableName);
 		feiPriceUpdateMapper.dropTempTable(tempTableName);
-		
+
 	}
 
 	@Override
-	public void insertTempPriceUpdateRecord(String tempTableName, FeiPriceUpdateItem item) {
-		feiPriceUpdateMapper.insertTempPriceUpdateRecord(tempTableName, item);
-		
+	public void insertTempPriceUpdateRecord(FeiPriceUpdateItem item) {
+		feiPriceUpdateMapper.insertTempPriceUpdateRecord(item);
+
 	}
-	
-	@Override
-	public void insertCostUpdateJob(CostUpdateJob costUpdateJob) {
-		Assert.notNull(costUpdateJob, "Unable to insert cost update job, cost price update object is null.");
-		Assert.notNull(costUpdateJob.getStatus(), "Unable to insert cost update job, cost update Status is null.");
-		Assert.notNull(costUpdateJob.getProcessOn(), "Unable to insert cost update job, cost update Process On is null.");
-		feiPriceUpdateMapper.insertCostUpdateJob(costUpdateJob);
-	}
-	
-	@Override
-	public void insertPriceBookCostUpdates(PriceBookSync priceBookSync) {
-		feiPriceUpdateMapper.insertPriceBookCostUpdates(priceBookSync);
-	}
-	
+
 	@Override
 	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item) {
 		return feiPriceUpdateMapper.getPriceUpdateProductDetails(item);
 	}
 
 	@Override
-	public void loadPriceBookCostUpdatesFromTempTable(PriceBookLoadCriteria priceBookLoadCriteria) {
-		feiPriceUpdateMapper.loadPriceBookCostUpdatesFromTempTable(priceBookLoadCriteria);
+	public Integer loadPriceBookCostUpdatesFromTempTable(PriceBookLoadCriteria priceBookLoadCriteria) {
+		return feiPriceUpdateMapper.loadPriceBookCostUpdatesFromTempTable(priceBookLoadCriteria);
 	}
 
-}
+	@Override
+	public void executePriceBookCostUpdater(Integer costUpdateJobId) {
+		Assert.notNull(costUpdateJobId, "Unable to execute PriceBook Cost Update Job due to null costUpdateJobId.");
+		feiPriceUpdateMapper.executePricebookUpdater(costUpdateJobId);
+	}
 
+	@Override
+	public void insertCostUpdateJob(CostUpdateJob costUpdateJob) {
+		Assert.notNull(costUpdateJob, "Unable to insert cost update job, cost price update object is null.");
+		Assert.notNull(costUpdateJob.getStatus(), "Unable to insert cost update job, cost update Status is null.");
+		Assert.notNull(costUpdateJob.getProcessOn(),
+				"Unable to insert cost update job, cost update Process On is null.");
+		feiPriceUpdateMapper.insertCostUpdateJob(costUpdateJob);
+	}
+
+	@Override
+	public void updateCostUpdateJob(CostUpdateJob costUpdateJob) {
+		Assert.notNull(costUpdateJob, "Unable to update cost update job, cost price update object is null.");
+		Assert.notNull(costUpdateJob.getId(), "Unable to update cost update job, costUpdateJobId is null.");
+		Assert.notNull(costUpdateJob.getStatus(), "Unable to update cost update job, cost update Status is null.");
+		Assert.notNull(costUpdateJob.getProcessOn(),
+				"Unable to update cost update job, cost update Process On is null.");
+		feiPriceUpdateMapper.updateCostUpdateJob(costUpdateJob);
+	}
+
+	@Override
+	public CostUpdateJob getCostUpdateJob(Integer costUpdateJobId) {
+		Assert.notNull(costUpdateJobId, "Unable to retrieve cost update job due to null costUpdateJobId.");
+		return feiPriceUpdateMapper.getCostUpdateJob(costUpdateJobId);
+	}
+}

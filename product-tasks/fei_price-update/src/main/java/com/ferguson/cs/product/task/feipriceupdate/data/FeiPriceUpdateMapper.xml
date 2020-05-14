@@ -12,24 +12,8 @@
 		<result column="manufacturerId" property="manufacturerId"/>
 		<result column="umrpId" property="umrpId"/>
 		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
-		<result column="pricebookId" property="pricebookId"/>
-		
+		<result column="pricebookId" property="pricebookId"/>		
 	</resultMap>
-
-	<select id="getTempFeiPriceUpdateData"  parameterType="java.lang.String" resultMap="feiPriceUpdateDataMap">
-		SELECT 
-			uniqueId,
-			mpid,
-			price,
-			priceRule,
-			baseCategoryId,
-			manufacturerId,
-			umrpId,
-			feiOwnedProductId,
-			pricebookId
-		FROM 
-		 	 tempData.dbo.${item.tempTableName}
-	</select>
 	
 	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
 		select 
@@ -52,39 +36,21 @@
 	  CREATE TABLE [tempData].[dbo].[${_parameter}]
 	  (
 	        [uniqueId] [int],
-	       	[mpid] [int],
 	        [price] [decimal](18,2),
-	        [priceRule] [varchar] (64),
-	        [baseCategoryId]  [int],
-	        [manufacturerId] [int],
-	        [umrpId] [int],
-	        [feiOwnedProductId] [int],
 	        [pricebookId] [int]
 	  )
 	</insert>
 	
 	<insert id="insertTempPriceUpdateRecord" parameterType="FeiPriceUpdateItem">
-		INSERT INTO tempData.dbo.${item.tempTableName}
+		INSERT INTO tempData.dbo.${tempTableName}
 		(
 			uniqueId,
-			mpid,
 			price,
-			priceRule,
-			baseCategoryId,
-			manufacturerId,
-			umrpId,
-			feiOwnedProductId,
 			pricebookId
 		) VALUES (
-			#{item.uniqueId},
-			#{item.mpid},
-			#{item.price},
-			#{item.priceRule},
-			#{item.baseCategoryId},
-			#{item.manufacturerId},
-			#{item.umrpId},
-			#{item.feiOwnedProductId},
-			#{item.pricebookId}
+			#{uniqueId},
+			#{price},
+			#{pricebookId}
 		)
 	</insert>
 	
@@ -111,24 +77,7 @@
 		)
 	</insert>
 	
-	<insert id="insertPriceBookCostUpdates" parameterType="PriceBookSync" useGeneratedKeys="true" keyProperty="id">
-		INSERT INTO tempData.dbo.pricebookCostUpdates(
-			costUpdateJobId,
-			uniqueId,
-			listPrice,
-			priceBookId,
-			cost,
-			deletePricebookCost
-		) VALUES (
-			#{jobId},
-			#{uniqueId},
-			#{listPrice},
-			#{priceBookId},
-			#{cost},
-			#{isDelete}
-		)
-	</insert>
-	
+	<!-- Insert temp table price update records into pricebookCostUpdates table in preparation for job execution -->
 	<insert id="loadPriceBookCostUpdatesFromTempTable" parameterType="PricebookLoadCriteria" useGeneratedKeys="true" keyProperty="id">
 		insert into tempData.dbo.pricebookCostUpdates (
 			costUpdateJobId,
@@ -142,8 +91,48 @@
 			uniqueId,
 			pricebookId,
 			price,
-			0 
+			#{deleteCost} 
 		FROM tempData.dbo.${tempTableName}
 	</insert>
+	
+	<select id="executePricebookUpdater" parameterType="int">
+		exec mmc.dbo.dsp_pricebookCostUpdater @job = #{costUpdateJobId}
+	</select>
+	
+	<update id="updateCostUpdateJob" parameterType="CostUpdateJob">
+		UPDATE tempData.dbo.costUpdateJob
+		<set>
+			status = #{status},
+			processOn = #{processOn}
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<resultMap id="CostUpdateJobMap" type="CostUpdateJob">
+		<id column="id"  property="id" />
+		<result column="processType" property="processType" />
+		<result column="jobName" property="jobName" />
+		<result column="userId" property="userId" /> 
+		<result column="createdOn" property="createdOn" />
+		<result column="processOn" property="processOn" />
+		<result column="status" property="status" />
+	</resultMap>
+	
+	<select id="getCostUpdateJob" parameterType="int" resultMap="CostUpdateJobMap">
+		SELECT
+			cuj.id,
+			cuj.processType,
+			cuj.jobName,
+			cuj.userId,
+			cuj.createdOn,
+			cuj.processOn,
+			cuj.status
+		FROM 
+			tempData.dbo.costUpdateJob cuj WITH (nolock)
+		WHERE 
+			cuj.id = #{costUpdateJobId}
+	</select>
 	
 </mapper>
