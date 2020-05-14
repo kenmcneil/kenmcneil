@@ -70,7 +70,7 @@ This lifecycyle test may be used to verify behavior with various start and end d
 * Start date, no end date
 * Start date, end date
 
-Note that validation in specific Participation types may prevent some combinations, e.g. end date is required.
+Validation in specific Participation types may prevent some combinations, e.g. end date is now required on all Participations.
 
 === Tests for Effects
 

@@ -8,6 +8,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -19,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.mockito.Mockito;
@@ -30,24 +32,29 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
-import com.ferguson.cs.product.stream.participation.engine.ParticipationService;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSchedule;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicLifecycleTestStrategy;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectLifecycleTestStrategy;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingLifecycleTestStrategy;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationProduct;
-import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationScenarioLifecycleTestStrategy;
 
 /**
  * Subclass this to create scenarios that test expected behavior at various points
@@ -63,18 +70,31 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public BasicLifecycleTestStrategy activationDeactivationLifecycleTest() {
-			return new BasicLifecycleTestStrategy();
+		public BasicTestLifecycle activationDeactivationLifecycleTest (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new BasicTestLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SchedulingLifecycleTestStrategy schedulingLifecycleTest() {
-			return new SchedulingLifecycleTestStrategy();
+		public SchedulingTestLifecycle schedulingLifecycleTest (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new SchedulingTestLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTest() {
-			return new SaleIdEffectLifecycleTestStrategy();
+		public SaleIdEffectTestLifecycle saleIdEffectLifecycleTest (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new SaleIdEffectTestLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public CalculatedDiscountsTestLifecycle calculatedDiscountsTestLifecycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new CalculatedDiscountsTestLifecycle(participationTestUtilities);
 		}
 	}
 
@@ -100,7 +120,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	protected ConstructService constructService;
 
 	@SpyBean
-	protected ParticipationService participationService;
+	protected ParticipationLifecycleService participationLifecycleService;
 
 	@SpyBean
 	protected ParticipationWriter participationWriter;
@@ -108,23 +128,16 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@SpyBean
 	protected ParticipationProcessor participationProcessor;
 
-	@Autowired
-	protected BasicLifecycleTestStrategy basicLifecycleTestStrategy;
-
-	@Autowired
-	protected SchedulingLifecycleTestStrategy schedulingLifecycleTestStrategy;
-
-	@Autowired
-	protected SaleIdEffectLifecycleTestStrategy saleIdEffectLifecycleTestStrategy;
+	// For converting a ParticipationItemFixture to a ParticipationItem
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
-	protected List<ParticipationScenarioLifecycleTestStrategy> lifecycleTests;
+	protected List<ParticipationTestLifecycle> lifecycleTests;
 	protected Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	protected Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
-
-	private int nextTestParticipationId;
+	protected Queue<ParticipationItem> pendingPublishParticipationQueue = new LinkedList<>();
 
 	private boolean ranBeforeAll = false;
 
@@ -132,7 +145,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	public void before() {
 		super.before();
 
-		// Perform before-all initialization. Where are you junit 5?
+		// Perform before-all initialization.
 		if (!ranBeforeAll) {
 			setupMocks();
 			ranBeforeAll = true;
@@ -143,73 +156,68 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		currentSimulatedDate = originalSimulatedDate;
 
 		// Start the participation ids used for text fixtures at the test-mode min id.
-		nextTestParticipationId = participationEngineSettings.getTestModeMinParticipationId();
+		participationTestUtilities.setInitialParticipationId(
+				participationEngineSettings.getTestModeMinParticipationId());
 	}
 
-	public ParticipationScenarioITBase useTestStrategies(ParticipationScenarioLifecycleTestStrategy... params) {
+	public void testLifecycles(ParticipationTestLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
-		return this;
 	}
 
-	public ParticipationScenarioITBase startOn(Date simulatedRunDate) {
+	public void startOn(Date simulatedRunDate) {
 		originalSimulatedDate = simulatedRunDate;
 		currentSimulatedDate = simulatedRunDate;
-		return this;
 	}
 
-	public ParticipationScenarioITBase advanceToDay(int dayNumber) {
+	public void advanceToDay(int dayNumber) {
 		Date futureDate = new Date(originalSimulatedDate.getTime() + TimeUnit.DAYS.toMillis(dayNumber));
 		Assertions.assertThat(futureDate).isAfterOrEqualsTo(currentSimulatedDate);
 		processEventsUpTo(futureDate);
-		return this;
-	}
-
-	/**
-	 * Returns a new test participation fixture id.
-	 */
-	private int getNextTestParticipationId() {
-		return nextTestParticipationId++;
 	}
 
 	/**
 	 * Keep track of fixtures used so they may be accessed by lifecycle tests for verification.
-	 * Also ensure critical values are set or defaulted, e.g. participationId and lastModifiedUserId.
+	 * Ensure critical values are set or defaulted, e.g. participationId and lastModifiedUserId.
+	 * Assert that this participation has not been added yet.
 	 */
 	public void initAndRememberFixture(ParticipationItemFixture fixture) {
-		if (fixture.getParticipationId() == null) {
-			fixture.setParticipationId(getNextTestParticipationId());
-		}
-
-		Assertions.assertThat(fixture.getParticipationId()).isGreaterThanOrEqualTo(
-				participationEngineSettings.getTestModeMinParticipationId());
-
-		if (fixture.getLastModifiedUserId() == null) {
-			fixture.setLastModifiedUserId(ParticipationTestUtilities.TEST_USERID);
-		}
-
-		fixtures.putIfAbsent(fixture.getParticipationId(), fixture);
+		participationTestUtilities.validateAndSetDefaults(fixture);
+		Assertions.assertThat(fixtures.containsKey(fixture.getParticipationId())).isFalse();
+		fixtures.put(fixture.getParticipationId(), fixture);
 	}
 
 	/**
-	 * Publish the given Participation record. The Participation record is represented
-	 * by a ParticipationItemFixture object to make it easy to create test fixture data.
+	 * Publish the fixture "manually"; insert fixture data directly to SQL. Inserts
+	 * the base Participation record into the participationItemPartial table, and
+	 * insert any other data added to the fixture such as uniqueIds. Simulating the
+	 * publish event makes it possible to create scenario tests without making
+	 * a complete specific type of Participation, to allow testing base, non-effect,
+	 * engine behavior.
 	 */
-	public ParticipationScenarioITBase createUserPublishEvent(ParticipationItemFixture fixture) {
+	public void manualPublish(ParticipationItemFixture fixture) {
 		initAndRememberFixture(fixture);
 		simulatePublishEvent(fixture);
-		return this;
+	}
+
+	/**
+	 * Simulate a user publish event; create a ParticipationItem with content and all
+	 * needed properties and add it to the simulated publish queue where it will be
+	 * consumed by getNextPendingPublishParticipation.
+	 */
+	public void createUserPublishEvent(ParticipationItemFixture fixture) {
+		initAndRememberFixture(fixture);
+		pendingPublishParticipationQueue.add(fixtureToParticipationItem(fixture));
 	}
 
 	/**
 	 * Simulate a user unpublish event. Adds to list of records that will be returned by
 	 * constructService.getNextPendingUnpublishParticipation.
 	 */
-	public ParticipationScenarioITBase createUserUnpublishEvent(ParticipationItemFixture fixture) {
+	public void createUserUnpublishEvent(ParticipationItemFixture fixture) {
 		ParticipationItem p = new ParticipationItem();
 		p.setId(fixture.getParticipationId());
 		p.setLastModifiedUserId(fixture.getLastModifiedUserId());
 		pendingUnpublishParticipationQueue.add(p);
-		return this;
 	}
 
 	/**
@@ -217,9 +225,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 * Use when either time advancing is not important, or events need to be processed again before
 	 * advancing time.
 	 */
-	public ParticipationScenarioITBase processEvents() {
+	public void processEvents() {
 		processEventsAtCurrentSimulatedDate();
-		return this;
 	}
 
 	/*
@@ -246,13 +253,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	public void verifySimpleLifecycleLog(ParticipationItemFixture... fixtures) {
 		Arrays.stream(fixtures).forEach(fixture ->
 				Assertions.assertThat(fixture.getStateLog())
-					.as(fixture.toString())
-					.containsExactly(
-					LifecycleState.PUBLISHED,
-					LifecycleState.ACTIVATED,
-					LifecycleState.DEACTIVATED,
-					LifecycleState.UNPUBLISHED
-			)
+						.as(fixture.toString())
+						.containsExactly(
+								LifecycleState.PUBLISHED,
+								LifecycleState.ACTIVATED,
+								LifecycleState.DEACTIVATED,
+								LifecycleState.UNPUBLISHED
+						)
 		);
 	}
 
@@ -265,11 +272,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	public void verifyParticipationOwnsExactly(ParticipationItemFixture fixture, Integer... expectedUniqueIds) {
-		List<Integer> ownedUniqueIds = participationTestUtilities
-				.getParticipationProducts(fixture.getParticipationId()).stream()
-				.filter(ParticipationProduct::getIsOwner)
-				.map(ParticipationProduct::getUniqueId)
-				.collect(Collectors.toList());
+		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedUniqueIds));
 	}
 
@@ -281,7 +284,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	private void setupMocks() {
 		Integer minParticipationId = participationEngineSettings.getTestModeMinParticipationId();
 
-		// Replace polling the database with polling the scenarios's test queue.
+		// Replace polling the mongodb database with polling the scenarios's test queues.
+		doAnswer(invocation -> pendingPublishParticipationQueue.poll())
+				.when(constructService)
+				.getNextPendingPublishParticipation(minParticipationId);
 		doAnswer(invocation -> pendingUnpublishParticipationQueue.poll())
 				.when(constructService)
 				.getNextPendingUnpublishParticipation(minParticipationId);
@@ -289,9 +295,23 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();
 
-		// After participationWriter processActivation, processDeactivation, or processUnpublish
+		// After participationWriter processPublish, processActivation, processDeactivation, or processUnpublish
 		// methods are called, check that the "processed" event was created (really a mongo call to set
-		// the ParticipationItem status).
+		// the ParticipationItem statuses).
+		doAnswer(invocation -> {
+			invocation.callRealMethod();
+			verify(constructService, times(1)).updateParticipationItemStatus(
+					anyInt(),
+					eq(ParticipationItemStatus.PUBLISHED),
+					eq(ParticipationItemUpdateStatus.NEEDS_UPDATE),
+					any(Date.class));
+
+			// Prep for next time it's called.
+			Mockito.clearInvocations(constructService);
+
+			return null;
+		}).when(participationWriter).processPublish(any(ParticipationItem.class), any(Date.class));
+
 		doAnswer(invocation -> {
 			invocation.callRealMethod();
 			verify(constructService, times(1)).updateParticipationItemStatus(
@@ -334,13 +354,21 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			return null;
 		}).when(participationWriter).processUnpublish(any(ParticipationItemPartial.class), any(Date.class));
 
+		// Set up before and after calls for when a PUBLISH event is processed.
+		doAnswer(invocation -> {
+			beforePublish(invocation.getArgument(0), invocation.getArgument(1));
+			invocation.callRealMethod();
+			afterPublish(invocation.getArgument(0), invocation.getArgument(1));
+			return null;
+		}).when(participationLifecycleService).publishByType(any(ParticipationItem.class), any(Date.class));
+
 		// Set up before and after calls for when an ACTIVATE event is processed.
 		doAnswer(invocation -> {
 			beforeActivate(invocation.getArgument(0), invocation.getArgument(1));
 			invocation.callRealMethod();
 			afterActivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).activateParticipation(any(ParticipationItemPartial.class), any(Date.class));
+		}).when(participationLifecycleService).activateByType(any(ParticipationItemPartial.class), any(Date.class));
 
 		// Set up before and after calls for when an DEACTIVATE event is processed.
 		doAnswer(invocation -> {
@@ -348,7 +376,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			invocation.callRealMethod();
 			afterDeactivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).deactivateParticipation(any(ParticipationItemPartial.class), any(Date.class));
+		}).when(participationLifecycleService).deactivateByType(any(ParticipationItemPartial.class), any(Date.class));
 
 		// Set up before and after calls for when an UNPUBLISH event is processed.
 		doAnswer(invocation -> {
@@ -356,7 +384,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			invocation.callRealMethod();
 			afterUnpublish(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
-		}).when(participationService).unpublishParticipation(any(ParticipationItemPartial.class), any(Date.class));
+		}).when(participationLifecycleService).unpublishByType(any(ParticipationItemPartial.class), any(Date.class));
 	}
 
 	/**
@@ -388,79 +416,175 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	private void processEventsAtCurrentSimulatedDate() {
 		participationProcessor.process();
 
-		// Verify that all pending unpublish events were processed.
+		// Verify that all pending publish and unpublish events were processed.
+		Assertions.assertThat(pendingPublishParticipationQueue.size()).isEqualTo(0);
 		Assertions.assertThat(pendingUnpublishParticipationQueue.size()).isEqualTo(0);
 	}
 
+	private Date dateOffsetByDaysAtStartOfDay(Date from, int days) {
+		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.systemDefault()))
+				.plusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant());
+	}
+
+	private Date dateOffsetByDaysAtEndOfDay(Date from, int days) {
+		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.systemDefault()))
+				.plusDays(days + 1).atStartOfDay(ZoneId.systemDefault())
+				.minus(1, ChronoUnit.MINUTES).toInstant());
+	}
+
 	/**
-	 * Insert a participation record (same effect as a publish event). Since records are
-	 * inserted to SQL currently as part of the user publish action, simply inserting the record
-	 * here is all that's needed to simulate the publish event (i.e. no queue involved).
+	 * Converts the fixture into a ParticipationItem as if it were just published in Construct.
 	 * Converts day offsets to actual dates if offsets were used.
 	 */
 	private void simulatePublishEvent(ParticipationItemFixture fixture) {
-		// If day offsets were used, convert to actual dates based on the current run date.
+		// If day offsets were used, convert to actual dates offset from the current run date.
 		if (fixture.getStartDateOffsetDays() != null) {
-			// Set start date to the beginning of the day.
-			fixture.setStartDate(Date.from(
-					LocalDate
-							.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
-							.plusDays(fixture.getStartDateOffsetDays())
-							.atStartOfDay(ZoneId.systemDefault())
-							.toInstant()));
+			fixture.setStartDate(dateOffsetByDaysAtStartOfDay(currentSimulatedDate, fixture.getStartDateOffsetDays()));
 		}
-
 		if (fixture.getEndDateOffsetDays() != null) {
-			// Set end date to the end of the day.
-			fixture.setEndDate(Date.from(
-					LocalDate
-							.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
-							.plusDays(fixture.getEndDateOffsetDays() + 1)
-							.atStartOfDay(ZoneId.systemDefault())
-							.minus(1, ChronoUnit.MINUTES)
-							.toInstant()));
+			fixture.setEndDate(dateOffsetByDaysAtEndOfDay(currentSimulatedDate, fixture.getEndDateOffsetDays()));
 		}
 
-		beforePublish(fixture, currentSimulatedDate);
+		ParticipationItem item = ParticipationItem.builder()
+				.id(fixture.getParticipationId())
+				.saleId(fixture.getSaleId())
+				.description(fixture.toString())
+				.schedule(new ParticipationItemSchedule(fixture.getStartDate(), fixture.getEndDate()))
+				.status(ParticipationItemStatus.PUBLISHED)
+				.lastModifiedUserId(fixture.getLastModifiedUserId())
+				.lastModifiedDate(currentSimulatedDate)
+				.updateStatus(ParticipationItemUpdateStatus.NEEDS_UPDATE)
+				.build();
+
+		beforePublish(item, currentSimulatedDate);
 		participationTestUtilities.insertParticipationFixture(fixture);
-		afterPublish(fixture, currentSimulatedDate);
+		afterPublish(item, currentSimulatedDate);
 	}
 
-	private void beforePublish(ParticipationItemFixture fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforePublish(fixture, processingDate));
+	/**
+	 * Converts the fixture into a ParticipationItem as if it were just published in Construct.
+	 * Converts day offsets to actual dates if offsets were used.
+	 */
+	private ParticipationItem fixtureToParticipationItem(ParticipationItemFixture fixture) {
+		// If day offsets were used, convert to actual dates offset from the current run date.
+		if (fixture.getStartDateOffsetDays() != null) {
+			fixture.setStartDate(dateOffsetByDaysAtStartOfDay(currentSimulatedDate, fixture.getStartDateOffsetDays()));
+		}
+		if (fixture.getEndDateOffsetDays() != null) {
+			fixture.setEndDate(dateOffsetByDaysAtEndOfDay(currentSimulatedDate, fixture.getEndDateOffsetDays()));
+		}
+
+		ParticipationItem item = ParticipationItem.builder()
+				.id(fixture.getParticipationId())
+				.saleId(fixture.getSaleId())
+				.description(fixture.toString())
+				.schedule(new ParticipationItemSchedule(fixture.getStartDate(), fixture.getEndDate()))
+				.status(ParticipationItemStatus.PUBLISHED)
+				.lastModifiedUserId(fixture.getLastModifiedUserId())
+				.lastModifiedDate(currentSimulatedDate)
+				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
+				.build();
+
+		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			// check requirements of this type of participation
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+
+			// set the content object
+			item.setContent(getParticipationV1Content(fixture));
+		} else {
+			Assertions.fail("Unknown content type in %s", fixture.toString());
+		}
+
+		return item;
 	}
 
-	private void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
+	private ObjectNode atPath(ObjectNode obj, String format, String... parts) {
+		return (ObjectNode)obj.at(String.format(format, (Object[])parts));
+	}
+
+	/**
+	 * Build the content map for the given fixture, as if it came from Construct.
+	 */
+	private Map<String, Object> getParticipationV1Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		// Calculated discount values are optional. Load the matching template and fill in any
+		// discounts.
+		List<CalculatedDiscountFixture> discounts = fixture.getCalculatedDiscountFixtures();
+		if (!CollectionUtils.isEmpty(discounts)) {
+			CalculatedDiscountFixture discount1 = discounts.get(0);
+			CalculatedDiscountFixture discount22 = discounts.get(0);
+			content = discount1.getIsPercent()
+					? getContentTemplate("participationV1-content-percent-discount.json")
+					: getContentTemplate("participationV1-content-amount-discount.json");
+			String discountTypeFieldName = discount1.getIsPercent() ? "percentDiscount" : "amountDiscount";
+			String pathToDiscount = "/priceDiscounts/calculatedDiscount/" + discountTypeFieldName + "/%s";
+			atPath(content, pathToDiscount, "template").put("selected", discount1.getTemplateId());
+			atPath(content, pathToDiscount, "pricebookId1").put("text", discount1.getDiscountAmount().toString());
+			atPath(content, pathToDiscount, "pricebookId22").put("text", discount22.getDiscountAmount().toString());
+		} else {
+			content = getContentTemplate("participationV1-content-no-discount.json");
+		}
+
+		// Set the required values in content. It's ok to use only the major version, as in "participation@1"
+		// instead of "participation@1.0.0", since the minor and patch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	private ObjectNode getContentTemplate(String templateFilename) {
+		String path = "src/test/resources/" + templateFilename;
+		try {
+			FileInputStream fis = new FileInputStream(path);
+			String contentTemplate = IOUtils.toString(fis, StandardCharsets.UTF_8);
+			return (ObjectNode)mapper.readTree(contentTemplate);
+		} catch (Exception e) {
+			throw new AssertionError("Error loading and deserializing content template file " + path, e);
+		}
+	}
+
+	private void beforePublish(ParticipationItem item, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforePublish(fixtures.get(item.getId()), processingDate));
+	}
+
+	private void afterPublish(ParticipationItem item, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(item.getId());
 		lifecycleTests.forEach(test -> test.afterPublish(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.PUBLISHED);
 	}
 
-	private void beforeActivate(ParticipationItemPartial fixture, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(fixture.getParticipationId()), processingDate));
+	private void beforeActivate(ParticipationItemPartial itemPartial, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeActivate(fixtures.get(itemPartial.getParticipationId()), processingDate));
 	}
 
-	private void afterActivate(ParticipationItemPartial item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
+	private void afterActivate(ParticipationItemPartial itemPartial, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(itemPartial.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterActivate(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.ACTIVATED);
 	}
 
-	private void beforeDeactivate(ParticipationItemPartial item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(item.getParticipationId()), processingDate));
+	private void beforeDeactivate(ParticipationItemPartial itemPartial, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeDeactivate(fixtures.get(itemPartial.getParticipationId()), processingDate));
 	}
 
-	private void afterDeactivate(ParticipationItemPartial item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
+	private void afterDeactivate(ParticipationItemPartial itemPartial, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(itemPartial.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterDeactivate(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.DEACTIVATED);
 	}
 
-	private void beforeUnpublish(ParticipationItemPartial item, Date processingDate) {
-		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(item.getParticipationId()), processingDate));
+	private void beforeUnpublish(ParticipationItemPartial itemPartial, Date processingDate) {
+		lifecycleTests.forEach(test -> test.beforeUnpublish(fixtures.get(itemPartial.getParticipationId()), processingDate));
 	}
 
-	private void afterUnpublish(ParticipationItemPartial item, Date processingDate) {
-		ParticipationItemFixture fixture = fixtures.get(item.getParticipationId());
+	private void afterUnpublish(ParticipationItemPartial itemPartial, Date processingDate) {
+		ParticipationItemFixture fixture = fixtures.get(itemPartial.getParticipationId());
 		lifecycleTests.forEach(test -> test.afterUnpublish(fixture, processingDate));
 		fixture.getStateLog().add(LifecycleState.UNPUBLISHED);
 	}

@@ -5,14 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * This represents a record in the mmc.dbo.Pricebook_Cost table.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParticipationCalculatedDiscount {
-	private Integer id;
+public class PricebookCost {
+	private Integer uniqueId;
 	private Integer pricebookId;
-	private Double changeValue;
-	private Boolean isPercent;
-	private Integer templateId;
+	private Double cost;
+	private Float multiplier;
+	private Double basePrice;
+	private Integer userId;
+	private Integer participationId;
 }

@@ -109,7 +109,7 @@ Publish the test Participation records created in the last step.
 
 [source,shell script]
 ----
-./publish-participation-fixtures.sh 3
+./publish-participation-fixtures.sh 50000 3
 ----
 
 .Publish Script

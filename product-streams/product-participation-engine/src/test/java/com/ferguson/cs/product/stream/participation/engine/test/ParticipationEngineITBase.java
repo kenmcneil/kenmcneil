@@ -16,24 +16,27 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
-@Transactional("coreTransactionManager")
+@Transactional
 public abstract class ParticipationEngineITBase extends BaseTest {
 	@Resource
 	SqlSessionFactory sqlSessionFactory;
-
-	@Autowired
-	public JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	public ParticipationTestUtilities participationTestUtilities;
 
 	@TestConfiguration
 	public static class BaseParticipationTestConfiguration {
+		@Bean
+		public ParticipationTestUtilities participationTestUtilities(JdbcTemplate jdbcTemplate) {
+			return new ParticipationTestUtilities(jdbcTemplate);
+		}
+
 		@Bean
 		public BeanFactoryPostProcessor lazyBeanPostProcessor() {
 			return new LazyInitBeanFactoryPostProcessor();
@@ -51,5 +54,13 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 	public void disableLocalCache() {
 		Configuration config = sqlSessionFactory.getConfiguration();
 		config.setLocalCacheScope(LocalCacheScope.STATEMENT);
+	}
+
+	public CalculatedDiscountFixture percentCalculatedDiscount(int pricebookId, int percentDiscount) {
+		return new CalculatedDiscountFixture(pricebookId, percentDiscount, true, null);
+	}
+
+	public CalculatedDiscountFixture amountCalculatedDiscount(int pricebookId, int amountDiscount) {
+		return new CalculatedDiscountFixture(pricebookId, amountDiscount, false, null);
 	}
 }

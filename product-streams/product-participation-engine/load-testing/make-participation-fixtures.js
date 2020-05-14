@@ -1,7 +1,7 @@
 // make-participation-fixtures.js
 // usage: mongo mongodb-dev-1.build.internal:27017/core make-participation-fixtures.js
 
-var numberOfFixturesToCreate = 100;
+var numberOfFixturesToCreate = 10;
 var logFixtures = false;
 
 var minParticipationId = 50000;
@@ -14,7 +14,7 @@ var defaultUserId = 2524; // jason conkey
 
 var seed = 1;
 function random() {
-	var x = Math.sin(seed++) * 10000;
+	let x = Math.sin(seed++) * 10000;
 	return x - Math.floor(x);
 }
 
@@ -27,6 +27,25 @@ var validSaleIds = [
 function getRandomSaleId() {
 	return validSaleIds[Math.floor(random() * validSaleIds.length)];
 }
+
+// the initial range of unique ids in the product table have large contiguous regions until about 410k
+const validUniqueIdRanges = [
+	[1, 198419],
+	[198421, 392079],
+	[399709, 410228]
+];
+function makeUniqueIdsArray() {
+	const ids = [];
+	validUniqueIdRanges.forEach(range => {
+		const startId = range[0];
+		const endId = range[1];
+		for (let i = startId; i <= endId; i++) {
+			ids.push(i);
+		}
+	});
+	return ids;
+}
+var testUniqueIds = makeUniqueIdsArray();
 
 function shuffle(array) {
 	var currentIndex = array.length;
@@ -45,17 +64,9 @@ function shuffle(array) {
 	}
 }
 
-function makeUniqueIdsArray(minUniqueId, maxUniqueId) {
-	const ids = [];
-	for (var i = minUniqueId; i <= maxUniqueId; i++) {
-		ids.push(i);
-	}
-	return ids;
-}
-
 function makeRandomUniqueIds(count) {
-	shuffle(allUniqueIds);
-	return allUniqueIds.slice(0, count);
+	shuffle(testUniqueIds);
+	return testUniqueIds.slice(0, count);
 }
 
 function makeFixture(id, startDate, endDate, saleId, uniqueIds) {
@@ -74,7 +85,6 @@ function makeFixture(id, startDate, endDate, saleId, uniqueIds) {
 		"lastModifiedUserId" : NumberInt(defaultUserId),
 		"lastModifiedDate" : new Date(),
 		"deletedProductUniqueIds" : [],
-		"updateStatus" : "NEEDS_UPDATE",
 		"content" : {
 			"_type" : "participation@1.1.0",
 			"productSale" : {
@@ -152,10 +162,8 @@ function makeFixture(id, startDate, endDate, saleId, uniqueIds) {
 	return fixture;
 }
 
-var allUniqueIds = makeUniqueIdsArray(1, 1000000);
-
-
-print(`Removing all ParticipationItem records with id >= ${minParticipationId}.`);
+print(`Removing all Participation records with id >= ${minParticipationId}.`);
+db.contentEvent.remove({ participationItem: {$exists: true}, 'participationItem._id': { $gte: minParticipationId } });
 db.participationItem.remove({ _id: { $gte: minParticipationId } });
 
 print(`Inserting ${numberOfFixturesToCreate} ParticipationItem fixtures...`);
