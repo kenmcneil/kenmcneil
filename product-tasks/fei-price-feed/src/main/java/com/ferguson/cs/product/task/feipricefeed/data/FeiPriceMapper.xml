@@ -11,37 +11,32 @@
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT product.uniqueId, pricebook.cost price, vendorMap.MPN mpn, manufacturer.name brand, status.status
-		FROM mmc.product.product product
-		INNER JOIN mmc.product.status status
-		ON product.statusId = status.id
-		INNER JOIN mmc.product.family family
-		ON product.familyId = family.id
-		INNER JOIN mmc.product.containerType containerType
-		ON family.containerTypeId = containerType.id
-		INNER JOIN mmc.product.finish finish
-		ON product.finishId = finish.id
-		INNER JOIN mmc.dbo.Manufacturer manufacturer
-		ON family.manufacturerId = manufacturer.ID
-		INNER JOIN omc.dbo.Vendor_Mapping vendorMap
-		ON 'Ferguson' = vendorMap.Vendor
-		AND vendorMap.MPN IS NOT NULL
-		AND vendorMap.MPN != ''
-		AND family.productId = vendorMap.ProductID
-		AND finish.finish = vendorMap.Finish
-		AND manufacturer.Name = vendorMap.Manufacturer
-		INNER JOIN mmc.dbo.PriceBook_Cost pricebook
-		ON product.uniqueId = pricebook.UniqueId
-		LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
-		ON product.uniqueId = pricingFeiOwned.productUniqueId
-		WHERE pricebook.PriceBookId = 1
-		AND status.status IN ('stock','nonstock')
-		AND containerType.type = 'Product'
-		AND pricingFeiOwned.productUniqueId IS NULL
+		SELECT product.uniqueId, pricebook.cost price, MPID.mpid mpn, manufacturer.name brand, status.status
+        FROM mmc.product.product product
+        INNER JOIN mmc.product.status status
+        ON product.statusId = status.id
+        INNER JOIN mmc.product.family family
+        ON product.familyId = family.id
+        INNER JOIN mmc.product.containerType containerType
+        ON family.containerTypeId = containerType.id
+        INNER JOIN mmc.product.finish finish
+        ON product.finishId = finish.id
+        INNER JOIN mmc.dbo.Manufacturer manufacturer
+        ON family.manufacturerId = manufacturer.ID
+        INNER JOIN mmc.product.feiMPID as MPID
+        ON product.uniqueid = MPID.uniqueid
+        INNER JOIN mmc.dbo.PriceBook_Cost pricebook
+        ON product.uniqueId = pricebook.UniqueId
+        LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
+        ON product.uniqueId = pricingFeiOwned.productUniqueId
+        WHERE pricebook.PriceBookId = 1
+        AND status.status IN ('stock','nonstock')
+        AND containerType.type = 'Product'
+        AND pricingFeiOwned.productUniqueId IS NULL
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT pricebook.Cost price, vendorMap.MPN mpn, manufacturer.name brand, status.status
+		SELECT DISTINCT pricebook.Cost price, MPID.mpid mpn, manufacturer.name brand, status.status
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -53,13 +48,8 @@
 		ON product.finishId = finish.id
 		INNER JOIN mmc.dbo.Manufacturer manufacturer
 		ON family.manufacturerId = manufacturer.ID
-		INNER JOIN omc.dbo.Vendor_Mapping vendorMap
-		ON 'Ferguson' = vendorMap.Vendor
-		AND vendorMap.MPN IS NOT NULL
-		AND vendorMap.MPN != ''
-		AND family.productId = vendorMap.ProductID
-		AND finish.finish = vendorMap.Finish
-		AND manufacturer.Name = vendorMap.Manufacturer
+		INNER JOIN mmc.product.feiMPID as MPID
+		ON product.uniqueid = MPID.uniqueid
 		INNER JOIN mmc.dbo.PriceBook_Cost_Log pricebookCostLog
 		ON product.uniqueId = pricebookCostLog.UniqueId
 		INNER JOIN mmc.dbo.PriceBook_Cost pricebook

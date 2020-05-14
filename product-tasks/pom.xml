@@ -17,6 +17,12 @@
 		<module>fei-price-feed</module>
 		<module>fei-price-update</module>
 	</modules>
+	<parent>
+		<groupId>com.ferguson.cs.product</groupId>
+		<artifactId>product-services</artifactId>
+		<version>1.0.77-SNAPSHOT</version>
+	</parent>
+
 	<artifactId>product-tasks</artifactId>
 	<packaging>pom</packaging>
 	<name>product-tasks</name> 
