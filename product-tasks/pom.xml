@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
-		<version>1.0.76-SNAPSHOT</version>
+		<version>1.0.76</version>
 	</parent>
 
 	<artifactId>product-tasks</artifactId>
