@@ -19,16 +19,14 @@ import org.springframework.context.annotation.Primary;
 public class FeiPriceUpdateConfiguration {
 
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.feipriceupdate.model";
-	protected static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data";
+	private static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipriceupdate.data";
 
-	public FeiPriceUpdateConfiguration() {
-	}
 
-	@MapperScan(basePackages = FeiPriceUpdateConfiguration.BASE_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "sqlSessionFactory")
+	@MapperScan(basePackages = BASE_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "sqlSessionFactory")
 	@Configuration
 	protected static class DataSourceConfiguration {
 		// --------------------------------------------------------------------------------------------------
-		// Setup the reporter data source and then wire up a mybatis sql map. We have to
+		// Setup the core data source and then wire up a mybatis sql map. We have to
 		// alias the data source
 		// so that the task batch auto configuration works properly.
 		// --------------------------------------------------------------------------------------------------
@@ -48,7 +46,7 @@ public class FeiPriceUpdateConfiguration {
 
 		@Bean
 		@Primary
-		public SqlSessionFactory reporterSqlSessionFactory(
+		public SqlSessionFactory sqlSessionFactory(
 				@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(dataSource());
