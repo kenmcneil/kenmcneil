@@ -9,8 +9,15 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 public interface ConstructService {
 
 	/**
+	 * Query for and return a participation that is pending publish. Return null if none found.
+	 * Optionally restrict to records with id >= minParticipationId (for test mode).
+	 * This is a user-initiated event.
+	 */
+	ParticipationItem getNextPendingPublishParticipation(Integer minParticipationId);
+
+	/**
 	 * Query for and return a participation that is pending unpublish. Return null if none found.
-	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 * Optionally restrict to records with id >= minParticipationId (for test mode).
 	 * This is a user-initiated event.
 	 */
 	ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId);

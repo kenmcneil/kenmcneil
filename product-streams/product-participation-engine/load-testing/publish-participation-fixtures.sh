@@ -6,8 +6,8 @@ SERVICES_HOST=localhost:8080
 
 USER_ID=2524 # jason
 
-START_ID=50000
-COUNT=$1
+START_ID=$1
+COUNT=$2
 
 for (( id = START_ID; id < START_ID+COUNT; id++ ))
 do

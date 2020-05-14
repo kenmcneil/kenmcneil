@@ -229,7 +229,7 @@ public class FeiPriceTaskConfiguration {
 
 	private FlatFileItemWriter<FeiPriceData> feiPriceDataWriter(String location) {
 		FieldExtractor<FeiPriceData> fieldExtractor = new FeiPriceDataFieldExtractor(location);
-		String fileName = "temp" + location + UUID.randomUUID().toString().substring(0, 8) + ".csv";
+		String fileName = "temp" + location.replace("*","") + UUID.randomUUID().toString().substring(0, 8) + ".csv";
 		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").fieldExtractor(fieldExtractor).name(StringUtils.capitalize(location) + "PriceDataWriter")
 				.resource(new FileSystemResource(feiPriceSettings.getTemporaryFilePath() + fileName)).build();
 	}
