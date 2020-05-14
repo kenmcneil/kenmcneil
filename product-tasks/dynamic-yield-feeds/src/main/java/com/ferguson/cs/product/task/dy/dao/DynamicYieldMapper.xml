@@ -37,6 +37,8 @@
 		<result column="california_drought_compliant" property="californiaDroughtCompliant" />
 		<result column="site_ids" property="siteIds" />
 		<result column="encodedCategories" property="encodedCategories" />
+		<result column="hasPricedOptions" property="hasPricedOptions" />
+		<result column="hasRecommendedOptions" property="hasRecommendedOptions" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -140,7 +142,19 @@
 				WHERE p.status = 'stock'
 				AND c.active ='y' AND c.metaIndex = 0
 				AND cp.productid = f.productid and cp.manufacturer = m.name
-			) encodedCategories
+			) encodedCategories,
+			CASE WHEN EXISTS (
+				SELECT TOP 1 po.pricedOptionId
+				FROM mmc.dbo.product_pricedoptions po WITH (NOLOCK)
+				WHERE po.productid = f.productId AND po.manufacturer = m.name
+			) THEN 1 ELSE 0 END hasPricedOptions,
+				CASE WHEN EXISTS (
+				SELECT TOP 1 ro.UID
+				FROM mmc.dbo.recommendedOptions ro WITH (NOLOCK)
+				INNER JOIN mmc.dbo.product p WITH (NOLOCK) ON p.productId = ro.optionValue
+				AND p.manufacturer = ro.optionManufacturer
+				WHERE ro.productid = f.productId AND ro.manufacturer = m.name
+			) THEN 1 ELSE 0 END hasRecommendedOptions
 		FROM mmc.product.product p (NOLOCK)
 		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
 		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
