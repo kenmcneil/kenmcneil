@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.task.feipriceupdate.batch;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
