@@ -94,7 +94,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	
 	/*
 	 * Step 1
-	 * Create the temp DB table Step
+	 * Create the temporary DB table Step
 	 */
 	@Bean
 	public Step createTempTableStep(FeiPriceUpdateSettings feiPriceUpdateSettings,
