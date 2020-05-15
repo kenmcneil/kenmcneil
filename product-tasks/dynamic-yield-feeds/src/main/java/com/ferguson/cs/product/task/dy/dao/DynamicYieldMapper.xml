@@ -48,7 +48,14 @@
 		product.uniqueId,
 		family.id as familyId,
 		mfg.name as manufacturer,
-		family.productId as productId
+		family.productId as productId,
+		finish.finish,
+		siteIds.siteIds,
+		status.status,
+		tah.typeApplicationHandletypeId,
+		tah.type,
+		tah.application,
+		tah.handletype
 		into #productKey
 		from mmc.product.product as product
 		inner join mmc.product.family as family on
@@ -57,11 +64,83 @@
 		mfg.id = family.manufacturerId
 		inner join mmc.product.status as status on
 		status.id = product.statusId
+		inner join mmc.product.finish as finish on
+		finish.id = product.finishId
+		inner join (
+		select onStore.familyId, string_Agg(store.siteId, ',') as siteIds
+		from mmc.product.onStore as onStore
+		inner join mmc.dbo.store as store on
+		store.storeId = onStore.storeId
+		where store.storeId IN
+		<foreach item="storeId" index="0" collection="storeIds"
+				 open="(" separator="," close=")">
+			#{storeId}
+		</foreach>
+		group by onStore.familyId
+		) as siteIds on
+		siteIds.familyId = family.id
+		inner join mmc.product.vw_typeApplicationHandletype as tah on
+		tah.typeApplicationHandletypeId = family.typeApplicationHandletypeId
 		where
-		status.status in ('stock','nonstock', 'discontinued')
+		status.status IN ('stock', 'nonstock', 'discontinued')
+		AND mfg.name NOT IN
+		<foreach item="brand" index="0" collection="excludedBrands" open="(" separator="," close=")">
+			#{brand}
+		</foreach>
 
 		create unique clustered index cix_productKey_uniqueid on
 		#productKey(uniqueid)
+
+		drop table if exists #productInfo;
+		with product as (
+		select
+		p.uniqueId
+		, fa.productid
+		, fa.id [familyId]
+		, sr.series
+		, im.image
+		, sk.sku as SKU
+		, up.upc as UPC
+		, tm.theme as Theme
+		, tl.title [ProductTitle]
+		from mmc.product.family fa
+		inner join mmc.product.product p
+		on p.familyId = fa.id
+		inner join mmc.product.title tl
+		on tl.id = fa.titleId
+		left join mmc.product.upcSku us
+		on us.uniqueid = p.uniqueid
+		left join mmc.product.upc up
+		on us.upcId = up.id
+		left join mmc.product.sku sk
+		on us.skuId = sk.id
+		left join mmc.product.series sr
+		on fa.seriesId = sr.id
+		left join mmc.product.productTheme ptm
+		on ptm.uniqueid = p.uniqueid
+		left join mmc.product.theme tm
+		on tm.id = ptm.themeId
+		left join mmc.product.image im
+		on p.imageId = im.id
+		)
+		select
+		productKey.uniqueId,
+		product.series,
+		product.sku,
+		product.upc,
+		product.image,
+		product.ProductTitle,
+		product.theme
+
+		into #productInfo
+		from product
+		inner join #productKey as productKey on
+		productkey.uniqueId = product.uniqueId
+
+		create unique clustered index cix_productInfo_uniqueId on
+		#productInfo(uniqueId)
+
+
 
 		drop table if exists #familyKey
 		select distinct
@@ -106,97 +185,113 @@
 		from #categoryProduct
 		group by familyId
 
-		SELECT p.uniqueid sku, f.id group_id, TRIM(t.title) [name],
-			pbc.cost price, s.status [status], i.image,
-			f.productid model, m.name manufacturer,
-			series.series series, tm.theme theme, pao.optionvalue genre,
-			pfinish.finish finish, r.rating rating,
-			ty.type [type], ap.application [application],
-			ht.handletype handletype,
-			( SELECT TOP 1 pmf.MasterFinish FROM mmc.dbo.product_MasterFinish pmf (NOLOCK) WHERE ProductFinish = pfinish.finish ) masterfinish,
-			attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
-			attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
-			attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
-			attr.Configuration [configuration], sites.siteIds site_ids,
-		    bcat.base_category base_category, bc.name business_category, ci.category encodedCategories,
-			IIF(EXISTS(
-				SELECT psr.id
-			   	FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
-				INNER JOIN mmc.dbo.product_sale_restriction_policy psrp (NOLOCK)
-					ON psrp.id = psr.restrictionPolicyId
-				WHERE psr.productid_manufacturer_id = f.id
-				AND psr.restrictionPolicyId IN
-				    <foreach item="restrictionPolicyId" index="0" collection="restrictionPolicies"
-							 open="(" separator="," close=")">
-						#{restrictionPolicyId}
-					</foreach>
-			), 0, 1) california_drought_compliant,
-			(
-				SELECT STRING_AGG(CAST(c.siteId AS varchar(max)
-				) + ':' + c.categoryname, '|') categoryNames
-				FROM mmc.dbo.product p
-				INNER JOIN mmc.dbo.category_products cp on p.productid = cp.productID and p.manufacturer = cp.manufacturer
-				INNER JOIN mmc.dbo.prd_categoryv2 c ON c.categoryid = cp.CategoryID AND cp.siteid = c.siteID
-				WHERE p.status = 'stock'
-				AND c.active ='y' AND c.metaIndex = 0
-				AND cp.productid = f.productid and cp.manufacturer = m.name
-			) encodedCategories
-		FROM mmc.product.product p (NOLOCK)
-		INNER JOIN mmc.product.family f (NOLOCK) ON p.familyId = f.id
-		INNER JOIN mmc.dbo.manufacturer m (NOLOCK) ON f.manufacturerid = m.id
-		INNER JOIN mmc.product.[status] s (NOLOCK) ON p.statusId = s.id
-		INNER JOIN mmc.product.finish pfinish (NOLOCK) ON p.finishId = pfinish.id
-		INNER JOIN mmc.product.[image] i (NOLOCK) ON p.imageid = i.id
-		INNER JOIN mmc.product.title t (NOLOCK) ON t.id = f.titleId
-		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
-		INNER JOIN mmc.product.typeApplicationHandletype tah (NOLOCK) ON tah.id = f.typeApplicationHandletypeId
-		INNER JOIN mmc.product.typeApplication ta (NOLOCK) ON ta.id = tah.typeApplicationId
-		INNER JOIN mmc.product.[type] ty (NOLOCK) ON ty.id = ta.typeId
-		INNER JOIN mmc.product.[application] ap (NOLOCK) ON ap.id = ta.applicationId
-		LEFT OUTER JOIN #categoryInfo ci ON ci.familyid = f.id
-		LEFT OUTER JOIN mmc.product.series series (NOLOCK) ON f.seriesId = series.id
-		LEFT OUTER JOIN mmc.product.handletype ht (NOLOCK) ON ht.id = tah.handletypeId
-		LEFT OUTER JOIN mmc.dbo.product_ratings r (NOLOCK) ON f.id = r.product_composite_id
-		LEFT OUTER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = f.id AND pao.attribute_id = 5875
-		LEFT OUTER JOIN mmc.product.productTheme ptm (NOLOCK) ON ptm.uniqueid = p.uniqueid
-		LEFT OUTER JOIN mmc.product.theme tm (NOLOCK) ON tm.id = ptm.themeId
-		LEFT OUTER JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
-		LEFT OUTER JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
-		LEFT OUTER JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
-		LEFT OUTER JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
-		LEFT OUTER JOIN (
-			SELECT * FROM (
-				SELECT pa.name, pao.productid_manufacturer_id familyId, pao.optionValue
-				FROM mmc.dbo.product_attr pa (NOLOCK)
-					INNER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pa.attribute_id = pao.attribute_id
-				WHERE [name] IN (
-					'Mounting Type', 'Installation Type', 'Number of Basins', 'Nominal Length', 'Nominal Width',
-					'Number of Lights', 'Chandelier Type', 'Pendant Type', 'Fan Type', 'Fuel Type', 'Configuration'
-				)
-			) attributes_inner
-				PIVOT (
-					max(optionValue)
-					FOR [name] IN (
-						[Mounting Type], [Installation Type], [Number of Basins], [Nominal Length], [Nominal Width],
-						[Number of Lights], [Chandelier Type], [Pendant Type], [Fan Type], [Fuel Type], [Configuration]
-				)
-			) AS attributes_pivot
-		) attr ON attr.familyId = f.id
-		INNER JOIN (
-			SELECT store.familyId, STRING_AGG(sto.siteId,',') siteIds
-			FROM mmc.product.onStore store
-					 INNER JOIN mmc.dbo.store sto ON sto.storeId = store.storeId
-			WHERE store.storeId IN
-				<foreach item="storeId" index="0" collection="storeIds"
-						 open="(" separator="," close=")">
-					#{storeId}
-				</foreach>
-			GROUP BY store.familyId
-		) sites ON f.id = sites.familyId
-		WHERE s.status IN ('stock', 'nonstock', 'discontinued') AND pbc.pricebookid = 1
-		AND m.name NOT IN
-		<foreach item="brand" index="0" collection="excludedBrands" open="(" separator="," close=")">
-			#{brand}
+		create unique clustered index cix_categoryInfo_familyId on
+		#categoryInfo(familyId)
+
+		DROP TABLE IF EXISTS #productRestrictions
+		SELECT DISTINCT family.familyId, 1 california_drought_compliant
+		INTO #productRestrictions
+		FROM mmc.dbo.product_sale_restriction psr (NOLOCK)
+		INNER JOIN mmc.dbo.product_sale_restriction_policy psrp (NOLOCK)
+		ON psrp.id = psr.restrictionPolicyId
+		inner join #familyKey as family on
+		family.familyId = psr.productid_manufacturer_id
+		WHERE psr.restrictionPolicyId IN
+		<foreach item="restrictionPolicyId" index="0" collection="restrictionPolicies"
+				 open="(" separator="," close=")">
+			#{restrictionPolicyId}
 		</foreach>
+
+		create unique clustered index cix_productRestrictions_familyId on
+		#productRestrictions(familyId)
+
+		DROP TABLE IF EXISTS #productAttributes
+		SELECT *
+		INTO #productAttributes FROM (
+		SELECT pa.name, pao.productid_manufacturer_id familyId, pao.optionValue
+		FROM mmc.dbo.product_attr pa (NOLOCK)
+		INNER JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pa.attribute_id = pao.attribute_id
+		INNER JOIN #familyKey family ON pao.productid_manufacturer_id = family.familyId
+		WHERE [name] IN (
+		'Mounting Type', 'Installation Type', 'Number of Basins', 'Nominal Length', 'Nominal Width',
+		'Number of Lights', 'Chandelier Type', 'Pendant Type', 'Fan Type', 'Fuel Type', 'Configuration'
+		)
+		) attributes_inner
+		PIVOT (
+		max(optionValue)
+		FOR [name] IN (
+		[Mounting Type], [Installation Type], [Number of Basins], [Nominal Length], [Nominal Width],
+		[Number of Lights], [Chandelier Type], [Pendant Type], [Fan Type], [Fuel Type], [Configuration]
+		)
+		) AS attributes_pivot
+
+		create unique clustered index cix_productAttributes_familyId on
+		#productAttributes(familyId)
+
+		-- ========================
+		-- Master Finish
+		-- ========================
+		drop table if exists #masterFinish
+		select product.uniqueId uniqueId, max(masterFinish.masterFinish) as masterFinish
+		into #masterFinish
+		from #productKey AS product
+		left join mmc.dbo.product_masterFinish AS masterFinish on
+		product.finish = masterFinish.ProductFinish
+		group by product.uniqueId
+		order by product.uniqueId
+
+		create unique clustered index cix_masterFinish_uniqueId on
+		#masterFinish(uniqueId)
+
+		drop table if exists #pricedOptions
+		SELECT family.familyId, max(po.pricedOptionId) pricedOptionId
+		INTO #pricedOptions
+		FROM mmc.dbo.product_pricedoptions po WITH (NOLOCK)
+		INNER JOIN #familyKey family ON po.productid = family.productid AND po.manufacturer = family.manufacturer
+		GROUP BY family.familyId
+
+		create unique clustered index cix_pricedOptions_familyId on
+		#pricedOptions(familyId)
+
+		drop table if exists #recommendedOptions
+		SELECT family.familyId, max(ro.uid) recOptionId
+		INTO #recommendedOptions
+		FROM mmc.dbo.recommendedOptions ro WITH (NOLOCK)
+		INNER JOIN #familyKey family WITH (NOLOCK) ON family.productId = ro.optionValue
+		AND family.manufacturer = ro.optionManufacturer
+		GROUP BY family.familyID
+
+		create unique clustered index cix_recommendedOptions_familyId on
+		#recommendedOptions(familyId)
+
+		SELECT top 10 count(p.uniqueid) OVER () [count], p.uniqueid sku, p.familyId group_id, TRIM(productInfo.productTitle) [name],
+		pbc.cost price, p.status [status], productInfo.image,
+		p.productid model, p.manufacturer manufacturer,
+		productInfo.series series, productInfo.theme theme, pao.optionvalue genre,
+		p.finish finish, r.rating rating,
+		p.type [type], p.application [application],
+		p.handletype handletype, mf.masterFinish,
+		attr.[Mounting Type] mounting_type, attr.[Installation Type] installation_type, attr.[Number of Basins] number_of_basins,
+		attr.[Nominal Length] nominal_length, attr.[Nominal Width] nominal_width, attr.[Number of Lights] number_of_lights,
+		attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
+		attr.Configuration [configuration], p.siteIds site_ids, isNull(pr.california_drought_compliant, 0) california_drought_compliant,
+		bcat.base_category base_category, bc.name business_category, ci.category encodedCategories,
+		CASE WHEN COALESCE(popt.pricedOptionId, ropt.recOptionId) IS NULL THEN 0 ELSE 1 END configurableProduct
+		FROM #productKey p (NOLOCK)
+		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
+		LEFT JOIN #categoryInfo ci ON ci.familyid = p.familyId
+		LEFT JOIN #productRestrictions pr ON pr.familyId = p.familyId
+		LEFT JOIN #productAttributes attr ON attr.familyId = p.familyId
+		LEFT JOIN #masterFinish mf ON mf.uniqueId = p.uniqueid
+		LEFT JOIN #productInfo as productInfo on productInfo.uniqueId = p.uniqueId
+		LEFT JOIN #pricedOptions popt ON p.familyId = popt.familyId
+		LEFT JOIN #recommendedOptions ropt ON p.familyId = ropt.familyId
+		LEFT JOIN mmc.dbo.product_ratings r (NOLOCK) ON p.familyId = r.product_composite_id
+		LEFT JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = p.familyId AND pao.attribute_id = 5875
+		LEFT JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
+		LEFT JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
+		LEFT JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
+		LEFT JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
+		WHERE pbc.pricebookid = 1
 	</select>
 </mapper>
