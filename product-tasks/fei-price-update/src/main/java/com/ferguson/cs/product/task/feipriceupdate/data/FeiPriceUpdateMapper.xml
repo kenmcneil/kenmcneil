@@ -7,7 +7,6 @@
 		<result column="uniqueId" property="uniqueId"/>
 		<result column="mpid" property="mpid"/>
 		<result column="price" property="price"/>
-		<result column="priceRule" property="priceRule"/>
 		<result column="baseCategoryId" property="baseCategoryId"/>
 		<result column="manufacturerId" property="manufacturerId"/>
 		<result column="umrpId" property="umrpId"/>

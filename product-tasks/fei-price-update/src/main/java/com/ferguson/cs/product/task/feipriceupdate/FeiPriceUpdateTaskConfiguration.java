@@ -32,6 +32,7 @@ import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateDaoImpl;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
 @Configuration
@@ -39,11 +40,15 @@ public class FeiPriceUpdateTaskConfiguration {
 
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
+	private final NotificationService notificationService;
 
-	public FeiPriceUpdateTaskConfiguration(TaskBatchJobFactory taskBatchJobFactory,
-			FeiPriceUpdateSettings feiPriceUpdateSettings) {
+	public FeiPriceUpdateTaskConfiguration(
+			TaskBatchJobFactory taskBatchJobFactory,
+			FeiPriceUpdateSettings feiPriceUpdateSettings,
+			NotificationService notificationService) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
+		this.notificationService = notificationService;
 	}
 
 	@Bean
@@ -55,7 +60,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
 		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
 		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer(DelimitedLineTokenizer.DELIMITER_COMMA);
-		lineTokenizer.setNames("uniqueId", "price", "priceRule", "mpid");
+		lineTokenizer.setNames("mpid", "uniqueId", "price");
 		BeanWrapperFieldSetMapper<FeiPriceUpdateItem> mapper = new BeanWrapperFieldSetMapper<>();
 		mapper.setTargetType(FeiPriceUpdateItem.class);
 		lineMapper.setLineTokenizer(lineTokenizer);
@@ -90,7 +95,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	public FeiInputFileExistsDecider inputFileExistsDecider() {
 		return new FeiInputFileExistsDecider();
 	}
-	
+
 	/*
 	 * Step 1
 	 * Create the temporary DB table Step
@@ -155,7 +160,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	public FlatFileItemReader<FeiPriceUpdateItem> feiPriceUpdateItemReader() {
 		FlatFileItemReader<FeiPriceUpdateItem> reader = new FlatFileItemReader<>();
 		reader.setLineMapper(feiPriceUpdateItemLineMapper());
-		reader.setLinesToSkip(1);
+		reader.setLinesToSkip(0);
 		return reader;
 	}
 
@@ -180,7 +185,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update 
+	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
 	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
 	 */
 	@Bean
@@ -197,7 +202,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	@StepScope
 	public FeiCreatePriceUpdateTempTableTasklet feiPriceUpdateTempTableTasklet(
 			FeiPriceUpdateSettings feiPriceUpdateSettings, FeiPriceUpdateService feiPriceUpdateService) {
-		return new FeiCreatePriceUpdateTempTableTasklet(feiPriceUpdateSettings, feiPriceUpdateService);
+		return new FeiCreatePriceUpdateTempTableTasklet(feiPriceUpdateSettings, feiPriceUpdateService, notificationService);
 	}
 
 	/*

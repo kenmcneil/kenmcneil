@@ -14,7 +14,6 @@ public class FeiPriceUpdateItem implements Serializable {
 	private String tempTableName;
 	private Integer uniqueId;
 	private Double price;
-	private String priceRule;
 	private Integer mpid;
 	private Integer baseCategoryId;
 	private Integer manufacturerId;
