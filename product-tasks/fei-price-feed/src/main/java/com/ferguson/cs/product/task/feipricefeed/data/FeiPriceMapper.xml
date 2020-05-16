@@ -86,12 +86,8 @@
 		ON product.uniqueId = pricebook.UniqueId
 		INNER JOIN mmc.dbo.product_imap_flag productMap
 		ON product.uniqueId = productMap.uniqueId
-		LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
-		ON product.uniqueId = pricingFeiOwned.productUniqueId
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
-		AND containerType.type = 'Product'
-		AND pricingFeiOwned.productUniqueId IS NULL
 	</select>
 
 
