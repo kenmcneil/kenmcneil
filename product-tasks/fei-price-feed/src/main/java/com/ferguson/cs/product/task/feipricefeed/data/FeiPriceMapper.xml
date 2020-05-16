@@ -31,7 +31,6 @@
         ON product.uniqueId = pricingFeiWhitelist.productUniqueId
         WHERE pricebook.PriceBookId = 1
         AND status.status IN ('stock','nonstock')
-        AND containerType.type = 'Product'
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
@@ -58,7 +57,6 @@
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
-		AND containerType.type = 'Product'
 		<if test="lastRanDate != null">
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
