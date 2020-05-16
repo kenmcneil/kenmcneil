@@ -11,7 +11,7 @@
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT product.uniqueId, pricebook.cost price, MPID.mpid mpn, manufacturer.name brand, status.status
+		SELECT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status
         FROM mmc.product.product product
         INNER JOIN mmc.product.status status
         ON product.statusId = status.id
@@ -36,7 +36,7 @@
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT pricebook.Cost price, MPID.mpid mpn, manufacturer.name brand, status.status
+		SELECT DISTINCT pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -65,6 +65,33 @@
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
 		ORDER BY mpn
+	</select>
+
+	<select id="getFeiImapPriceData" resultMap="feiPriceDataMap">
+		SELECT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		FROM mmc.product.product product
+		INNER JOIN mmc.product.status status
+		ON product.statusId = status.id
+		INNER JOIN mmc.product.family family
+		ON product.familyId = family.id
+		INNER JOIN mmc.product.containerType containerType
+		ON family.containerTypeId = containerType.id
+		INNER JOIN mmc.product.finish finish
+		ON product.finishId = finish.id
+		INNER JOIN mmc.dbo.Manufacturer manufacturer
+		ON family.manufacturerId = manufacturer.ID
+		INNER JOIN mmc.product.feiMPID as MPID
+		ON product.uniqueid = MPID.uniqueid
+		INNER JOIN mmc.dbo.PriceBook_Cost pricebook
+		ON product.uniqueId = pricebook.UniqueId
+		INNER JOIN mmc.dbo.product_imap_flag productMap
+		ON product.uniqueId = productMap.uniqueId
+		LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
+		ON product.uniqueId = pricingFeiOwned.productUniqueId
+		WHERE pricebook.PriceBookId = 1
+		AND status.status IN ('stock','nonstock')
+		AND containerType.type = 'Product'
+		AND pricingFeiOwned.productUniqueId IS NULL
 	</select>
 
 

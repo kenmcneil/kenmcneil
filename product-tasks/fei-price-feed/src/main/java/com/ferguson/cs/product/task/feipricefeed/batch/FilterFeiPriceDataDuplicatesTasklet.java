@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -82,6 +83,8 @@ public class FilterFeiPriceDataDuplicatesTasklet implements Tasklet {
 		for(Map.Entry<Integer,FeiPriceData> winner : winners.entrySet()) {
 			feiPriceDataMultimap.replaceValues(winner.getKey(),Collections.singletonList(winner.getValue()));
 		}
+
+		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().ge
 
 		return RepeatStatus.FINISHED;
 	}

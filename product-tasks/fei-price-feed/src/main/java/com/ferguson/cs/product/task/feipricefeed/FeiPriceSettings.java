@@ -13,6 +13,7 @@ public class FeiPriceSettings {
 	private String temporaryFilePath;
 	private String storageFilePath;
 	private List<String> whiteLabelBrands;
+	private String imapFilePath;
 
 	public Map<String, String> getLocations() {
 		return locations;
@@ -44,5 +45,13 @@ public class FeiPriceSettings {
 
 	public void setStorageFilePath(String storageFilePath) {
 		this.storageFilePath = storageFilePath;
+	}
+
+	public String getImapFilePath() {
+		return imapFilePath;
+	}
+
+	public void setImapFilePath(String imapFilePath) {
+		this.imapFilePath = imapFilePath;
 	}
 }

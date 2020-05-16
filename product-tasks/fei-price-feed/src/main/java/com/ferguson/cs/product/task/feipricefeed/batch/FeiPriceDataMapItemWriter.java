@@ -36,8 +36,8 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 	@Override
 	public void write(List<? extends FeiPriceData> items) throws Exception {
 		for(FeiPriceData item : items) {
-			if(!feiPriceDataMap.containsKey(item.getMpn()) || feiPriceDataComparator.compare(item,feiPriceDataMap.get(item.getMpn())) > 0) {
-				feiPriceDataMap.put(item.getMpn(),item);
+			if(!feiPriceDataMap.containsKey(item.getMpid()) || feiPriceDataComparator.compare(item,feiPriceDataMap.get(item.getMpid())) > 0) {
+				feiPriceDataMap.put(item.getMpid(),item);
 			}
 		}
 	}
