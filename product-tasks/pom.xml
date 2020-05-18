@@ -4,8 +4,9 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
-		<version>1.0.78-SNAPSHOT</version>
+		<version>1.0.79-SNAPSHOT</version>
 	</parent>
+	
 	<modules>
 		<module>inventory-import</module>
 		<module>product-task-stylyze-export</module>
@@ -17,6 +18,7 @@
 		<module>fei-price-feed</module>
 		<module>fei-price-update</module>
 	</modules>
+
 	<artifactId>product-tasks</artifactId>
 	<packaging>pom</packaging>
 	<name>product-tasks</name> 
