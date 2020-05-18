@@ -27,12 +27,10 @@
         ON product.uniqueid = MPID.uniqueid
         INNER JOIN mmc.dbo.PriceBook_Cost pricebook
         ON product.uniqueId = pricebook.UniqueId
-        LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
-        ON product.uniqueId = pricingFeiOwned.productUniqueId
+        INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
+        ON product.uniqueId = pricingFeiWhitelist.productUniqueId
         WHERE pricebook.PriceBookId = 1
         AND status.status IN ('stock','nonstock')
-        AND containerType.type = 'Product'
-        AND pricingFeiOwned.productUniqueId IS NULL
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
@@ -55,12 +53,10 @@
 		INNER JOIN mmc.dbo.PriceBook_Cost pricebook
 		ON product.uniqueId = pricebook.UniqueId
 		AND pricebookCostLog.PriceBookId = pricebook.PriceBookId
-		LEFT JOIN mmc.product.pricingFeiOwned pricingFeiOwned
-		ON product.uniqueId = pricingFeiOwned.productUniqueId
+		INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
+		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
-		AND containerType.type = 'Product'
-		AND pricingFeiOwned.productUniqueId IS NULL
 		<if test="lastRanDate != null">
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
