@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-streams</artifactId>
-		<version>1.0.77-SNAPSHOT</version>
+		<version>1.0.78-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>product-participation-engine</artifactId>
@@ -18,6 +18,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.ferguson.cs</groupId>
