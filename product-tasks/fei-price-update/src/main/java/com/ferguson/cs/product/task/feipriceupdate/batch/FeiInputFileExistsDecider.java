@@ -18,7 +18,7 @@ public class FeiInputFileExistsDecider implements JobExecutionDecider {
 		}
 
 		// Parent step should have checked the input files and put a list of them in the executionContext.
-		if (jobExecution.getExecutionContext().containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILE)) {
+		if (jobExecution.getExecutionContext().containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
 			return new FlowExecutionStatus(CONTINUE);
 		} else {
 			return new FlowExecutionStatus(NO_INPUT_FILE);

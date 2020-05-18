@@ -89,9 +89,9 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	}
 
 	/*
-	 * calculate Pro pricing based on the following criteria: 
-	 * Lighting Product Base Category: PB22 = PC24 x .9 
-	 * Everything else: PB22 = PC24 x .97 
+	 * calculate Pro pricing based on the following criteria:
+	 * Lighting Product Base Category: PB22 = PC24 x .9
+	 * Everything else: PB22 = PC24 x .97
 	 * UMRP Skus: PB22 = PC24 (No discount)
 	 */
 	private Double calculateProPricing(FeiPriceUpdateItem item) {
@@ -113,7 +113,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			LOGGER.debug("calculateProPricing - No pro pricing multiplier for product unique ID: {}",
 					item.getUniqueId());
 		}
-
+	
 		return proPrice.doubleValue();
 	}
 }

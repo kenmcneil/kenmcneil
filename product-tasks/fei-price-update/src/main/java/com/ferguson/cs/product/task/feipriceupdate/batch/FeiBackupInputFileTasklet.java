@@ -13,7 +13,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Value;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.exceprion.FeiPriceUpdateException;
@@ -22,9 +21,6 @@ public class FeiBackupInputFileTasklet implements Tasklet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiCreateCostUpdateJobTasklet.class);
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
-
-	@Value("#{stepExecution.jobExecution.executionContext}")
-	private ExecutionContext executionContext;
 
 	public FeiBackupInputFileTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
@@ -35,8 +31,10 @@ public class FeiBackupInputFileTasklet implements Tasklet {
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
 		List<String> inputResources;
-		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILE)) {
-			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILE);
+		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
+
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
+			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES);
 
 			// Create backup dir if it does not exist
 			File backupFolder = new File(feiPriceUpdateSettings.getBackupFolderPath());

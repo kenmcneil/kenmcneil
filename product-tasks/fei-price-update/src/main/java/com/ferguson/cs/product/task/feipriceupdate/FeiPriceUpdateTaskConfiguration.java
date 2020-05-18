@@ -2,6 +2,8 @@ package com.ferguson.cs.product.task.feipriceupdate;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -37,6 +39,8 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 
 @Configuration
 public class FeiPriceUpdateTaskConfiguration {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FeiPriceUpdateTaskConfiguration.class);
 
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
@@ -77,7 +81,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	public Job feiUpdatePriceJob(FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService) {
 		return taskBatchJobFactory.getJobBuilder("feiPriceUpdateJob")
-				.listener(new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService))
+				.listener(new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService))
 				.start(createTempTableStep(feiPriceUpdateSettings, feiPriceUpdateService))
 				.next(inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).stop()
 				.from(inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE)
@@ -115,7 +119,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	@Bean
 	public Step processInputFileStep(FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService) {
-		return taskBatchJobFactory.getStepBuilder("processInputFile").listener(new FeiInputFileProcessorListener())
+		return taskBatchJobFactory.getStepBuilder("processInputFile").listener(new FeiInputFileProcessorListener(notificationService))
 				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(allFilesReader()).faultTolerant()
 				.processor(priceUpdateItemprocessor(feiPriceUpdateService))
 				.writer(feiPriceUpdateItemWriter(feiPriceUpdateService)).build();
@@ -149,7 +153,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	@JobScope
 	public FeiPriceUpdateJobListener feiPriceUpdateJobListener(FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService) {
-		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService);
+		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService);
 	}
 
 	/*
@@ -170,12 +174,12 @@ public class FeiPriceUpdateTaskConfiguration {
 	@Bean
 	@StepScope
 	public MultiResourceItemReader<FeiPriceUpdateItem> allFilesReader() {
-		Resource[] resources;
+		Resource[] resources = null;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
 		try {
 			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + "*.csv");
 		} catch (IOException e) {
-			return null;
+			LOGGER.error("Error processing input CSV file(s). Exception: {}", e.toString());
 		}
 
 		MultiResourceItemReader<FeiPriceUpdateItem> resourceItemReader = new MultiResourceItemReader<FeiPriceUpdateItem>();
@@ -199,7 +203,6 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * a prior run
 	 */
 	@Bean
-	@StepScope
 	public FeiCreatePriceUpdateTempTableTasklet feiPriceUpdateTempTableTasklet(
 			FeiPriceUpdateSettings feiPriceUpdateSettings, FeiPriceUpdateService feiPriceUpdateService) {
 		return new FeiCreatePriceUpdateTempTableTasklet(feiPriceUpdateSettings, feiPriceUpdateService, notificationService);
@@ -209,17 +212,15 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * Tasklet to create the Cost upload Job, load the data from the temp table and execute the job
 	 */
 	@Bean
-	@StepScope
 	public FeiCreateCostUpdateJobTasklet costUploadJobTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService) {
-		return new FeiCreateCostUpdateJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService);
+		return new FeiCreateCostUpdateJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService, notificationService);
 	}
 
 	/*
 	 * Tasklet to backup files
 	 */
 	@Bean
-	@StepScope
 	public FeiBackupInputFileTasklet backupFileTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		return new FeiBackupInputFileTasklet(feiPriceUpdateSettings);
 	}

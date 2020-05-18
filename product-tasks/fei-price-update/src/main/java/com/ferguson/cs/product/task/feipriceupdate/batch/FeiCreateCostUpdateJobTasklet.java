@@ -11,7 +11,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Value;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
@@ -20,6 +19,8 @@ import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceJobStatus;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceType;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
+import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
+import com.ferguson.cs.product.task.feipriceupdate.notification.SlackMessageType;
 import com.ferguson.cs.utilities.DateUtils;
 
 public class FeiCreateCostUpdateJobTasklet implements Tasklet {
@@ -28,14 +29,14 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 	private final FeiPriceUpdateService feiPriceUpdateService;
-
-	@Value("#{stepExecution.jobExecution.executionContext}")
-	private ExecutionContext executionContext;
+	private final NotificationService notificationService;
 
 	public FeiCreateCostUpdateJobTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+			FeiPriceUpdateService feiPriceUpdateService,
+			NotificationService notificationService) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
+		this.notificationService = notificationService;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -43,13 +44,14 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
 		List<String> inputResources;
+		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 		Integer inputFileRecordCount = executionContext.getInt("READ_COUNT", -1);
 
-		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILE)) {
-			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILE);
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
+			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES);
 		} else {
 			throw new FeiPriceUpdateException(
-					"CreateCostUpdateJobTasklet - Input file resources no defined in ExecutionContext");
+					"CreateCostUpdateJobTasklet - Input file resources not defined in ExecutionContext");
 		}
 
 		// Need to create the CostUploaderJob. Need the ID for downstream processing
@@ -64,7 +66,7 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 		criteria.setJobId(job.getId());
 		criteria.setTempTableName(feiPriceUpdateSettings.getTempTableName());
 		criteria.setDeleteCost(false);
-		
+
 		Integer updateRecordCount = feiPriceUpdateService.loadPriceBookCostUpdatesFromTempTable(criteria);
 		LOGGER.info("Creating CostUpdateJob with JobID: {}, inputFile: {}, record count (P1 and P22): {}", job.getId(),
 				inputResources.get(0), updateRecordCount);
@@ -95,16 +97,25 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 			LOGGER.info("FEI Cost Update Job ID {} Execution Status : {}", completedCostUpdateJob.getId(),
 					completedCostUpdateJob.getStatus());
 
-			// TODO : Send email?
 			if (!completedCostUpdateJob.getStatus()
 					.equalsIgnoreCase(CostPriceJobStatus.COMPLETE.getMessageTemplate())) {
-				LOGGER.error("FEI Cost Update: None COMPLETE status returned from job execution: {}",
-						CostPriceJobStatus.COMPLETE.getMessageTemplate());
+
+				String message = "FEI Cost Update task: " + chunkContext.getStepContext().getJobName()
+						+ ", Non COMPLETE status: ["
+						+ completedCostUpdateJob.getStatus()
+						+ "] returned from executePriceBookCostUpdater";
+
+				LOGGER.error(message);
+
+				notificationService.message(message, SlackMessageType.WARNING);
 			}
 
 		} else {
 			job.setStatus(CostPriceJobStatus.ERROR_VALIDATION.getMessageTemplate());
 			feiPriceUpdateService.updateCostUploadJob(job);
+			notificationService.message("FEI Price Update DataFlow task: "
+					+ chunkContext.getStepContext().getJobName()
+					+ ", Job validation error.  No records updated.", SlackMessageType.WARNING);
 		}
 
 		return RepeatStatus.FINISHED;
