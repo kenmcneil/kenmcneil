@@ -264,10 +264,21 @@
 		create unique clustered index cix_recommendedOptions_familyId on
 		#recommendedOptions(familyId)
 
-		SELECT top 10 count(p.uniqueid) OVER () [count], p.uniqueid sku, p.familyId group_id, TRIM(productInfo.productTitle) [name],
+		drop table if exists #genres
+		SELECT family.familyId, STRING_AGG(pao.optionvalue, ',') genre
+		INTO #genres
+		FROM product_attr_optionvalue pao (NOLOCK)
+		INNER JOIN #familyKey family WITH (NOLOCK) ON family.familyId = pao.productid_manufacturer_id
+		WHERE pao.attribute_id = 5875
+		GROUP BY family.familyID
+
+		create unique clustered index cix_genres_familyId on
+		#genres(familyId)
+
+		SELECT count(p.uniqueid) OVER () [count], p.uniqueid sku, p.familyId group_id, TRIM(productInfo.productTitle) [name],
 		pbc.cost price, p.status [status], productInfo.image,
 		p.productid model, p.manufacturer manufacturer,
-		productInfo.series series, productInfo.theme theme, pao.optionvalue genre,
+		productInfo.series series, productInfo.theme theme, genres.genre genre,
 		p.finish finish, r.rating rating,
 		p.type [type], p.application [application],
 		p.handletype handletype, mf.masterFinish,
@@ -279,6 +290,11 @@
 		CASE WHEN COALESCE(popt.pricedOptionId, ropt.recOptionId) IS NULL THEN 0 ELSE 1 END configurableProduct
 		FROM #productKey p (NOLOCK)
 		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
+		LEFT JOIN mmc.dbo.product_ratings r (NOLOCK) ON p.familyId = r.product_composite_id
+		LEFT JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
+		LEFT JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
+		LEFT JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
+		LEFT JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
 		LEFT JOIN #categoryInfo ci ON ci.familyid = p.familyId
 		LEFT JOIN #productRestrictions pr ON pr.familyId = p.familyId
 		LEFT JOIN #productAttributes attr ON attr.familyId = p.familyId
@@ -286,12 +302,7 @@
 		LEFT JOIN #productInfo as productInfo on productInfo.uniqueId = p.uniqueId
 		LEFT JOIN #pricedOptions popt ON p.familyId = popt.familyId
 		LEFT JOIN #recommendedOptions ropt ON p.familyId = ropt.familyId
-		LEFT JOIN mmc.dbo.product_ratings r (NOLOCK) ON p.familyId = r.product_composite_id
-		LEFT JOIN mmc.dbo.product_attr_optionvalue pao (NOLOCK) ON pao.productid_manufacturer_id = p.familyId AND pao.attribute_id = 5875
-		LEFT JOIN mmc.dbo.product_base_category pbcat (NOLOCK) ON p.uniqueId = pbcat.uniqueid
-		LEFT JOIN mmc.dbo.base_category bcat (NOLOCK) ON bcat.id = pbcat.base_category_id
-		LEFT JOIN omc.dbo.businessCategoryProduct bcp (NOLOCK) ON bcp.productUniqueId = p.uniqueid
-		LEFT JOIN omc.dbo.businessCategory bc (NOLOCK) ON bcp.businessCategoryId = bc.id
+		LEFT JOIN #genres genres (NOLOCK) ON genres.familyId = p.familyId
 		WHERE pbc.pricebookid = 1
 	</select>
 </mapper>
