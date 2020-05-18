@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-tasks</artifactId>
-		<version>1.0.79-SNAPSHOT</version>
+		<version>1.0.79</version>
 	</parent>
 
 	<artifactId>product-task-distribution-center-quick-ship</artifactId>
