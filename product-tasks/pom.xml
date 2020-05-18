@@ -10,8 +10,9 @@
 		<module>wiser-feeds</module>
 		<module>dynamic-yield-feeds</module>
 		<module>fei-price-feed</module>
-		<module>fei-price-uppdate</module>
+		<module>fei-price-update</module>
 	</modules>
+	
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
