@@ -164,7 +164,7 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FeiPriceDataMapItemWriter feiPriceDataMapItemWriter(Map<String,FeiPriceData> feiPriceDataMap) {
-		return new FeiPriceDataMapItemWriter(feiPriceDataMap);
+		return new FeiPriceDataMapItemWriter(feiPriceDataMap, feiPriceService);
 	}
 
 	@Bean

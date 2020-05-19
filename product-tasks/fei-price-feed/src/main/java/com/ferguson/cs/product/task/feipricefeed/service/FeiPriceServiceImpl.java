@@ -8,6 +8,8 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.product.task.feipricefeed.data.FeiPriceDao;
+import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 import com.ferguson.cs.task.data.TaskControlData;
 import com.ferguson.cs.task.data.TaskControlDataDao;
@@ -19,10 +21,12 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 
 	private final JobRepositoryHelper jobRepositoryHelper;
 	private final TaskControlDataDao taskControlDataDao;
+	private final FeiPriceDao feiPriceDao;
 
-	public FeiPriceServiceImpl(JobRepositoryHelper jobRepositoryHelper, TaskControlDataDao taskControlDataDao) {
+	public FeiPriceServiceImpl(JobRepositoryHelper jobRepositoryHelper, TaskControlDataDao taskControlDataDao, FeiPriceDao feiPriceDao) {
 		this.jobRepositoryHelper = jobRepositoryHelper;
 		this.taskControlDataDao = taskControlDataDao;
+		this.feiPriceDao = feiPriceDao;
 	}
 
 	@Override
@@ -64,6 +68,11 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 		taskControlData.addDataItem(taskControlDataItem);
 
 		taskControlDataDao.insertControlData(taskControlData);
+	}
+
+	@Override
+	public List<DeprioritizedBrandView> getDeprioritizedBrandViews() {
+		return feiPriceDao.getDeprioritizedBrands();
 	}
 
 	private TaskControlDataItem getTaskControlDataItemForToday(String jobName) {
