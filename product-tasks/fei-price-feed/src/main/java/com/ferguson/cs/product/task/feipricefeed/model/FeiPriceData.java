@@ -6,17 +6,17 @@ public class FeiPriceData implements Serializable {
 	private static final long serialVersionUID = 2L;
 
 	private Integer uniqueId;
-	private String mpn;
+	private String mpid;
 	private Double price;
 	private String brand;
 	private String status;
 
-	public String getMpn() {
-		return mpn;
+	public String getMpid() {
+		return mpid;
 	}
 
-	public void setMpn(String mpn) {
-		this.mpn = mpn;
+	public void setMpid(String mpid) {
+		this.mpid = mpid;
 	}
 
 	public Double getPrice() {
@@ -56,7 +56,7 @@ public class FeiPriceData implements Serializable {
 
 		FeiPriceData otherInstance = (FeiPriceData)other;
 
-		return this.getMpn().equalsIgnoreCase(otherInstance.getMpn()) &&
+		return this.getMpid().equalsIgnoreCase(otherInstance.getMpid()) &&
 				this.getBrand().equalsIgnoreCase(otherInstance.getBrand()) &&
 				this.getPrice().equals(otherInstance.getPrice()) &&
 				this.getStatus().equalsIgnoreCase(otherInstance.getStatus());

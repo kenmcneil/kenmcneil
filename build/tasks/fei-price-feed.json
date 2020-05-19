@@ -10,5 +10,11 @@
     "name": "upload-fei-price-changes-file",
     "jobName": "uploadFeiPriceChangesFile",
     "heapSize": "512m"
+  },
+  {
+    "appName": "fei-price-feed",
+    "name": "upload-fei-imap-price-file",
+    "jobName": "uploadFeiImapPriceFile",
+    "heapSize": "512m"
   }
 ]

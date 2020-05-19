@@ -15,5 +15,7 @@ public interface FeiPriceMapper {
 
 	List<FeiPriceData> getFeiPriceChangesSinceLastRun(@Param("lastRanDate") Date lastRanDate);
 
+	List<FeiPriceData> getFeiImapPriceData();
+
 	List<DeprioritizedBrandView> getDeprioritizedBrands();
 }
