@@ -8,18 +8,22 @@
 		<result property="vendorUid" column="vendorUid" />
 	</resultMap>
 	<select id="getElectroluxSkus" resultMap="electroluxSkuVendorDataMap">
-		SELECT vm.sku,v.uid vendorUid FROM omc.dbo.Vendor_Mapping vm
+		SELECT s.sku,v.uid vendorUid FROM omc.dbo.Master_Vendor_Inventory mvi
 		INNER JOIN mmc.product.family fa
-		ON vm.ProductID = fa.productId
+		ON mvi.ProductID = fa.productId
 		INNER JOIN mmc.product.finish f
-		ON vm.Finish = f.finish
+		ON mvi.Finish = f.finish
 		INNER JOIN mmc.dbo.Manufacturer m
-		ON m.Name = vm.Manufacturer
+		ON m.Name = mvi.manufacturer
 		INNER JOIN mmc.product.product p
 		ON p.finishId = f.id
 		AND p.familyId = fa.id
+		INNER JOIN mmc.product.upcSku u
+		ON p.uniqueId = u.uniqueId
+		INNER JOIN mmc.product.sku s
+		ON u.skuId = s.id
 		INNER JOIN omc.dbo.vendor v
-		ON vm.Vendor = v.vendorid
+		ON mvi.Vendor = v.vendorid
 		WHERE v.uid = #{vendorUid}
 		AND p.statusId = 6
 	</select>

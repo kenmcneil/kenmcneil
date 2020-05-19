@@ -1,28 +1,30 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
+import java.util.List;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
+/**
+ * This is responsible for all SQL database queries. Some methods apply to all Participation types,
+ * and some are specific (e.g. participation@1 has a saleId, participation-itemized@1 doesn't).
+ */
 public interface ParticipationDao {
-
-	// ACTIVATION / DEACTIVATION
 
 	/**
 	 * Mark a participation as active. This is done as part of the activation process.
 	 * Will be active until deactivated.
 	 * @return The number of records modified.
 	 */
-	int setParticipationIsActive(Integer participationId, Boolean isActive);
+	int setParticipationIsActive(int participationId, Boolean isActive);
 
 	/**
 	 * Determine if a participation is currently active.
 	 * @param participationId The id of a participation.
 	 * @return Returns true if a participation is currently active, else false.
 	 */
-	Boolean getParticipationIsActive(Integer participationId);
-
-	// ACTIVATION
+	Boolean getParticipationIsActive(int participationId);
 
 	/**
 	 * Get next participation that is pending activation at the given date.
@@ -31,19 +33,19 @@ public interface ParticipationDao {
 	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by activating the specified participation.
 	 * @param participationId The id of the activating participation.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForActivation(Integer participationId);
+	int updateOwnerChangesForActivation(int participationId);
 
 	/**
 	 * Update which uniqueIds are now owned by the activating participation.
 	 * @param participationId The id of the activating or deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int addProductOwnershipForNewOwners(Integer participationId);
+	int addProductOwnershipForNewOwners(int participationId);
 
 	/**
 	 * Set isOwner to false for uniqueIds that are now owned by another participation.
@@ -52,15 +54,19 @@ public interface ParticipationDao {
 	 * @param participationId The id of the activating participation.
 	 * @return The number of records modified.
 	 */
-	int removeProductOwnershipForOldOwners(Integer participationId);
+	int removeProductOwnershipForOldOwners(int participationId);
 
 	/**
-	 * Update saleIds for the products owned by the activating participation.
-	 *
-	 * @param participationId The id of the activating or deactivating participation.
+	 * Update saleIds for products becoming newly-owned.
 	 * @return The number of records modified.
 	 */
-	int updateProductSaleIds(Integer participationId);
+	int activateProductSaleIds();
+
+	/**
+	 * Set saleIds for products becoming un-owned to 0.
+	 * @return The number of records modified.
+	 */
+	int deactivateProductSaleIds();
 
 	/**
 	 * Record last-on-sale base prices.
@@ -74,7 +80,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId);
+	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
 
 	/**
 	 * Apply calculated discounts to products becoming owned by a Participation.
@@ -82,7 +88,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes);
+	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.
@@ -90,10 +96,7 @@ public interface ParticipationDao {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int updateProductModifiedDates(Date processingDate, Integer userId);
-
-
-	// DEACTIVATION
+	int updateProductModifiedDates(Date processingDate, int userId);
 
 	/**
 	 * Get next participation that is expired and may be pending deactivation, at the given date.
@@ -102,24 +105,43 @@ public interface ParticipationDao {
 	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by deactivating the specified participation.
 	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForDeactivation(Integer participationId);
-
-
-	// MANUAL UNPUBLISH
+	int updateOwnerChangesForDeactivation(int participationId);
 
 	/**
-	 * Delete participation data from the database. Assumes that the participation is not active.
-	 * Does not delete the Participation record from Construct.
-	 * @param participationId The id of the participation to delete from SQL.
+	 * Delete participationProduct rows for the given Participation.
+	 * @param participationId The id of the participation from which to delete products.
 	 * @return The number of records modified.
 	 */
-	int deleteParticipation(Integer participationId);
+	int deleteParticipationProducts(int participationId);
+
+	/**
+	 * Delete participationCalculatedDiscount rows the given Participation.
+	 * @param participationId The id of the participation from which to delete calculated discounts.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationCalculatedDiscounts(int participationId);
+
+	/**
+	 * Delete the partial participation record. Non-type specific.
+	 * @param participationId The participationId of the participationItemPartial record to delete.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationItemPartial(int participationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	int syncToCurrentPriorityParticipation();
+
+	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
+
+	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
+
+	int upsertParticipationCalculatedDiscounts(
+			int participationId,
+			List<ParticipationCalculatedDiscount> calculatedDiscounts
+	);
 }

@@ -13,11 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @MapperScan(basePackageClasses = ParticipationEngineDataConfiguration.class, annotationClass = Mapper.class)
-@EnableTransactionManagement
 public class ParticipationEngineDataConfiguration {
 
 	private static final String CORE_BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.stream.participation.engine.model";
@@ -36,7 +34,8 @@ public class ParticipationEngineDataConfiguration {
 		return dataSourceProperties().initializeDataSourceBuilder().build();
 	}
 
-	@Bean(name="coreTransactionManager")
+	@Bean
+	@Primary
 	public DataSourceTransactionManager coreTransactionManager() {
 		return new DataSourceTransactionManager(coreDataSource());
 	}

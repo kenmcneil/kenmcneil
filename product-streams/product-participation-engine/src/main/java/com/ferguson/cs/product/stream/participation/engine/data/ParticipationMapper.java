@@ -1,9 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Mapper
@@ -14,7 +17,7 @@ public interface ParticipationMapper {
 	 * @param participationId The id of a participation.
 	 * @return Returns true if a participation is currently active, else false.
 	 */
-	Boolean getParticipationIsActive(Integer participationId);
+	Boolean getParticipationIsActive(int participationId);
 
 	/**
 	 * Mark a participation as active or inactive.
@@ -22,23 +25,23 @@ public interface ParticipationMapper {
 	 * @param isActive Use true to indicate active, false to indicate inactive.
 	 * @return The number of records modified.
 	 */
-	int setParticipationIsActive(Integer participationId, Boolean isActive);
+	int setParticipationIsActive(int participationId, Boolean isActive);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by deactivating the specified participation.
 	 * @param participationId The id of the deactivating participation.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForDeactivation(Integer participationId);
+	int updateOwnerChangesForDeactivation(int participationId);
 
 	/**
-	 * Create the participationOwnerChanges temp table and fill it with the ownership
+	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by activating the specified participation.
 	 * @param participationId The id of the activating participation.
 	 * @return The number of records modified.
 	 */
-	int updateOwnerChangesForActivation(Integer participationId);
+	int updateOwnerChangesForActivation(int participationId);
 
 	/**
 	 * Set ownership for products in P, only considering active participations.
@@ -57,10 +60,18 @@ public interface ParticipationMapper {
 	int removeProductOwnershipForOldOwners();
 
 	/**
-	 * Set product sale ids to fallback participations or to zero if no fallback, based on tempOwnerChanges values.
+	 * Set the saleId of each product becoming owned to the saleId of the participation taking
+	 * ownership. This is uniqueIds in participationOwnerChange where newParticipationId is not null.
 	 * @return The number of records modified.
 	 */
-	int updateProductSaleIds();
+	int activateProductSaleIds();
+
+	/**
+	 * Set product sale ids to zero where there is no new owner. This is uniqueIds in
+	 * participationOwnerChange where oldParticipationId is not null and newParticipationId is null.
+	 * @return The number of records modified.
+	 */
+	int deactivateProductSaleIds();
 
 	/**
 	 * Updates lastOnSale records from the PriceBook_Cost table. Use when the price is going off-sale.
@@ -87,7 +98,7 @@ public interface ParticipationMapper {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId);
+	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
 
 	/**
 	 * Sets priceBook_Cost.cost (pbcost) to a discounted base price
@@ -106,7 +117,7 @@ public interface ParticipationMapper {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int applyNewCalculatedDiscounts(Date processingDate, Integer userId, long coolOffPeriodMinutes);
+	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update product.modified to trigger product cache update.
@@ -115,37 +126,37 @@ public interface ParticipationMapper {
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.
 	 */
-	int updateProductModifiedDates(Date processingDate, Integer userId);
+	int updateProductModifiedDates(Date processingDate, int userId);
 
 	/**
-	 * Remove all records from the participationProduct table for the given
-	 * participation id. Must be done ahead of deleting from participationItemPartial
-	 * table to avoid FK_constraint failure.
+	 * Remove all participationProduct records for the given
+	 * participation id.
 	 *
-	 * @param participationId The id of the participation to delete from SQL.
+	 * @param participationId The id of the participation from which to delete products.
 	 * @return The number of records modified.
 	 */
-	int deleteParticipationProductsByParticipationId(Integer participationId);
+	int deleteParticipationProducts(int participationId);
 
 	/**
 	 * Delete the calculated discount records for the given participation id.
 	 *
-	 * @param participationId The id of the participation to delete from SQL.
+	 * @param participationId The id of the participation from which to delete calculated discounts.
 	 * @return The number of records modified.
 	 */
-	int deleteParticipationCalculatedDiscountsByParticipationId(Integer participationId);
+	int deleteParticipationCalculatedDiscounts(int participationId);
 
 	/**
 	 * Delete the participationItemPartial record for given participation id.
 	 *
-	 * @param participationId The id of the participation to delete from SQL.
+	 * @param participationId The participationId of the participationItemPartial record to delete.
 	 * @return The number of records modified.
 	 */
-	int deleteParticipationItemPartialByParticipationId(Integer participationId);
+	int deleteParticipationItemPartial(int participationId);
 
 	/**
 	 * Get next participation that is pending activation at the given date.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 * Null minParticipationId value is allowed, and indicates no restriction.
 	 */
 	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
@@ -153,9 +164,19 @@ public interface ParticipationMapper {
 	 * Get next participation that is expired at the given date.
 	 * Returns Participation records that are expired whether active or not.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 * Null minParticipationId value is allowed, and indicates no restriction.
 	 */
 	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	int syncToCurrentPriorityParticipation();
+
+	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
+
+	/**
+	 * Insert products for a Participation for the list of uniqueIds given in CSV format.
+	 */
+	int insertParticipationProducts(int participationId, String csvUniqueIds);
+
+	int insertParticipationCalculatedDiscounts(@Param("calculatedDiscounts") List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

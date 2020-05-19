@@ -1,11 +1,20 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class SaleIdScenariosIT extends ParticipationScenarioITBase {
+	@Autowired
+	protected BasicTestLifecycle basicTestLifecycle;
+
+	@Autowired
+	protected SaleIdEffectTestLifecycle saleIdEffectTestLifecycle;
 
 	/**
 	 * Scenario
@@ -18,12 +27,13 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_basicSaleIdEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
 				.uniqueIds(100, 101)
 				.scheduleByDays(0, 1)
 				.build();
 
-		useTestStrategies(basicLifecycleTestStrategy, saleIdEffectLifecycleTestStrategy);
+		testLifecycles(basicTestLifecycle, saleIdEffectTestLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(2);
@@ -42,18 +52,20 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_overlappingSaleIdEffect() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2000)
 				.uniqueIds(100, 101)
 				.scheduleByDays(0, 10)
 				.build();
 
 		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2001)
 				.uniqueIds(101, 102)
 				.scheduleByDays(3, 6)
 				.build();
 
-		useTestStrategies(saleIdEffectLifecycleTestStrategy);
+		testLifecycles(saleIdEffectTestLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);

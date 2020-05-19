@@ -1,11 +1,20 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class BasicScenariosIT extends ParticipationScenarioITBase {
+	@Autowired
+	protected BasicTestLifecycle basicTestLifecycle;
+
+	@Autowired
+	protected SchedulingTestLifecycle schedulingTestLifecycle;
+
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -18,19 +27,22 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	 *          - mongo status is updated
 	 *          - mongo event record is added
 	 *      - verify the data for the participation is removed from sql
+	 *
+	 * This also tests that the engine can work with a "base" participation with no effects.
 	 */
 	@Test
-	public void basic_publish_unpublish() {
+	public void engine_publish_unpublish() {
 		// Make fixture participation with no schedule and no effects.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.participationId(50000)
+				.saleId(999)
 				.build();
 
 		// Set up scenario
-		useTestStrategies(basicLifecycleTestStrategy);
+		testLifecycles(basicTestLifecycle);
 
 		// Execute scenario steps in sequence.
-	    createUserPublishEvent(p1);
+		manualPublish(p1);
 	    processEvents();
 	    createUserUnpublishEvent(p1);
 	    processEvents();
@@ -47,9 +59,9 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(1, 3)
 				.build();
 
-		useTestStrategies(schedulingLifecycleTestStrategy);
+		testLifecycles(schedulingTestLifecycle);
 
-		createUserPublishEvent(p1);
+		manualPublish(p1);
 		advanceToDay(4);
 		verifySimpleLifecycleLog(p1);
 	}

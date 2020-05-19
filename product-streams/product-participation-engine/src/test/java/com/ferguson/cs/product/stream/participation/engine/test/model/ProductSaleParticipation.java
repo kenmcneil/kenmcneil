@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * This represents one row from the product.sale table.
+ * This represents a record in the mmc.product.sale table.
  */
 @Data
 @Builder
