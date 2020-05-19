@@ -43,6 +43,7 @@ public final class DynamicYieldHelper {
         dyProduct.setCategories(product.getCategories());
         dyProduct.setDiscontinued(product.getDiscontinued());
         dyProduct.setRelativePath(product.getRelativePath());
+        dyProduct.setIsConfigurableProduct(product.getIsConfigurableProduct());
         if (product.getCategoryNameSiteMap().get(siteId) != null) {
             dyProduct.setKeywords(String.join("|", product.getCategoryNameSiteMap().get(siteId)));
         }

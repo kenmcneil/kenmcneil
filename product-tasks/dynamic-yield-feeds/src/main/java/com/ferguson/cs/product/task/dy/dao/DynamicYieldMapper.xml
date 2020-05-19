@@ -37,6 +37,7 @@
 		<result column="california_drought_compliant" property="californiaDroughtCompliant" />
 		<result column="site_ids" property="siteIds" />
 		<result column="encodedCategories" property="encodedCategories" />
+		<result column="is_configurable_product" property="isConfigurableProduct" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -287,7 +288,7 @@
 		attr.[Chandelier Type] chandelier_type, attr.[Pendant Type] pendant_type, attr.[Fan Type] fan_type, attr.[Fuel Type] fuel_type,
 		attr.Configuration [configuration], p.siteIds site_ids, isNull(pr.california_drought_compliant, 0) california_drought_compliant,
 		bcat.base_category base_category, bc.name business_category, ci.category encodedCategories,
-		CASE WHEN COALESCE(popt.pricedOptionId, ropt.recOptionId) IS NULL THEN 0 ELSE 1 END configurableProduct
+		CASE WHEN COALESCE(popt.pricedOptionId, ropt.recOptionId) IS NULL THEN 0 ELSE 1 END is_configurable_product
 		FROM #productKey p (NOLOCK)
 		INNER JOIN mmc.dbo.pricebook_cost pbc (NOLOCK) ON p.uniqueid = pbc.uniqueid
 		LEFT JOIN mmc.dbo.product_ratings r (NOLOCK) ON p.familyId = r.product_composite_id

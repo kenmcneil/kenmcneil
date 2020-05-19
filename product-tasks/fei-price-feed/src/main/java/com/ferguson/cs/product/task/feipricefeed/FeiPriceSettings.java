@@ -1,6 +1,5 @@
 package com.ferguson.cs.product.task.feipricefeed;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,7 +11,6 @@ public class FeiPriceSettings {
 	private Map<String,String> locations;
 	private String temporaryFilePath;
 	private String storageFilePath;
-	private List<String> whiteLabelBrands;
 	private String imapFilePath;
 
 	public Map<String, String> getLocations() {
@@ -29,14 +27,6 @@ public class FeiPriceSettings {
 
 	public void setTemporaryFilePath(String temporaryFilePath) {
 		this.temporaryFilePath = temporaryFilePath;
-	}
-
-	public List<String> getWhiteLabelBrands() {
-		return whiteLabelBrands;
-	}
-
-	public void setWhiteLabelBrands(List<String> whiteLabelBrands) {
-		this.whiteLabelBrands = whiteLabelBrands;
 	}
 
 	public String getStorageFilePath() {
