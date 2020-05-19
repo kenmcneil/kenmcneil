@@ -57,6 +57,8 @@
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
+		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New
+		AND pricebook.Cost != pricebookCostLog.Cost_Old
 		<if test="lastRanDate != null">
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
