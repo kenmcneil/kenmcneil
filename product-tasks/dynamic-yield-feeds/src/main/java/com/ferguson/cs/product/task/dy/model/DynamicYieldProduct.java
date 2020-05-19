@@ -53,6 +53,5 @@ public class DynamicYieldProduct implements Serializable {
 	private Map<Integer, List<Integer>> categoryIdSiteMap;
 	private String keywords;
 	private String categoryIds;
-	private Boolean hasPricedOptions;
-	private Boolean hasRecommendedOptions;
+	private Boolean isConfigurableProduct;
 }

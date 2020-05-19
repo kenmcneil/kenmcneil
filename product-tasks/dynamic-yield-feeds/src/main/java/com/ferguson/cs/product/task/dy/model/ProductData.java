@@ -42,6 +42,5 @@ public class ProductData implements Serializable {
 	private String businessCategory;
 	private String siteIds;
 	private String encodedCategories;
-	private Boolean hasPricedOptions;
-	private Boolean hasRecommendedOptions;
+	private Boolean isConfigurableProduct;
 }

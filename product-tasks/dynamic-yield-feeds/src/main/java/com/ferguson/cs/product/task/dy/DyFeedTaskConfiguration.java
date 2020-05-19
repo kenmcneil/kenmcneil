@@ -111,8 +111,7 @@ public class DyFeedTaskConfiguration {
 				"california_drought_compliant",
 				"keywords",
 				"category_ids",
-				"has_recommended_options",
-				"has_priced_options"
+				"is_configurable_product"
 		};
 
 		BeanWrapperFieldExtractor<DynamicYieldProduct> extractor = new BeanWrapperFieldExtractor<>();
