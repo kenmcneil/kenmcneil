@@ -72,5 +72,16 @@
 		ORDER BY mpn
 	</select>
 
+	<resultMap id="deprioritizedBrandViewMap" type="DeprioritizedBrandView">
+		<result property="manufacturerId" column="manufacturerId" />
+		<result property="manufacturerName" column="manufacturerName" />
+	</resultMap>
+
+
+	<select id="getDeprioritizedBrands" resultMap="deprioritizedBrandViewMap">
+		SELECT deprioritizedBrand.manufacturerId manufacturerId,manufacturer.name manufacturerName FROM mmc.dbo.feiPriceFeedDeprioritizedBrand deprioritizedBrand
+		INNER JOIN mmc.dbo.manufacturer manufacturer
+		ON deprioritizedBrand.manufacturerId = manufacturer.id
+	</select>
 
 </mapper>
