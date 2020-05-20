@@ -62,7 +62,7 @@
 		<if test="lastRanDate != null">
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
-		ORDER BY mpn
+		ORDER BY mpid
 	</select>
 
 	<select id="getFeiImapPriceData" resultMap="feiPriceDataMap">
