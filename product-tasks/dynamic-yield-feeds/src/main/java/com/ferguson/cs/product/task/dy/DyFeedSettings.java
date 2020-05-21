@@ -24,5 +24,5 @@ public class DyFeedSettings {
 	private List<String> excludedBrands;
 	private List<Integer> restrictionPolicies = new ArrayList<>();
 	private List<Integer> stores = new ArrayList<>();
-	private Integer rowCount;
+	private Integer minimumRecordCount;
 }

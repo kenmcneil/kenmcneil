@@ -24,7 +24,7 @@ public class DynamicYieldReadListener implements StepExecutionListener {
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
-        if (stepExecution.getReadCount() < dyFeedSettings.getRowCount()) {
+        if (stepExecution.getReadCount() < dyFeedSettings.getMinimumRecordCount()) {
             LOGGER.error("Row Count < 1.6m rows!");
             return new ExitStatus(ExitStatus.FAILED.getExitCode(), "Row Count < 1.6m rows!");
         }
