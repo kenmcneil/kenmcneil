@@ -43,5 +43,4 @@ public class ProductData implements Serializable {
 	private String siteIds;
 	private String encodedCategories;
 	private Boolean isConfigurableProduct;
-	private Integer count;
 }

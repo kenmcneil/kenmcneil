@@ -31,10 +31,6 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 		Map<Integer, Set<String>> categoryNameMap = new HashMap<>();
 		Map<Integer, List<Integer>> categoryIdMap = new HashMap<>();
 
-		if (item.getCount() < 1600000) {
-			throw new Exception("Sanity check for record count failed!");
-		}
-
 		if (isValidAndIncluded(item)) {
 			dyProduct.setSku(item.getSku());
 			dyProduct.setGroupId(item.getGroupId());
