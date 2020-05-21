@@ -38,6 +38,7 @@
 		<result column="site_ids" property="siteIds" />
 		<result column="encodedCategories" property="encodedCategories" />
 		<result column="is_configurable_product" property="isConfigurableProduct" />
+		<result column="count" property="count" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
