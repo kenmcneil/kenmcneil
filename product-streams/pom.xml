@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-services</artifactId>
-		<version>1.0.84</version>
+		<version>1.0.85-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>product-streams</artifactId>
