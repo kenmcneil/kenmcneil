@@ -276,7 +276,7 @@
 		create unique clustered index cix_genres_familyId on
 		#genres(familyId)
 
-		SELECT count(p.uniqueid) OVER () [count], p.uniqueid sku, p.familyId group_id, TRIM(productInfo.productTitle) [name],
+		SELECT p.uniqueid sku, p.familyId group_id, TRIM(productInfo.productTitle) [name],
 		pbc.cost price, p.status [status], productInfo.image,
 		p.productid model, p.manufacturer manufacturer,
 		productInfo.series series, productInfo.theme theme, genres.genre genre,

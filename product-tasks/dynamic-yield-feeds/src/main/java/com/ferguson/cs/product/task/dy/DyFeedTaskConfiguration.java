@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -16,6 +17,7 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -24,6 +26,7 @@ import org.springframework.messaging.MessageChannel;
 
 import com.ferguson.cs.product.task.dy.batch.CustomMultiResourcePartitioner;
 import com.ferguson.cs.product.task.dy.batch.DynamicYieldProductDataProcessor;
+import com.ferguson.cs.product.task.dy.batch.DynamicYieldReadListener;
 import com.ferguson.cs.product.task.dy.batch.ProductDataSiteWriter;
 import com.ferguson.cs.product.task.dy.batch.UploadFileTasklet;
 import com.ferguson.cs.product.task.dy.domain.SiteProductFileResource;
@@ -33,6 +36,7 @@ import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.task.util.DataFlowTempFileHelper;
 
 @Configuration
+@EnableConfigurationProperties(DyFeedSettings.class)
 public class DyFeedTaskConfiguration {
 	private final SqlSessionFactory reporterSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
@@ -142,10 +146,12 @@ public class DyFeedTaskConfiguration {
 	public Step writeDyItems(ItemStreamWriter<DynamicYieldProduct> dyCsvCatalogItemWriter) {
 
 		return taskBatchJobFactory.getStepBuilder("writeDyItems")
+				.listener(new DynamicYieldReadListener(dyFeedSettings))
 				.<ProductData, DynamicYieldProduct>chunk(1000)
 				.reader(productDataReader())
 				.processor(dyProductDataProcessor())
 				.writer(dyCsvCatalogItemWriter)
+
 				.build();
 	}
 
@@ -189,15 +195,15 @@ public class DyFeedTaskConfiguration {
 	@Bean
 	public Job dynamicYieldExportJob(Step writeDyItems) throws IOException {
 		return taskBatchJobFactory.getJobBuilder("dynamicYieldExportJob")
-				.start(writeDyItems)
-				.next(partitionFtpStep())
+				.start(writeDyItems).on(ExitStatus.FAILED.getExitCode()).fail()
+				.from(writeDyItems).on(ExitStatus.COMPLETED.getExitCode()).to(partitionFtpStep()).end()
 				.build();
 	}
 
 	/**
 	 * Convert snake case to camel case
 	 *
-	 * @param columnNames
+	 * @param columnNames The names of the columns to convert
 	 * @return Camel cased string
 	 */
 	private String[] camelCase(String[] columnNames) {
