@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.task.feipricefeed.data;
+package com.ferguson.cs.product.task.feipricefeed.data.reporter;
 
 import java.util.Date;
 import java.util.List;
