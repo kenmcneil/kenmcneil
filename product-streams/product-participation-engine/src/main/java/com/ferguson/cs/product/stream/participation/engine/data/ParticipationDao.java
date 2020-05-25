@@ -68,27 +68,7 @@ public interface ParticipationDao {
 	 */
 	int deactivateProductSaleIds();
 
-	/**
-	 * Record last-on-sale base prices.
-	 * @param processingDate The date the participation is being processed.
-	 * @return The number of records modified.
-	 */
-	int updateLastOnSaleBasePrices(Date processingDate);
 
-	/**
-	 * Take the prices owned by the participation off sale.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
-
-	/**
-	 * Apply calculated discounts to products becoming owned by a Participation.
-	 * @param processingDate The date the participation is being processed.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.
@@ -120,13 +100,6 @@ public interface ParticipationDao {
 	int deleteParticipationProducts(int participationId);
 
 	/**
-	 * Delete participationCalculatedDiscount rows the given Participation.
-	 * @param participationId The id of the participation from which to delete calculated discounts.
-	 * @return The number of records modified.
-	 */
-	int deleteParticipationCalculatedDiscounts(int participationId);
-
-	/**
 	 * Delete the partial participation record. Non-type specific.
 	 * @param participationId The participationId of the participationItemPartial record to delete.
 	 * @return The number of records modified.
@@ -140,8 +113,42 @@ public interface ParticipationDao {
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
 
+
+//	Calculated Discounts //
+
+	/**
+	 * Record last-on-sale base prices.
+	 * @param processingDate The date the participation is being processed.
+	 * @return The number of records modified.
+	 */
+	int updateLastOnSaleBasePrices(Date processingDate);
+
+	/**
+	 * Take the prices owned by the participation off sale.
+	 * @param userId The id of the user initiating the changes.
+	 * @return The number of records modified.
+	 */
+	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
+
+	/**
+	 * Apply calculated discounts to products becoming owned by a Participation.
+	 * @param processingDate The date the participation is being processed.
+	 * @param userId The id of the user initiating the changes.
+	 * @return The number of records modified.
+	 */
+	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
+
 	int upsertParticipationCalculatedDiscounts(
 			int participationId,
 			List<ParticipationCalculatedDiscount> calculatedDiscounts
 	);
+
+	/**
+	 * Delete participationCalculatedDiscount rows the given Participation.
+	 * @param participationId The id of the participation from which to delete calculated discounts.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationCalculatedDiscounts(int participationId);
+
+//	Itemized Discounts //
 }

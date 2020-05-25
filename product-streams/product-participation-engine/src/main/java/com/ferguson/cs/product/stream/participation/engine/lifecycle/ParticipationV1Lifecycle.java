@@ -113,8 +113,14 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 
 		int rowsAffected = participationDao.upsertParticipationItemPartial(itemPartial);
 		rowsAffected += participationDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
-		rowsAffected += participationDao.upsertParticipationCalculatedDiscounts(
-				item.getId(), getParticipationCalculatedDiscounts(item));
+//LWH>>>>>>>>>>>
+		if (1 == 1) {
+			rowsAffected += participationDao.upsertParticipationCalculatedDiscounts(
+					item.getId(), getParticipationCalculatedDiscounts(item));
+		}
+		if (1 != 1) {
+			//do itemized discount upsert if appropriate
+		}
 
 		return rowsAffected;
 	}
@@ -164,7 +170,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int rowsAffected = participationDao.activateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product sale ids set", participationId, rowsAffected);
-
+//LWH>>>>>>>>>>>
 		// activate any new calculated discounts
 		rowsAffected = participationDao.applyNewCalculatedDiscounts(processingDate, userId,
 				participationEngineSettings.getCoolOffPeriod().toMinutes());
@@ -222,11 +228,11 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int rowsAffected = participationDao.deactivateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product sale ids disowned", participationId, rowsAffected);
-
+//LWH>>>>>>>>>>>
 		rowsAffected = participationDao.updateLastOnSaleBasePrices(processingDate);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
-
+//LWH>>>>>>>>>>>
 		rowsAffected = participationDao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
@@ -238,6 +244,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		return participationDao.deleteParticipationProducts(participationId)
+//LWH>>>>>>>>>>>
 				+ participationDao.deleteParticipationCalculatedDiscounts(participationId)
 				+ participationDao.deleteParticipationItemPartial(participationId);
 	}

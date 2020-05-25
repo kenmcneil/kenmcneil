@@ -209,13 +209,6 @@
 			participationId = #{participationId}
 	</delete>
 
-	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
-		DELETE FROM
-			mmc.product.participationCalculatedDiscount
-		WHERE
-			participationId = #{participationId}
-	</delete>
-
 	<delete id="deleteParticipationItemPartial" parameterType="int">
 		DELETE FROM
 			mmc.product.participationItemPartial
@@ -332,7 +325,7 @@
 	</insert>
 
 <!--	Calculated Discounts	-->
-	//LWH>>>>>>>>>>>
+
 	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
 		-- Update the base price and sale date of pricebook prices that already exist in the table.
 		UPDATE
@@ -354,7 +347,7 @@
 			ON discount.participationId = oc.oldParticipationId
 				AND discount.pricebookId = pbcost.pricebookId
 	</update>
-	//LWH>>>>>>>>>>>
+
 	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
 		-- Record the base price for prices going off sale, for pricebook prices
 		-- that don't exist in the last on sale table.
@@ -378,7 +371,7 @@
 		WHERE
 			los.uniqueId IS NULL
 	</insert>
-	//LWH>>>>>>>>>>>
+
 	<update id="takePricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
 		-- Set cost to a pending base price if present, else to basePrice.
 		-- Set basePrice to a pending base price if present.
@@ -405,7 +398,7 @@
 			ON lbp.uniqueId = pbcost.uniqueId
 				AND lbp.pricebookId = pbcost.pricebookId
 	</update>
-	//LWH>>>>>>>>>>>
+
 	<update id="applyNewCalculatedDiscounts" parameterType="map">
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
@@ -436,7 +429,7 @@
 				AND las.pricebookId = pbcost.pricebookId
 				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
-	//LWH>>>>>>>>>>>
+
 	<insert id="insertParticipationCalculatedDiscounts">
 		INSERT INTO mmc.product.participationCalculatedDiscount (
 			participationId,
@@ -455,7 +448,13 @@
 		</foreach>
 	</insert>
 
+	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
+		DELETE FROM
+			mmc.product.participationCalculatedDiscount
+		WHERE
+			participationId = #{participationId}
+	</delete>
+
 	<!--	Itemized Discounts	-->
 
-	//LWH>>>>>>>>>>>
 </mapper>

@@ -74,6 +74,59 @@ public interface ParticipationMapper {
 	int deactivateProductSaleIds();
 
 	/**
+	 * Update product.modified to trigger product cache update.
+	 *
+	 * @param processingDate The date the participation is being processed.
+	 * @param userId The id of the user initiating the changes.
+	 * @return The number of records modified.
+	 */
+	int updateProductModifiedDates(Date processingDate, int userId);
+
+	/**
+	 * Remove all participationProduct records for the given
+	 * participation id.
+	 *
+	 * @param participationId The id of the participation from which to delete products.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationProducts(int participationId);
+
+	/**
+	 * Delete the participationItemPartial record for given participation id.
+	 *
+	 * @param participationId The participationId of the participationItemPartial record to delete.
+	 * @return The number of records modified.
+	 */
+	int deleteParticipationItemPartial(int participationId);
+
+	/**
+	 * Get next participation that is pending activation at the given date.
+	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 * Null minParticipationId value is allowed, and indicates no restriction.
+	 */
+	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
+
+	/**
+	 * Get next participation that is expired at the given date.
+	 * Returns Participation records that are expired whether active or not.
+	 * Optionally restrict to records with id >= minParticipationId (for testmode).
+	 * Null minParticipationId value is allowed, and indicates no restriction.
+	 */
+	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
+
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
+	int syncToCurrentPriorityParticipation();
+
+	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
+
+	/**
+	 * Insert products for a Participation for the list of uniqueIds given in CSV format.
+	 */
+	int insertParticipationProducts(int participationId, String csvUniqueIds);
+
+//	Calculated Discounts //
+
+	/**
 	 * Updates lastOnSale records from the PriceBook_Cost table. Use when the price is going off-sale.
 	 *
 	 * @param processingDate The date the participation is being processed.
@@ -119,23 +172,7 @@ public interface ParticipationMapper {
 	 */
 	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
-	/**
-	 * Update product.modified to trigger product cache update.
-	 *
-	 * @param processingDate The date the participation is being processed.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int updateProductModifiedDates(Date processingDate, int userId);
-
-	/**
-	 * Remove all participationProduct records for the given
-	 * participation id.
-	 *
-	 * @param participationId The id of the participation from which to delete products.
-	 * @return The number of records modified.
-	 */
-	int deleteParticipationProducts(int participationId);
+	int insertParticipationCalculatedDiscounts(@Param("calculatedDiscounts") List<ParticipationCalculatedDiscount> calculatedDiscounts);
 
 	/**
 	 * Delete the calculated discount records for the given participation id.
@@ -145,38 +182,5 @@ public interface ParticipationMapper {
 	 */
 	int deleteParticipationCalculatedDiscounts(int participationId);
 
-	/**
-	 * Delete the participationItemPartial record for given participation id.
-	 *
-	 * @param participationId The participationId of the participationItemPartial record to delete.
-	 * @return The number of records modified.
-	 */
-	int deleteParticipationItemPartial(int participationId);
-
-	/**
-	 * Get next participation that is pending activation at the given date.
-	 * Optionally restrict to records with id >= minParticipationId (for testmode).
-	 * Null minParticipationId value is allowed, and indicates no restriction.
-	 */
-	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
-
-	/**
-	 * Get next participation that is expired at the given date.
-	 * Returns Participation records that are expired whether active or not.
-	 * Optionally restrict to records with id >= minParticipationId (for testmode).
-	 * Null minParticipationId value is allowed, and indicates no restriction.
-	 */
-	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
-
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	int syncToCurrentPriorityParticipation();
-
-	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
-
-	/**
-	 * Insert products for a Participation for the list of uniqueIds given in CSV format.
-	 */
-	int insertParticipationProducts(int participationId, String csvUniqueIds);
-
-	int insertParticipationCalculatedDiscounts(@Param("calculatedDiscounts") List<ParticipationCalculatedDiscount> calculatedDiscounts);
+//	Itemized Discounts //
 }
