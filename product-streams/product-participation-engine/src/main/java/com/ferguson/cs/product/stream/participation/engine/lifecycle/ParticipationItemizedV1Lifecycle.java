@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle {
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationDao participationDao;
-
+	//LWH>>>>>>>>>>>
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_ITEMIZED_V1;
 	}
