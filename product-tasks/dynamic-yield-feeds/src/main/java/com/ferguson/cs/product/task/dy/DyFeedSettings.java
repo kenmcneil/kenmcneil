@@ -1,60 +1,23 @@
 package com.ferguson.cs.product.task.dy;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 @ConfigurationProperties("dy")
-@Component
 public class DyFeedSettings {
 	private String ftpUrl;
 	private Integer ftpPort;
 	private String ftpRoot;
 	private String ftpPrivateKey;
-	private String tempFilePrefix = "productfeed";
-	private String tempFileSuffix = ".csv";
-	private Map<Integer, String> siteUsername = new HashMap<>();
+	private String tempFilePrefix;
+	private String tempFileSuffix;
+	private Map<Integer, String> siteUsername;
 	private List<String> excludedBrands;
-
-	public List<String> getExcludedBrands() {
-		return excludedBrands;
-	}
-
-	public void setExcludedBrands(List<String> excludedBrands) {
-		this.excludedBrands = excludedBrands;
-	}
-
-	private List<Integer> restrictionPolicies = new ArrayList<>();
-
-	private List<Integer> stores = new ArrayList<>();
-
-	public String getTempFileSuffix() {
-		return tempFileSuffix;
-	}
-
-	public void setTempFileSuffix(String tempFileSuffix) {
-		this.tempFileSuffix = tempFileSuffix;
-	}
-
-	public String getTempFilePrefix() {
-		return tempFilePrefix;
-	}
-
-	public void setTempFilePrefix(String tempFilePrefix) {
-		this.tempFilePrefix = tempFilePrefix;
-	}
-
-	public String getFtpPrivateKey() {
-		return ftpPrivateKey;
-	}
-
-	public void setFtpPrivateKey(String ftpPrivateKey) {
-		this.ftpPrivateKey = ftpPrivateKey;
-	}
+	private List<Integer> restrictionPolicies;
+	private List<Integer> stores;
+	private Integer minimumRecordCount;
 
 	public String getFtpUrl() {
 		return ftpUrl;
@@ -80,12 +43,52 @@ public class DyFeedSettings {
 		this.ftpRoot = ftpRoot;
 	}
 
+	public String getFtpPrivateKey() {
+		return ftpPrivateKey;
+	}
+
+	public void setFtpPrivateKey(String ftpPrivateKey) {
+		this.ftpPrivateKey = ftpPrivateKey;
+	}
+
+	public String getTempFilePrefix() {
+		return tempFilePrefix;
+	}
+
+	public void setTempFilePrefix(String tempFilePrefix) {
+		this.tempFilePrefix = tempFilePrefix;
+	}
+
+	public String getTempFileSuffix() {
+		return tempFileSuffix;
+	}
+
+	public void setTempFileSuffix(String tempFileSuffix) {
+		this.tempFileSuffix = tempFileSuffix;
+	}
+
 	public Map<Integer, String> getSiteUsername() {
 		return siteUsername;
 	}
 
 	public void setSiteUsername(Map<Integer, String> siteUsername) {
 		this.siteUsername = siteUsername;
+	}
+
+	public List<String> getExcludedBrands() {
+		return excludedBrands;
+	}
+
+	public void setExcludedBrands(List<String> excludedBrands) {
+		this.excludedBrands = excludedBrands;
+	}
+
+	public List<Integer> getRestrictionPolicies() {
+		return restrictionPolicies;
+	}
+
+	public void setRestrictionPolicies(List<Integer> restrictionPolicies) {
+		this.restrictionPolicies = restrictionPolicies;
 	}
 
 	public List<Integer> getStores() {
@@ -95,11 +98,12 @@ public class DyFeedSettings {
 	public void setStores(List<Integer> stores) {
 		this.stores = stores;
 	}
-	public List<Integer> getRestrictionPolicies() {
-		return restrictionPolicies;
+
+	public Integer getMinimumRecordCount() {
+		return minimumRecordCount;
 	}
 
-	public void setRestrictionPolicies(List<Integer> restrictionPolicies) {
-		this.restrictionPolicies = restrictionPolicies;
+	public void setMinimumRecordCount(Integer minimumRecordCount) {
+		this.minimumRecordCount = minimumRecordCount;
 	}
 }

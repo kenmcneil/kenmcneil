@@ -61,9 +61,10 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 			dyProduct.setCaliforniaDroughtCompliant(item.getCaliforniaDroughtCompliant());
 			dyProduct.setBaseCategory(item.getBaseCategory());
 			dyProduct.setBusinessCategory(item.getBusinessCategory());
+			dyProduct.setIsConfigurableProduct(item.getIsConfigurableProduct());
 
-			dyProduct.setSiteIds(Arrays.asList(item.getSiteIds().split(",")).stream()
-					.map(x -> Integer.parseInt(x)).collect(Collectors.toList()));
+			dyProduct.setSiteIds(Arrays.stream(item.getSiteIds().split(","))
+					.map(Integer::parseInt).collect(Collectors.toList()));
 
 			dyProduct.setUrl(CommonConfig.PRODUCT_URL_REPLACEMENT + ":" + dyProduct.getSku() + ":" + dyProduct.getGroupId());
 			dyProduct.setInStock(item.getStatus().equalsIgnoreCase(STOCK_STATUS_STRING));
@@ -132,7 +133,7 @@ public class DynamicYieldProductDataProcessor implements ItemProcessor<ProductDa
 	/**
 	 * Check all required fields for data
 	 *
-	 * @param productData
+	 * @param productData The product data to validate
 	 * @return true or false
 	 */
 	private boolean isValidAndIncluded(ProductData productData) {

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -24,9 +25,11 @@ import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
+import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.CompositeItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -50,12 +53,14 @@ public class FeiPriceTaskConfiguration {
 	private static final String FULL_FEED_NAME = "uploadFeiFullPriceFile";
 	private static final String CHANGES_FEED_NAME = "uploadFeiPriceChangesFile";
 	private final SqlSessionFactory reporterSqlSessionFactory;
+	private final SqlSessionFactory batchSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final FeiPriceService feiPriceService;
 	private final FeiPriceSettings feiPriceSettings;
 
-	public FeiPriceTaskConfiguration(SqlSessionFactory reporterSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory, FeiPriceService feiPriceService, FeiPriceSettings feiPriceSettings) {
+	public FeiPriceTaskConfiguration(@Qualifier("reporterSqlSessionFactory") SqlSessionFactory reporterSqlSessionFactory, @Qualifier("batchSqlSessionFactory") SqlSessionFactory batchSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory, FeiPriceService feiPriceService, FeiPriceSettings feiPriceSettings) {
 		this.reporterSqlSessionFactory = reporterSqlSessionFactory;
+		this.batchSqlSessionFactory = batchSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.feiPriceService = feiPriceService;
 		this.feiPriceSettings = feiPriceSettings;
@@ -76,9 +81,9 @@ public class FeiPriceTaskConfiguration {
 		Date changesLastRun = feiPriceService.getLastRanDate(CHANGES_FEED_NAME);
 		Date fullLastRun = feiPriceService.getLastRanDate(FULL_FEED_NAME);
 		Date mostRecentRun;
-		if(changesLastRun == null && fullLastRun != null) {
+		if (changesLastRun == null && fullLastRun != null) {
 			mostRecentRun = fullLastRun;
-		} else if(changesLastRun != null && fullLastRun == null) {
+		} else if (changesLastRun != null && fullLastRun == null) {
 			mostRecentRun = changesLastRun;
 		} else if (changesLastRun != null) {
 			mostRecentRun = fullLastRun.compareTo(changesLastRun) > 0 ? fullLastRun : changesLastRun;
@@ -96,12 +101,32 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public MyBatisBatchItemWriter<FeiPriceData> feiPriceDataWhitelistWriter() {
+		MyBatisBatchItemWriter<FeiPriceData> writer = new MyBatisBatchItemWriter<>();
+		writer.setSqlSessionFactory(batchSqlSessionFactory);
+		writer.setStatementId("updateFeiWhitelistPrice");
+		writer.setAssertUpdates(false);
+		return writer;
+	}
+
+	@Bean
+	@StepScope
+	public MyBatisCursorItemReader<FeiPriceData> feiImapPriceDataReader() {
+		MyBatisCursorItemReader<FeiPriceData> reader = new MyBatisCursorItemReader<>();
+		reader.setQueryId("getFeiImapPriceData");
+		reader.setSqlSessionFactory(reporterSqlSessionFactory);
+		return reader;
+	}
+
+	@Bean
+	@StepScope
 	public CompositeItemWriter<FeiPriceData> compositeFeiPriceDataWriter() {
 		CompositeItemWriter<FeiPriceData> compositeItemWriter = new CompositeItemWriter<>();
 		List<ItemWriter<? super FeiPriceData>> delegates = new ArrayList<>();
 		for (String location : feiPriceSettings.getLocations().values()) {
 			delegates.add(feiPriceDataWriter(location));
 		}
+		delegates.add(feiPriceDataWhitelistWriter());
 		compositeItemWriter.setDelegates(delegates);
 
 		return compositeItemWriter;
@@ -119,13 +144,14 @@ public class FeiPriceTaskConfiguration {
 		}
 		MultiResourceItemReader<String> reader = new MultiResourceItemReader<>();
 		reader.setResources(resources);
-		reader.setDelegate(new FlatFileItemReaderBuilder<String>().lineMapper(new PassThroughLineMapper()).name("allFilesReaderDelegate").build());
+		reader.setDelegate(new FlatFileItemReaderBuilder<String>().lineMapper(new PassThroughLineMapper())
+				.name("allFilesReaderDelegate").build());
 		return reader;
 	}
 
 	@Bean
 	@StepScope
-	public FeiPriceDataMapItemReader feiPriceDataMapItemReader(Map<String,FeiPriceData> feiPriceDataMap) {
+	public FeiPriceDataMapItemReader feiPriceDataMapItemReader(Map<String, FeiPriceData> feiPriceDataMap) {
 		return new FeiPriceDataMapItemReader(feiPriceDataMap);
 	}
 
@@ -138,20 +164,38 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<String> aggregateWriter(FeiPriceService feiPriceService, FeiFileSystemResource feiFileSystemResource) {
-		Integer runNumber = feiPriceService.getNumberOfRunsToday(CHANGES_FEED_NAME) + feiPriceService.getNumberOfRunsToday(FULL_FEED_NAME) + 1;
+		Integer runNumber = feiPriceService.getNumberOfRunsToday(CHANGES_FEED_NAME) + feiPriceService
+				.getNumberOfRunsToday(FULL_FEED_NAME) + 1;
 		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyy_MM_dd");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("PM_%s_OMNI_%s.CSV", runNumber, dateString);
 		feiFileSystemResource
-				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getStorageFilePath()+ filename));
-		return new FlatFileItemWriterBuilder<String>().resource(feiFileSystemResource.getFileSystemResource()).name("aggregateWriter")
+				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getStorageFilePath() + filename));
+		return new FlatFileItemWriterBuilder<String>().resource(feiFileSystemResource.getFileSystemResource())
+				.name("aggregateWriter")
 				.lineAggregator(new PassThroughLineAggregator<>()).build();
 	}
 
 	@Bean
+	@StepScope
+	public FlatFileItemWriter<FeiPriceData> feiImapPriceDataWriter(FeiFileSystemResource feiFileSystemResource) {
+		Date now = DateUtils.now();
+		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MMddyy");
+		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
+		String filename = String.format("build_imap_pricing_%s.csv", dateString);
+		String[] names = new String[]{"uniqueId", "mpid", "price"};
+		feiFileSystemResource
+				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getImapFilePath() + filename));
+		DelimitedLineAggregator<FeiPriceData> lineAggregator = new DelimitedLineAggregator<>();
+		return new FlatFileItemWriterBuilder<FeiPriceData>().resource(feiFileSystemResource.getFileSystemResource())
+				.name("feiImapPriceDataWriter")
+				.delimited().names(names).headerCallback(writer -> writer.write(String.join(",", names))).build();
+	}
+
+	@Bean
 	@JobScope
-	public Map<String,FeiPriceData> feiPriceDataMap () {
+	public Map<String, FeiPriceData> feiPriceDataMap() {
 		return new HashMap<>();
 	}
 
@@ -164,7 +208,7 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FeiPriceDataMapItemWriter feiPriceDataMapItemWriter(Map<String,FeiPriceData> feiPriceDataMap) {
-		return new FeiPriceDataMapItemWriter(feiPriceDataMap);
+		return new FeiPriceDataMapItemWriter(feiPriceDataMap, feiPriceService);
 	}
 
 	@Bean
@@ -176,10 +220,12 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<FeiPriceData> duplicateDataWriter() {
-		String[] fields = new String[]{"uniqueId","mpn","price","brand","status"};
+		String[] fields = new String[]{"uniqueId", "mpid", "price", "brand", "status"};
 
-		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").names(fields).headerCallback(p -> p
-				.write(String.join(",",fields))).name("duplicateDataWriter").resource(new FileSystemResource(feiPriceSettings.getStorageFilePath() + "duplicate_mpns.csv")).build();
+		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").names(fields)
+				.headerCallback(p -> p
+						.write(String.join(",", fields))).name("duplicateDataWriter")
+				.resource(new FileSystemResource(feiPriceSettings.getStorageFilePath() + "duplicate_mpns.csv")).build();
 	}
 
 	@Bean
@@ -190,7 +236,9 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	public Step writeLocationPriceDataToFiles(FeiPriceDataMapItemReader feiPriceDataMapItemReader, CompositeItemWriter<FeiPriceData> compositeFeiPriceDataWriter) {
-		return taskBatchJobFactory.getStepBuilder("writeLocationPriceDataToFiles").<FeiPriceData,FeiPriceData>chunk(1000).reader(feiPriceDataMapItemReader).writer(compositeFeiPriceDataWriter).build();
+		return taskBatchJobFactory
+				.getStepBuilder("writeLocationPriceDataToFiles").<FeiPriceData, FeiPriceData>chunk(1000)
+				.reader(feiPriceDataMapItemReader).writer(compositeFeiPriceDataWriter).build();
 	}
 
 	@Bean
@@ -207,30 +255,47 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	public Step writeDuplicateMpns() {
-		return taskBatchJobFactory.getStepBuilder("writeDuplicateMpns").<FeiPriceData,FeiPriceData>chunk(1000).reader(duplicateDataReader()).writer(duplicateDataWriter()).build();
+		return taskBatchJobFactory.getStepBuilder("writeDuplicateMpns").<FeiPriceData, FeiPriceData>chunk(1000)
+				.reader(duplicateDataReader()).writer(duplicateDataWriter()).build();
+	}
+
+	@Bean
+	public Step writeFeiImapPriceData(FlatFileItemWriter<FeiPriceData> feiImapPriceDataWriter) {
+		return taskBatchJobFactory.getStepBuilder("writeFeiImapPriceData").<FeiPriceData, FeiPriceData>chunk(1000)
+				.reader(feiImapPriceDataReader()).writer(feiImapPriceDataWriter).build();
 	}
 
 	@Bean
 	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
-		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener()).start(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).next(writeDuplicateMpns()).build();
+		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener())
+				.start(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles)
+				.next(writeDuplicateMpns()).build();
 
 	}
 
 	@Bean
 	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
-		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener()).start(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles).build();
+		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener())
+				.start(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles)
+				.build();
+	}
+
+	@Bean
+	public Job uploadFeiImapPriceFile(Step writeFeiImapPriceData) {
+		return taskBatchJobFactory.getJobBuilder("uploadFeiImapPriceFile").start(writeFeiImapPriceData).build();
 	}
 
 	@Bean
 	@JobScope
 	public FeiPriceDataJobListener feiPriceDataJobListener() {
-		return new FeiPriceDataJobListener(feiPriceService,feiPriceSettings);
+		return new FeiPriceDataJobListener(feiPriceService, feiPriceSettings);
 	}
 
 	private FlatFileItemWriter<FeiPriceData> feiPriceDataWriter(String location) {
 		FieldExtractor<FeiPriceData> fieldExtractor = new FeiPriceDataFieldExtractor(location);
-		String fileName = "temp" + location.replace("*","") + UUID.randomUUID().toString().substring(0, 8) + ".csv";
-		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").fieldExtractor(fieldExtractor).name(StringUtils.capitalize(location) + "PriceDataWriter")
+		String fileName = "temp" + location.replace("*", "") + UUID.randomUUID().toString().substring(0, 8) + ".csv";
+		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").fieldExtractor(fieldExtractor)
+				.name(StringUtils.capitalize(location) + "PriceDataWriter")
 				.resource(new FileSystemResource(feiPriceSettings.getTemporaryFilePath() + fileName)).build();
 	}
 }

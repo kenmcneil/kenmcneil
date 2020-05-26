@@ -5,28 +5,27 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.task.feipricefeed.FeiPriceSettings;
+import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
+import com.ferguson.cs.product.task.feipricefeed.service.FeiPriceService;
 
 public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiPriceData> {
 	private final Map<String, FeiPriceData> feiPriceDataMap;
-	private FeiPriceSettings feiPriceSettings;
+	private final FeiPriceService feiPriceService;
 	private FeiPriceDataComparator feiPriceDataComparator = new FeiPriceDataComparator();
 	private Set<FeiPriceData> duplicateData;
 
-	public FeiPriceDataMapItemWriter(Map<String, FeiPriceData> feiPriceDataMap) {
+	public FeiPriceDataMapItemWriter(Map<String, FeiPriceData> feiPriceDataMap, FeiPriceService feiPriceService) {
 		this.feiPriceDataMap = feiPriceDataMap;
+		this.feiPriceService = feiPriceService;
 	}
 
-	@Autowired
-	public void setFeiPriceSettings(FeiPriceSettings feiPriceSettings) {
-		this.feiPriceSettings = feiPriceSettings;
-	}
 
 	@Autowired
 	public void setDuplicateData(Set<FeiPriceData> duplicateData) {
@@ -36,8 +35,8 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 	@Override
 	public void write(List<? extends FeiPriceData> items) throws Exception {
 		for(FeiPriceData item : items) {
-			if(!feiPriceDataMap.containsKey(item.getMpn()) || feiPriceDataComparator.compare(item,feiPriceDataMap.get(item.getMpn())) > 0) {
-				feiPriceDataMap.put(item.getMpn(),item);
+			if(!feiPriceDataMap.containsKey(item.getMpid()) || feiPriceDataComparator.compare(item,feiPriceDataMap.get(item.getMpid())) > 0) {
+				feiPriceDataMap.put(item.getMpid(),item);
 			}
 		}
 	}
@@ -71,11 +70,12 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 				}
 
 				//Prefer non-whitelabel to whitelabel
-				if (feiPriceSettings != null && !CollectionUtils.isEmpty(feiPriceSettings.getWhiteLabelBrands())) {
-					if (feiPriceSettings.getWhiteLabelBrands().contains(o1.getBrand()) && !feiPriceSettings
-							.getWhiteLabelBrands().contains(o2.getBrand())) {
+
+				List<String> deprioritizedBrands = feiPriceService.getDeprioritizedBrandViews().stream().map(DeprioritizedBrandView::getManufacturerName).collect(Collectors.toList());
+				if (!CollectionUtils.isEmpty(deprioritizedBrands)) {
+					if (deprioritizedBrands.contains(o1.getBrand()) && !deprioritizedBrands.contains(o2.getBrand())) {
 						return -1;
-					} else if (feiPriceSettings.getWhiteLabelBrands().contains(o2.getBrand())) {
+					} else if (deprioritizedBrands.contains(o2.getBrand())) {
 						return 1;
 					}
 				}
