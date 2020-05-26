@@ -48,7 +48,4 @@ public interface ParticipationLifecycleService {
 	 * Determine if a participation is currently active.
 	 */
 	Boolean getParticipationIsActive(Integer participationId);
-
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	int syncToCurrentPriorityParticipation();
 }

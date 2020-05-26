@@ -123,12 +123,6 @@ public class ParticipationDaoImpl implements ParticipationDao {
 		return participationMapper.deleteParticipationItemPartial(participationId);
 	}
 
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	@Override
-	public int syncToCurrentPriorityParticipation() {
-		return participationMapper.syncToCurrentPriorityParticipation();
-	}
-
 	@Override
 	public int upsertParticipationItemPartial(ParticipationItemPartial itemPartial) {
 		return participationMapper.upsertParticipationItemPartial(itemPartial);

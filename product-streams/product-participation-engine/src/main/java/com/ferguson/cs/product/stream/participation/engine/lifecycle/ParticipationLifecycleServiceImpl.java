@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
@@ -154,13 +153,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
 		return participationDao.getParticipationIsActive(participationId);
-	}
-
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	@Transactional
-	@Override
-	public int syncToCurrentPriorityParticipation() {
-		return participationDao.syncToCurrentPriorityParticipation();
 	}
 
 	/**

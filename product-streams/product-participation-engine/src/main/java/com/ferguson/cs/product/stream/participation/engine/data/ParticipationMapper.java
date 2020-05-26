@@ -168,9 +168,6 @@ public interface ParticipationMapper {
 	 */
 	ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId);
 
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	int syncToCurrentPriorityParticipation();
-
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	/**
