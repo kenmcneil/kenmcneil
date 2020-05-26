@@ -1,0 +1,29 @@
+---
+
+spring:
+  application:
+    name: fei-price-update
+  profiles:
+    active: localdev
+  cloud:
+    config:
+      #The label/branch that will be used to retrieve configuration from the configuration server.
+      name: api-task, product-services-fei-price-update
+      label: master
+      fail-fast: true
+      uri: http://config
+      username: config
+      password: Cheve1le!
+
+health:
+  config:
+    enabled: false
+
+---
+
+spring:
+  profiles: sandbox,staging,production
+  cloud:
+    config:
+      fail-fast: true
+      username: sdc
