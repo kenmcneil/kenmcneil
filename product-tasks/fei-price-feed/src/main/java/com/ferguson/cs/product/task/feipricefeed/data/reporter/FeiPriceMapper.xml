@@ -34,7 +34,7 @@
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -55,13 +55,14 @@
 		AND pricebookCostLog.PriceBookId = pricebook.PriceBookId
 		INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
-		AND pricebook.Cost != pricingFeiWhiteList.lastKnownPrice
+		AND (pricebook.Cost != pricingFeiWhiteList.lastKnownPrice
+		OR pricingFeiWhitelist.lastKnownPrice IS NULL)
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New
 		AND pricebook.Cost != pricebookCostLog.Cost_Old
 		<if test="lastRanDate != null">
-		AND pricebookCostLog.Update_DateTime &gt; '2020-05-10'
+		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
 		</if>
 		ORDER BY mpid
 	</select>

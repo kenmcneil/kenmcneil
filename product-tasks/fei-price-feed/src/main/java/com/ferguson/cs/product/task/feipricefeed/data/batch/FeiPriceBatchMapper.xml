@@ -6,7 +6,8 @@
 	<update id="updateFeiWhitelistPrice"
 			parameterType="FeiPriceData">
 		UPDATE mmc.product.pricingFeiWhitelist
-		SET lastKnownPrice = #{price}
+		SET lastKnownPrice = #{price},
+		lastModified = GETDATE()
 		WHERE productUniqueId = #{uniqueId}
 	</update>
 </mapper>

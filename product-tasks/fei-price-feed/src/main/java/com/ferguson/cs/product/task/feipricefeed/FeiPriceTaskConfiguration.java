@@ -220,7 +220,7 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<FeiPriceData> duplicateDataWriter() {
-		String[] fields = new String[]{"uniqueId", "mpn", "price", "brand", "status"};
+		String[] fields = new String[]{"uniqueId", "mpid", "price", "brand", "status"};
 
 		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").names(fields)
 				.headerCallback(p -> p
