@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ferguson.cs.product.task.feipricefeed.data.FeiPriceMapper">
+<mapper namespace="com.ferguson.cs.product.task.feipricefeed.data.reporter.FeiPriceMapper">
 	<resultMap id="feiPriceDataMap" type="FeiPriceData">
 		<result column="uniqueId" property="uniqueId"/>
 		<result column="mpid" property="mpid"/>
@@ -34,7 +34,7 @@
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -55,6 +55,7 @@
 		AND pricebookCostLog.PriceBookId = pricebook.PriceBookId
 		INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
+		AND pricebook.Cost != pricingFeiWhiteList.lastKnownPrice
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New
