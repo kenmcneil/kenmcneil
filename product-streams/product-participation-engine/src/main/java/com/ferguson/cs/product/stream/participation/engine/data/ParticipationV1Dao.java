@@ -6,7 +6,7 @@ import java.util.List;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 
 /**
- * This is responsible SQL database queries specific to participation@1, eg calculated discount methods.
+ * This is responsible for SQL database queries specific to participation@1, eg calculated discount methods.
  */
 public interface ParticipationV1Dao {
 
