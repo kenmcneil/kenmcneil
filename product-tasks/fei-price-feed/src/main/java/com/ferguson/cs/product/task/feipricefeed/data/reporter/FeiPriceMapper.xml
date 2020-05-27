@@ -55,7 +55,7 @@
 		AND pricebookCostLog.PriceBookId = pricebook.PriceBookId
 		INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
-		AND pricebook.Cost != pricingFeiWhiteList.lastKnownPrice
+		AND (pricebook.Cost != pricingFeiWhiteList.lastKnownPrice OR pricingFeiWhitelist.lastKnownPrice IS NULL)
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New
