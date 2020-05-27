@@ -52,10 +52,6 @@ Delete test data before running each test to avoid data from any previous runs i
 -- and reset any modified prices or other data.
 
 DELETE
-FROM mmc.product.currentPriorityParticipation
-WHERE participationId >= 50000
-
-DELETE
 FROM mmc.product.participationProduct
 WHERE participationId >= 50000
 

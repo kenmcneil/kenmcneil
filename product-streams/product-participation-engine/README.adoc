@@ -12,7 +12,7 @@
 
 == Production / Runbook
 
-* Also see link:https://wiki.build.com/display/CON/Participations+and+Product+Pricing+Runbook[production issues / runbook] [small]#[&nearr;]# information on the wiki.
+* Also see link:https://wiki.build.com/display/CON/Participations+and+Product+Pricing+Runbook[production issues / runbook] &nearr; information on the wiki.
 
 === Monitoring
 
@@ -20,7 +20,7 @@ NewRelic is notified for application exceptions, including connection errors, ex
 
 === Configuration
 
-See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] [small]#[&nearr;]# on github for the current application configuration.
+See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] &nearr; on github for the current application configuration.
 
 == Development
 
@@ -58,7 +58,7 @@ When test mode is enabled, participations below a given id are omitted from proc
 
 === Configuration properties
 
-* See current link:https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] [small]#[&nearr;]# in the configuration repo.
+* See current link:https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] &nearr; in the configuration repo.
 * See link:src/test/resources/application-unit.yml[application-unit.yml] for unit / integration test config.
 
 .Configuration for running locally

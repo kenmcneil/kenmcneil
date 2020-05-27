@@ -366,22 +366,6 @@
 		ORDER BY endDate
 	</select>
 
-	<insert id="syncToCurrentPriorityParticipation">
-		-- TODO remove currentPriorityParticipation code (see SODEV-25037)
-		-- Keep currentPriorityParticipation up to date for things still using it.
-		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
-		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
-		SELECT
-			pp.uniqueId,
-			pip.saleId,
-			pp.participationId
-		FROM mmc.product.participationProduct AS pp
-		JOIN mmc.product.participationItemPartial AS pip
-			ON pip.participationId = pp.participationId
-				AND pip.isActive = 1
-		WHERE pp.isOwner = 1
-	</insert>
-
 	<insert id="upsertParticipationItemPartial">
 		IF EXISTS (
 				SELECT id FROM mmc.product.participationItemPartial

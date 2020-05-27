@@ -82,16 +82,8 @@ public class ParticipationProcessor {
 		ParticipationItemPartial itemPartial = getNextPendingUnpublishParticipation();
 		while (itemPartial != null) {
 			try {
-				boolean wasActive = participationLifecycleService.getParticipationIsActive(itemPartial.getParticipationId());
-
 				participationWriter.processUnpublish(itemPartial, getProcessingDate());
 				LOG.info("participation {} unpublished to draft status", itemPartial.getParticipationId());
-
-				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				if (wasActive) {
-					int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-					LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
-				}
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + itemPartial.getParticipationId();
 				NewRelic.noticeError(errorMessage);
@@ -113,10 +105,6 @@ public class ParticipationProcessor {
 			try {
 				participationWriter.processActivation(itemPartial, processingDate);
 				LOG.info("participation {} activated by scheduling", itemPartial.getParticipationId());
-
-				// TODO remove currentPriorityParticipation code (see SODEV-25037)
-				int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-				LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + itemPartial.getParticipationId();
 				NewRelic.noticeError(errorMessage);
@@ -139,10 +127,6 @@ public class ParticipationProcessor {
 				participationWriter.processDeactivation(itemPartial, processingDate);
 				if (itemPartial.getIsActive()) {
 					LOG.info("expired participation {} deactivated and unpublished with archived status", itemPartial.getParticipationId());
-
-					// TODO remove currentPriorityParticipation code (see SODEV-25037)
-					int rowsAffected = participationLifecycleService.syncToCurrentPriorityParticipation();
-					LOG.debug("{}: {} rows updated for currentPriorityParticipation sync", itemPartial.getParticipationId(), rowsAffected);
 				} else {
 					LOG.info("never activated expired participation {} unpublished with archived status", itemPartial.getParticipationId());
 				}
