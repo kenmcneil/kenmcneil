@@ -3,7 +3,8 @@ package com.ferguson.cs.product.stream.participation.engine.lifecycle;
 import java.util.Date;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -31,37 +32,38 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle {
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationDao participationDao;
-	//LWH>>>>>>>>>>>
+	private final ParticipationCoreDao participationCoreDao;
+	private final ParticipationV1Dao participationV1Dao;
+
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_ITEMIZED_V1;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
 	@Override
 	public int publish(ParticipationItem item, Date processingDate) {
 		return 0;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationCoreMapper
 	@Override
 	public int activate(ParticipationItemPartial itemPartial, Date processingDate) {
 		return 0;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
 	@Override
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		return 0;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationCoreMapper
 	@Override
 	public int deactivate(ParticipationItemPartial itemPartial, Date processingDate) {
 		return 0;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
 	@Override
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		return 0;
 	}
-
+	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
 	@Override
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		return 0;

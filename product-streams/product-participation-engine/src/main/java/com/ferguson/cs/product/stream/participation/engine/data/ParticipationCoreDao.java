@@ -7,10 +7,10 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCa
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 /**
- * This is responsible for all SQL database queries. Some methods apply to all Participation types,
- * and some are specific (e.g. participation@1 has a saleId, participation-itemized@1 doesn't).
+ * This is responsible for common Participation SQL database queries. Any methods that are specific to certain
+ * Participation types (e.g. participation@1) have been moved to daos aligning to those types.
  */
-public interface ParticipationDao {
+public interface ParticipationCoreDao {
 
 	/**
 	 * Mark a participation as active. This is done as part of the activation process.
@@ -68,8 +68,6 @@ public interface ParticipationDao {
 	 */
 	int deactivateProductSaleIds();
 
-
-
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.
 	 * @param processingDate The date the participation is being processed.
@@ -112,43 +110,4 @@ public interface ParticipationDao {
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
-
-
-//	Calculated Discounts //
-
-	/**
-	 * Record last-on-sale base prices.
-	 * @param processingDate The date the participation is being processed.
-	 * @return The number of records modified.
-	 */
-	int updateLastOnSaleBasePrices(Date processingDate);
-
-	/**
-	 * Take the prices owned by the participation off sale.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
-
-	/**
-	 * Apply calculated discounts to products becoming owned by a Participation.
-	 * @param processingDate The date the participation is being processed.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
-
-	int upsertParticipationCalculatedDiscounts(
-			int participationId,
-			List<ParticipationCalculatedDiscount> calculatedDiscounts
-	);
-
-	/**
-	 * Delete participationCalculatedDiscount rows the given Participation.
-	 * @param participationId The id of the participation from which to delete calculated discounts.
-	 * @return The number of records modified.
-	 */
-	int deleteParticipationCalculatedDiscounts(int participationId);
-
-//	Itemized Discounts //
 }

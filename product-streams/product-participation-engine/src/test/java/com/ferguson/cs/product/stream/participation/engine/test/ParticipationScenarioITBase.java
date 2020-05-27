@@ -41,7 +41,8 @@ import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSe
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -100,7 +101,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 	/*
 	 * No mocking/spying needed:
-	 *      ParticipationDao
+	 *      ParticipationCoreDao
 	 *
 	 * Mock entire class:
 	 *      ConstructService
@@ -111,7 +112,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 *      participationProcessor: getProcessingDate
 	 */
 	@Autowired
-	protected ParticipationDao participationDao;
+	protected ParticipationCoreDao participationCoreDao;
+
+	@Autowired
+	protected ParticipationV1Dao participationV1Dao;
 
 	@Autowired
 	protected ParticipationEngineSettings participationEngineSettings;
