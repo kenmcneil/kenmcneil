@@ -1,12 +1,13 @@
 package com.ferguson.cs.product.task.feipriceupdate.data;
 
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
 
-
+@Repository
 public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 
 	private FeiPriceUpdateMapper feiPriceUpdateMapper;
@@ -15,6 +16,7 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 		this.feiPriceUpdateMapper = feiPriceUpdateMapper;
 	}
 
+	@Override
 	public void createTempTable(String tempTableName) {
 		feiPriceUpdateMapper.createTempTable(tempTableName);
 	}
@@ -71,5 +73,15 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 	public CostUpdateJob getCostUpdateJob(Integer costUpdateJobId) {
 		Assert.notNull(costUpdateJobId, "Unable to retrieve cost update job due to null costUpdateJobId.");
 		return feiPriceUpdateMapper.getCostUpdateJob(costUpdateJobId);
+	}
+
+	@Override
+	public Boolean isValidMpidUniqueId(Integer mpid, Integer uniqueId) {
+		return feiPriceUpdateMapper.isValidMpidUniqueId(mpid, uniqueId);
+	}
+
+	@Override
+	public Double getPreferredVendorCost(Integer uniqueId) {
+		return feiPriceUpdateMapper.getPreferredVendorCost(uniqueId);
 	}
 }

@@ -1,25 +1,23 @@
 package com.ferguson.cs.product.task.feipriceupdate.batch;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.model.PriceUpdateStatus;
 
 public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiPriceUpdateItemWriter.class);
 	private static final int LIGHTING_BASE_CATEGORY_ID = 4;
-
-	@Autowired
-	FeiPriceUpdateSettings feiPriceUpdateSettings;
+	private static final Double MINIMUM_PROFIT_MARGIN = .14;
 
 	private final FeiPriceUpdateService feiPriceUpdateService;
 
@@ -31,51 +29,93 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	@Override
 	public void write(List<? extends FeiPriceUpdateItem> items) throws Exception {
 
+
 		for (FeiPriceUpdateItem item : (List<FeiPriceUpdateItem>) items) {
 
-			if (validPriceUpdateRecord(item)) {
-				feiPriceUpdateService.insertTempPriceUpdateRecord(item);
+			LOGGER.debug("FeiPriceUpdateItemWriter - Processing Item uniqueId: {}, mpid:{}, consumer price: {}",
+					item.getUniqueId(), item.getMpid(), item.getPrice());
 
+			PriceUpdateStatus validationStatus = validPriceUpdateRecord(item);
+			Double preferredVendorCost = null;
+
+			if (validationStatus == PriceUpdateStatus.VALID) {
+				// Get preferred vendor cost.  This will be used to validate the margin.
+				preferredVendorCost = feiPriceUpdateService.getPreferredVendorCost(item.getUniqueId());
+				if (preferredVendorCost == null) {
+					validationStatus = PriceUpdateStatus.VENDOR_COST_LOOKUP_ERROR;
+				} else if (!isValidProfitMargin(preferredVendorCost, item.getPrice())) {
+					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
+				}
+			}
+
+			// One last validation check to validate the profit margin.
+			item.setStatus(validationStatus);
+
+			feiPriceUpdateService.insertTempPriceUpdateRecord(item);
+
+			if (validationStatus == PriceUpdateStatus.VALID) {
 				// Create a record for Pro pricing. Input file is customer pricing only
 				FeiPriceUpdateItem proItem = buildProPricingRecord(item);
+
+				LOGGER.debug("FeiPriceUpdateItemWriter - Pro price: {}", proItem.getPrice());
+
+				if (!isValidProfitMargin(preferredVendorCost, proItem.getPrice())) {
+					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
+				}
+
 				feiPriceUpdateService.insertTempPriceUpdateRecord(proItem);
 			}
 		}
 	}
 
 	/*
-	 * Sanity check to validate the record. If the record fails validation it will
-	 * not be loaded into the temp table and therefore will not get processed.
+	 * Perform record validation.  Error code will be stored in temp table and a CSV file will
+	 * be sent out containing any errors that failed validation resulting in no price update.
 	 */
-	private boolean validPriceUpdateRecord(FeiPriceUpdateItem item) {
+	private PriceUpdateStatus validPriceUpdateRecord(FeiPriceUpdateItem item) {
 
+		// Validate the supplied input record
 		if (item.getUniqueId() == null) {
 			LOGGER.error("FeiPriceUpdateItemWriter - FEI Price update record must contain a uniqueId");
-			return false;
+			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		}
 
 		// Not an error - This just means it won't be included in the update as it's not a FEI product
 		if (item.getFeiOwnedProductId() == null) {
 			LOGGER.debug("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. Not FEI owned",
 					item.getUniqueId());
-			return false;
+			return PriceUpdateStatus.OWNED_LOOKUP_ERROR;
 		}
 
 		if (item.getPrice() == null) {
 			LOGGER.info("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price supplied is null",
 					item.getUniqueId());
-			return false;
+			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		} else {
 			BigDecimal bdPrice = new BigDecimal(item.getPrice());
 			if (bdPrice.compareTo(BigDecimal.ZERO) == 0) {
 				LOGGER.error(
 						"FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price cannot be a zero amount",
 						item.getUniqueId());
-				return false;
+				return PriceUpdateStatus.PRICE_VALIDATION_ERROR;
 			}
 		}
 
-		return true;
+		// Validate mpid and uniqueId
+		if (!feiPriceUpdateService.isValidMpidUniqueId(item.getMpid(),  item.getUniqueId())) {
+			LOGGER.error("FeiPriceUpdateItemWriter - Invalid MPID: {}, UniqueId: {} combination",
+					item.getMpid(),  item.getUniqueId());
+			return PriceUpdateStatus.DATA_MATCH_ERROR;
+		}
+
+		// Validate FEI owned active status
+		if (!item.getFeiOwnedActive()) {
+			LOGGER.error("FeiPriceUpdateItemWriter - UniqueId: {} FEI owned inactive",
+					item.getUniqueId());
+			return PriceUpdateStatus.OWNED_INACTIVE_ERROR;
+		}
+
+		return PriceUpdateStatus.VALID;
 	}
 
 	/*
@@ -113,7 +153,22 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			LOGGER.debug("calculateProPricing - No pro pricing multiplier for product unique ID: {}",
 					item.getUniqueId());
 		}
-	
+
 		return proPrice.doubleValue();
+	}
+
+	/*
+	 * Calculate the profit margin.  If less than 14% we will reject this pricing update.
+	 */
+	private Boolean isValidProfitMargin(Double vendorCost, Double feiPrice) {
+
+		BigDecimal vendorPrice = new BigDecimal(Double.toString(vendorCost));
+		BigDecimal consumerPrice = new BigDecimal(Double.toString(feiPrice));
+		BigDecimal margin = (new BigDecimal(1).subtract(vendorPrice.divide(consumerPrice,2, RoundingMode.HALF_DOWN)));
+
+		LOGGER.debug("FeiPriceUpdateItemWriter/isValidProfitMargin - Vendor Cost: {}, Fei Price: {}, profit margin: {}",
+				vendorCost, feiPrice, margin);
+
+		return margin.compareTo(new BigDecimal(MINIMUM_PROFIT_MARGIN)) >= 0;
 	}
 }

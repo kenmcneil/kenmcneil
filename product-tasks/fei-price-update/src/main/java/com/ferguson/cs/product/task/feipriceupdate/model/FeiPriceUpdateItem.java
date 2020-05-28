@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FeiPriceUpdateItem implements Serializable {	
+public class FeiPriceUpdateItem implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private String tempTableName;
 	private Integer uniqueId;
 	private Double price;
@@ -20,4 +20,7 @@ public class FeiPriceUpdateItem implements Serializable {
 	private Integer umrpId;
 	private Integer feiOwnedProductId;
 	private Integer pricebookId;
+	private Double preferedVendorCost;
+	private Boolean feiOwnedActive;
+	private PriceUpdateStatus status;
 }
