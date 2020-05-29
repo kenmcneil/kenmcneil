@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
 
+import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceUpdateStatus;
@@ -17,12 +18,15 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiPriceUpdateItemWriter.class);
 	private static final int LIGHTING_BASE_CATEGORY_ID = 4;
-	private static final Double MINIMUM_PROFIT_MARGIN = .14;
 
 	private final FeiPriceUpdateService feiPriceUpdateService;
+	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 
-	public FeiPriceUpdateItemWriter(FeiPriceUpdateService feiPriceUpdateService) {
+	public FeiPriceUpdateItemWriter(
+			FeiPriceUpdateService feiPriceUpdateService,
+			FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
+		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -169,6 +173,6 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		LOGGER.debug("FeiPriceUpdateItemWriter/isValidProfitMargin - Vendor Cost: {}, Fei Price: {}, profit margin: {}",
 				vendorCost, feiPrice, margin);
 
-		return margin.compareTo(new BigDecimal(MINIMUM_PROFIT_MARGIN)) >= 0;
+		return margin.compareTo(new BigDecimal(feiPriceUpdateSettings.getMargin())) >= 0;
 	}
 }

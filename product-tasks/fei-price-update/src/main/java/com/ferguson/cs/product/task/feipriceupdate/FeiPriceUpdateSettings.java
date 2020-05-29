@@ -18,4 +18,5 @@ public class FeiPriceUpdateSettings {
 	private Integer costUpdateJobUserid;
 	private String backupFolderPath;
 	private String[] errorReportEmailList;
+	private Double margin;
 }

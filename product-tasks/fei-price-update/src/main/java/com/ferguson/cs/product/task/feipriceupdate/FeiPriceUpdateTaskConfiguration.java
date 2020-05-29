@@ -239,7 +239,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	@Bean
 	@StepScope
 	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter() {
-		return new FeiPriceUpdateItemWriter(feiPriceUpdateService);
+		return new FeiPriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
 	}
 
 	/*
