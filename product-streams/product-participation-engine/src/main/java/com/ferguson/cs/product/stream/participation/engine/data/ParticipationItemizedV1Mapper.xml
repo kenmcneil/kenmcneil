@@ -117,17 +117,17 @@
 			pbcost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationItemizedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
-				JOIN
+			AND discount.pricebookId = pbcost.pricebookId
+		JOIN
 			mmc.product.latestBasePrice AS lbp
 			ON lbp.uniqueId = pbcost.uniqueId
-				AND lbp.pricebookId = pbcost.pricebookId
+			AND lbp.pricebookId = pbcost.pricebookId
 	</update>
 
 	<delete id="deleteParticipationItemizedDiscounts" parameterType="int">

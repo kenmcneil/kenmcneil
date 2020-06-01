@@ -74,7 +74,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		if (contentType == null) {
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
-//LWH>>>>>>>>>>>ONLY PUBLISH CALL
+
 		//calls publish in the correct subclass, ParticipationV1Lifecycle, based on contentTypeId
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
@@ -102,12 +102,10 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		// (2) Make deactivation changes for all Participation types, to remove their effects on
 		// entities becoming owned by the activating Participation.
-//LWH>>>>>>>>>>>
-		//LWH>>>>>>>>>TODO note here it's getting ALL the types and running below on each
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.deactivateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
-//LWH>>>>>>>>>>>
+
 		// (3) Apply effects of the activating itemPartial record to newly-owned entities.
 		affectedRows += activatingLifecycle.activateEffects(itemPartial, processingDate);
 
@@ -131,14 +129,12 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
 		affectedRows += deactivatingLifecycle.deactivate(itemPartial, processingDate);
-//LWH>>>>>>>>>>>
+
 		// (2) Remove effects of the deactivating record from un-owned entities.
 		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
 		// (3) Apply effects for all Participation types, for entities being dis-owned by the
 		// deactivating Participation that are becoming owned by other active Participations.
-//LWH>>>>>>>>>>>
-		//LWH>>>>>>>>>TODO note here it's getting ALL the types and running below on each
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
@@ -153,7 +149,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * deleting effect-specific records it added when it published the Participation.
 	 */
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
-//LWH>>>>>>>>>>>
 		int rowsAffected = getLifecycle(itemPartial.getContentTypeId()).unpublish(itemPartial, processingDate);
 		LOG.debug("{}: {} total rows deleted to unpublish participation", itemPartial.getParticipationId(), rowsAffected);
 		return rowsAffected;

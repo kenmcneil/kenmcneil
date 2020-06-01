@@ -11,17 +11,17 @@
 		  ,lastOnSale.saleDate = #{processingDate}
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = lastOnSale.uniqueId
-				JOIN
+		JOIN
 			mmc.dbo.pricebook_cost AS pbcost
 			ON pbcost.uniqueId = lastOnSale.uniqueId
-				AND pbcost.pricebookId = lastOnSale.pricebookId
-				JOIN
+			AND pbcost.pricebookId = lastOnSale.pricebookId
+		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
+			AND discount.pricebookId = pbcost.pricebookId
 	</update>
 
 	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
@@ -33,17 +33,17 @@
 			pbcost.pricebookId, pbcost.uniqueId, #{processingDate}, pbcost.basePrice
 		FROM
 			mmc.dbo.pricebook_cost AS pbcost
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
-				LEFT JOIN
+			AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
 			mmc.product.participationLastOnSale AS los
 			ON los.uniqueId = pbcost.uniqueId
-				AND los.pricebookId = pbcost.pricebookId
+			AND los.pricebookId = pbcost.pricebookId
 		WHERE
 			los.uniqueId IS NULL
 	</insert>
@@ -62,17 +62,17 @@
 			pbcost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
-				JOIN
+			AND discount.pricebookId = pbcost.pricebookId
+		JOIN
 			mmc.product.latestBasePrice AS lbp
 			ON lbp.uniqueId = pbcost.uniqueId
-				AND lbp.pricebookId = pbcost.pricebookId
+			AND lbp.pricebookId = pbcost.pricebookId
 	</update>
 
 	<update id="applyNewCalculatedDiscounts" parameterType="map">
@@ -92,18 +92,18 @@
 			pbcost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.newParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
-				LEFT JOIN
+			AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
 			mmc.product.participationLastOnSale AS las
 			ON las.uniqueId = pbcost.uniqueId
-				AND las.pricebookId = pbcost.pricebookId
-				AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			AND las.pricebookId = pbcost.pricebookId
+			AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
 
 	<insert id="insertParticipationCalculatedDiscounts">

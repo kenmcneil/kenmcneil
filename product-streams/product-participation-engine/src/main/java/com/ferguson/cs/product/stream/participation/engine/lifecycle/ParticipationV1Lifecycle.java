@@ -103,9 +103,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	 * and participationItemPartial.
 	 */
 	@Override
-//LWH>>>>>>>>>>>V1PUBLISH STARTS HERE
 	public int publish(ParticipationItem item, Date processingDate) {
-		//builds a partial obj from item
 		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
 				.participationId(item.getId())
 				.saleId(getSaleId(item))
@@ -115,12 +113,9 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 				.isActive(false)
 				.contentTypeId(ParticipationContentType.PARTICIPATION_V1.contentTypeId())
 				.build();
-//core upserts partial
+
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
-//core upserts products
 		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
-//V1 upserts discounts
-//LWH>>>>>>>>>>>GET CONTENT 1
 		rowsAffected += participationV1Dao.upsertParticipationCalculatedDiscounts(
 				item.getId(), getParticipationCalculatedDiscounts(item));
 
@@ -266,20 +261,16 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	/**
 	 * Return list of participation calculated discounts for pb1 and pb22 if they are present in the content map.
 	 */
-//LWH>>>>>>>>>>>GET CONTENT 2
 	private List<ParticipationCalculatedDiscount> getParticipationCalculatedDiscounts(ParticipationItem item) {
 		List<ParticipationCalculatedDiscount> discounts = new ArrayList<>();
 
 		// Calculated discounts are optional.
-//LWH>>>>>>>>>>>GET CONTENT 3
 		if (!item.getContent().containsKey(PRICE_DISCOUNTS_KEY)
 				|| ParticipationLifecycle.getAtPath(item, PRICE_DISCOUNTS_CALCULATED_DISCOUNT_PATH) == null) {
 			return discounts;
 		}
-//LWH>>>>>>>>>>>GET CONTENT 3
 		String discountType = ParticipationLifecycle.getAtPath(item, PRICE_DISCOUNTS_TYPE_PATH);
 		boolean isPercentDisc = PERCENT_DISCOUNT_KEY.equals(discountType);
-//LWH>>>>>>>>>>>GET CONTENT 3
 		// Get discount map using the discountType key.
 		List<String> pathToDiscountMap = new ArrayList<>(Arrays.asList(PRICE_DISCOUNTS_CALCULATED_DISCOUNT_PATH));
 		pathToDiscountMap.add(discountType);

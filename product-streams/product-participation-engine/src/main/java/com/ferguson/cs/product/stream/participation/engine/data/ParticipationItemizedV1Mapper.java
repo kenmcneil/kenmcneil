@@ -1,10 +1,8 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
-import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface ParticipationItemizedV1Mapper {

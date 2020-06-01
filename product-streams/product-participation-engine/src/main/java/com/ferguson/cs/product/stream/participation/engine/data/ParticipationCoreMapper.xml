@@ -194,10 +194,10 @@
 			modified.modifiedBy = users.username
 		FROM
 			mmc.product.modified
-				JOIN
+		JOIN
 			##participationOwnerChange AS oc
 			ON oc.uniqueId = modified.uniqueId
-				JOIN
+		JOIN
 			omc.dbo.users AS users
 			ON users.userId = #{userId}
 	</update>
@@ -218,40 +218,40 @@
 
 	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-		participationId,
-		saleId,
-		startDate,
-		endDate,
-		lastModifiedUserId,
-		isActive
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive
 		FROM
-		mmc.product.participationItemPartial
+			mmc.product.participationItemPartial
 		WHERE
-		isActive = 0
-		AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
-		AND (endDate > #{processingDate} OR endDate IS NULL)
-		<if test="minParticipationId != null">
-			AND participationId >= #{minParticipationId}
-		</if>
+			isActive = 0
+			AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
+			AND (endDate > #{processingDate} OR endDate IS NULL)
+			<if test="minParticipationId != null">
+				AND participationId >= #{minParticipationId}
+			</if>
 		ORDER BY startDate
 	</select>
 
 	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-		participationId,
-		saleId,
-		startDate,
-		endDate,
-		lastModifiedUserId,
-		isActive
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive
 		FROM
-		mmc.product.participationItemPartial
+			mmc.product.participationItemPartial
 		WHERE
-		endDate IS NOT NULL
-		AND endDate &lt; #{processingDate}
-		<if test="minParticipationId != null">
-			AND participationId >= #{minParticipationId}
-		</if>
+			endDate IS NOT NULL
+			AND endDate &lt; #{processingDate}
+			<if test="minParticipationId != null">
+				AND participationId >= #{minParticipationId}
+			</if>
 		ORDER BY endDate
 	</select>
 
@@ -264,16 +264,20 @@
 			pp.uniqueId,
 			pip.saleId,
 			pp.participationId
-		FROM mmc.product.participationProduct AS pp
-				 JOIN mmc.product.participationItemPartial AS pip
-					  ON pip.participationId = pp.participationId
-						  AND pip.isActive = 1
-		WHERE pp.isOwner = 1
+		FROM
+			mmc.product.participationProduct AS pp
+		JOIN
+			mmc.product.participationItemPartial AS pip
+			ON pip.participationId = pp.participationId
+			AND pip.isActive = 1
+		WHERE
+			pp.isOwner = 1
 	</insert>
 
 	<insert id="upsertParticipationItemPartial">
 		IF EXISTS (
-				SELECT id FROM mmc.product.participationItemPartial
+				SELECT id
+				FROM mmc.product.participationItemPartial
 				WHERE participationId = #{participationId}
 			)
 			BEGIN
