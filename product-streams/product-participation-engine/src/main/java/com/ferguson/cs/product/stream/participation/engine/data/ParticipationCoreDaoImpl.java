@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Repository

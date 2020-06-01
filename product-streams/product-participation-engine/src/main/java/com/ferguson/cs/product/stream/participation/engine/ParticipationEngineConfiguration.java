@@ -10,7 +10,9 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.construct.ContentEventRepository;
 import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
@@ -66,14 +68,24 @@ public class ParticipationEngineConfiguration {
 	}
 
 	@Bean
+	public ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationCoreDao participationCoreDao,
+			ParticipationItemizedV1Dao participationItemizedV1Dao
+	) {
+		return new ParticipationItemizedV1Lifecycle(participationEngineSettings, participationCoreDao,
+				participationItemizedV1Dao);
+	}
+
+	@Bean
 	public ParticipationLifecycleService participationLifecycleService(
 			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Dao participationV1Dao,
-			ParticipationV1Lifecycle participationV1Lifecycle
+			ParticipationV1Lifecycle participationV1Lifecycle,
+			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle
 	) {
 		return new ParticipationLifecycleServiceImpl(participationEngineSettings, participationCoreDao,
-				participationV1Dao,
-				participationV1Lifecycle);
+				participationV1Dao, participationV1Lifecycle, participationItemizedV1Lifecycle);
 	}
 }

@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 import java.util.Date;
 import java.util.List;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 /**

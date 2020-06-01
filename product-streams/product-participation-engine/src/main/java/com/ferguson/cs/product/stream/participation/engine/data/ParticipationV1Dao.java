@@ -14,6 +14,8 @@ public interface ParticipationV1Dao {
 	 * Apply calculated discounts to products becoming owned by a Participation.
 	 * @param processingDate The date the participation is being processed.
 	 * @param userId The id of the user initiating the changes.
+	 * @param coolOffPeriodMinutes a grace period for small edits (eg 15 minute) during which wasPrice should not be
+	 * affected.
 	 * @return The number of records modified.
 	 */
 	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
@@ -33,7 +35,7 @@ public interface ParticipationV1Dao {
 	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
 
 	/**
-	 * Delete participationCalculatedDiscount rows the given Participation.
+	 * Delete participationCalculatedDiscount rows for the given Participation.
 	 * @param participationId The id of the participation from which to delete calculated discounts.
 	 * @return The number of records modified.
 	 */

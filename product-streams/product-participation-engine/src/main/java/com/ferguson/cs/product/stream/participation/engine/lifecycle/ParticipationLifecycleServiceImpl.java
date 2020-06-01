@@ -74,7 +74,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		if (contentType == null) {
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
-//LWH>>>>>>>>>>>
+//LWH>>>>>>>>>>>ONLY PUBLISH CALL
 		//calls publish in the correct subclass, ParticipationV1Lifecycle, based on contentTypeId
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
@@ -96,13 +96,14 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, true);
 
-		// (1) Apply effect-specific queries for activating this Participation. Perform set up
+		// (1) Apply non-effect-specific queries for activating this Participation. Perform set up
 		// to call deactivateEffects() and activateEffects().
 		affectedRows += activatingLifecycle.activate(itemPartial, processingDate);
 
 		// (2) Make deactivation changes for all Participation types, to remove their effects on
 		// entities becoming owned by the activating Participation.
 //LWH>>>>>>>>>>>
+		//LWH>>>>>>>>>TODO note here it's getting ALL the types and running below on each
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.deactivateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
@@ -137,6 +138,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		// (3) Apply effects for all Participation types, for entities being dis-owned by the
 		// deactivating Participation that are becoming owned by other active Participations.
 //LWH>>>>>>>>>>>
+		//LWH>>>>>>>>>TODO note here it's getting ALL the types and running below on each
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);

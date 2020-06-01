@@ -1,13 +1,25 @@
 package com.ferguson.cs.product.stream.participation.engine.lifecycle;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,56 +28,238 @@ import lombok.RequiredArgsConstructor;
  *
  * Example content record:
  *
- *   "content": {
- *     "_type": "participation-itemized@1.0.0",
- *     "itemizedDiscounts": {
- *       "_type": "atom-section@1.0.0",
- *       "discounts": {
- *         "list": [],
- *         "_type": "atom-tuple-list@1.0.0"
- *       }
- *     }
- *   }
+	 "content": {
+		 "_type": "participation-itemized@1.0.0",
+		 "productSale": {
+			 "saleId": 6713,
+			 "_type": "atom-product-sale@1.0.0"
+		 },
+		 "itemizedDiscounts": {
+			 "list": [
+				 [
+					 "Kohler",
+					 298721,
+					 99.86,
+					 86.9
+				 ],
+				 [
+					 "Moen",
+					 93506,
+					 20,
+					 17
+				 ]
+			 ],
+			 "_type": "atom-tuple-list@1.0.0"
+		 }
+	 }
  *
  * Null checking is mostly omitted since a content object is validated before publishing.
  */
 @RequiredArgsConstructor
 public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ParticipationV1Lifecycle.class);
+
+	private static final String[] PRODUCT_SALE_ID_PATH = {"productSale", "saleId"};
+	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"calculatedDiscounts", "uniqueIds", "list"};
+	private static final String[] ITEMIZED_DISCOUNTS_TYPE_PATH = {
+			"itemizedDiscounts", "list"};
+
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;
-	private final ParticipationV1Dao participationV1Dao;
+	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
 
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_ITEMIZED_V1;
 	}
-	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
+
+	/**
+	 * "Publish" method upserts all necessary participation data to SQL for future or immediate activation,
+	 * where participation is of Itemized Discount type
+	 * @param item
+	 * @param processingDate
+	 * @return total rows affected in the db
+	 */
 	@Override
 	public int publish(ParticipationItem item, Date processingDate) {
-		return 0;
+		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+				.participationId(item.getId())
+				.saleId(getSaleId(item))
+				.startDate(item.getSchedule() == null ? null : item.getSchedule().getFrom())
+				.endDate(item.getSchedule() == null ? null : item.getSchedule().getTo())
+				.lastModifiedUserId(item.getLastModifiedUserId())
+				.isActive(false)
+				.contentTypeId(ParticipationContentType.PARTICIPATION_ITEMIZED_V1.contentTypeId())
+				.build();
+
+		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
+		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
+		rowsAffected += participationItemizedV1Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
+
+		return rowsAffected;
 	}
-	//LWH>>>>>>>>>>>ParticipationCoreMapper
+
+	/**
+	 * Calculate the owner changes table, update product ownership, and trigger product storage cache
+	 * update by updating each product's modified date.
+	 */
 	@Override
 	public int activate(ParticipationItemPartial itemPartial, Date processingDate) {
-		return 0;
+		int participationId = itemPartial.getParticipationId();
+		int userId = getUserId(itemPartial);
+		int totalRows = 0;
+
+		// Determine what products are changing ownership and store into temp table,
+		// and update ownership data.
+		// -- not logging returned row-modified count since it's not always accurate
+		participationCoreDao.updateOwnerChangesForActivation(participationId);
+
+		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		totalRows += rowsAffected;
+		LOG.debug(" {}: {} products with new participation ownership", participationId, rowsAffected);
+
+		rowsAffected = participationCoreDao.removeProductOwnershipForOldOwners(participationId);
+		totalRows += rowsAffected;
+		LOG.debug(" {}: {} products disowned from other participations", participationId, rowsAffected);
+
+		// update modified date
+		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		totalRows += rowsAffected;
+		LOG.debug(" {}: {} product modified dates updated", participationId, rowsAffected);
+
+		return totalRows;
 	}
-	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
+
 	@Override
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
-		return 0;
+		int participationId = itemPartial.getParticipationId();
+		int userId = getUserId(itemPartial);
+		int totalRows = 0;
+
+		int rowsAffected = participationCoreDao.activateProductSaleIds();
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} product saleIds set", participationId, rowsAffected);
+
+		// activate any new itemized discounts
+		rowsAffected = participationItemizedV1Dao.applyNewItemizedDiscounts(processingDate, userId,
+				participationEngineSettings.getCoolOffPeriod().toMinutes());
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} pricebook prices (on {} products) discounted", participationId, rowsAffected, rowsAffected/2);
+
+		return totalRows;
 	}
-	//LWH>>>>>>>>>>>ParticipationCoreMapper
+
+	/**
+	 * Calculate the owner changes table, update product ownership, and trigger product storage cache
+	 * update by updating each product's modified date.
+	 *
+	 * Apply queries specific to sale id and itemized discount deactivation. All queries used here are filtered to the
+	 * uniqueIds in change table rows where newParticipationId is not null.
+	 * TODO: add the filtering as part of the work for itemized discounts ... "and the uniqueId is in
+	 *      a Participation of this type (participation@1)."
+	 */
 	@Override
 	public int deactivate(ParticipationItemPartial itemPartial, Date processingDate) {
-		return 0;
+		int participationId = itemPartial.getParticipationId();
+		int userId = getUserId(itemPartial);
+		int totalRows = 0;
+
+		// Determine what products are changing ownership and store into temp table.
+		participationCoreDao.updateOwnerChangesForDeactivation(participationId);
+
+		// Assign ownership of each unique id to any active fallback participations, but
+		// don't bother to update ownership on participationProduct rows of the deactivating
+		// participation since they will be deleted when unpublished.
+		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} formerly itemized products under new management", participationId, rowsAffected);
+
+		// update modified date on each product modified
+		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
+
+		return totalRows;
 	}
-	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
+
+	/**
+	 * Remove sale id and itemized discount effects from products in participationOwnerChange
+	 * where oldParticipationId is not null.
+	 */
 	@Override
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
-		return 0;
+		int participationId = itemPartial.getParticipationId();
+		int userId = getUserId(itemPartial);
+		int totalRows = 0;
+
+		// Set saleIds for products becoming un-owned to 0.
+		int rowsAffected = participationCoreDao.deactivateProductSaleIds();
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} product saleIds disowned", participationId, rowsAffected);
+
+		rowsAffected = participationItemizedV1Dao.updateLastOnSaleBasePrices(processingDate);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} lastOnSale base prices saved", participationId, rowsAffected);
+
+		rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} prices taken off sale from itemized discounts", participationId, rowsAffected);
+
+		return totalRows;
 	}
-	//LWH>>>>>>>>>>>ParticipationItemizedV1Mapper
+
 	@Override
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
-		return 0;
+		int participationId = itemPartial.getParticipationId();
+		return participationCoreDao.deleteParticipationProducts(participationId)
+				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
+				+ participationCoreDao.deleteParticipationItemPartial(participationId);
+	}
+
+	/**
+	 * Extract the saleId value from the content map.
+	 */
+	private int getSaleId(ParticipationItem item) {
+		Integer saleId = ParticipationLifecycle.getAtPath(item, PRODUCT_SALE_ID_PATH);
+		return saleId != null ? saleId : 0;
+	}
+
+	/**
+	 * Extract the unique ids list from the content.
+	 */
+	private List<Integer> getUniqueIds(ParticipationItem item) {
+		List<Integer> ids = ParticipationLifecycle.getAtPath(item, PRODUCT_UNIQUE_IDS_PATH);
+		return ids == null ? new ArrayList<>() : ids;
+	}
+
+	/**
+	 * Consumes ParticipationItem and extracts the relevant parts of each itemized discount for pricing.
+	 * Returns a multi-line string where each line is is a comma-separated list of uniqueId/pb1price/pb22price.
+	 * @param item a ParticipationItem
+	 * @return csDiscountedPrices
+	 */
+	private List<ParticipationItemizedDiscount> getParticipationItemizedDiscounts(ParticipationItem item) {
+		int participationId = item.getId();
+		List<ParticipationItemizedDiscount> itemizedDiscounts = new ArrayList<>();
+		List<List<Object>> discountedPricesRows = ParticipationLifecycle.getAtPath(item, ITEMIZED_DISCOUNTS_TYPE_PATH);
+		if (!CollectionUtils.isEmpty(discountedPricesRows)) {
+			discountedPricesRows.forEach(row -> {
+				Integer uniqueId = (Integer) (row.get(1));
+				Double pb1Price = (Double) (row.get(2));
+				Double pb22Price = (Double) (row.get(3));
+				itemizedDiscounts.add(new ParticipationItemizedDiscount(participationId, uniqueId, 1, pb1Price));
+				itemizedDiscounts.add(new ParticipationItemizedDiscount(participationId, uniqueId, 22, pb22Price));
+			});
+		}
+		return itemizedDiscounts;
+	}
+
+	/**
+	 * Return either the last modified user id from the Participation, or the task user id.
+	 */
+	private int getUserId(ParticipationItemPartial itemPartial) {
+		return itemPartial.getLastModifiedUserId() == null
+				? participationEngineSettings.getTaskUserId()
+				: itemPartial.getLastModifiedUserId();
 	}
 }
