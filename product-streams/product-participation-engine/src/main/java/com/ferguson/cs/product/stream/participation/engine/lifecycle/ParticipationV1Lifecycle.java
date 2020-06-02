@@ -114,8 +114,8 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 				.contentTypeId(ParticipationContentType.PARTICIPATION_V1.contentTypeId())
 				.build();
 
-		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
-		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
+		int rowsAffected = participationV1Dao.upsertParticipationItemPartial(itemPartial);
+		rowsAffected += participationV1Dao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
 		rowsAffected += participationV1Dao.upsertParticipationCalculatedDiscounts(
 				item.getId(), getParticipationCalculatedDiscounts(item));
 
@@ -135,18 +135,18 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		// Determine what products are changing ownership and store into temp table,
 		// and update ownership data.
 		// -- not logging returned row-modified count since it's not always accurate
-		participationCoreDao.updateOwnerChangesForActivation(participationId);
+		participationV1Dao.updateOwnerChangesForActivation(participationId);
 
-		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		int rowsAffected = participationV1Dao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
-		rowsAffected = participationCoreDao.removeProductOwnershipForOldOwners(participationId);
+		rowsAffected = participationV1Dao.removeProductOwnershipForOldOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products disowned from other participations", participationId, rowsAffected);
 
 		// update modified date on each product modified
-		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		rowsAffected = participationV1Dao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
@@ -163,7 +163,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		int rowsAffected = participationCoreDao.activateProductSaleIds();
+		int rowsAffected = participationV1Dao.activateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product sale ids set", participationId, rowsAffected);
 
@@ -193,17 +193,17 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int totalRows = 0;
 
 		// Determine what products are changing ownership and store into temp table.
-		participationCoreDao.updateOwnerChangesForDeactivation(participationId);
+		participationV1Dao.updateOwnerChangesForDeactivation(participationId);
 
 		// Assign ownership of each unique id to any active fallback participations, but
 		// don't bother to update ownership on participationProduct rows of the deactivating
 		// participation since they will be deleted when unpublished.
-		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		int rowsAffected = participationV1Dao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
 
 		// update modified date on each product modified
-		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		rowsAffected = participationV1Dao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
@@ -221,7 +221,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int totalRows = 0;
 
 		// Set saleIds for products becoming un-owned to 0.
-		int rowsAffected = participationCoreDao.deactivateProductSaleIds();
+		int rowsAffected = participationV1Dao.deactivateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product sale ids disowned", participationId, rowsAffected);
 		rowsAffected = participationV1Dao.updateLastOnSaleBasePrices(processingDate);
@@ -237,9 +237,9 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	@Override
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		return participationCoreDao.deleteParticipationProducts(participationId)
+		return participationV1Dao.deleteParticipationProducts(participationId)
 				+ participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
-				+ participationCoreDao.deleteParticipationItemPartial(participationId);
+				+ participationV1Dao.deleteParticipationItemPartial(participationId);
 	}
 
 	/**

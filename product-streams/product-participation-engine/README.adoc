@@ -85,6 +85,10 @@ a|`-Dspring.data.mongodb.uri=mongodb://XXXXXX`
 |Use mongo-dev-1
 a|(_localdev / dev default_) `-Dspring.data.mongodb.uri=mongodb://mongodb-dev-1.build.internal:27017`
 
+|Application Port
+|Specify port to run on
+a|(to avoid clashing with services)`-Dserver.port=8081`
+
 |Logging
 |Debug steps performed by the engine
 a|`-Dlogging.level.com.ferguson.cs=DEBUG -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.data=INFO -Dlogging.level.com.ferguson.cs.product.stream.participation.engine.ParticipationServiceImpl=DEBUG`

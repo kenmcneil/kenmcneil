@@ -4,8 +4,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Repository
 public class ParticipationV1DaoImpl implements ParticipationV1Dao {
@@ -14,6 +16,106 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 	public ParticipationV1DaoImpl(ParticipationV1Mapper participationV1Mapper) {
 		this.participationV1Mapper = participationV1Mapper;
 	}
+
+//Core Discount Methods
+
+	@Override
+	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
+		return participationV1Mapper.getNextParticipationPendingActivation(processingDate, minParticipationId);
+	}
+
+	@Override
+	public Boolean getParticipationIsActive(int participationId) {
+		return participationV1Mapper.getParticipationIsActive(participationId);
+	}
+
+	@Override
+	public int setParticipationIsActive(int participationId, Boolean isActive) {
+		return participationV1Mapper.setParticipationIsActive(participationId, isActive);
+	}
+
+	@Override
+	public int updateOwnerChangesForActivation(int participationId) {
+		return participationV1Mapper.updateOwnerChangesForActivation(participationId);
+	}
+
+	/**
+	 * Set participationProduct.isOwner to 1 for rows matching the participationId.
+	 * For uniqueIds in P, set participationProduct.isOwner to 1 if P has the highest priority on
+	 * the product else 0.
+	 */
+	@Override
+	public int addProductOwnershipForNewOwners(int participationId) {
+		return participationV1Mapper.addProductOwnershipForNewOwners();
+	}
+
+	/**
+	 * For participationProduct rows where uniqueId in P and participationId != P.id,
+	 * set participationProduct.isOwner = 0
+	 */
+	@Override
+	public int removeProductOwnershipForOldOwners(int participationId) {
+		return participationV1Mapper.removeProductOwnershipForOldOwners();
+	}
+
+	@Override
+	public int activateProductSaleIds() {
+		return participationV1Mapper.activateProductSaleIds();
+	}
+
+	@Override
+	public int deactivateProductSaleIds() {
+		return participationV1Mapper.deactivateProductSaleIds();
+	}
+
+	@Override
+	public int updateProductModifiedDates(Date processingDate, int userId) {
+		return participationV1Mapper.updateProductModifiedDates(processingDate, userId);
+	}
+
+	@Override
+	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId) {
+		return participationV1Mapper.getNextExpiredParticipation(processingDate, minParticipationId);
+	}
+
+	@Override
+	public int updateOwnerChangesForDeactivation(int participationId) {
+		return participationV1Mapper.updateOwnerChangesForDeactivation(participationId);
+	}
+
+	@Override
+	public int deleteParticipationProducts(int participationId) {
+		return participationV1Mapper.deleteParticipationProducts(participationId);
+	}
+
+
+	@Override
+	public int deleteParticipationItemPartial(int participationId) {
+		return participationV1Mapper.deleteParticipationItemPartial(participationId);
+	}
+
+	// TODO remove currentPriorityParticipation code (see SODEV-25037)
+	@Override
+	public int syncToCurrentPriorityParticipation() {
+		return participationV1Mapper.syncToCurrentPriorityParticipation();
+	}
+
+	@Override
+	public int upsertParticipationItemPartial(ParticipationItemPartial itemPartial) {
+		return participationV1Mapper.upsertParticipationItemPartial(itemPartial);
+	}
+
+	@Override
+	public int upsertParticipationProducts(int participationId, List<Integer> uniqueIds) {
+		int rowsAffected = participationV1Mapper.deleteParticipationProducts(participationId);
+		if (!uniqueIds.isEmpty()) {
+			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
+			rowsAffected += participationV1Mapper.insertParticipationProducts(participationId, csvUniqueIds);
+		}
+		return rowsAffected;
+	}
+
+//Calculated Discounts Methods
 
 	@Override
 	public int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes) {

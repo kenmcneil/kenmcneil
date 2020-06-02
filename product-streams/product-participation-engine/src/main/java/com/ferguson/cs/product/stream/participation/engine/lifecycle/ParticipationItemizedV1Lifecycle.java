@@ -61,7 +61,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 			"itemizedDiscounts", "list"};
 
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationCoreDao participationCoreDao;
+//	private final ParticipationCoreDao participationCoreDao;
 	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
 
 	public ParticipationContentType getContentType() {
@@ -87,8 +87,8 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 				.contentTypeId(ParticipationContentType.PARTICIPATION_ITEMIZED_V1.contentTypeId())
 				.build();
 
-		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
-		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
+		int rowsAffected = participationItemizedV1Dao.upsertParticipationItemPartial(itemPartial);
+		rowsAffected += participationItemizedV1Dao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
 		rowsAffected += participationItemizedV1Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
 
 		return rowsAffected;
@@ -107,18 +107,18 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		// Determine what products are changing ownership and store into temp table,
 		// and update ownership data.
 		// -- not logging returned row-modified count since it's not always accurate
-		participationCoreDao.updateOwnerChangesForActivation(participationId);
+		participationItemizedV1Dao.updateOwnerChangesForActivation(participationId);
 
-		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		int rowsAffected = participationItemizedV1Dao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug(" {}: {} products with new participation ownership", participationId, rowsAffected);
 
-		rowsAffected = participationCoreDao.removeProductOwnershipForOldOwners(participationId);
+		rowsAffected = participationItemizedV1Dao.removeProductOwnershipForOldOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug(" {}: {} products disowned from other participations", participationId, rowsAffected);
 
 		// update modified date
-		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		rowsAffected = participationItemizedV1Dao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
 		LOG.debug(" {}: {} product modified dates updated", participationId, rowsAffected);
 
@@ -131,7 +131,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		int rowsAffected = participationCoreDao.activateProductSaleIds();
+		int rowsAffected = participationItemizedV1Dao.activateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product saleIds set", participationId, rowsAffected);
 
@@ -160,17 +160,17 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		int totalRows = 0;
 
 		// Determine what products are changing ownership and store into temp table.
-		participationCoreDao.updateOwnerChangesForDeactivation(participationId);
+		participationItemizedV1Dao.updateOwnerChangesForDeactivation(participationId);
 
 		// Assign ownership of each unique id to any active fallback participations, but
 		// don't bother to update ownership on participationProduct rows of the deactivating
 		// participation since they will be deleted when unpublished.
-		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
+		int rowsAffected = participationItemizedV1Dao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} formerly itemized products under new management", participationId, rowsAffected);
 
 		// update modified date on each product modified
-		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
+		rowsAffected = participationItemizedV1Dao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product modified dates updated", participationId, rowsAffected);
 
@@ -188,7 +188,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		int totalRows = 0;
 
 		// Set saleIds for products becoming un-owned to 0.
-		int rowsAffected = participationCoreDao.deactivateProductSaleIds();
+		int rowsAffected = participationItemizedV1Dao.deactivateProductSaleIds();
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} product saleIds disowned", participationId, rowsAffected);
 
@@ -206,9 +206,9 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	@Override
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		return participationCoreDao.deleteParticipationProducts(participationId)
+		return participationItemizedV1Dao.deleteParticipationProducts(participationId)
 				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
-				+ participationCoreDao.deleteParticipationItemPartial(participationId);
+				+ participationItemizedV1Dao.deleteParticipationItemPartial(participationId);
 	}
 
 	/**
@@ -223,8 +223,10 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	 * Extract the unique ids list from the content.
 	 */
 	private List<Integer> getUniqueIds(ParticipationItem item) {
-		List<Integer> ids = ParticipationLifecycle.getAtPath(item, PRODUCT_UNIQUE_IDS_PATH);
-		return ids == null ? new ArrayList<>() : ids;
+		List<Integer> ids = new ArrayList<>();
+		List<List<Object>> discountedPricesRows = ParticipationLifecycle.getAtPath(item, ITEMIZED_DISCOUNTS_TYPE_PATH);
+		discountedPricesRows.forEach(row -> ids.add((Integer) (row.get(1))));
+		return ids;
 	}
 
 	/**
@@ -240,13 +242,21 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		if (!CollectionUtils.isEmpty(discountedPricesRows)) {
 			discountedPricesRows.forEach(row -> {
 				Integer uniqueId = (Integer) (row.get(1));
-				Double pb1Price = (Double) (row.get(2));
-				Double pb22Price = (Double) (row.get(3));
+				Double pb1Price = doublify(row.get(2));
+				Double pb22Price =  doublify(row.get(3));
 				itemizedDiscounts.add(new ParticipationItemizedDiscount(participationId, uniqueId, 1, pb1Price));
 				itemizedDiscounts.add(new ParticipationItemizedDiscount(participationId, uniqueId, 22, pb22Price));
 			});
 		}
 		return itemizedDiscounts;
+	}
+
+	private Double doublify(Object o) {
+		if (o instanceof Integer) {
+			return (double) ((Integer) (o)).intValue();
+		} else {
+			return (double) o;
+		}
 	}
 
 	/**

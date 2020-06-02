@@ -35,29 +35,29 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	private final Map<ParticipationContentType, ParticipationLifecycle> lifecyclesByContentType;
 
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationCoreDao participationCoreDao;
+	private final ParticipationV1Dao participationV1Dao;
 
 	public ParticipationLifecycleServiceImpl(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationCoreDao participationCoreDao,
+//			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Dao participationV1Dao,
 			ParticipationLifecycle... lifecycles
 	) {
 		this.participationEngineSettings = participationEngineSettings;
-		this.participationCoreDao = participationCoreDao;
+		this.participationV1Dao = participationV1Dao;
 		lifecyclesByContentType = Arrays.stream(lifecycles)
 				.collect(Collectors.toMap(ParticipationLifecycle::getContentType, lifecycle -> lifecycle));
 	}
 
 	@Override
 	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate) {
-		return participationCoreDao.getNextParticipationPendingActivation(
+		return participationV1Dao.getNextParticipationPendingActivation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
 	@Override
 	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate) {
-		return participationCoreDao.getNextExpiredParticipation(
+		return participationV1Dao.getNextExpiredParticipation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
@@ -94,7 +94,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== activating participation {} ====", participationId);
 
-		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, true);
+		int affectedRows = participationV1Dao.setParticipationIsActive(participationId, true);
 
 		// (1) Apply non-effect-specific queries for activating this Participation. Perform set up
 		// to call deactivateEffects() and activateEffects().
@@ -124,7 +124,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
-		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, false);
+		int affectedRows = participationV1Dao.setParticipationIsActive(participationId, false);
 
 		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
@@ -156,14 +156,14 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
-		return participationCoreDao.getParticipationIsActive(participationId);
+		return participationV1Dao.getParticipationIsActive(participationId);
 	}
 
 	// TODO remove currentPriorityParticipation code (see SODEV-25037)
 	@Transactional
 	@Override
 	public int syncToCurrentPriorityParticipation() {
-		return participationCoreDao.syncToCurrentPriorityParticipation();
+		return participationV1Dao.syncToCurrentPriorityParticipation();
 	}
 
 	/**
