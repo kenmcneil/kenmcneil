@@ -18,15 +18,15 @@ import org.springframework.context.annotation.Primary;
 public class FeiPriceConfiguration {
 
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.model";
-	private static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data";
-	private static final String FEI_UPLOAD_SFTP_CHANNEL = "feiUploadSftpChannel";
+	private static final String REPORTER_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.reporter";
+	private static final String BATCH_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.batch";
 	private final FeiPriceSettings feiPriceSettings;
 
 	public FeiPriceConfiguration(FeiPriceSettings feiPriceSettings) {
 		this.feiPriceSettings = feiPriceSettings;
 	}
 
-	@MapperScan(basePackages = FeiPriceConfiguration.BASE_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "reporterSqlSessionFactory")
+	@MapperScan(basePackages = FeiPriceConfiguration.REPORTER_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "reporterSqlSessionFactory")
 	@Configuration
 	protected static class ReporterDataSourceConfiguration {
 		//--------------------------------------------------------------------------------------------------
@@ -51,6 +51,35 @@ public class FeiPriceConfiguration {
 		public SqlSessionFactory reporterSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
 			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
 			factory.setDataSource(reporterDataSource());
+			factory.setVfs(SpringBootVFS.class);
+			factory.setTypeAliasesPackage(BASE_ALIAS_PACKAGE);
+			factory.setTypeHandlersPackage(typeHandlerPackage);
+			return factory.getObject();
+		}
+	}
+
+	@MapperScan(basePackages = FeiPriceConfiguration.BATCH_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "batchSqlSessionFactory")
+	@Configuration
+	protected static class BatchDataSourceConfiguration {
+		//--------------------------------------------------------------------------------------------------
+		// Setup the batch data source and then wire up a mybatis sql map. We have to alias the data source
+		// so that the task batch auto configuration works properly.
+		//--------------------------------------------------------------------------------------------------
+		@Bean
+		@ConfigurationProperties(prefix = "datasource.batch")
+		public DataSourceProperties batchDataSourceProperties() {
+			return new DataSourceProperties();
+		}
+
+		@Bean
+		public DataSource batchDataSource() {
+			return batchDataSourceProperties().initializeDataSourceBuilder().build();
+		}
+
+		@Bean
+		public SqlSessionFactory batchSqlSessionFactory(@Value("mybatis.type-aliases-package:") String typeHandlerPackage) throws Exception {
+			SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+			factory.setDataSource(batchDataSource());
 			factory.setVfs(SpringBootVFS.class);
 			factory.setTypeAliasesPackage(BASE_ALIAS_PACKAGE);
 			factory.setTypeHandlersPackage(typeHandlerPackage);

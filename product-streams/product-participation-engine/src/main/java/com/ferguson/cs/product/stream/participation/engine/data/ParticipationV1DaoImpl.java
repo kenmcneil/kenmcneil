@@ -94,12 +94,6 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 		return participationV1Mapper.deleteParticipationItemPartial(participationId);
 	}
 
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	@Override
-	public int syncToCurrentPriorityParticipation() {
-		return participationV1Mapper.syncToCurrentPriorityParticipation();
-	}
-
 	@Override
 	public int upsertParticipationItemPartial(ParticipationItemPartial itemPartial) {
 		return participationV1Mapper.upsertParticipationItemPartial(itemPartial);

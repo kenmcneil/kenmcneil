@@ -120,7 +120,13 @@ public class ParticipationItemizedV1DaoImpl implements ParticipationItemizedV1Da
 	public int applyNewItemizedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any itemized discounted prices to pricebook_cost.cost.
+
+
+		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEe
 		return participationItemizedV1Mapper.applyNewItemizedDiscounts(processingDate, userId, coolOffPeriodMinutes);
+
+
+
 	}
 
 	@Override

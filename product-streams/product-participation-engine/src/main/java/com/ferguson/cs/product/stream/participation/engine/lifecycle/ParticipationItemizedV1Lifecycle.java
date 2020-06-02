@@ -11,6 +11,7 @@ import org.springframework.util.CollectionUtils;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -61,7 +62,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 			"itemizedDiscounts", "list"};
 
 	private final ParticipationEngineSettings participationEngineSettings;
-//	private final ParticipationCoreDao participationCoreDao;
+	private final ParticipationV1Dao participationV1Dao;
 	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
 
 	public ParticipationContentType getContentType() {
@@ -136,6 +137,11 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		LOG.debug("{}: {} product saleIds set", participationId, rowsAffected);
 
 		// activate any new itemized discounts
+
+
+
+
+		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeeeeee
 		rowsAffected = participationItemizedV1Dao.applyNewItemizedDiscounts(processingDate, userId,
 				participationEngineSettings.getCoolOffPeriod().toMinutes());
 		totalRows += rowsAffected;
@@ -208,6 +214,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		int participationId = itemPartial.getParticipationId();
 		return participationItemizedV1Dao.deleteParticipationProducts(participationId)
 				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
+				+ participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
 				+ participationItemizedV1Dao.deleteParticipationItemPartial(participationId);
 	}
 

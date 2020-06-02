@@ -61,19 +61,21 @@ public class ParticipationEngineConfiguration {
 	@Bean
 	public ParticipationV1Lifecycle participationV1Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationCoreDao participationCoreDao,
+			ParticipationItemizedV1Dao participationItemizedV1Dao,
 			ParticipationV1Dao participationV1Dao
 	) {
-		return new ParticipationV1Lifecycle(participationEngineSettings, participationCoreDao, participationV1Dao);
+		return new ParticipationV1Lifecycle(participationEngineSettings, participationItemizedV1Dao,
+				participationV1Dao);
 	}
 
 	@Bean
 	public ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationCoreDao participationCoreDao,
+			ParticipationV1Dao participationV1Dao,
 			ParticipationItemizedV1Dao participationItemizedV1Dao
 	) {
-		return new ParticipationItemizedV1Lifecycle(participationEngineSettings, participationItemizedV1Dao);
+		return new ParticipationItemizedV1Lifecycle(participationEngineSettings,
+				participationV1Dao, participationItemizedV1Dao);
 	}
 
 	@Bean

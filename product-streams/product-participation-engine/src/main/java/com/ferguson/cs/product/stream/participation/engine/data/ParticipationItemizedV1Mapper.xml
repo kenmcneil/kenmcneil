@@ -168,10 +168,10 @@
 			sale.participationId = 0
 		FROM
 			mmc.product.sale AS sale
-				JOIN
+		JOIN
 			mmc.product.participationOwnerChange AS oc
 			ON oc.uniqueId = sale.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationItemPartial AS p
 			ON p.participationId = oc.oldParticipationId
 		WHERE
@@ -210,18 +210,19 @@
 
 	<select id="getNextParticipationPendingActivation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-		participationId,
-		saleId,
-		startDate,
-		endDate,
-		lastModifiedUserId,
-		isActive
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive,
+			contentTypeId
 		FROM
-		mmc.product.participationItemPartial
+			mmc.product.participationItemPartial
 		WHERE
-		isActive = 0
-		AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
-		AND (endDate > #{processingDate} OR endDate IS NULL)
+			isActive = 0
+			AND (startDate &lt;= #{processingDate} OR startDate IS NULL)
+			AND (endDate > #{processingDate} OR endDate IS NULL)
 		<if test="minParticipationId != null">
 			AND participationId >= #{minParticipationId}
 		</if>
@@ -230,41 +231,23 @@
 
 	<select id="getNextExpiredParticipation" parameterType="map" resultType="ParticipationItemPartial">
 		SELECT TOP 1
-		participationId,
-		saleId,
-		startDate,
-		endDate,
-		lastModifiedUserId,
-		isActive
+			participationId,
+			saleId,
+			startDate,
+			endDate,
+			lastModifiedUserId,
+			isActive,
+			contentTypeId
 		FROM
-		mmc.product.participationItemPartial
+			mmc.product.participationItemPartial
 		WHERE
-		endDate IS NOT NULL
-		AND endDate &lt; #{processingDate}
+			endDate IS NOT NULL
+			AND endDate &lt; #{processingDate}
 		<if test="minParticipationId != null">
 			AND participationId >= #{minParticipationId}
 		</if>
 		ORDER BY endDate
 	</select>
-
-	<insert id="syncToCurrentPriorityParticipation">
-		-- TODO remove currentPriorityParticipation code (see SODEV-25037)
-		-- Keep currentPriorityParticipation up to date for things still using it.
-		TRUNCATE TABLE mmc.product.currentPriorityParticipation;
-		INSERT INTO mmc.product.currentPriorityParticipation (uniqueId, saleId, participationId)
-		SELECT
-			pp.uniqueId,
-			pip.saleId,
-			pp.participationId
-		FROM
-			mmc.product.participationProduct AS pp
-				JOIN
-			mmc.product.participationItemPartial AS pip
-			ON pip.participationId = pp.participationId
-				AND pip.isActive = 1
-		WHERE
-			pp.isOwner = 1
-	</insert>
 
 	<insert id="upsertParticipationItemPartial">
 		IF EXISTS (
@@ -280,7 +263,8 @@
 					startDate = #{startDate, jdbcType=TIMESTAMP},
 					endDate = #{endDate, jdbcType=TIMESTAMP},
 					lastModifiedUserId = #{lastModifiedUserId},
-					isActive = #{isActive}
+					isActive = #{isActive},
+				    contentTypeId = #{contentTypeId}
 				WHERE
 					participationId = #{participationId}
 			END
@@ -292,15 +276,17 @@
 					startDate,
 					endDate,
 					lastModifiedUserId,
-					isActive
+					isActive,
+					contentTypeId
 				)
 				VALUES (
-						   #{participationId},
-						   #{saleId},
-						   #{startDate, jdbcType=TIMESTAMP},
-						   #{endDate, jdbcType=TIMESTAMP},
-						   #{lastModifiedUserId},
-						   #{isActive}
+							#{participationId},
+							#{saleId},
+							#{startDate, jdbcType=TIMESTAMP},
+							#{endDate, jdbcType=TIMESTAMP},
+							#{lastModifiedUserId},
+							#{isActive},
+							#{contentTypeId}
 					   );
 			END
 	</insert>
@@ -370,6 +356,7 @@
 		JOIN
 			mmc.product.participationItemizedDiscount AS discount
 			ON discount.participationId = oc.newParticipationId
+			AND discount.uniqueId = pbcost.uniqueId
 			AND discount.pricebookId = pbcost.pricebookId
 		LEFT JOIN
 			mmc.product.participationLastOnSale AS las
@@ -397,6 +384,7 @@
 		JOIN
 			mmc.product.participationItemizedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
+			AND discount.uniqueId = pbcost.uniqueId
 			AND discount.pricebookId = pbcost.pricebookId
 	</update>
 
@@ -409,17 +397,18 @@
 			pbcost.pricebookId, pbcost.uniqueId, #{processingDate}, pbcost.basePrice
 		FROM
 			mmc.dbo.pricebook_cost AS pbcost
-				JOIN
+		JOIN
 			mmc.product.participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
-				JOIN
+		JOIN
 			mmc.product.participationItemizedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-				AND discount.pricebookId = pbcost.pricebookId
-				LEFT JOIN
+			AND discount.uniqueId = pbcost.uniqueId
+			AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
 			mmc.product.participationLastOnSale AS los
 			ON los.uniqueId = pbcost.uniqueId
-				AND los.pricebookId = pbcost.pricebookId
+			AND los.pricebookId = pbcost.pricebookId
 		WHERE
 			los.uniqueId IS NULL
 	</insert>
@@ -443,6 +432,7 @@
 		JOIN
 			mmc.product.participationItemizedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
+			AND discount.uniqueId = pbcost.uniqueId
 			AND discount.pricebookId = pbcost.pricebookId
 		JOIN
 			mmc.product.latestBasePrice AS lbp

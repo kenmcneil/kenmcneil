@@ -8,7 +8,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
-import com.ferguson.cs.product.task.feipricefeed.data.FeiPriceDao;
+import com.ferguson.cs.product.task.feipricefeed.data.reporter.FeiPriceDao;
 import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 import com.ferguson.cs.task.data.TaskControlData;

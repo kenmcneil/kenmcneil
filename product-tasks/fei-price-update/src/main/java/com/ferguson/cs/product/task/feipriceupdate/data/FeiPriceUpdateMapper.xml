@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper">
+
+	<resultMap id="feiPriceUpdateDataMap" type="FeiPriceUpdateItem">
+		<result column="uniqueId" property="uniqueId"/>
+		<result column="mpid" property="mpid"/>
+		<result column="price" property="price"/>
+		<result column="baseCategoryId" property="baseCategoryId"/>
+		<result column="manufacturerId" property="manufacturerId"/>
+		<result column="umrpId" property="umrpId"/>
+		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
+		<result column="pricebookId" property="pricebookId"/>		
+	</resultMap>
+	
+	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
+		select 
+			p.uniqueId as uniqueId,
+			bc.base_category_id as baseCategoryId,
+			m.id as manufacturerId,
+			umrp.id as umrpId,
+			fei.productUniqueId as feiOwnedProductId
+		from
+			mmc.product.product p with(NOLOCK)
+			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
+			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
+			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
+			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.id
+			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId		
+		WHERE p.uniqueId =#{uniqueId}
+	</select>
+	
+	<insert id="createTempTable" parameterType="java.lang.String">
+	  CREATE TABLE [tempData].[dbo].[${_parameter}]
+	  (
+	        [uniqueId] [int],
+	        [price] [decimal](18,2),
+	        [pricebookId] [int]
+	  )
+	</insert>
+	
+	<insert id="insertTempPriceUpdateRecord" parameterType="FeiPriceUpdateItem">
+		INSERT INTO tempData.dbo.${tempTableName}
+		(
+			uniqueId,
+			price,
+			pricebookId
+		) VALUES (
+			#{uniqueId},
+			#{price},
+			#{pricebookId}
+		)
+	</insert>
+	
+	<update id="dropTempTable" parameterType="java.lang.String">
+		DROP TABLE IF EXISTS tempData.dbo.${_parameter}
+	</update>
+	
+	<!-- PDM Cost upload Job -->
+	<insert id="insertCostUpdateJob" parameterType="CostUpdateJob" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO tempData.dbo.costUpdateJob(
+			processType,
+			jobName,
+			userId,
+			createdOn,
+			processOn,
+			status
+		) VALUES (
+			#{processType},
+			#{jobName},
+			#{userId},
+			getDate(),
+			#{processOn},
+			#{status}
+		)
+	</insert>
+	
+	<!-- Insert temp table price update records into pricebookCostUpdates table in preparation for job execution -->
+	<insert id="loadPriceBookCostUpdatesFromTempTable" parameterType="PricebookLoadCriteria" useGeneratedKeys="true" keyProperty="id">
+		insert into tempData.dbo.pricebookCostUpdates (
+			costUpdateJobId,
+			uniqueId,
+			pricebookId,
+			cost,
+			deletePricebookCost
+			)
+		select 
+			#{jobId},
+			uniqueId,
+			pricebookId,
+			price,
+			#{deleteCost} 
+		FROM tempData.dbo.${tempTableName}
+	</insert>
+	
+	<select id="executePricebookUpdater" parameterType="int">
+		exec mmc.dbo.dsp_pricebookCostUpdater @job = #{costUpdateJobId}
+	</select>
+	
+	<update id="updateCostUpdateJob" parameterType="CostUpdateJob">
+		UPDATE tempData.dbo.costUpdateJob
+		<set>
+			status = #{status},
+			processOn = #{processOn}
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<resultMap id="CostUpdateJobMap" type="CostUpdateJob">
+		<id column="id"  property="id" />
+		<result column="processType" property="processType" />
+		<result column="jobName" property="jobName" />
+		<result column="userId" property="userId" /> 
+		<result column="createdOn" property="createdOn" />
+		<result column="processOn" property="processOn" />
+		<result column="status" property="status" />
+	</resultMap>
+	
+	<select id="getCostUpdateJob" parameterType="int" resultMap="CostUpdateJobMap">
+		SELECT
+			cuj.id,
+			cuj.processType,
+			cuj.jobName,
+			cuj.userId,
+			cuj.createdOn,
+			cuj.processOn,
+			cuj.status
+		FROM 
+			tempData.dbo.costUpdateJob cuj WITH (nolock)
+		WHERE 
+			cuj.id = #{costUpdateJobId}
+	</select>
+	
+</mapper>

@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
@@ -106,6 +105,10 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				.map(lifecycle -> lifecycle.deactivateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
 
+		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+
+
 		// (3) Apply effects of the activating itemPartial record to newly-owned entities.
 		affectedRows += activatingLifecycle.activateEffects(itemPartial, processingDate);
 
@@ -134,7 +137,13 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
 		// (3) Apply effects for all Participation types, for entities being dis-owned by the
-		// deactivating Participation that are becoming owned by other active Participations.
+		// deactivating Participation that are becoming owned by other active Participations
+
+
+
+
+
+		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeeee
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
@@ -157,13 +166,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
 		return participationV1Dao.getParticipationIsActive(participationId);
-	}
-
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	@Transactional
-	@Override
-	public int syncToCurrentPriorityParticipation() {
-		return participationV1Dao.syncToCurrentPriorityParticipation();
 	}
 
 	/**

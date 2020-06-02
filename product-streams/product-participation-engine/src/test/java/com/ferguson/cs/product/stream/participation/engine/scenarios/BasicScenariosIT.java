@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,6 +32,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	 * This also tests that the engine can work with a "base" participation with no effects.
 	 */
 	@Test
+	@Ignore
 	public void engine_publish_unpublish() {
 		// Make fixture participation with no schedule and no effects.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
@@ -53,6 +55,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	 * Test scheduled activation and deactivation.
 	 */
 	@Test
+	@Ignore
 	public void engine_basicScheduling() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.participationId(50000)

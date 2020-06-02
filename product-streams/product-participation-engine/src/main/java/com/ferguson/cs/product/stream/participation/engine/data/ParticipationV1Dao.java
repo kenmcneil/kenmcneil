@@ -105,9 +105,6 @@ public interface ParticipationV1Dao {
 	 */
 	int deleteParticipationItemPartial(int participationId);
 
-	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-	int syncToCurrentPriorityParticipation();
-
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);

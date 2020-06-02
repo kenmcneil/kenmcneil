@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -28,6 +29,7 @@ import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.CompositeItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -51,12 +53,14 @@ public class FeiPriceTaskConfiguration {
 	private static final String FULL_FEED_NAME = "uploadFeiFullPriceFile";
 	private static final String CHANGES_FEED_NAME = "uploadFeiPriceChangesFile";
 	private final SqlSessionFactory reporterSqlSessionFactory;
+	private final SqlSessionFactory batchSqlSessionFactory;
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final FeiPriceService feiPriceService;
 	private final FeiPriceSettings feiPriceSettings;
 
-	public FeiPriceTaskConfiguration(SqlSessionFactory reporterSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory, FeiPriceService feiPriceService, FeiPriceSettings feiPriceSettings) {
+	public FeiPriceTaskConfiguration(@Qualifier("reporterSqlSessionFactory") SqlSessionFactory reporterSqlSessionFactory, @Qualifier("batchSqlSessionFactory") SqlSessionFactory batchSqlSessionFactory, TaskBatchJobFactory taskBatchJobFactory, FeiPriceService feiPriceService, FeiPriceSettings feiPriceSettings) {
 		this.reporterSqlSessionFactory = reporterSqlSessionFactory;
+		this.batchSqlSessionFactory = batchSqlSessionFactory;
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.feiPriceService = feiPriceService;
 		this.feiPriceSettings = feiPriceSettings;
@@ -97,6 +101,16 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public MyBatisBatchItemWriter<FeiPriceData> feiPriceDataWhitelistWriter() {
+		MyBatisBatchItemWriter<FeiPriceData> writer = new MyBatisBatchItemWriter<>();
+		writer.setSqlSessionFactory(batchSqlSessionFactory);
+		writer.setStatementId("updateFeiWhitelistPrice");
+		writer.setAssertUpdates(false);
+		return writer;
+	}
+
+	@Bean
+	@StepScope
 	public MyBatisCursorItemReader<FeiPriceData> feiImapPriceDataReader() {
 		MyBatisCursorItemReader<FeiPriceData> reader = new MyBatisCursorItemReader<>();
 		reader.setQueryId("getFeiImapPriceData");
@@ -112,6 +126,7 @@ public class FeiPriceTaskConfiguration {
 		for (String location : feiPriceSettings.getLocations().values()) {
 			delegates.add(feiPriceDataWriter(location));
 		}
+		delegates.add(feiPriceDataWhitelistWriter());
 		compositeItemWriter.setDelegates(delegates);
 
 		return compositeItemWriter;
@@ -205,7 +220,7 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<FeiPriceData> duplicateDataWriter() {
-		String[] fields = new String[]{"uniqueId", "mpn", "price", "brand", "status"};
+		String[] fields = new String[]{"uniqueId", "mpid", "price", "brand", "status"};
 
 		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").names(fields)
 				.headerCallback(p -> p

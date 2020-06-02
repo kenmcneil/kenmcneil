@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
@@ -89,7 +90,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	private static final String PRICE_DISCOUNTS_KEY = "priceDiscounts";
 
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationCoreDao participationCoreDao;
+	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
 	private final ParticipationV1Dao participationV1Dao;
 
 	public ParticipationContentType getContentType() {
@@ -239,6 +240,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int participationId = itemPartial.getParticipationId();
 		return participationV1Dao.deleteParticipationProducts(participationId)
 				+ participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
+				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
 				+ participationV1Dao.deleteParticipationItemPartial(participationId);
 	}
 
