@@ -13,9 +13,9 @@ import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
 
 @Service("feiPriceUpdateService")
 public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
-	
-	private FeiPriceUpdateDao feiPriceUpdateDao;
-	
+
+	private final FeiPriceUpdateDao feiPriceUpdateDao;
+
 	public FeiPriceUpdateServiceImpl(FeiPriceUpdateDao feiPriceUpdateDao) {
 		this.feiPriceUpdateDao = feiPriceUpdateDao;
 	}
@@ -24,7 +24,7 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 	public void createTempTable(String tempTableName) {
 		feiPriceUpdateDao.createTempTable(tempTableName);
 	}
-	
+
 	@Override
 	public void dropTempTable(String tempTableName) {
 		feiPriceUpdateDao.dropTempTable(tempTableName);
@@ -34,14 +34,14 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 	public void insertTempPriceUpdateRecord( FeiPriceUpdateItem item) {
 		feiPriceUpdateDao.insertTempPriceUpdateRecord(item);
 	}
-	
+
 	@Override
 	public CostUpdateJob createCostUploadJob(String fileName, CostPriceType type, Date processOn, Integer userId) {
 		Assert.notNull(fileName, "Unable to create cost update job, file name is null.");
 		Assert.notNull(type, "Unable to create cost update job, Cost Price Type object is null.");
 		Assert.notNull(processOn, "Unable to create cost update job, processOn date is null.");
 		Assert.notNull(userId, "Unable to create cost update job, User ID is null.");
-		
+
 		//Create Update job: LOADING Status
 		CostUpdateJob costUpdateJob = new CostUpdateJob();
 		costUpdateJob.setProcessType(type.toString());
@@ -53,7 +53,7 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 		feiPriceUpdateDao.insertCostUpdateJob(costUpdateJob);
 		return costUpdateJob;
 	}
-	
+
 	@Override
 	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item) {
 		return feiPriceUpdateDao.getPriceUpdateProductDetails(item);
@@ -71,12 +71,23 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 
 	@Override
 	public void updateCostUploadJob(CostUpdateJob costUpdateJob) {
-		feiPriceUpdateDao.updateCostUpdateJob(costUpdateJob);		
+		feiPriceUpdateDao.updateCostUpdateJob(costUpdateJob);
 	}
-	
+
+	@Override
 	public CostUpdateJob getCostUpdateJob(Integer costUpdateJobId) {
 		return feiPriceUpdateDao.getCostUpdateJob(costUpdateJobId);
 	}
 
-		
+	@Override
+	public Boolean isValidMpidUniqueId(Integer mpid, Integer uniqueId) {
+		return feiPriceUpdateDao.isValidMpidUniqueId(mpid, uniqueId);
+	}
+
+	@Override
+	public Double getPreferredVendorCost(Integer uniqueId) {
+		return feiPriceUpdateDao.getPreferredVendorCost(uniqueId);
+	}
+
+
 }

@@ -1,22 +1,34 @@
 package com.ferguson.cs.product.task.feipriceupdate;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.MultiResourceItemReader;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -26,18 +38,20 @@ import com.ferguson.cs.product.task.feipriceupdate.batch.FeiCreateCostUpdateJobT
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiCreatePriceUpdateTempTableTasklet;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiInputFileExistsDecider;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiInputFileProcessorListener;
+import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateFileSystemResource;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemProcessor;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemWriter;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateJobListener;
-import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateDao;
-import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateDaoImpl;
-import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper;
+import com.ferguson.cs.product.task.feipriceupdate.batch.FeiSendErrorReportTasklet;
+import com.ferguson.cs.product.task.feipriceupdate.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
+import com.ferguson.cs.utilities.DateUtils;
 
 @Configuration
+@EnableFeignClients
 public class FeiPriceUpdateTaskConfiguration {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiPriceUpdateTaskConfiguration.class);
@@ -45,19 +59,29 @@ public class FeiPriceUpdateTaskConfiguration {
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 	private final NotificationService notificationService;
+	private final SqlSessionFactory sqlSessionFactory;
+	private final FeiPriceUpdateService feiPriceUpdateService;
+	private final BuildWebServicesFeignClient buildWebServicesFeignClient;
 
 	public FeiPriceUpdateTaskConfiguration(
 			TaskBatchJobFactory taskBatchJobFactory,
 			FeiPriceUpdateSettings feiPriceUpdateSettings,
-			NotificationService notificationService) {
+			NotificationService notificationService,
+			SqlSessionFactory sqlSessionFactory,
+			FeiPriceUpdateService feiPriceUpdateService,
+			BuildWebServicesFeignClient buildWebServicesFeignClient) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
 		this.notificationService = notificationService;
+		this.sqlSessionFactory = sqlSessionFactory;
+		this.feiPriceUpdateService = feiPriceUpdateService;
+		this.buildWebServicesFeignClient = buildWebServicesFeignClient;
 	}
 
 	@Bean
-	public FeiPriceUpdateDao feiPriceUpdateDao(FeiPriceUpdateMapper feiPriceUpdateMapper) {
-		return new FeiPriceUpdateDaoImpl(feiPriceUpdateMapper);
+	@JobScope
+	public FeiPriceUpdateFileSystemResource feiFileSystemResource() {
+		return new FeiPriceUpdateFileSystemResource();
 	}
 
 	@Bean
@@ -73,21 +97,28 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	@Bean
-	public FeiPriceUpdateItemProcessor priceUpdateItemprocessor(FeiPriceUpdateService feiPriceUpdateService) {
-		return new FeiPriceUpdateItemProcessor(feiPriceUpdateService);
+	public FeiPriceUpdateItemProcessor priceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(feiPriceUpdateService, feiPriceUpdateSettings);
 	}
 
 	@Bean
-	public Job feiUpdatePriceJob(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public Job feiUpdatePriceJob(
+			Step createTempTableStep,
+			Step createPriceUpdateErrorReport,
+			Step processInputFileStep,
+			Step createCostUploadJobTasklet,
+			Step emailErrorReportTasklet,
+			Step backupInputFilesTasklet) {
 		return taskBatchJobFactory.getJobBuilder("feiPriceUpdateJob")
 				.listener(new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService))
-				.start(createTempTableStep(feiPriceUpdateSettings, feiPriceUpdateService))
+				.start(createTempTableStep)
 				.next(inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).stop()
 				.from(inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE)
-				.to(processInputFileStep(feiPriceUpdateSettings, feiPriceUpdateService))
-				.next(createCostUploadJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService))
-				.next(backupInputFilesTasklet(feiPriceUpdateSettings)).end().build();
+				.to(processInputFileStep)
+				.next(createCostUploadJobTasklet)
+				.next(createPriceUpdateErrorReport)
+				.next(emailErrorReportTasklet)
+				.next(backupInputFilesTasklet).end().build();
 	}
 
 	/*
@@ -105,10 +136,9 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * Create the temporary DB table Step
 	 */
 	@Bean
-	public Step createTempTableStep(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public Step createTempTableStep() {
 		return taskBatchJobFactory.getStepBuilder("createTempTableStep")
-				.tasklet(feiPriceUpdateTempTableTasklet(feiPriceUpdateSettings, feiPriceUpdateService)).build();
+				.tasklet(feiPriceUpdateTempTableTasklet()).build();
 	}
 
 	/*
@@ -117,12 +147,11 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * for Cost Update job creation/execution
 	 */
 	@Bean
-	public Step processInputFileStep(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public Step processInputFileStep() {
 		return taskBatchJobFactory.getStepBuilder("processInputFile").listener(new FeiInputFileProcessorListener(notificationService))
 				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(allFilesReader()).faultTolerant()
-				.processor(priceUpdateItemprocessor(feiPriceUpdateService))
-				.writer(feiPriceUpdateItemWriter(feiPriceUpdateService)).build();
+				.processor(priceUpdateItemprocessor())
+				.writer(feiPriceUpdateItemWriter()).build();
 	}
 
 	/*
@@ -130,20 +159,40 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * Step to create the job, load the data from the temp table (Done with a select into) and execute the job
 	 */
 	@Bean
-	public Step createCostUploadJobTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public Step createCostUploadJobTasklet() {
 		return taskBatchJobFactory.getStepBuilder("createCostUploadJobTasklet")
-				.tasklet(costUploadJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService)).build();
+				.tasklet(costUploadJobTasklet()).build();
 	}
 
 	/*
 	 * Step 4
+	 * Step to write any update validation errors to a csv file to be emailed out.
+	 */
+	@Bean
+	public Step createPriceUpdateErrorReport(FlatFileItemWriter<FeiPriceUpdateItem> feiPriceUpdateErrorReportWriter,
+			MyBatisCursorItemReader<FeiPriceUpdateItem> feiPriceUpdateErrorDataReader) {
+		return taskBatchJobFactory.getStepBuilder("writeFeiPriceUpdateErrorData").<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000)
+				.reader(feiPriceUpdateErrorDataReader).writer(feiPriceUpdateErrorReportWriter).build();
+	}
+
+	/*
+	 * Step 5
+	 * Email error report
+	 */
+	@Bean
+	public Step emailErrorReportTasklet() {
+		return taskBatchJobFactory.getStepBuilder("emailErrorReport")
+				.tasklet(sendErrorReportTasklet()).build();
+	}
+
+	/*
+	 * Step 6
 	 * move input file to backup folder
 	 */
 	@Bean
-	public Step backupInputFilesTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings) {
+	public Step backupInputFilesTasklet() {
 		return taskBatchJobFactory.getStepBuilder("backupInputFilesTasklet")
-				.tasklet(backupFileTasklet(feiPriceUpdateSettings)).build();
+				.tasklet(backupFileTasklet()).build();
 	}
 
 	/*
@@ -151,8 +200,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	 */
 	@Bean
 	@JobScope
-	public FeiPriceUpdateJobListener feiPriceUpdateJobListener(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public FeiPriceUpdateJobListener feiPriceUpdateJobListener() {
 		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService);
 	}
 
@@ -194,8 +242,52 @@ public class FeiPriceUpdateTaskConfiguration {
 	 */
 	@Bean
 	@StepScope
-	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter(FeiPriceUpdateService feiPriceUpdateService) {
-		return new FeiPriceUpdateItemWriter(feiPriceUpdateService);
+	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter() {
+		return new FeiPriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
+	/*
+	 * CSV error report reader.  Will extract all records from the temp DB table where the
+	 * updateStatusId is not zero, indicating some sort of error during record processing validation
+	 */
+	@Bean
+	@StepScope
+	public MyBatisCursorItemReader<FeiPriceUpdateItem> feiPriceUpdateErrorDataReader() {
+		MyBatisCursorItemReader<FeiPriceUpdateItem> reader = new MyBatisCursorItemReader<>();
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("tempTableName", feiPriceUpdateSettings.getTempTableName());
+		reader.setParameterValues(parameters);
+		reader.setQueryId("getFeiPriceUpdateErrors");
+		reader.setSqlSessionFactory(sqlSessionFactory);
+		return reader;
+	}
+
+	/*
+	 * CSV error report writer
+	 */
+	@Bean
+	@StepScope
+	public FlatFileItemWriter<FeiPriceUpdateItem> feiPriceUpdateErrorReportWriter(
+			@Value("#{stepExecution.jobExecution}") JobExecution jobExecution,
+			FeiPriceUpdateFileSystemResource feiFileSystemResource) {
+		Date now = DateUtils.now();
+		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
+		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
+		String filename = String.format("build_fei_price_update_error_report_%s.csv", dateString );
+		String[] names = new String[]{"uniqueId", "mpid", "pricebookId", "price", "Status"};
+
+		// Stick this in execution context.  Will check in error report email step to see if it exists and if so it will
+		// get sent out.  If no error records then the file won't be created.
+		jobExecution.getExecutionContext().put("ERROR_REPORT",feiPriceUpdateSettings.getBackupFolderPath() + filename);
+
+		feiFileSystemResource.setFileSystemResource(
+				new FileSystemResource(feiPriceUpdateSettings.getBackupFolderPath() + filename));
+
+		return new FlatFileItemWriterBuilder<FeiPriceUpdateItem>().resource(feiFileSystemResource.getFileSystemResource())
+				.name("feiPriceUpdateErrorReportWriter")
+				.shouldDeleteIfEmpty(true)
+				.delimited().names(names)
+				.headerCallback(writer -> writer.write(String.join(",", names))).build();
 	}
 
 	/*
@@ -203,8 +295,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * a prior run
 	 */
 	@Bean
-	public FeiCreatePriceUpdateTempTableTasklet feiPriceUpdateTempTableTasklet(
-			FeiPriceUpdateSettings feiPriceUpdateSettings, FeiPriceUpdateService feiPriceUpdateService) {
+	public FeiCreatePriceUpdateTempTableTasklet feiPriceUpdateTempTableTasklet() {
 		return new FeiCreatePriceUpdateTempTableTasklet(feiPriceUpdateSettings, feiPriceUpdateService, notificationService);
 	}
 
@@ -212,16 +303,23 @@ public class FeiPriceUpdateTaskConfiguration {
 	 * Tasklet to create the Cost upload Job, load the data from the temp table and execute the job
 	 */
 	@Bean
-	public FeiCreateCostUpdateJobTasklet costUploadJobTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
-			FeiPriceUpdateService feiPriceUpdateService) {
+	public FeiCreateCostUpdateJobTasklet costUploadJobTasklet() {
 		return new FeiCreateCostUpdateJobTasklet(feiPriceUpdateSettings, feiPriceUpdateService, notificationService);
+	}
+
+	/*
+	 * Tasklet to email the error report
+	 */
+	@Bean
+	public FeiSendErrorReportTasklet sendErrorReportTasklet() {
+		return new FeiSendErrorReportTasklet(feiPriceUpdateSettings,buildWebServicesFeignClient);
 	}
 
 	/*
 	 * Tasklet to backup files
 	 */
 	@Bean
-	public FeiBackupInputFileTasklet backupFileTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings) {
+	public FeiBackupInputFileTasklet backupFileTasklet() {
 		return new FeiBackupInputFileTasklet(feiPriceUpdateSettings);
 	}
 

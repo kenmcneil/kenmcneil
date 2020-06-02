@@ -11,8 +11,23 @@
 		<result column="manufacturerId" property="manufacturerId"/>
 		<result column="umrpId" property="umrpId"/>
 		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
-		<result column="pricebookId" property="pricebookId"/>		
+		<result column="feiOwnedActive" property="feiOwnedActive"/>
+		<result column="pricebookId" property="pricebookId"/>	
+		<result column="statusId" property="status"
+				javaType="PriceUpdateStatus"
+				typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>	
 	</resultMap>
+	
+	<select id="getFeiPriceUpdateErrors" resultMap="feiPriceUpdateDataMap">
+		SELECT
+			uniqueId,
+			mpid,
+			price,
+			pricebookId,
+			statusId
+		FROM tempData.dbo.${tempTableName}
+		WHERE statusId != 0	
+	</select>
 	
 	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
 		select 
@@ -20,7 +35,8 @@
 			bc.base_category_id as baseCategoryId,
 			m.id as manufacturerId,
 			umrp.id as umrpId,
-			fei.productUniqueId as feiOwnedProductId
+			fei.productUniqueId as feiOwnedProductId,
+			fei.active as feiOwnedActive
 		from
 			mmc.product.product p with(NOLOCK)
 			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
@@ -33,10 +49,12 @@
 	
 	<insert id="createTempTable" parameterType="java.lang.String">
 	  CREATE TABLE [tempData].[dbo].[${_parameter}]
-	  (
+	  ( 
 	        [uniqueId] [int],
+	       	[mpid] [int],
 	        [price] [decimal](18,2),
-	        [pricebookId] [int]
+	        [pricebookId] [int],
+	        [statusId] [int]
 	  )
 	</insert>
 	
@@ -44,12 +62,16 @@
 		INSERT INTO tempData.dbo.${tempTableName}
 		(
 			uniqueId,
+			mpid,
 			price,
-			pricebookId
+			pricebookId,
+			statusId
 		) VALUES (
 			#{uniqueId},
+			#{mpid},
 			#{price},
-			#{pricebookId}
+			#{pricebookId},
+			#{status.intValue}
 		)
 	</insert>
 	
@@ -92,6 +114,7 @@
 			price,
 			#{deleteCost} 
 		FROM tempData.dbo.${tempTableName}
+		WHERE statusId = 0
 	</insert>
 	
 	<select id="executePricebookUpdater" parameterType="int">
@@ -132,6 +155,25 @@
 			tempData.dbo.costUpdateJob cuj WITH (nolock)
 		WHERE 
 			cuj.id = #{costUpdateJobId}
+	</select>
+	
+	<!-- mpid / uniqueId validation -->
+	<select id="isValidMpidUniqueId" resultType="Boolean">
+		SELECT CASE WHEN COUNT(uniqueId) > 0 then 1 else 0 end result 
+		FROM
+			product.feiMPID 
+		WHERE 
+			mpid = #{mpid} AND 
+			uniqueId = #{uniqueId};
+	</select>
+	
+	<select id="getPreferredVendorCost" resultType="Double">
+		SELECT 
+			vc.cost 		
+		FROM omc.dbo.vendor_cost vc WITH (NOLOCK)
+		INNER JOIN mmc.dbo.productPreferredVendor ppv WITH (NOLOCK) on vc.uniqueId = ppv.productUniqueid 
+		AND  ppv.vendorUID = vc.vendorUID
+		where ppv.productUniqueId = #{uniqueId};
 	</select>
 	
 </mapper>

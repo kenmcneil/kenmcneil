@@ -17,4 +17,6 @@ public class FeiPriceUpdateSettings {
 	private String tempTableName;
 	private Integer costUpdateJobUserid;
 	private String backupFolderPath;
+	private String[] errorReportEmailList;
+	private Double margin;
 }

@@ -8,7 +8,7 @@ spring:
   cloud:
     config:
       #The label/branch that will be used to retrieve configuration from the configuration server.
-      name: api-task, product-services-fei-price-update
+      name: api-task,product-services-fei-price-update
       label: master
       fail-fast: true
       uri: http://config
