@@ -43,6 +43,7 @@ import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemProce
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemWriter;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateJobListener;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiSendErrorReportTasklet;
+import com.ferguson.cs.product.task.feipriceupdate.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
@@ -60,18 +61,21 @@ public class FeiPriceUpdateTaskConfiguration {
 	private final NotificationService notificationService;
 	private final SqlSessionFactory sqlSessionFactory;
 	private final FeiPriceUpdateService feiPriceUpdateService;
+	private final BuildWebServicesFeignClient buildWebServicesFeignClient;
 
 	public FeiPriceUpdateTaskConfiguration(
 			TaskBatchJobFactory taskBatchJobFactory,
 			FeiPriceUpdateSettings feiPriceUpdateSettings,
 			NotificationService notificationService,
 			SqlSessionFactory sqlSessionFactory,
-			FeiPriceUpdateService feiPriceUpdateService) {
+			FeiPriceUpdateService feiPriceUpdateService,
+			BuildWebServicesFeignClient buildWebServicesFeignClient) {
 		this.taskBatchJobFactory = taskBatchJobFactory;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
 		this.notificationService = notificationService;
 		this.sqlSessionFactory = sqlSessionFactory;
 		this.feiPriceUpdateService = feiPriceUpdateService;
+		this.buildWebServicesFeignClient = buildWebServicesFeignClient;
 	}
 
 	@Bean
@@ -263,8 +267,8 @@ public class FeiPriceUpdateTaskConfiguration {
 	 */
 	@Bean
 	@StepScope
-	public FlatFileItemWriter<FeiPriceUpdateItem> feiPriceUpdateErrorReportWriter(@Value("#{stepExecution.jobExecution}") JobExecution jobExecution,
-			//			jobExecution.getExecutionContext()
+	public FlatFileItemWriter<FeiPriceUpdateItem> feiPriceUpdateErrorReportWriter(
+			@Value("#{stepExecution.jobExecution}") JobExecution jobExecution,
 			FeiPriceUpdateFileSystemResource feiFileSystemResource) {
 		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
@@ -308,7 +312,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	 */
 	@Bean
 	public FeiSendErrorReportTasklet sendErrorReportTasklet() {
-		return new FeiSendErrorReportTasklet(feiPriceUpdateSettings);
+		return new FeiSendErrorReportTasklet(feiPriceUpdateSettings,buildWebServicesFeignClient);
 	}
 
 	/*

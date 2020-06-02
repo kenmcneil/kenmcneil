@@ -11,7 +11,6 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.client.BuildWebServicesFeignClient;
@@ -21,14 +20,16 @@ import com.ferguson.cs.utilities.DateUtils;
 
 public class FeiSendErrorReportTasklet implements Tasklet {
 
-	@Autowired
-	BuildWebServicesFeignClient buildWebServicesFeignClient;
+
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiSendErrorReportTasklet.class);
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
+	private final BuildWebServicesFeignClient buildWebServicesFeignClient;
 
-	public FeiSendErrorReportTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings) {
+	public FeiSendErrorReportTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
+			BuildWebServicesFeignClient buildWebServicesFeignClient) {
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
+		this.buildWebServicesFeignClient = buildWebServicesFeignClient;
 	}
 
 	@Override
