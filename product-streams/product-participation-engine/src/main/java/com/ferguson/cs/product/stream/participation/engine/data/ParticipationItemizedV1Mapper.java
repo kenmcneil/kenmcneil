@@ -4,8 +4,6 @@ import java.util.Date;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-
 @Mapper
 public interface ParticipationItemizedV1Mapper {
 

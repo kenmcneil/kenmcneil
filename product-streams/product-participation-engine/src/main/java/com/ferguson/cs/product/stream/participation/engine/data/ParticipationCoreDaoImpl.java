@@ -37,6 +37,12 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 		return participationCoreMapper.setParticipationIsActive(participationId, isActive);
 	}
 
+
+	@Override
+	public ParticipationItemPartial getParticipationItemPartial(int participationId) {
+		return participationCoreMapper.getParticipationItemPartial(participationId);
+	}
+
 	@Override
 	public int updateOwnerChangesForActivation(int participationId) {
 		return participationCoreMapper.updateOwnerChangesForActivation(participationId);

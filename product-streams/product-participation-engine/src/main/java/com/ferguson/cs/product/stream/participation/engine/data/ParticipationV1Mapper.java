@@ -5,10 +5,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Mapper
 public interface ParticipationV1Mapper {

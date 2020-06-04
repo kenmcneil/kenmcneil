@@ -32,6 +32,13 @@ public interface ParticipationCoreDao {
 	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
 
 	/**
+	 * get participation partial record
+	 * @param participationId
+	 * @return
+	 */
+	ParticipationItemPartial getParticipationItemPartial(int participationId);
+
+	/**
 	 * Create the participationOwnerChange temp table and fill it with the ownership
 	 * changes caused by activating the specified participation.
 	 * @param participationId The id of the activating participation.

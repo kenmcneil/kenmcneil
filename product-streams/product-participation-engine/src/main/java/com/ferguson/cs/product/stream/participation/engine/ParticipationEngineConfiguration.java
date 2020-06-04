@@ -61,32 +61,31 @@ public class ParticipationEngineConfiguration {
 	@Bean
 	public ParticipationV1Lifecycle participationV1Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationItemizedV1Dao participationItemizedV1Dao,
+			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Dao participationV1Dao
 	) {
-		return new ParticipationV1Lifecycle(participationEngineSettings, participationItemizedV1Dao,
+		return new ParticipationV1Lifecycle(participationEngineSettings, participationCoreDao,
 				participationV1Dao);
 	}
 
 	@Bean
 	public ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationV1Dao participationV1Dao,
+			ParticipationCoreDao participationCoreDao,
 			ParticipationItemizedV1Dao participationItemizedV1Dao
 	) {
 		return new ParticipationItemizedV1Lifecycle(participationEngineSettings,
-				participationV1Dao, participationItemizedV1Dao);
+				participationCoreDao, participationItemizedV1Dao);
 	}
 
 	@Bean
 	public ParticipationLifecycleService participationLifecycleService(
 			ParticipationEngineSettings participationEngineSettings,
-//			ParticipationCoreDao participationCoreDao,
-			ParticipationV1Dao participationV1Dao,
+			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Lifecycle participationV1Lifecycle,
 			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle
 	) {
 		return new ParticipationLifecycleServiceImpl(participationEngineSettings,
-				participationV1Dao, participationV1Lifecycle, participationItemizedV1Lifecycle);
+				participationCoreDao, participationV1Lifecycle, participationItemizedV1Lifecycle);
 	}
 }

@@ -12,7 +12,6 @@ import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
@@ -136,7 +135,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		// Determine what products are changing ownership and store into temp table,
 		// and update ownership data.
 		// -- not logging returned row-modified count since it's not always accurate
-		participationV1Dao.updateOwnerChangesForActivation(participationId);
+		participationCoreDao.updateOwnerChangesForActivation(participationId);
 
 		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
@@ -194,7 +193,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int totalRows = 0;
 
 		// Determine what products are changing ownership and store into temp table.
-		participationV1Dao.updateOwnerChangesForDeactivation(participationId);
+		participationCoreDao.updateOwnerChangesForDeactivation(participationId);
 
 		// Assign ownership of each unique id to any active fallback participations, but
 		// don't bother to update ownership on participationProduct rows of the deactivating

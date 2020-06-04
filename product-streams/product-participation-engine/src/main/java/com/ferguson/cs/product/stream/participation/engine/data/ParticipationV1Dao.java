@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 /**
  * This is responsible for SQL database queries specific to participation@1, eg calculated discount methods.

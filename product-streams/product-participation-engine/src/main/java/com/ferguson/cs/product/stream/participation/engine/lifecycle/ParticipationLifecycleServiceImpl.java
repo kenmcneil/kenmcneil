@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ContentErrorMessage;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -34,29 +33,28 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	private final Map<ParticipationContentType, ParticipationLifecycle> lifecyclesByContentType;
 
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationV1Dao participationV1Dao;
+	private final ParticipationCoreDao participationCoreDao;
 
 	public ParticipationLifecycleServiceImpl(
 			ParticipationEngineSettings participationEngineSettings,
-//			ParticipationCoreDao participationCoreDao,
-			ParticipationV1Dao participationV1Dao,
+			ParticipationCoreDao participationCoreDao,
 			ParticipationLifecycle... lifecycles
 	) {
 		this.participationEngineSettings = participationEngineSettings;
-		this.participationV1Dao = participationV1Dao;
+		this.participationCoreDao = participationCoreDao;
 		lifecyclesByContentType = Arrays.stream(lifecycles)
 				.collect(Collectors.toMap(ParticipationLifecycle::getContentType, lifecycle -> lifecycle));
 	}
 
 	@Override
 	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate) {
-		return participationV1Dao.getNextParticipationPendingActivation(
+		return participationCoreDao.getNextParticipationPendingActivation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
 	@Override
 	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate) {
-		return participationV1Dao.getNextExpiredParticipation(
+		return participationCoreDao.getNextExpiredParticipation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
@@ -93,7 +91,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== activating participation {} ====", participationId);
 
-		int affectedRows = participationV1Dao.setParticipationIsActive(participationId, true);
+		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, true);
 
 		// (1) Apply non-effect-specific queries for activating this Participation. Perform set up
 		// to call deactivateEffects() and activateEffects().
@@ -104,10 +102,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.deactivateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
-
-		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-
-
 
 		// (3) Apply effects of the activating itemPartial record to newly-owned entities.
 		affectedRows += activatingLifecycle.activateEffects(itemPartial, processingDate);
@@ -127,7 +121,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
-		int affectedRows = participationV1Dao.setParticipationIsActive(participationId, false);
+		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, false);
 
 		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
@@ -159,12 +153,12 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
-		return participationV1Dao.getParticipationIsActive(participationId);
+		return participationCoreDao.getParticipationIsActive(participationId);
 	}
 
 
 	public ParticipationItemPartial getParticipationItemPartial(int participationId) {
-		return participationV1Dao.getParticipationItemPartial(participationId);
+		return participationCoreDao.getParticipationItemPartial(participationId);
 	}
 
 	/**

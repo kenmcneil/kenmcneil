@@ -3,12 +3,9 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Repository
 public class ParticipationV1DaoImpl implements ParticipationV1Dao {
