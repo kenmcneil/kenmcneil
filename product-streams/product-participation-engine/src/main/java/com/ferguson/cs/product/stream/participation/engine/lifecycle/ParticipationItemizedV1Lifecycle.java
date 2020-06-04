@@ -54,7 +54,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ParticipationV1Lifecycle.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ParticipationItemizedV1Lifecycle.class);
 
 	private static final String[] PRODUCT_SALE_ID_PATH = {"productSale", "saleId"};
 	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"calculatedDiscounts", "uniqueIds", "list"};

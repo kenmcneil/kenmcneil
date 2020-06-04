@@ -138,12 +138,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		// (3) Apply effects for all Participation types, for entities being dis-owned by the
 		// deactivating Participation that are becoming owned by other active Participations
-
-
-
-
-
-		//HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeeee
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
@@ -166,6 +160,11 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
 		return participationV1Dao.getParticipationIsActive(participationId);
+	}
+
+
+	public ParticipationItemPartial getParticipationItemPartial(int participationId) {
+		return participationV1Dao.getParticipationItemPartial(participationId);
 	}
 
 	/**
@@ -200,14 +199,13 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * for that content type was registered in lifecyclesByContentType.
 	 */
 	private ParticipationLifecycle getLifecycle(Integer contentTypeId) {
-		ParticipationContentType defaultedContentTypeId = contentTypeId == null
-				? defaultContentType
-				: ParticipationContentType.fromContentTypeId(contentTypeId);
-
-		if (lifecyclesByContentType.containsKey(defaultedContentTypeId)) {
-			return lifecyclesByContentType.get(defaultedContentTypeId);
+		if (contentTypeId != null) {
+			ParticipationContentType contentType = ParticipationContentType.fromContentTypeId(contentTypeId);
+			if (lifecyclesByContentType.containsKey(contentType)) {
+				return lifecyclesByContentType.get(contentType);
+			}
 		}
-
 		throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 	}
+
 }

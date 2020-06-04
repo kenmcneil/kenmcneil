@@ -37,40 +37,40 @@ public interface ParticipationLifecycle {
 	 * Publish the Participation record to SQL. The publish handler is fully responsible
 	 * for inserting or updating all of its data that needs to be stored in SQL.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int publish(ParticipationItem item, Date processingDate);
 
 	/**
 	 * Activate the Participation and set up for applying effects in activateEffects
 	 * handler.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int activate(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Apply effects for any entities becoming owned, such as participationProducts.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int activateEffects(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Deactivate the Participation, and prepare to deactivate its effects on owned
 	 * entities.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int deactivate(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Remove effects on entities that are losing ownership either from deactivation
 	 * or from an overriding higher priority Participation.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
 	 * Unpublish the Participation by removing its data from SQL.
 	 */
-	//@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.MANDATORY)
 	int unpublish(ParticipationItemPartial itemPartial, Date processingDate);
 
 	/**
