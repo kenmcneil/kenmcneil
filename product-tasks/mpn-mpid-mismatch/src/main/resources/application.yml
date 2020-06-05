@@ -1,0 +1,19 @@
+---
+---
+logging:
+  level:
+    ROOT: info
+    com.ferguson.cs: info
+
+
+info:
+  build:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+
+mpn-mpid-mismatch:
+    report-output-folder: 'C:/temp/mpn_mpid_mismatch/'
+    missing-report_filename-prefix: 'build_mpn_mpid_missing_report'
+    mismatch-report_filename-prefix: 'build_mpn_mpid_mismatch_report'
+    report-email-list:
+       - 'brian.russell@build.com'

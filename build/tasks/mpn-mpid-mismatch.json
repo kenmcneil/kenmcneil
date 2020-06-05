@@ -1,0 +1,9 @@
+[
+  {
+    "appName": "mpn-mpid-mismatch",
+    "name": "mpn-mpid-mismatch",
+    "jobName": "mpnMpidMismatchJob",
+    "heapSize": "512m"
+  }
+
+]
