@@ -43,7 +43,7 @@
 			p.finish as finish,
 			p.UPC as upc,
 			p.sku as sku,
-			vm.mpn as mpn
+			vm.mpn as mpn,
 			fm.mpid as mpid
 		FROM 
 			omc.dbo.vendor_mapping vm with (nolock)

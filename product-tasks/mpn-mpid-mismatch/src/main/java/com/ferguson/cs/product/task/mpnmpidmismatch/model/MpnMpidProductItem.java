@@ -1,7 +1,5 @@
 package com.ferguson.cs.product.task.mpnmpidmismatch.model;
 
-import com.ferguson.cs.product.task.mpnmpidmismatch.model.mdm.MdmProductView;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,5 +15,21 @@ public class MpnMpidProductItem {
 	private String upc;
 	private String mpn;
 	private Integer mpid;
-	private MdmProductView mpidProductView;
+	private Boolean mdmMpidMatch;
+	private Boolean mdmMpnMatch;
+
+	// MdmProductAttributes returned from MDM lookup on mpid
+	private Long mdmMpidPrimaryVendorId;
+	private String mdmMpidDescription;
+	private String mdmMpidUpc;
+	private String mdmMpidSku;
+	private String mdmMpidAlternateCode;
+
+	// MdmProductAttributes returned from MDM lookup on mpn
+	private Long mdmMpnPrimaryVendorId;
+	private String mdmMpnDescription;
+	private String mdmMpnUpc;
+	private String mdmMpnSku;
+	private String mdmMpnAlternateCode;
+
 }

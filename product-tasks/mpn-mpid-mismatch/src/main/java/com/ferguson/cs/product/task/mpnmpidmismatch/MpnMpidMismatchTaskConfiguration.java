@@ -2,17 +2,20 @@ package com.ferguson.cs.product.task.mpnmpidmismatch;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
+import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +25,7 @@ import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchEmailRe
 import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchFileSystemResource;
 import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchInsertMissingMpidTasklet;
 import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchItemProcessor;
+import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchLineAggregator;
 import com.ferguson.cs.product.task.mpnmpidmismatch.batch.MpnMpidMismatchMpidBackfillDecider;
 import com.ferguson.cs.product.task.mpnmpidmismatch.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.mpnmpidmismatch.client.PdmMdmWebServicesFeignClient;
@@ -33,8 +37,6 @@ import com.ferguson.cs.utilities.DateUtils;
 @Configuration
 @EnableConfigurationProperties(MpnMpidMismatchSettings.class)
 public class MpnMpidMismatchTaskConfiguration {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(MpnMpidMismatchTaskConfiguration.class);
 
 	private final TaskBatchJobFactory taskBatchJobFactory;
 	private final SqlSessionFactory sqlSessionFactory;
@@ -60,7 +62,7 @@ public class MpnMpidMismatchTaskConfiguration {
 
 	@Bean
 	public Job mpnMpidMismatchJob(
-			Step  createMpnMpidMissingReport,
+			Step createMpnMpidMissingReport,
 			Step missingMpidInsertTasklet,
 			Step createMpnMpidMismatchReport,
 			Step emailReportTasklet) {
@@ -113,6 +115,10 @@ public class MpnMpidMismatchTaskConfiguration {
 				.reader(mpmMpidMismatchItemReader).processor(mpnMpidMismatchItemProcessor).writer(mpmMpidMismatchReportWriter).build();
 	}
 
+	/*
+	 * Step 4
+	 * Email the mismatch report if it was created
+	 */
 	@Bean
 	public Step emailReportTasklet() {
 		return taskBatchJobFactory.getStepBuilder("emailReportTasklet")
@@ -120,6 +126,7 @@ public class MpnMpidMismatchTaskConfiguration {
 	}
 
 	/*
+	 * Reader for Step 1
 	 * Mybatis reader - Will return all records that have a product.uniqueId but no corresponding
 	 * match in the feuMPID table
 	 */
@@ -132,6 +139,9 @@ public class MpnMpidMismatchTaskConfiguration {
 		return reader;
 	}
 
+	/*
+	 * Writer for Step 1
+	 */
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<MpnMpidProductItem> mpmMpidMissingReportWriter(
@@ -155,6 +165,7 @@ public class MpnMpidMismatchTaskConfiguration {
 	}
 
 	/*
+	 * Reader for Step 3
 	 * Mybatis reader - Will return all records with the same product uniqueID but mismatch between vendor_mapping.mpn
 	 * and feiMPID.mpiid
 	 */
@@ -167,26 +178,62 @@ public class MpnMpidMismatchTaskConfiguration {
 		return reader;
 	}
 
+	/*
+	 * Writer for Step 3
+	 * Mismatch mpn/mpid report writer
+	 */
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<MpnMpidProductItem> mpmMpidMismatchReportWriter(
+			@Value("#{stepExecution.jobExecution}") JobExecution jobExecution,
 			MpnMpidMismatchFileSystemResource mpnMpidMismatchFileSystemResource) {
+
 		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMismatchReportFilenamePrefix(), dateString );
-		String[] names = new String[]{"uniqueId","mpn","mpid"};
+		String[] header = new String[]{
+				"uniqueId",
+				"product_id",
+				"manufacturer",
+				"finish",
+				"mpn",
+				"mpid",
+				"mdm_mpn_match",
+				"mdm_mpid_match",
+				"sku",
+				"mdm_mpn_sku",
+				"mdm_mpid_sku",
+				"upc",
+				"mdm_mpn_upc",
+				"mdm_mpid_upc",
+				"mdm_mpn_Primary_vendor_id",
+				"mdm_mpid_Primary_vendor_id",
+				"mdm_mpn_description",
+				"mdm_mpid_description",
+				"mdm_mpn_alternate_code",
+				"mdm_mpid_alternate_code"
+		};
 
 		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
+		String filepath = mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename;
+		jobExecution.getExecutionContext().put("ERROR_REPORT",filepath);
 
 		mpnMpidMismatchFileSystemResource.setFileSystemResource(
-				new FileSystemResource(mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename));
+				new FileSystemResource(filepath));
+
+		BeanWrapperFieldExtractor<MpnMpidProductItem> extractor = new BeanWrapperFieldExtractor<MpnMpidProductItem>();
+		extractor.setNames(camelCase(header));
+
+		MpnMpidMismatchLineAggregator<MpnMpidProductItem> lineAggregator = new MpnMpidMismatchLineAggregator<>();
+		lineAggregator.setDelimiter(",");
+		lineAggregator.setFieldExtractor(extractor);
 
 		return new FlatFileItemWriterBuilder<MpnMpidProductItem>().resource(mpnMpidMismatchFileSystemResource.getFileSystemResource())
 				.name("mpmMpidMismatchReportWriter")
 				.shouldDeleteIfEmpty(true)
-				.delimited().names(names)
-				.headerCallback(writer -> writer.write(String.join(",", names))).build();
+				.lineAggregator(lineAggregator)
+				.headerCallback(writer -> writer.write(String.join(",", header))).build();
 	}
 
 	/*
@@ -197,6 +244,10 @@ public class MpnMpidMismatchTaskConfiguration {
 		return new MpnMpidMismatchMpidBackfillDecider();
 	}
 
+	/*
+	 * Processor for Step 3
+	 * Processor will do additional MDM lookups to gather additional details for the mismatch report
+	 */
 	@Bean
 	@StepScope
 	public MpnMpidMismatchItemProcessor mpnMpidMismatchItemProcessor() {
@@ -217,6 +268,32 @@ public class MpnMpidMismatchTaskConfiguration {
 	@Bean
 	public MpnMpidMismatchInsertMissingMpidTasklet insertMissingMpidTasklet() {
 		return new MpnMpidMismatchInsertMissingMpidTasklet(mpnMpidMismatchService);
+	}
+
+	/**
+	 * Convert snake case to camel case
+	 *
+	 * @param columnNames The names of the columns to convert
+	 * @return Camel cased string
+	 */
+	private String[] camelCase(String[] columnNames) {
+		String[] updatedColumnNames = new String[columnNames.length];
+		int index = 0;
+		Pattern underscorePattern = Pattern.compile("_(.)");
+
+		for (String columnName : columnNames) {
+			Matcher underscoreMatcher = underscorePattern.matcher(columnName);
+			StringBuffer sb = new StringBuffer();
+
+			while (underscoreMatcher.find()) {
+				underscoreMatcher.appendReplacement(sb, underscoreMatcher.group().toUpperCase());
+			}
+
+			underscoreMatcher.appendTail(sb);
+			updatedColumnNames[index] = sb.toString().replaceAll("_","");
+			index++;
+		}
+		return updatedColumnNames;
 	}
 
 }

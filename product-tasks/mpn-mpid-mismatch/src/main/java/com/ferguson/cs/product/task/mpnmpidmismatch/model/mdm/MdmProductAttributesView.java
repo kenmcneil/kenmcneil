@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class MdmProductAttributesView implements Serializable {
 
 	private static final long serialVersionUID = 2L;
@@ -19,5 +18,4 @@ public class MdmProductAttributesView implements Serializable {
 	private String vendorProductCode;	// SKU
 	private String alternateCode1;
 	private String unitOfMeasure;
-
 }

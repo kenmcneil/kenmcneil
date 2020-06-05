@@ -39,23 +39,23 @@ public class MpnMpidMismatchEmailReportTasklet implements Tasklet{
 			File csvFile = new File(errorReport);
 
 			if (csvFile.exists() && csvFile.length() > 0) {
-				LOGGER.debug("FeiSendErrorReportTasklet - Sending error report : {}", errorReport);
+				LOGGER.debug("MpnMpidMismatchEmailReportTasklet - Sending error report : {}", errorReport);
 
 				Date now = DateUtils.now();
 				DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MM/dd/yyyy HH:mm:ss");
 				String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 
 				if (mpnMpidMismatchSettings.getReportEmailList() == null || mpnMpidMismatchSettings.getReportEmailList().length == 0) {
-					LOGGER.error("FeiSendErrorReportTasklet - No recipient email address configured for error report");
+					LOGGER.error("MpnMpidMismatchEmailReportTasklet - No recipient email address configured for error report");
 				} else {
 					String emailList = String.join(",", mpnMpidMismatchSettings.getReportEmailList());
 
 					EmailRequest request = EmailRequestBuilder
 							.sendTo(emailList)
 							.from("noreply-scheduler@build.com")
-							.subject("FEI Price Update Error Report (" + dateString +")")
+							.subject("MPN/MPID mismatch Report (" + dateString +")")
 							.templateName("EMPTY")
-							.addTemplateData("body", "FEI Pricing update errors encountered. Please see the attached error report for additional details.")
+							.addTemplateData("body", "MPN/MPID mismatch report attached.")
 							.addRawAttachment(csvFile.getName(), Files.readAllBytes(csvFile.toPath()))
 							.build();
 

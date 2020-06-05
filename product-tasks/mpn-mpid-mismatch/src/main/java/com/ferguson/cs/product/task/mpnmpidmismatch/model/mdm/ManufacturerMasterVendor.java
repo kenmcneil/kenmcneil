@@ -7,13 +7,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MdmProductView implements Serializable {
+public class ManufacturerMasterVendor implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Long id;
-	private String name;
-	private Double score;
-	private MdmProductAttributesView attributes;
-	private MdmVendorView primaryVendor;
+	private Integer id;
+	private Integer manufacturerId;
+	private Integer masterVendorId;
+	private String masterVendorName;
 }
