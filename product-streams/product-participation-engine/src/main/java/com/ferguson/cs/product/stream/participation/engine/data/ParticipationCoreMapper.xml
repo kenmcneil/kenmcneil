@@ -22,7 +22,7 @@
 
 	<update id="updateOwnerChangesForDeactivation" parameterType="int">
 		-- Must set isActive=0 on the deactivating participation first.
-		TRUNCATE TABLE mmc.product.participationOwnerChange;
+		TRUNCATE TABLE tempData.participation.participationOwnerChange;
 		WITH newOwner AS (
 			-- find new owners for owned products in P
 			-- products that are becoming un-owned are not returned
@@ -43,14 +43,14 @@
 			ORDER BY
 				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO mmc.product.participationOwnerChange
+		INSERT INTO tempData.participation.participationOwnerChange
 		SELECT
 			uniqueId,
 			#{participationId} AS oldParticipationId,
 			newOwner.participationId
 		FROM
 			newOwner;
-		INSERT INTO mmc.product.participationOwnerChange
+		INSERT INTO tempData.participation.participationOwnerChange
 		SELECT
 			pp.uniqueId AS uniqueId,
 			#{participationId} AS oldParticipationId,
@@ -61,7 +61,7 @@
 			mmc.product.participationItemPartial AS p
 			ON p.participationId = pp.participationId
 		LEFT JOIN
-			mmc.product.participationOwnerChange as poc
+			tempData.participation.participationOwnerChange as poc
 			ON poc.uniqueId = pp.uniqueId
 		WHERE
 			pp.participationId = #{participationId}
@@ -71,7 +71,7 @@
 
 	<update id="updateOwnerChangesForActivation" parameterType="int">
 		-- Must set isActive=1 on the activating participation first.
-		TRUNCATE TABLE mmc.product.participationOwnerChange;
+		TRUNCATE TABLE tempData.participation.participationOwnerChange;
 		WITH newOwner AS (
 			-- find products in P that will be owned by P (activating products)
 			SELECT TOP (1) WITH TIES
@@ -90,7 +90,7 @@
 			ORDER BY
 				ROW_NUMBER() OVER(PARTITION BY allpp.uniqueId ORDER BY allp.startDate DESC)
 		)
-		INSERT INTO mmc.product.participationOwnerChange
+		INSERT INTO tempData.participation.participationOwnerChange
 		SELECT
 			newOwner.uniqueId,
 			pp.participationId AS oldParticipationId,
@@ -118,7 +118,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = owner.uniqueId
 			AND oc.newParticipationId = owner.participationId
 		WHERE
@@ -135,7 +135,7 @@
 		FROM
 			mmc.product.participationProduct AS owner
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = owner.uniqueId
 			AND oc.oldParticipationId = owner.participationId
 		WHERE
@@ -151,7 +151,7 @@
 		FROM
 			mmc.product.sale AS sale
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = sale.uniqueId
 		JOIN
 			mmc.product.participationItemPartial AS p
@@ -167,7 +167,7 @@
 		FROM
 			mmc.product.sale AS sale
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = sale.uniqueId
 		JOIN
 			mmc.product.participationItemPartial AS p
@@ -185,7 +185,7 @@
 		FROM
 			mmc.product.modified
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = modified.uniqueId
 		JOIN
 			omc.dbo.users AS users

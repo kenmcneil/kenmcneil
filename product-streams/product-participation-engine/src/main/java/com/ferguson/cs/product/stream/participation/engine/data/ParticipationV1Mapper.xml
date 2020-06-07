@@ -12,7 +12,7 @@
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = lastOnSale.uniqueId
 		JOIN
 			mmc.dbo.pricebook_cost AS pbcost
@@ -34,7 +34,7 @@
 		FROM
 			mmc.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -63,7 +63,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
@@ -93,7 +93,7 @@
 		FROM
 			MMC.dbo.pricebook_cost AS pbcost
 		JOIN
-			mmc.product.participationOwnerChange AS oc
+			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = pbcost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount

@@ -24,7 +24,8 @@ public class ItemizedDiscountFixture {
 	private Double pricebook22Price;
 
 	/**
-	 * ?
+	 * Converts a single row of itemized discounts reduced from the mongo format (uniqueId, pb1DiscountPriced,
+	 * pb22DiscountPrice) to 2 rows in the SQL format (participationId, uniqueId, pricebookId, discountePrice)
 	 */
 	public List<ParticipationItemizedDiscount> toParticipationItemizedDiscounts(Integer participationId) {
 		List<ParticipationItemizedDiscount> discounts = new ArrayList<>();

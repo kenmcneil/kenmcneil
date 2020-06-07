@@ -34,7 +34,7 @@ public class ItemizedDiscountScenariosIT extends ParticipationScenarioITBase {
 				.saleId(2020)
 				.uniqueIds(100)
 				.itemizedDiscounts(
-					itemizedDiscount(100, 100.00, 200.00)
+					itemizedDiscount(100, 200.00, 100.00)
 				)
 				.scheduleByDays(0, 2)
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)

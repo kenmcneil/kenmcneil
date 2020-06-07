@@ -69,6 +69,10 @@ public class ParticipationTestUtilities {
 			"SELECT COUNT(*) FROM mmc.product.participationCalculatedDiscount" +
 					" WHERE participationId = ?";
 
+	public static final String SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_COUNT_BY_PARTICIPATIONID =
+			"SELECT COUNT(*) FROM mmc.product.participationItemizedDiscount" +
+					" WHERE participationId = ?";
+
 	public static final String SELECT_PARTICIPATION_PRODUCT_COUNT_BY_PARTICIPATIONID =
 			"SELECT COUNT(*) FROM mmc.product.participationProduct" +
 					" WHERE participationId = ?";
@@ -262,17 +266,27 @@ public class ParticipationTestUtilities {
 					);
 		} else if (fixture.getContentType() != null
 					&& fixture.getContentType() == ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
-			// Insert any participationItemizedDiscount records.
-		//	nullSafeStream(fixture.getItemizedDiscountFixtures())
-				//	.map(discountFixture -> discountFixture.toParticipationItemizedDiscounts(participationId))
-//					.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT,
-//						System.out.print(discount));
-//					);
+			// Insert any participationItemizedDiscount records, provided a list of lists where the inner list
+			// is [[uniqueid, 1, pb1DiscountPrice], [uniqueId, 22, pb22DiscountPrice]]
+			nullSafeStream(fixture.getItemizedDiscountFixtures())
+					.map(discountFixture -> discountFixture.toParticipationItemizedDiscounts(participationId))
+					.forEach(discount -> {jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+												discount.get(0).getUniqueId(), discount.get(0).getPricebookId(),
+												discount.get(0).getPrice());
+											jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+												discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
+												discount.get(1).getPrice());}
+					);
 		}
 	}
 
 	public Integer getParticipationCalculatedDiscountCount(int participationId) {
 		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
+				Integer.class, participationId);
+	}
+
+	public Integer getParticipationItemizedDiscountCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
 				Integer.class, participationId);
 	}
 
