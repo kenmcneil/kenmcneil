@@ -7,7 +7,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 /**
  * This is responsible for common Participation SQL database queries. Any methods that are specific to certain
- * Participation types (e.g. participation@1) have been moved to daos aligning to those types.
+ * Participation types (e.g. participation@1) have been moved to daos named for those types.
  */
 public interface ParticipationCoreDao {
 

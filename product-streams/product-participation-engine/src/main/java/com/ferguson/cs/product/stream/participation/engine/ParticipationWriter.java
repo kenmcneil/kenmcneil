@@ -38,7 +38,7 @@ public class ParticipationWriter {
 							.build(),
 					processingDate);
 		}
-//TODO: HERE
+
 		participationLifecycleService.publishByType(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),

@@ -11,7 +11,6 @@ import org.assertj.core.api.Assertions;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;

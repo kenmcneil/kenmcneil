@@ -110,7 +110,51 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
 	}
 
+	/**
+	 * test that the 15-minute cool-off period is respected
+	 */
+	@Test
+	public void participation_changes_less_than_15_minutes() {
+		participationTestUtilities.insertParticipationFixture(
+				ParticipationItemFixture.builder()
+						.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
+						.participationId(53000)
+						.saleId(3030)
+						.isActive(false)
+						.uniqueIds(123456, 234567)
+						.itemizedDiscounts(
+								itemizedDiscount(123456, 200.00, 100.00),
+								itemizedDiscount(234567, 250.00, 150.00)
+						)
+						.build());
 
+		participationCoreDao.setParticipationIsActive(53000, true);
+		participationCoreDao.updateOwnerChangesForActivation(53000);
+		participationCoreDao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.activateProductSaleIds();
+		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
+		participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, 15);
+		participationCoreDao.updateProductModifiedDates(new Date(), 1);
+
+		participationCoreDao.setParticipationIsActive(53000, false);
+		participationCoreDao.updateOwnerChangesForDeactivation(53000);
+		participationCoreDao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.deactivateProductSaleIds();
+		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
+		int rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
+		Assertions.assertThat(rowsAffected).isEqualTo(4);
+		participationCoreDao.updateProductModifiedDates(new Date(), 1);
+		participationCoreDao.deleteParticipationProducts(53000);
+		participationCoreDao.deleteAllTypesOfDiscounts(53000);
+		participationCoreDao.deleteParticipationItemPartial(53000);
+
+		// Check final state
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
+		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
+
+		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
+		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
+	}
 	@Test
 	public void deleteParticipation() {
 
