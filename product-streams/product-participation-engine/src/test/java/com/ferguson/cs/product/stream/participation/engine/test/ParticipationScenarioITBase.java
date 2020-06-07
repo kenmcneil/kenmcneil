@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -51,9 +53,11 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ItemizedDiscountsTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -96,6 +100,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				ParticipationTestUtilities participationTestUtilities
 		) {
 			return new CalculatedDiscountsTestLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public ItemizedDiscountsTestLifecycle itemizedDiscountsTestLifecycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new ItemizedDiscountsTestLifecycle(participationTestUtilities);
 		}
 	}
 
@@ -210,6 +221,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 	public void createUserPublishEvent(ParticipationItemFixture fixture) {
 		initAndRememberFixture(fixture);
+		//TODO somewhere between here and put, content is added or pulled?
 		pendingPublishParticipationQueue.add(fixtureToParticipationItem(fixture));
 	}
 
@@ -488,7 +500,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.lastModifiedDate(currentSimulatedDate)
 				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
 				.build();
-
+//Content in item is still null here
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
@@ -496,6 +508,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 			// set the content object
 			item.setContent(getParticipationV1Content(fixture));
+		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
+
+			// set the content object
+			item.setContent(getParticipationItemizedV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
 		}
@@ -508,7 +527,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	/**
-	 * Build the content map for the given fixture, as if it came from Construct.
+	 * Build the content map for the given fixture of type participation@1, as if it came from Construct.
 	 */
 	private Map<String, Object> getParticipationV1Content(ParticipationItemFixture fixture) {
 		ObjectNode content;
@@ -537,7 +556,55 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+		//HEREEEEEEEEEEEEEEEEEee
 		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type @itemized-participation@1, as if it came from Construct.
+	 * Requires the fixture to include at least two list entries (pb1 and pb22, in that order). Additional entries
+	 * will be ignored.
+	 */
+	private Map<String, Object> getParticipationItemizedV1Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		// Itemized discount values are not optional. Load the matching template and fill in any
+		// discounts.
+		//map into mongo format
+		List<ItemizedDiscountFixture> discounts = fixture.getItemizedDiscountFixtures();
+		List<List<Object>> mappedDiscounts = discounts.stream()
+									.map(discount-> {
+										List<Object> row = new ArrayList<>();
+										row.add(discount.getUniqueId());
+										row.add("Manufacturer for uniqueId " + discount.getUniqueId());
+										row.add(discount.getPricebook1Price());
+										row.add(discount.getPricebook22Price());
+										return row;
+									})
+									.collect(Collectors.toList());
+		//you are best off mapping the above toa  list of lists. That's the data structure you need.
+		//need to make a list of int string double double. Maybe pass them in as generic objects?
+		if (CollectionUtils.isEmpty(discounts)) {
+			Assertions.fail("Missing required itemized discount content in %s", fixture.toString());
+		}
+		//TODO format everything below as a mongo record
+		content = getContentTemplate("participationItemizedV1-content-discount.json");
+		atPath(content, "/itemizedDiscounts").set("list", mapper.valueToTree(mappedDiscounts));//not to string but an
+		// array
+		//get 22 in here too
+		//you have to map the itemized discount fixture object to array of arrays format used in the data model
+		//you will end up with a list where each object in the list will be an array of four data points
+		// upcoming: serializing it into the db. Will need participaitonId at that time (it will be avail there)
+		// almost the same as loading the product table (you will see)
+		// Set the required values in content. It's ok to use only the major version, as in "participation@1"
+		// instead of "participation@1.0.0", since the minor and pa
+		// tch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
 	}

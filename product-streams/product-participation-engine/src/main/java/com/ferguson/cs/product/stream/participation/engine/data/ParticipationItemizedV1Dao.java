@@ -104,10 +104,7 @@ public interface ParticipationItemizedV1Dao {
 //	 * @return The number of records modified.
 //	 */
 //	int deleteParticipationItemPartial(int participationId);
-//
-//	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-//	int syncToCurrentPriorityParticipation();
-//
+
 //	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 //
 //	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);

@@ -11,8 +11,8 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.Participat
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
 public class ParticipationV1DaoIT extends ParticipationEngineITBase {
-//	@Autowired
-//	public ParticipationCoreDao participationCoreDao;
+	@Autowired
+	public ParticipationCoreDao participationCoreDao;
 	@Autowired
 	public ParticipationV1Dao participationV1Dao;
 
@@ -31,11 +31,11 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 						.saleId(3030)
 						.build());
 
-		participationV1Dao.setParticipationIsActive(52000, false);
-		participationV1Dao.setParticipationIsActive(53000, true);
+		participationCoreDao.setParticipationIsActive(52000, false);
+		participationCoreDao.setParticipationIsActive(53000, true);
 
-		Boolean isInactiveActivated = participationV1Dao.getParticipationIsActive(52000);
-		Boolean isActiveActivated = participationV1Dao.getParticipationIsActive(53000);
+		Boolean isInactiveActivated = participationCoreDao.getParticipationIsActive(52000);
+		Boolean isActiveActivated = participationCoreDao.getParticipationIsActive(53000);
 		Assertions.assertThat(isInactiveActivated).isFalse();
 		Assertions.assertThat(isActiveActivated).isTrue();
 	}
@@ -62,17 +62,17 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 						)
 						.build());
 
-		int rowsAffected = participationV1Dao.setParticipationIsActive(53000, true);
+		int rowsAffected = participationCoreDao.setParticipationIsActive(53000, true);
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
-		participationV1Dao.updateOwnerChangesForActivation(53000);
-		rowsAffected = participationV1Dao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.updateOwnerChangesForActivation(53000);
+		rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(53000);
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
-		rowsAffected = participationV1Dao.activateProductSaleIds();
+		rowsAffected = participationCoreDao.activateProductSaleIds();
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		rowsAffected = participationV1Dao.updateLastOnSaleBasePrices(new Date());
 		rowsAffected = participationV1Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
-		rowsAffected = participationV1Dao.updateProductModifiedDates(new Date(), 1);
+		rowsAffected = participationCoreDao.updateProductModifiedDates(new Date(), 1);
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 
 		// Check final state
@@ -102,25 +102,25 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 						)
 						.build());
 
-		participationV1Dao.setParticipationIsActive(53000, true);
-		participationV1Dao.updateOwnerChangesForActivation(53000);
-		participationV1Dao.addProductOwnershipForNewOwners(53000);
-		participationV1Dao.activateProductSaleIds();
+		participationCoreDao.setParticipationIsActive(53000, true);
+		participationCoreDao.updateOwnerChangesForActivation(53000);
+		participationCoreDao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.activateProductSaleIds();
 		participationV1Dao.updateLastOnSaleBasePrices(new Date());
 		participationV1Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
-		participationV1Dao.updateProductModifiedDates(new Date(), 1);
+		participationCoreDao.updateProductModifiedDates(new Date(), 1);
 
-		participationV1Dao.setParticipationIsActive(53000, false);
-		participationV1Dao.updateOwnerChangesForDeactivation(53000);
-		participationV1Dao.addProductOwnershipForNewOwners(53000);
-		participationV1Dao.deactivateProductSaleIds();
+		participationCoreDao.setParticipationIsActive(53000, false);
+		participationCoreDao.updateOwnerChangesForDeactivation(53000);
+		participationCoreDao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.deactivateProductSaleIds();
 		participationV1Dao.updateLastOnSaleBasePrices(new Date());
 		int rowsAffected = participationV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
-		participationV1Dao.updateProductModifiedDates(new Date(), 1);
-		participationV1Dao.deleteParticipationProducts(53000);
+		participationCoreDao.updateProductModifiedDates(new Date(), 1);
+		participationCoreDao.deleteParticipationProducts(53000);
 		participationV1Dao.deleteParticipationCalculatedDiscounts(53000);
-		participationV1Dao.deleteParticipationItemPartial(53000);
+		participationCoreDao.deleteParticipationItemPartial(53000);
 
 		// Check final state
 		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
@@ -139,9 +139,9 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		values.setIsActive(false);
 		participationTestUtilities.insertParticipationFixture(values);
 
-		int rowsAffected = participationV1Dao.deleteParticipationProducts(50000)
+		int rowsAffected = participationCoreDao.deleteParticipationProducts(50000)
 				+ participationV1Dao.deleteParticipationCalculatedDiscounts(50000)
-				+ participationV1Dao.deleteParticipationItemPartial(50000);
+				+ participationCoreDao.deleteParticipationItemPartial(50000);
 
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
 	}

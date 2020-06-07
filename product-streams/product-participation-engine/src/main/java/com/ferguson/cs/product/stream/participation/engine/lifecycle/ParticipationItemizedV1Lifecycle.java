@@ -33,14 +33,14 @@ import lombok.RequiredArgsConstructor;
 		 "itemizedDiscounts": {
 			 "list": [
 				 [
-					 "Kohler",
 					 298721,
+					"Kohler",
 					 99.86,
 					 86.9
 				 ],
 				 [
-					 "Moen",
 					 93506,
+					"Moen",
 					 20,
 					 17
 				 ]
@@ -226,7 +226,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	private List<Integer> getUniqueIds(ParticipationItem item) {
 		List<Integer> ids = new ArrayList<>();
 		List<List<Object>> discountedPricesRows = ParticipationLifecycle.getAtPath(item, ITEMIZED_DISCOUNTS_TYPE_PATH);
-		discountedPricesRows.forEach(row -> ids.add((Integer) (row.get(1))));
+		discountedPricesRows.forEach(row -> ids.add((Integer) (row.get(0))));
 		return ids;
 	}
 
@@ -242,7 +242,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		List<List<Object>> discountedPricesRows = ParticipationLifecycle.getAtPath(item, ITEMIZED_DISCOUNTS_TYPE_PATH);
 		if (!CollectionUtils.isEmpty(discountedPricesRows)) {
 			discountedPricesRows.forEach(row -> {
-				Integer uniqueId = (Integer) (row.get(1));
+				Integer uniqueId = (Integer) (row.get(0));
 				Double pb1Price = doublify(row.get(2));
 				Double pb22Price =  doublify(row.get(3));
 				itemizedDiscounts.add(new ParticipationItemizedDiscount(participationId, uniqueId, 1, pb1Price));

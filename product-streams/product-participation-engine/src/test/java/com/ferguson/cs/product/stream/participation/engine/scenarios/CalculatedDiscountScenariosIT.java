@@ -42,7 +42,7 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		testLifecycles(basicTestLifecycle, saleIdEffectTestLifecycle, calculatedDiscountsTestLifecycle);
-
+//TODO how is content type getting set here?
 		createUserPublishEvent(p1);
 		advanceToDay(3);
 		verifySimpleLifecycleLog(p1);

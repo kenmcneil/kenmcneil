@@ -28,7 +28,7 @@ public class ParticipationWriter {
 	 * Poll for a ParticipationItem to publish, and upserts its data into SQL tables.
 	 * If this Participation is currently active then deactivate it first.
 	 */
-	@Transactional
+	//@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
 		if (BooleanUtils.isTrue(participationLifecycleService.getParticipationIsActive(item.getId()))) {
 			participationLifecycleService.deactivateByType(
@@ -38,7 +38,7 @@ public class ParticipationWriter {
 							.build(),
 					processingDate);
 		}
-
+//TODO: HERE
 		participationLifecycleService.publishByType(item, processingDate);
 		constructService.updateParticipationItemStatus(
 				item.getId(),
@@ -48,7 +48,7 @@ public class ParticipationWriter {
 		);
 	}
 
-	@Transactional
+	//@Transactional
 	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		participationLifecycleService.activateByType(itemPartial, processingDate);
 		constructService.updateParticipationItemStatus(
@@ -59,7 +59,7 @@ public class ParticipationWriter {
 		);
 	}
 
-	@Transactional
+	//@Transactional
 	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		if (itemPartial.getIsActive()) {
 			participationLifecycleService.deactivateByType(itemPartial, processingDate);
@@ -73,7 +73,7 @@ public class ParticipationWriter {
 		);
 	}
 
-	@Transactional
+	//@Transactional
 	public void processUnpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		if (participationLifecycleService.getParticipationIsActive(itemPartial.getParticipationId())) {
 			participationLifecycleService.deactivateByType(itemPartial, processingDate);

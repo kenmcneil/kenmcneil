@@ -73,6 +73,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		}
 
 		//calls publish in the correct subclass, ParticipationV1Lifecycle, based on contentTypeId
+		//TODO hereeeeeeeeeeeeeeeeeeeeeeeeee fails
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
 

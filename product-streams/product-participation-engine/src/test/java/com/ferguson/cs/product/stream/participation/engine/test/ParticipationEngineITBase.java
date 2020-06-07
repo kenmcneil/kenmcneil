@@ -17,12 +17,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.test.BaseTest;
 import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
-@Transactional
+//@Transactional
 public abstract class ParticipationEngineITBase extends BaseTest {
 	@Resource
 	SqlSessionFactory sqlSessionFactory;
@@ -62,5 +63,9 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 
 	public CalculatedDiscountFixture amountCalculatedDiscount(int pricebookId, int amountDiscount) {
 		return new CalculatedDiscountFixture(pricebookId, amountDiscount, false, null);
+	}
+
+	public ItemizedDiscountFixture itemizedDiscount(int uniqueId, double pricebook1Price, double pricebook22Price) {
+		return new ItemizedDiscountFixture(uniqueId, pricebook1Price, pricebook22Price);
 	}
 }

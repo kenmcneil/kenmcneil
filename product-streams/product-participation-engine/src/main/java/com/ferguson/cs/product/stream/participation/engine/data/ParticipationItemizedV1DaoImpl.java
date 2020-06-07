@@ -93,12 +93,6 @@ public class ParticipationItemizedV1DaoImpl implements ParticipationItemizedV1Da
 //		return participationItemizedV1Mapper.deleteParticipationItemPartial(participationId);
 //	}
 //
-//	// TODO remove currentPriorityParticipation code (see SODEV-25037)
-//	@Override
-//	public int syncToCurrentPriorityParticipation() {
-//		return participationItemizedV1Mapper.syncToCurrentPriorityParticipation();
-//	}
-//
 //	@Override
 //	public int upsertParticipationItemPartial(ParticipationItemPartial itemPartial) {
 //		return participationItemizedV1Mapper.upsertParticipationItemPartial(itemPartial);

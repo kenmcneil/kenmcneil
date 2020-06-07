@@ -1,0 +1,12 @@
+{
+  "_type": "participation-itemized@1.0.0",
+  "productSale": {
+    "saleId": 0,
+    "_type": "atom-product-sale@1.0.0"
+  },
+  "itemizedDiscounts": {
+    "list": [],
+    "_type": "atom-tuple-list@1.0.0"
+  }
+}
+//remember that this will have new order unique, manufacturer string, pb1, pb22 and you need a blank line on this objecb (below)

@@ -81,6 +81,11 @@ public class ParticipationItemFixture {
 	 */
 	private List<CalculatedDiscountFixture> calculatedDiscountFixtures;
 
+	/**
+	 * Use in tests to populate records in the participtionItemizedDiscount table.
+	 */
+	private List<ItemizedDiscountFixture> itemizedDiscountFixtures;
+
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)
 	private List<LifecycleState> stateLog = new ArrayList<>();
@@ -151,6 +156,19 @@ public class ParticipationItemFixture {
 			return this;
 		}
 
+		/**
+		 * For use in tests to populate itemized discounts. Values must not be null.
+		 * @return
+		 */
+		public ParticipationItemFixtureBuilder itemizedDiscounts(ItemizedDiscountFixture... discountFixtures) {
+			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
+				Assertions.assertThat(discountFixture).isNotNull();
+				Assertions.assertThat(discountFixture.getPricebook1Price()).isNotNull();
+				Assertions.assertThat(discountFixture.getPricebook22Price()).isNotNull();
+			});
+			this.itemizedDiscountFixtures = Arrays.asList(discountFixtures);
+			return this;
+		}
 
 		public ParticipationItemFixtureBuilder simulatedPublish() {
 			this.isSimulatedPublish = true;
