@@ -1,6 +1,9 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -9,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
 
 public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
@@ -111,50 +115,59 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 	}
 
 	/**
-	 * test that the 15-minute cool-off period is respected
+	 * test that the cool-off period is respected.
+	 * NOTE: the cool-off is a config value, static here at 15mins.
 	 */
 	@Test
-	public void participation_changes_less_than_15_minutes() {
+	public void participation_test_coolOffPeriod_is_honored() {
+		int coolOffPeriodMinutes = 15;
+		//set los.saleDate to now, los.basePrice to some value A...
+		int pricebookId = 1;
+		int uniqueId = 123456;
+		Double startingLASBasePrice = 110.00;
+		participationTestUtilities.upsertParticipationLastOnSaleBase(pricebookId, uniqueId, new Date(), startingLASBasePrice);
+
+		//publish
 		participationTestUtilities.insertParticipationFixture(
 				ParticipationItemFixture.builder()
 						.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
 						.participationId(53000)
 						.saleId(3030)
 						.isActive(false)
-						.uniqueIds(123456, 234567)
+						.uniqueIds(uniqueId)
 						.itemizedDiscounts(
-								itemizedDiscount(123456, 200.00, 100.00),
-								itemizedDiscount(234567, 250.00, 150.00)
+								itemizedDiscount(123456, 200.00, 100.00)
 						)
 						.build());
-
 		participationCoreDao.setParticipationIsActive(53000, true);
 		participationCoreDao.updateOwnerChangesForActivation(53000);
 		participationCoreDao.addProductOwnershipForNewOwners(53000);
 		participationCoreDao.activateProductSaleIds();
-		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
-		participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, 15);
+
+		//set pbcost.basePrice to some value B...
+		Double startingPBCBasePrice = 120.00;
+		participationTestUtilities.updatePricebookCostCost(startingPBCBasePrice, uniqueId, pricebookId);
+
+		//run dao.applyNewItemizedDiscounts() with current time
+		participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, coolOffPeriodMinutes);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
-
-		participationCoreDao.setParticipationIsActive(53000, false);
-		participationCoreDao.updateOwnerChangesForDeactivation(53000);
-		participationCoreDao.addProductOwnershipForNewOwners(53000);
-		participationCoreDao.deactivateProductSaleIds();
-		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
-		int rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
-		Assertions.assertThat(rowsAffected).isEqualTo(4);
+		//assert that pbCost.basePrice == valueA
+		Double newPBCBasePrice = participationTestUtilities.getPricebookCostBasePrice(uniqueId, pricebookId);
+		Assertions.assertThat(newPBCBasePrice).isEqualTo(startingLASBasePrice);
+		//change los.saleDate to T-1hr
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.HOUR, -1);
+		Date oneHourAgo = cal.getTime();
+		participationTestUtilities.upsertParticipationLastOnSaleBase(pricebookId, uniqueId, oneHourAgo,
+				startingLASBasePrice);
+		//run dao.applyNewItemizedDiscounts() with current time
+		participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, coolOffPeriodMinutes);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
-		participationCoreDao.deleteParticipationProducts(53000);
-		participationCoreDao.deleteAllTypesOfDiscounts(53000);
-		participationCoreDao.deleteParticipationItemPartial(53000);
-
-		// Check final state
-		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
-		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
-
-		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
-		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
+		//assert that pbCost.basePrice == valueB
+		Double finalPBCBasePrice = participationTestUtilities.getPricebookCostBasePrice(uniqueId, pricebookId);
+		Assertions.assertThat(finalPBCBasePrice).isEqualTo(startingLASBasePrice);
 	}
+
 	@Test
 	public void deleteParticipation() {
 

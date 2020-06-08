@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -110,6 +111,7 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
 
+	//TODO if the below query is eventually used, I suspect @@ROWCOUNT won't work in this manner. Didn't work in SQL ui.
 	public static final String UPSERT_PRICEBOOK_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost" +
 					" SET basePrice = ?, cost = ?, userId = ?, participationId = ?" +
@@ -122,17 +124,32 @@ public class ParticipationTestUtilities {
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 
+	public static final String SELECT_PRICEBOOKCOST_BASEPRICE =
+		"SELECT basePrice" +
+				" FROM mmc.dbo.PriceBook_Cost" +
+				" WHERE uniqueId = ? AND pricebookId = ?";
+
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
 			"SELECT cost, basePrice, userId, participationId" +
 					" FROM mmc.dbo.PriceBook_Cost" +
 					" WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
 
+	public static final String UPDATE_PARTICIPATION_LASTONSALE =
+			"UPDATE mmc.product.participationLastOnSale" +
+					" SET saleDate = ?, basePrice = ?" +
+					" WHERE uniqueId= ? AND pricebookId = ?";
+
 	public static final String INSERT_PARTICIPATION_LASTONSALE =
 			"INSERT INTO mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice)" +
 					" VALUES (?, ?, ?, ?)";
 
-	public static final String SELECT_LASTONSALE_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT basePrice FROM mmc.product.participationLastOnSale WHERE uniqueId = ? AND pricebookId = ?";
+	public static final String SELECT_LASTONSALE_BASEPRICE =
+			"DECLARE @BasePrice DECIMAL(18,2);" +
+					" SELECT @BasePrice = 0.0;" +
+					" SELECT @BasePrice = basePrice" +
+					" FROM mmc.product.participationLastOnSale" +
+					" WHERE uniqueId = ? AND pricebookId = ?" +
+					" SELECT @BasePrice";
 
 	public static final String UPDATE_LATEST_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
 			"UPDATE mmc.product.latestBasePrice SET basePrice = ? WHERE uniqueId = ? AND pricebookId = ?";
@@ -353,6 +370,25 @@ public class ParticipationTestUtilities {
 				.addValue("pricebookIds", pricebookIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID,
 				namedParameters, BeanPropertyRowMapper.newInstance(PricebookCost.class));
+	}
+
+	public void upsertParticipationLastOnSaleBase(int pricebookId, int uniqueId, Date saleDate,
+												  Double basePrice) {
+		Double existingLOSBasePrice = jdbcTemplate.queryForObject(SELECT_LASTONSALE_BASEPRICE,
+				Double.class, uniqueId, pricebookId);
+		if (existingLOSBasePrice != 0) {
+			jdbcTemplate.update(UPDATE_PARTICIPATION_LASTONSALE, saleDate, basePrice, uniqueId, pricebookId);
+		} else {
+			jdbcTemplate.update(INSERT_PARTICIPATION_LASTONSALE, pricebookId, uniqueId, saleDate, basePrice);
+		}
+	}
+
+	public void updatePricebookCostCost(Double cost, int uniqueId, int pricebookId) {
+		jdbcTemplate.update(UPDATE_PRICEBOOK_COST_COST, cost, uniqueId, pricebookId);
+	}
+
+	public Double getPricebookCostBasePrice(int uniqueId, int pricebookId) {
+		return jdbcTemplate.queryForObject(SELECT_PRICEBOOKCOST_BASEPRICE, Double.class, uniqueId, pricebookId);
 	}
 
 	/**
