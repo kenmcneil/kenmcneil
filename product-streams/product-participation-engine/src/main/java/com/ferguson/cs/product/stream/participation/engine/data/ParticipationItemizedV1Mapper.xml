@@ -37,8 +37,8 @@
 		UPDATE
 			pbcost
 		SET
-			pbcost.cost = discount.price,--200
-			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),--110
+			pbcost.cost = discount.price,
+			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
 			pbcost.participationId = discount.participationId,
 			pbcost.userId = #{userId}
 		FROM
