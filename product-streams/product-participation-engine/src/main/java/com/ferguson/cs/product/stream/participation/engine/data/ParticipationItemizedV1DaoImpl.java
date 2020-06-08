@@ -16,106 +16,11 @@ public class ParticipationItemizedV1DaoImpl implements ParticipationItemizedV1Da
 		this.participationItemizedV1Mapper = participationItemizedV1Mapper;
 	}
 
-//	@Override
-//	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId) {
-//		return participationItemizedV1Mapper.getNextParticipationPendingActivation(processingDate, minParticipationId);
-//	}
-//
-//	@Override
-//	public Boolean getParticipationIsActive(int participationId) {
-//		return participationItemizedV1Mapper.getParticipationIsActive(participationId);
-//	}
-//
-//	@Override
-//	public int setParticipationIsActive(int participationId, Boolean isActive) {
-//		return participationItemizedV1Mapper.setParticipationIsActive(participationId, isActive);
-//	}
-//
-//	@Override
-//	public int updateOwnerChangesForActivation(int participationId) {
-//		return participationItemizedV1Mapper.updateOwnerChangesForActivation(participationId);
-//	}
-//
-//	/**
-//	 * Set participationProduct.isOwner to 1 for rows matching the participationId.
-//	 * For uniqueIds in P, set participationProduct.isOwner to 1 if P has the highest priority on
-//	 * the product else 0.
-//	 */
-//	@Override
-//	public int addProductOwnershipForNewOwners(int participationId) {
-//		return participationItemizedV1Mapper.addProductOwnershipForNewOwners();
-//	}
-//
-//	/**
-//	 * For participationProduct rows where uniqueId in P and participationId != P.id,
-//	 * set participationProduct.isOwner = 0
-//	 */
-//	@Override
-//	public int removeProductOwnershipForOldOwners(int participationId) {
-//		return participationItemizedV1Mapper.removeProductOwnershipForOldOwners();
-//	}
-//
-//	@Override
-//	public int activateProductSaleIds() {
-//		return participationItemizedV1Mapper.activateProductSaleIds();
-//	}
-//
-//	@Override
-//	public int deactivateProductSaleIds() {
-//		return participationItemizedV1Mapper.deactivateProductSaleIds();
-//	}
-//
-//	@Override
-//	public int updateProductModifiedDates(Date processingDate, int userId) {
-//		return participationItemizedV1Mapper.updateProductModifiedDates(processingDate, userId);
-//	}
-//
-//	@Override
-//	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate, Integer minParticipationId) {
-//		return participationItemizedV1Mapper.getNextExpiredParticipation(processingDate, minParticipationId);
-//	}
-//
-//	@Override
-//	public int updateOwnerChangesForDeactivation(int participationId) {
-//		return participationItemizedV1Mapper.updateOwnerChangesForDeactivation(participationId);
-//	}
-//
-//	@Override
-//	public int deleteParticipationProducts(int participationId) {
-//		return participationItemizedV1Mapper.deleteParticipationProducts(participationId);
-//	}
-//
-//
-//	@Override
-//	public int deleteParticipationItemPartial(int participationId) {
-//		return participationItemizedV1Mapper.deleteParticipationItemPartial(participationId);
-//	}
-//
-//	@Override
-//	public int upsertParticipationItemPartial(ParticipationItemPartial itemPartial) {
-//		return participationItemizedV1Mapper.upsertParticipationItemPartial(itemPartial);
-//	}
-//
-//	@Override
-//	public int upsertParticipationProducts(int participationId, List<Integer> uniqueIds) {
-//		int rowsAffected = participationItemizedV1Mapper.deleteParticipationProducts(participationId);
-//		if (!uniqueIds.isEmpty()) {
-//			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
-//			rowsAffected += participationItemizedV1Mapper.insertParticipationProducts(participationId, csvUniqueIds);
-//		}
-//		return rowsAffected;
-//	}
-//
-////Itemized Discount Methods
-
 	@Override
 	public int applyNewItemizedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any itemized discounted prices to pricebook_cost.cost.
 		return participationItemizedV1Mapper.applyNewItemizedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-
-
-
 	}
 
 	@Override

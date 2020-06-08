@@ -33,8 +33,7 @@
 
 	<update id="applyNewItemizedDiscounts" parameterType="map">
 		-- Apply itemizedDiscount prices to products becoming owned by a Participation.
-		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
-		-- for the calculations.
+		-- Also sets the basePrice to any applicable last-on-sale base prices
 		UPDATE
 			pbcost
 		SET

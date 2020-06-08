@@ -38,7 +38,7 @@ public interface ParticipationItemizedV1Mapper {
 	 * Sets pricebook_Cost.cost (pbcost) to a discounted base price using the participationItemizedDiscount
 	 * (discounts) table.
 	 * Also updates basePrice with last-on-sale base price if present.
-	 * Uses updated base price to calculate
+	 * Uses updated base price
 	 * @param processingDate
 	 * @param userId
 	 * @param coolOffPeriodMinutes

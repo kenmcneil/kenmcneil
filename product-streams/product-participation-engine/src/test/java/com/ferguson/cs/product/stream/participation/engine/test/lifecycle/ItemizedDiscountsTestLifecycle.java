@@ -2,6 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 
 import static com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities.nullSafeStream;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.assertj.core.api.Assertions;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -30,12 +32,21 @@ public class ItemizedDiscountsTestLifecycle implements ParticipationTestLifecycl
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-//		List<ParticipationItemizedDiscount> discountsFromFixture = nullSafeStream(fixture.getItemizedDiscountFixtures())
-//				.map(fixtureDiscount -> fixtureDiscount.toParticipationItemizedDiscounts(fixture.getParticipationId()))
-//				.collect(Collectors.toList());
-//		List<ParticipationItemizedDiscount> discountsFromDb = participationTestUtilities
-//				.getParticipationItemizedDiscounts(fixture.getParticipationId());
-//		Assertions.assertThat(discountsFromDb).containsExactlyInAnyOrderElementsOf(discountsFromFixture);
+		Assertions.assertThat(fixture).isNotNull();//TODO temp
+
+
+		//GET THE DISCOUNTS FROM MONGO FORMAT INTO A LIST IN SQL DISCOUNT OBJECT FORM
+		List<ParticipationItemizedDiscount> discountsFromFixture = fixture.getItemizedDiscountFixtures().stream()
+				.map(itemizedDiscountFixture -> itemizedDiscountFixture.toParticipationItemizedDiscounts(fixture.getParticipationId()))
+				.flatMap(Collection::stream)
+				.collect(Collectors.toList());
+
+		//GET ANOTHER LIST OF DISCOUNTS FROM SQL IN SAME FORM
+		List<ParticipationItemizedDiscount> discountsFromDb = participationTestUtilities
+				.getParticipationItemizedDiscounts(fixture.getParticipationId());
+
+		//COMPARE THE LISTS
+		Assertions.assertThat(discountsFromDb).containsExactlyInAnyOrderElementsOf(discountsFromFixture);
 	}
 
 	/**
@@ -53,8 +64,9 @@ public class ItemizedDiscountsTestLifecycle implements ParticipationTestLifecycl
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		List<ParticipationCalculatedDiscount> discountsFromFixture = nullSafeStream(fixture.getCalculatedDiscountFixtures())
-				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+		List<ParticipationItemizedDiscount> discountsFromFixture = fixture.getItemizedDiscountFixtures().stream()
+				.map(itemizedDiscountFixture -> itemizedDiscountFixture.toParticipationItemizedDiscounts(fixture.getParticipationId()))
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
 			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
@@ -71,9 +83,8 @@ public class ItemizedDiscountsTestLifecycle implements ParticipationTestLifecycl
 					Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
 					Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
 					Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
-					Double expectedCost = discount.getIsPercent()
-							? Math.floor(100.0 * discount.getChangeValue() * pbcost.getBasePrice()) / 100.0
-							: discount.getChangeValue() + pbcost.getBasePrice();
+					//TODO how does below know which PBid?
+					Double expectedCost = discount.getPrice();
 					Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
 				});
 			});
@@ -88,8 +99,9 @@ public class ItemizedDiscountsTestLifecycle implements ParticipationTestLifecycl
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		List<ParticipationCalculatedDiscount> discountsFromFixture = nullSafeStream(fixture.getCalculatedDiscountFixtures())
-				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
+		List<ParticipationItemizedDiscount> discountsFromFixture = fixture.getItemizedDiscountFixtures().stream()
+				.map(itemizedDiscountFixture -> itemizedDiscountFixture.toParticipationItemizedDiscounts(fixture.getParticipationId()))
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
 			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);

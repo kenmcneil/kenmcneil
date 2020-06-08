@@ -23,30 +23,30 @@ import lombok.RequiredArgsConstructor;
  *
  * Example content record:
  *
-	 "content": {
-		 "_type": "participation-itemized@1.0.0",
-		 "productSale": {
-			 "saleId": 6713,
-			 "_type": "atom-product-sale@1.0.0"
-		 },
-		 "itemizedDiscounts": {
-			 "list": [
-				 [
-					 298721,
-					"Kohler",
-					 99.86,
-					 86.9
-				 ],
-				 [
-					 93506,
-					"Moen",
-					 20,
-					 17
-				 ]
-			 ],
-			 "_type": "atom-tuple-list@1.0.0"
-		 }
-	 }
+ *	 "content": {
+ *		 "_type": "participation-itemized@1.0.0",
+ *		 "productSale": {
+ *			 "saleId": 6713,
+ *			 "_type": "atom-product-sale@1.0.0"
+ *		 },
+ *		 "itemizedDiscounts": {
+ *			 "list": [
+ *				 [
+ *					 298721,
+ *					"Kohler",
+ *					 99.86,
+ *					 86.9
+ *				 ],
+ *				 [
+ *					 93506,
+ *					"Moen",
+ *					 20,
+ *					 17
+ *				 ]
+ *			 ],
+ *			 "_type": "atom-tuple-list@1.0.0"
+ *		 }
+ *	 }
  *
  * Null checking is mostly omitted since a content object is validated before publishing.
  */
@@ -56,9 +56,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	private static final Logger LOG = LoggerFactory.getLogger(ParticipationItemizedV1Lifecycle.class);
 
 	private static final String[] PRODUCT_SALE_ID_PATH = {"productSale", "saleId"};
-	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"calculatedDiscounts", "uniqueIds", "list"};
-	private static final String[] ITEMIZED_DISCOUNTS_TYPE_PATH = {
-			"itemizedDiscounts", "list"};
+	private static final String[] ITEMIZED_DISCOUNTS_TYPE_PATH = {"itemizedDiscounts", "list"};
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;

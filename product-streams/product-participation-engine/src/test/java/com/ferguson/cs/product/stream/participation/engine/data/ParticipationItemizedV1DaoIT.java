@@ -106,7 +106,7 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
 		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
 
-		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
+		int calcDiscountsCount = participationTestUtilities.getParticipationItemizedDiscountCount(53000);
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
 	}
 
