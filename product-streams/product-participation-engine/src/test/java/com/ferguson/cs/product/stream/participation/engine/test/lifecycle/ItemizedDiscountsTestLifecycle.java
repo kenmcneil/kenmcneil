@@ -1,7 +1,5 @@
 package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
 
-import static com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities.nullSafeStream;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -11,7 +9,6 @@ import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
