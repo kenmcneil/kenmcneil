@@ -221,7 +221,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 	public void createUserPublishEvent(ParticipationItemFixture fixture) {
 		initAndRememberFixture(fixture);
-		//TODO somewhere between here and put, content is added or pulled?
 		pendingPublishParticipationQueue.add(fixtureToParticipationItem(fixture));
 	}
 
@@ -500,7 +499,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.lastModifiedDate(currentSimulatedDate)
 				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
 				.build();
-//Content in item is still null here
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
@@ -556,7 +554,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
-		//HEREEEEEEEEEEEEEEEEEee
 		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
@@ -572,7 +569,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 		// Itemized discount values are not optional. Load the matching template and fill in any
 		// discounts.
-		//map into mongo format
 		List<ItemizedDiscountFixture> discounts = fixture.getItemizedDiscountFixtures();
 		List<List<Object>> mappedDiscounts = discounts.stream()
 									.map(discount-> {
@@ -584,23 +580,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 										return row;
 									})
 									.collect(Collectors.toList());
-		//you are best off mapping the above toa  list of lists. That's the data structure you need.
-		//need to make a list of int string double double. Maybe pass them in as generic objects?
 		if (CollectionUtils.isEmpty(discounts)) {
 			Assertions.fail("Missing required itemized discount content in %s", fixture.toString());
 		}
-		//TODO format everything below as a mongo record
 		content = getContentTemplate("participationItemizedV1-content-discount.json");
-		atPath(content, "/itemizedDiscounts").set("list", mapper.valueToTree(mappedDiscounts));//not to string but an
-		// array
-		//get 22 in here too
-		//you have to map the itemized discount fixture object to array of arrays format used in the data model
-		//you will end up with a list where each object in the list will be an array of four data points
-		// upcoming: serializing it into the db. Will need participaitonId at that time (it will be avail there)
-		// almost the same as loading the product table (you will see)
+		atPath(content, "/itemizedDiscounts").set("list", mapper.valueToTree(mappedDiscounts));
 		// Set the required values in content. It's ok to use only the major version, as in "participation@1"
-		// instead of "participation@1.0.0", since the minor and pa
-		// tch versions indicate non-breaking changes
+		// instead of "participation@1.0.0", since the minor and patch versions indicate non-breaking changes
 		// in the major version. Records from Construct would have the specific @x.y.z version that was used
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
