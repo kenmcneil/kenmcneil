@@ -43,16 +43,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.ferguson.cs</groupId>
-			<artifactId>api-test-utilities</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ferguson.cs</groupId>
-			<artifactId>api-task-batch-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ferguson.cs</groupId>
 			<artifactId>api-task-data</artifactId>
 		</dependency>
 		<dependency>
