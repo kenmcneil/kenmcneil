@@ -30,7 +30,6 @@ public class MpnMpidMismatchItemProcessor implements ItemProcessor<MpnMpidProduc
 			if (mdmMpidProdView != null) {
 				item.setMdmMpidMatch(true);
 				populateMpidItemDetails(item,mdmMpidProdView, true);
-				System.out.println("MDM MPID match: " + item.getMpid());
 			}
 		} catch (Exception e) {
 			LOGGER.error("MpnMpidMismatchItemProcessor - getMdmProductView() error: {}", e.getMessage());
@@ -44,7 +43,6 @@ public class MpnMpidMismatchItemProcessor implements ItemProcessor<MpnMpidProduc
 			if (mdmMpnProdView != null) {
 				item.setMdmMpnMatch(true);
 				populateMpidItemDetails(item,mdmMpnProdView, false);
-				System.out.println("MDM MDM match: " + item.getMpid());
 			}
 		} catch (Exception e) {
 			LOGGER.error("MpnMpidMismatchItemProcessor - getMdmProductView() error: {}", e.getMessage());

@@ -3,6 +3,7 @@ package com.ferguson.cs.product.task.mpnmpidmismatch.batch;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.batch.item.file.transform.ExtractorLineAggregator;
 import org.springframework.util.ObjectUtils;
 
@@ -36,17 +37,15 @@ public class MpnMpidMismatchLineAggregator <T> extends ExtractorLineAggregator<T
 			if (i > 0) {
 				sb.append(delimiter);
 			}
-			sb.append("\"");
+
 			String text;
 			if(fields[i] instanceof BigDecimal) {
 				text = new DecimalFormat("0.00").format(fields[i]);
 			} else {
-				text = fields[i].toString();
-				text = text.replace("\\", "").replace("\"","\"\"");
+				text = StringEscapeUtils.escapeCsv(fields[i].toString());
 			}
 
 			sb.append(text);
-			sb.append("\"");
 		}
 		return sb.toString();
 	}

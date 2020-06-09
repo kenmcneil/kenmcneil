@@ -103,8 +103,7 @@ public class MpnMpidMismatchTaskConfiguration {
 
 	/*
 	 * Step 3
-	 * Create report with all the mismatch MPN/MPID's.  Will need to reach out to MDM for additional details
-	 * to facilitate resolution
+	 * Create report with all the mismatch MPN/MPID's.  Will need to reach out to MDM for additional data
 	 */
 	@Bean
 	public Step createMpnMpidMismatchReport(
@@ -145,23 +144,34 @@ public class MpnMpidMismatchTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<MpnMpidProductItem> mpmMpidMissingReportWriter(
+			@Value("#{stepExecution.jobExecution}") JobExecution jobExecution,
 			MpnMpidMismatchFileSystemResource mpnMpidMismatchFileSystemResource) {
 		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
-		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMissingReportFilenamePrefix(), dateString );
-		String[] names = new String[]{"uniqueId", "productId", "manufacturer", "finish", "upc", "sku","mpn"};
+		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMissingCsvPrefix(), dateString );
+		String[] header = new String[]{"uniqueId", "productId", "manufacturer", "finish", "upc", "sku","mpn"};
 
 		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
+		String filepath = mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename;
 
 		mpnMpidMismatchFileSystemResource.setFileSystemResource(
-				new FileSystemResource(mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename));
+				new FileSystemResource(filepath));
+
+		jobExecution.getExecutionContext().put("MISSING_REPORT",filepath);
+
+		BeanWrapperFieldExtractor<MpnMpidProductItem> extractor = new BeanWrapperFieldExtractor<MpnMpidProductItem>();
+		extractor.setNames(camelCase(header));
+
+		MpnMpidMismatchLineAggregator<MpnMpidProductItem> lineAggregator = new MpnMpidMismatchLineAggregator<>();
+		lineAggregator.setDelimiter(",");
+		lineAggregator.setFieldExtractor(extractor);
 
 		return new FlatFileItemWriterBuilder<MpnMpidProductItem>().resource(mpnMpidMismatchFileSystemResource.getFileSystemResource())
 				.name("mpmMpidMismatchReportWriter")
 				.shouldDeleteIfEmpty(true)
-				.delimited().names(names)
-				.headerCallback(writer -> writer.write(String.join(",", names))).build();
+				.lineAggregator(lineAggregator)
+				.headerCallback(writer -> writer.write(String.join(",", header))).build();
 	}
 
 	/*
@@ -191,15 +201,15 @@ public class MpnMpidMismatchTaskConfiguration {
 		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
-		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMismatchReportFilenamePrefix(), dateString );
+		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMismatchCsvPrefix(), dateString );
 		String[] header = new String[]{
 				"uniqueId",
 				"product_id",
 				"manufacturer",
 				"finish",
 				"mpn",
-				"mpid",
 				"mdm_mpn_match",
+				"mpid",
 				"mdm_mpid_match",
 				"sku",
 				"mdm_mpn_sku",
@@ -217,7 +227,7 @@ public class MpnMpidMismatchTaskConfiguration {
 
 		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
 		String filepath = mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename;
-		jobExecution.getExecutionContext().put("ERROR_REPORT",filepath);
+		jobExecution.getExecutionContext().put("MISMATCH_REPORT",filepath);
 
 		mpnMpidMismatchFileSystemResource.setFileSystemResource(
 				new FileSystemResource(filepath));

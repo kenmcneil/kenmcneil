@@ -1,10 +1,23 @@
 package com.ferguson.cs.product.task.mpnmpidmismatch.batch;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IgnoredErrorType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -34,35 +47,172 @@ public class MpnMpidMismatchEmailReportTasklet implements Tasklet{
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-		if (chunkContext.getStepContext().getJobExecutionContext().containsKey("ERROR_REPORT")) {
-			String errorReport = (String) chunkContext.getStepContext().getJobExecutionContext().get("ERROR_REPORT");
-			File csvFile = new File(errorReport);
+		File missingCsv = null;
+		File mismatchCsv = null;
 
-			if (csvFile.exists() && csvFile.length() > 0) {
-				LOGGER.debug("MpnMpidMismatchEmailReportTasklet - Sending error report : {}", errorReport);
-
-				Date now = DateUtils.now();
-				DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MM/dd/yyyy HH:mm:ss");
-				String dateString = DateUtils.dateToString(now, dateTimeFormatter);
-
-				if (mpnMpidMismatchSettings.getReportEmailList() == null || mpnMpidMismatchSettings.getReportEmailList().length == 0) {
-					LOGGER.error("MpnMpidMismatchEmailReportTasklet - No recipient email address configured for error report");
-				} else {
-					String emailList = String.join(",", mpnMpidMismatchSettings.getReportEmailList());
-
-					EmailRequest request = EmailRequestBuilder
-							.sendTo(emailList)
-							.from("noreply-scheduler@build.com")
-							.subject("MPN/MPID mismatch Report (" + dateString +")")
-							.templateName("EMPTY")
-							.addTemplateData("body", "MPN/MPID mismatch report attached.")
-							.addRawAttachment(csvFile.getName(), Files.readAllBytes(csvFile.toPath()))
-							.build();
-
-					buildWebservicesFeignClient.queueEmail(request);
-				}
-			}
+		// Our temp missing and mismatch csv files from previous steps
+		if (chunkContext.getStepContext().getJobExecutionContext().containsKey("MISMATCH_REPORT")) {
+			mismatchCsv = new File((String) chunkContext.getStepContext().getJobExecutionContext().get("MISMATCH_REPORT"));
 		}
+
+		if (chunkContext.getStepContext().getJobExecutionContext().containsKey("MISSING_REPORT")) {
+			missingCsv = new File((String) chunkContext.getStepContext().getJobExecutionContext().get("MISSING_REPORT"));
+		}
+
+		// Build XLSX file name. This will get emailed out
+		Date now = DateUtils.now();
+		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
+		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
+		String filename = String.format("%s_%s.xlsx", mpnMpidMismatchSettings.getEmailReportPrefix(), dateString );
+		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
+		String reportFile = mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename;
+
+		createXlsxFromCsv(missingCsv, mismatchCsv, reportFile);
+		emailReport(reportFile);
+		deleteFiles(missingCsv, mismatchCsv, reportFile);
+
 		return RepeatStatus.FINISHED;
 	}
+
+	/*
+	 * Create an XLSX file with separate tabs for the missing and mismatch data.
+	 */
+	private void createXlsxFromCsv(File missingCsv, File mismatchCsv, String reportFile) {
+		try {
+			XSSFWorkbook workBook = new XSSFWorkbook();
+			XSSFSheet sheetMismatch = workBook.createSheet("MPN-MPID Mismatch");
+			XSSFSheet sheetMissing = workBook.createSheet("feiMPID inserts");
+			String currentLine=null;
+			int RowNum=0;
+
+			// Ignore the "number stored as text warnings".  Can't imaging have more that 9999 rows.
+			sheetMismatch.addIgnoredErrors(new CellRangeAddress(0,9999,0,9999),IgnoredErrorType.NUMBER_STORED_AS_TEXT );
+			sheetMissing.addIgnoredErrors(new CellRangeAddress(0,9999,0,9999),IgnoredErrorType.NUMBER_STORED_AS_TEXT );
+
+			// highlight the columns that were inserted into feiMPID table in the
+			// missing report.  That report shows additional data
+			XSSFCellStyle highlighted = workBook.createCellStyle();
+			highlighted.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+			highlighted.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+			// process mpn/mpid mismatch csv
+			if (mismatchCsv.exists()) {
+				RowNum=0;
+				int numFields = 0;
+				BufferedReader br = new BufferedReader(new FileReader(mismatchCsv));
+				while ((currentLine = br.readLine()) != null) {
+
+					String str[] = currentLine.split(",");
+					numFields = str.length;
+					XSSFRow currentRow=sheetMismatch.createRow(RowNum);
+
+					for(int i=0;i<str.length;i++){
+						currentRow.createCell(i).setCellValue(str[i]);
+					}
+
+					RowNum++;
+				}
+				br.close();
+
+				// Autosize column width to that of max column value length
+				for (int i = 0 ; i < numFields ;i++) {
+					sheetMismatch.autoSizeColumn(i);
+				}
+			} else {
+				// No mismatches were found.  Indicate that in the report.
+				XSSFRow currentRow=sheetMismatch.createRow(0);
+				currentRow.createCell(0).setCellValue("No mismatch mpn-mpid data found");
+			}
+
+			// process missing mpid csv
+			if (missingCsv.exists()) {
+				RowNum=0;
+				int numFields = 0;
+				BufferedReader br = new BufferedReader(new FileReader(missingCsv));
+				while ((currentLine = br.readLine()) != null) {
+
+					String str[] = currentLine.split(",");
+					numFields = str.length;
+					XSSFRow currentRow=sheetMissing.createRow(RowNum);
+
+					for(int i=0;i<str.length;i++){
+						currentRow.createCell(i).setCellValue(str[i]);
+
+						// Highlight the values that were inserted into feiMPID
+						if (i == 0 || i == (str.length - 1)) {
+							currentRow.getCell(i).setCellStyle(highlighted);
+						}
+					}
+					RowNum++;
+				}
+				br.close();
+
+				// Autosize column width to that of max column value length
+				for (int i = 0 ; i < numFields ;i++) {
+					sheetMissing.autoSizeColumn(i);
+				}
+			} else {
+				// No missing mpids were found.  Indicate that in the report.
+				XSSFRow currentRow=sheetMissing.createRow(0);
+				currentRow.createCell(0).setCellValue("No missing mpid data found");
+			}
+
+			FileOutputStream fileOutputStream =  new FileOutputStream(reportFile);
+			workBook.write(fileOutputStream);
+			fileOutputStream.close();
+			workBook.close();
+		} catch (Exception ex) {
+			LOGGER.error("MpnMpidMismatchEmailReportTasklet caught exception: {}", ex.getMessage());
+		}
+	}
+
+	private void emailReport(String reportFile) throws IOException {
+
+		File xlxsFile = new File(reportFile);
+
+		if (xlxsFile.exists() && xlxsFile.length() > 0) {
+			LOGGER.debug("MpnMpidMismatchEmailReportTasklet - Sending mpn/mpid mismatch report : {}", reportFile);
+
+			Date now = DateUtils.now();
+			DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MM/dd/yyyy HH:mm:ss");
+			String dateString = DateUtils.dateToString(now, dateTimeFormatter);
+
+			if (mpnMpidMismatchSettings.getReportEmailList() == null || mpnMpidMismatchSettings.getReportEmailList().length == 0) {
+				LOGGER.error("MpnMpidMismatchEmailReportTasklet - No recipient email address configured for error report");
+			} else {
+				String emailList = String.join(",", mpnMpidMismatchSettings.getReportEmailList());
+
+				EmailRequest request = EmailRequestBuilder
+						.sendTo(emailList)
+						.from("noreply-scheduler@build.com")
+						.subject("MPN/MPID mismatch Report (" + dateString +")")
+						.templateName("EMPTY")
+						.addTemplateData("body", "MPN/MPID mismatch report attached.")
+						.addRawAttachment(xlxsFile.getName(), Files.readAllBytes(xlxsFile.toPath()))
+						.build();
+
+				buildWebservicesFeignClient.queueEmail(request);
+			}
+		}
+	}
+
+	/*
+	 * Cleanup temp report files.
+	 */
+	private void deleteFiles(File missingCsv, File mismatchCsv, String reportFile) {
+		if (missingCsv.exists()) {
+			FileUtils.deleteQuietly(missingCsv);
+		}
+
+		if (mismatchCsv.exists()) {
+			FileUtils.deleteQuietly(mismatchCsv);
+		}
+
+		File rptFile = new File(reportFile);
+
+		if (rptFile.exists()) {
+			FileUtils.deleteQuietly(new File(reportFile));
+		}
+	}
+
 }

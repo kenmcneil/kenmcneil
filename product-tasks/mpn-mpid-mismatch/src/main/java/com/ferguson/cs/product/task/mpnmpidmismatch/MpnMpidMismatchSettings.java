@@ -11,7 +11,8 @@ import lombok.Setter;
 @ConfigurationProperties("mpn-mpid-mismatch")
 public class MpnMpidMismatchSettings {
 	private String reportOutputFolder;
-	private String missingReportFilenamePrefix;
-	private String mismatchReportFilenamePrefix;
+	private String missingCsvPrefix;
+	private String mismatchCsvPrefix;
+	private String emailReportPrefix;
 	private String[] reportEmailList;
 }
