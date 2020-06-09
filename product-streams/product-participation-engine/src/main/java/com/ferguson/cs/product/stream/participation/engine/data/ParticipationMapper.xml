@@ -270,7 +270,7 @@
 					discount.isPercent = 1,
 					COALESCE(las.basePrice, pbcost.basePrice) * discount.changeValue,
 					COALESCE(las.basePrice, pbcost.basePrice) + discount.changeValue
-				), 2, 1),
+				), 2),
 			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
 			pbcost.participationId = discount.participationId,
 			pbcost.userId = #{userId}
