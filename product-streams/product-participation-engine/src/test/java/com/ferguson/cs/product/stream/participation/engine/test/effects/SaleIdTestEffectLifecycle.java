@@ -1,11 +1,10 @@
-package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
+package com.ferguson.cs.product.stream.participation.engine.test.effects;
 
 import java.util.Date;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * TODO: Check ownership priority when the start dates are exactly the same in two overlapping Participations.
  */
 @RequiredArgsConstructor
-public class SaleIdEffectTestLifecycle implements ParticipationTestLifecycle {
+public class SaleIdTestEffectLifecycle implements ParticipationTestEffectLifecycle {
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
@@ -39,7 +38,7 @@ public class SaleIdEffectTestLifecycle implements ParticipationTestLifecycle {
 		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 
 		// Verify product ownership.
-		List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
+		List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(expectedUniqueIds);
 
 		// Verify owned products have the right sale id.
@@ -57,7 +56,7 @@ public class SaleIdEffectTestLifecycle implements ParticipationTestLifecycle {
 		Assertions.assertThat(participationTestUtilities.getParticipationSaleIdCount(fixture.getParticipationId())).isEqualTo(0);
 
 		// Verify modified date was updated for the expected owned products.
-		List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
+		List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
 		participationTestUtilities.getProductModifieds(expectedUniqueIds)
 				.forEach(modified -> Assertions.assertThat(modified.getModifiedDate().getTime())
 						.isGreaterThanOrEqualTo(processingDate.getTime()));

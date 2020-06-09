@@ -4,16 +4,16 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.WorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class BasicScenariosIT extends ParticipationScenarioITBase {
 	@Autowired
-	protected BasicTestLifecycle basicTestLifecycle;
+	protected WorkflowTestEffectLifecycle workflowTestEffectLifecycle;
 
 	@Autowired
-	protected SchedulingTestLifecycle schedulingTestLifecycle;
+	protected SchedulingTestEffectLifecycle schedulingTestEffectLifecycle;
 
 	/**
 	 * Test scenario:
@@ -40,7 +40,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		// Set up scenario
-		testLifecycles(basicTestLifecycle);
+		testLifecycles(workflowTestEffectLifecycle);
 
 		// Execute scenario steps in sequence.
 		manualPublish(p1);
@@ -60,7 +60,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(1, 3)
 				.build();
 
-		testLifecycles(schedulingTestLifecycle);
+		testLifecycles(schedulingTestEffectLifecycle);
 
 		manualPublish(p1);
 		advanceToDay(4);

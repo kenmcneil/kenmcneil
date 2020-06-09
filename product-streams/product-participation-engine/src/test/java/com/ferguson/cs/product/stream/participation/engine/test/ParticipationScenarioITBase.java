@@ -51,11 +51,12 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSchedule;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ItemizedDiscountsTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.WorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ParticipationTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
@@ -75,38 +76,38 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public BasicTestLifecycle activationDeactivationLifecycleTest (
+		public WorkflowTestEffectLifecycle activationDeactivationLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new BasicTestLifecycle(participationTestUtilities);
+			return new WorkflowTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SchedulingTestLifecycle schedulingLifecycleTest (
+		public SchedulingTestEffectLifecycle schedulingLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new SchedulingTestLifecycle(participationTestUtilities);
+			return new SchedulingTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SaleIdEffectTestLifecycle saleIdEffectLifecycleTest (
+		public SaleIdTestEffectLifecycle saleIdEffectLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new SaleIdEffectTestLifecycle(participationTestUtilities);
+			return new SaleIdTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public CalculatedDiscountsTestLifecycle calculatedDiscountsTestLifecycle (
+		public CalculatedDiscountsTestEffectLifecycle calculatedDiscountsTestLifecycle (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new CalculatedDiscountsTestLifecycle(participationTestUtilities);
+			return new CalculatedDiscountsTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public ItemizedDiscountsTestLifecycle itemizedDiscountsTestLifecycle (
+		public ItemizedDiscountsTestEffectLifecycle itemizedDiscountsTestLifecycle (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new ItemizedDiscountsTestLifecycle(participationTestUtilities);
+			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
 		}
 	}
 
@@ -149,7 +150,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
-	protected List<ParticipationTestLifecycle> lifecycleTests;
+	protected List<ParticipationTestEffectLifecycle> lifecycleTests;
 	protected Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	protected Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 	protected Queue<ParticipationItem> pendingPublishParticipationQueue = new LinkedList<>();
@@ -175,7 +176,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				participationEngineSettings.getTestModeMinParticipationId());
 	}
 
-	public void testLifecycles(ParticipationTestLifecycle... params) {
+	public void testLifecycles(ParticipationTestEffectLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
 	}
 
@@ -508,7 +509,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			item.setContent(getParticipationV1Content(fixture));
 		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
-			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
 			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
 
 			// set the content object

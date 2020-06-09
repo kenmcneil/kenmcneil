@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.stream.participation.engine.test;
+package com.ferguson.cs.product.stream.participation.engine.test.effects;
 
 import java.util.Collections;
 import java.util.Date;
@@ -9,10 +9,11 @@ import org.springframework.util.CollectionUtils;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 /**
- * All scenario lifecycle test classes must implement this class. Each before* and
- * after* method is defaulted in case implementer doesn't need it.
+ * All scenario effect lifecycle test classes must implement this interface. Each before* and
+ * after* method is defaulted in case implementer doesn't need it. For type-specific rather
+ * than effect-specific areas see ParticipationTestLifecycle.
  */
-public interface ParticipationTestLifecycle {
+public interface ParticipationTestEffectLifecycle {
 	/**
 	 * Helper to get a non-null list of expected unique ids from the fixture.
 	 */

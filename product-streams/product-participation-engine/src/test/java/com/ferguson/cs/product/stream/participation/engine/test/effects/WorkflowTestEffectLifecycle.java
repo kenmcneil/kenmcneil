@@ -1,11 +1,10 @@
-package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
+package com.ferguson.cs.product.stream.participation.engine.test.effects;
 
 import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -16,7 +15,7 @@ import lombok.RequiredArgsConstructor;
  * Check for existence of references to the participation, and verify isActive state.
  */
 @RequiredArgsConstructor
-public class BasicTestLifecycle implements ParticipationTestLifecycle {
+public class WorkflowTestEffectLifecycle implements ParticipationTestEffectLifecycle {
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
