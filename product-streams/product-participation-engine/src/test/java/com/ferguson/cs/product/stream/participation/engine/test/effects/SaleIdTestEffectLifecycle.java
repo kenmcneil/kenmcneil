@@ -6,6 +6,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class SaleIdTestEffectLifecycle implements ParticipationTestEffectLifecyc
 		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 
 		// Verify product ownership.
-		List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
+		List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(expectedUniqueIds);
 
 		// Verify owned products have the right sale id.
@@ -56,7 +57,7 @@ public class SaleIdTestEffectLifecycle implements ParticipationTestEffectLifecyc
 		Assertions.assertThat(participationTestUtilities.getParticipationSaleIdCount(fixture.getParticipationId())).isEqualTo(0);
 
 		// Verify modified date was updated for the expected owned products.
-		List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
+		List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 		participationTestUtilities.getProductModifieds(expectedUniqueIds)
 				.forEach(modified -> Assertions.assertThat(modified.getModifiedDate().getTime())
 						.isGreaterThanOrEqualTo(processingDate.getTime()));

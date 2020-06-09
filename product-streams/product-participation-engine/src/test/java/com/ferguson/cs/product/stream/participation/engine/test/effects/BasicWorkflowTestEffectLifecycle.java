@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
  * Check for existence of references to the participation, and verify isActive state.
  */
 @RequiredArgsConstructor
-public class WorkflowTestEffectLifecycle implements ParticipationTestEffectLifecycle {
+public class BasicWorkflowTestEffectLifecycle implements ParticipationTestEffectLifecycle {
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**

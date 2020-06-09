@@ -5,14 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.WorkflowTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class ItemizedDiscountScenariosIT extends ParticipationScenarioITBase {
 	@Autowired
-	protected WorkflowTestEffectLifecycle workflowTestEffectLifecycle;
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
 
 	@Autowired
 	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
@@ -39,7 +39,7 @@ public class ItemizedDiscountScenariosIT extends ParticipationScenarioITBase {
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
 				.build();
 
-		testLifecycles(workflowTestEffectLifecycle, saleIdTestEffectLifecycle, itemizedDiscountsTestEffectLifecycle);
+		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle, itemizedDiscountsTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(3);

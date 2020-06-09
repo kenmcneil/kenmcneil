@@ -74,15 +74,12 @@ public class ParticipationItemFixture {
 	private List<Integer> expectedOwnedUniqueIds;
 
 	/**
-	 * Use in tests to populate records in the participationCalculatedDiscount table. The participationId
-	 * may be omitted--since the id can be optionally be automatically added, the scenario test won't have it
-	 * available to populate here. If left out, participationId will be set in all calculated discounts automatically.
-	 * The templateId can also be null, and will be set to a valid templateId before inserting to the database.
+	 * Use in tests to populate records in the participationCalculatedDiscount table.
 	 */
 	private List<CalculatedDiscountFixture> calculatedDiscountFixtures;
 
 	/**
-	 * Use in tests to populate records in the participtionItemizedDiscount table.
+	 * Use in tests to populate records in the participationItemizedDiscount table.
 	 */
 	private List<ItemizedDiscountFixture> itemizedDiscountFixtures;
 

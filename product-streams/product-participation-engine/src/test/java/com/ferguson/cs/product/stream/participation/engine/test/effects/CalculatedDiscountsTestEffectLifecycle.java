@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 
@@ -56,7 +57,7 @@ public class CalculatedDiscountsTestEffectLifecycle implements ParticipationTest
 				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
 				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
-			List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
+			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 
 			// Verify the number of discounted prices is count(pricebookIds) * count(expectedUniqueIds).
 			Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
@@ -91,7 +92,7 @@ public class CalculatedDiscountsTestEffectLifecycle implements ParticipationTest
 				.map(fixtureDiscount -> fixtureDiscount.toParticipationCalculatedDiscount(fixture.getParticipationId()))
 				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(discountsFromFixture)) {
-			List<Integer> expectedUniqueIds = ParticipationTestEffectLifecycle.getExpectedUniqueIds(fixture);
+			List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 
 			// Verify the number of discounted prices is count(pricebookIds) * count(expectedUniqueIds).
 			Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
