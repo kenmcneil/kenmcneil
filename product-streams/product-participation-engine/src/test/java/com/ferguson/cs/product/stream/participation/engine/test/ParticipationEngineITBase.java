@@ -25,6 +25,8 @@ import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 @Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
 @Transactional
 public abstract class ParticipationEngineITBase extends BaseTest {
+	private final int[] TEST_UNIQUE_IDS = {100, 101, 102, 103, 104, 105};
+
 	@Resource
 	SqlSessionFactory sqlSessionFactory;
 
@@ -67,5 +69,13 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 
 	public ItemizedDiscountFixture itemizedDiscount(int uniqueId, double pricebook1Price, double pricebook22Price) {
 		return new ItemizedDiscountFixture(uniqueId, pricebook1Price, pricebook22Price);
+	}
+
+	/**
+	 * Return list of discontinued product unique ids that won't be used in real life. These probably won't be
+	 * in the participationProduct table already when tests run.
+	 */
+	public int[] getSafeTestUniqueIds() {
+		return TEST_UNIQUE_IDS;
 	}
 }

@@ -26,12 +26,13 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 	 */
 	@Test
 	public void participation_owns_products_with_discounts() {
+		int[] uniqueIds = getSafeTestUniqueIds();
 		participationTestUtilities.insertParticipationFixture(
 				ParticipationItemFixture.builder()
 						.participationId(53000)
 						.saleId(3030)
 						.isActive(true)
-						.uniqueIds(123456, 234567)
+						.uniqueIds(uniqueIds[0], uniqueIds[1])
 						.calculatedDiscounts(
 								percentCalculatedDiscount(1, 25),
 								amountCalculatedDiscount(22, 25)
@@ -52,7 +53,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 
 		// Check final state
-		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(uniqueIds[0]);
 		Assertions.assertThat(link.getSaleId()).isEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);
@@ -66,12 +67,13 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 	 */
 	@Test
 	public void participation_disowns_products_with_discounts() {
+		int[] uniqueIds = getSafeTestUniqueIds();
 		participationTestUtilities.insertParticipationFixture(
 				ParticipationItemFixture.builder()
 						.participationId(53000)
 						.saleId(3030)
 						.isActive(false)
-						.uniqueIds(123456, 234567)
+						.uniqueIds(uniqueIds[0], uniqueIds[1])
 						.calculatedDiscounts(
 								percentCalculatedDiscount(1, 25),
 								percentCalculatedDiscount(22, 25)
@@ -99,7 +101,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		participationCoreDao.deleteParticipationItemPartial(53000);
 
 		// Check final state
-		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(123456);
+		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(uniqueIds[0]);
 		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
 
 		int calcDiscountsCount = participationTestUtilities.getParticipationCalculatedDiscountCount(53000);

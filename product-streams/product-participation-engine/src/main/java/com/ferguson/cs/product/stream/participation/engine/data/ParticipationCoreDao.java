@@ -114,5 +114,5 @@ public interface ParticipationCoreDao {
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
 
-	int deleteAllTypesOfDiscounts(int participationId);
+//	int deleteAllTypesOfDiscounts(int participationId);
 }

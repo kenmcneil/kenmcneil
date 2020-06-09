@@ -238,7 +238,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		return participationCoreDao.deleteParticipationProducts(participationId)
-				+ participationCoreDao.deleteAllTypesOfDiscounts(participationId)
+				+ participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
 				+ participationCoreDao.deleteParticipationItemPartial(participationId);
 	}
 

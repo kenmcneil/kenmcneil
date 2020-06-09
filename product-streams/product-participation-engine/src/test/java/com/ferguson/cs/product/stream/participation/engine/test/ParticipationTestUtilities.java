@@ -29,6 +29,8 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCo
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
@@ -260,17 +262,10 @@ public class ParticipationTestUtilities {
 				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId()
 		);
 
-		// Insert any uniqueIds as participationProduct records with isOwner = false.
-		if (!CollectionUtils.isEmpty(fixture.getUniqueIds())) {
-			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
-					fixture.getUniqueIds().stream()
-							.map(uniqueId -> new ParticipationProduct(participationId, uniqueId, false))
-							.collect(Collectors.toList())
-			);
-			namedParameterJdbcTemplate.batchUpdate(INSERT_PARTICIPATION_PRODUCT, batch);
-		}
-
-		if (fixture.getContentType() == null || fixture.getContentType() == ParticipationContentType.PARTICIPATION_V1) {
+		ParticipationContentType contentType = fixture.getContentType() != null
+				? fixture.getContentType()
+				: ParticipationContentType.PARTICIPATION_V1;
+		if (contentType == ParticipationContentType.PARTICIPATION_V1) {
 			// Insert any participationCalculatedDiscount records.
 			nullSafeStream(fixture.getCalculatedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
@@ -281,19 +276,34 @@ public class ParticipationTestUtilities {
 							discount.getIsPercent(),
 							discount.getTemplateId())
 					);
-		} else if (fixture.getContentType() != null
-					&& fixture.getContentType() == ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
+		} else if (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
 			// Insert any participationItemizedDiscount records, provided a list of lists where the inner list
 			// is [[uniqueid, 1, pb1DiscountPrice], [uniqueId, 22, pb22DiscountPrice]]
 			nullSafeStream(fixture.getItemizedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationItemizedDiscounts(participationId))
-					.forEach(discount -> {jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
-												discount.get(0).getUniqueId(), discount.get(0).getPricebookId(),
-												discount.get(0).getPrice());
-											jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
-												discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
-												discount.get(1).getPrice());}
-					);
+					.forEach(discount -> {
+						jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+								discount.get(0).getUniqueId(), discount.get(0).getPricebookId(),
+								discount.get(0).getPrice());
+						jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+								discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
+								discount.get(1).getPrice());
+					});
+		}
+
+		// Insert any uniqueIds as participationProduct records with isOwner = false.
+		List<Integer> uniqueIds = contentType == ParticipationContentType.PARTICIPATION_V1
+				? ParticipationV1TestLifecycle.getUniqueIds(fixture)
+				: (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1
+						? ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture)
+						: Collections.emptyList());
+		if (!CollectionUtils.isEmpty(uniqueIds)) {
+			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
+					uniqueIds.stream()
+							.map(uniqueId -> new ParticipationProduct(participationId, uniqueId, false))
+							.collect(Collectors.toList())
+			);
+			namedParameterJdbcTemplate.batchUpdate(INSERT_PARTICIPATION_PRODUCT, batch);
 		}
 	}
 

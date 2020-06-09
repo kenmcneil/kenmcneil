@@ -14,7 +14,7 @@ public class ParticipationV1TestLifecycle implements ParticipationTestLifecycle 
 	/**
 	 * Helper to get a non-null list of expected unique ids from the fixture.
 	 */
-	public static List<Integer> getExpectedUniqueIds(ParticipationItemFixture fixture) {
+	public static List<Integer> getUniqueIds(ParticipationItemFixture fixture) {
 		return fixture.getUniqueIds() == null ? Collections.emptyList() : fixture.getUniqueIds();
 	}
 }

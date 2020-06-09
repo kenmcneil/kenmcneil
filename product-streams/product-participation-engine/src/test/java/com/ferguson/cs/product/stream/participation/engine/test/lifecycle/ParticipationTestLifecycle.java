@@ -22,11 +22,11 @@ public interface ParticipationTestLifecycle {
 		}
 
 		if (ParticipationContentType.PARTICIPATION_V1.equals(fixture.getContentType())) {
-			return ParticipationV1TestLifecycle.getExpectedUniqueIds(fixture);
+			return ParticipationV1TestLifecycle.getUniqueIds(fixture);
 		}
 
 		if (ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
-			return ParticipationItemizedV1TestLifecycle.getExpectedUniqueIdsFromItemizedDiscounts(fixture);
+			return ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
 		}
 
 		return Collections.emptyList();

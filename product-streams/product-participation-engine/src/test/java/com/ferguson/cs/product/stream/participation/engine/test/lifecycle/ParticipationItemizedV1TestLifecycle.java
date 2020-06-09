@@ -17,7 +17,7 @@ public class ParticipationItemizedV1TestLifecycle implements ParticipationTestLi
 	/**
 	 * Helper to get a non-null list of expected unique ids from the fixture.
 	 */
-	public static List<Integer> getExpectedUniqueIdsFromItemizedDiscounts(ParticipationItemFixture fixture) {
+	public static List<Integer> getUniqueIdsFromItemizedDiscounts(ParticipationItemFixture fixture) {
 		return fixture.getItemizedDiscountFixtures() == null ? Collections.emptyList()
 						: fixture.getItemizedDiscountFixtures()
 								.stream()
