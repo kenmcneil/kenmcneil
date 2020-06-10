@@ -117,10 +117,4 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 		}
 		return rowsAffected;
 	}
-
-//	@Override
-//	public int deleteAllTypesOfDiscounts(int participationId) {
-//		return participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
-//		+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId);
-//	}
 }

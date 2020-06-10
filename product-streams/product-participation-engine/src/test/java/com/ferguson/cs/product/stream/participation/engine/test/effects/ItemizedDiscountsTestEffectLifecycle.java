@@ -29,20 +29,14 @@ public class ItemizedDiscountsTestEffectLifecycle implements ParticipationTestEf
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		Assertions.assertThat(fixture).isNotNull();//TODO temp
-
-
-		//GET THE DISCOUNTS FROM MONGO FORMAT INTO A LIST IN SQL DISCOUNT OBJECT FORM
 		List<ParticipationItemizedDiscount> discountsFromFixture = fixture.getItemizedDiscountFixtures().stream()
 				.map(itemizedDiscountFixture -> itemizedDiscountFixture.toParticipationItemizedDiscounts(fixture.getParticipationId()))
 				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 
-		//GET ANOTHER LIST OF DISCOUNTS FROM SQL IN SAME FORM
 		List<ParticipationItemizedDiscount> discountsFromDb = participationTestUtilities
 				.getParticipationItemizedDiscounts(fixture.getParticipationId());
 
-		//COMPARE THE LISTS
 		Assertions.assertThat(discountsFromDb).containsExactlyInAnyOrderElementsOf(discountsFromFixture);
 	}
 

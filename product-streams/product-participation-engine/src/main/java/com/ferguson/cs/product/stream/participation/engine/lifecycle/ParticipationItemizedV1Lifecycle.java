@@ -69,8 +69,6 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	/**
 	 * "Publish" method upserts all necessary participation data to SQL for future or immediate activation,
 	 * where participation is of Itemized Discount type
-	 * @param item
-	 * @param processingDate
 	 * @return total rows affected in the db
 	 */
 	@Override
@@ -148,8 +146,6 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	 *
 	 * Apply queries specific to sale id and itemized discount deactivation. All queries used here are filtered to the
 	 * uniqueIds in change table rows where newParticipationId is not null.
-	 * TODO: add the filtering as part of the work for itemized discounts ... "and the uniqueId is in
-	 *      a Participation of this type (participation@1)."
 	 */
 	@Override
 	public int deactivate(ParticipationItemPartial itemPartial, Date processingDate) {
@@ -230,7 +226,6 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	/**
 	 * Consumes ParticipationItem and extracts the relevant parts of each itemized discount for pricing.
 	 * Returns a multi-line string where each line is is a comma-separated list of uniqueId/pb1price/pb22price.
-	 * @param item a ParticipationItem
 	 * @return csDiscountedPrices
 	 */
 	private List<ParticipationItemizedDiscount> getParticipationItemizedDiscounts(ParticipationItem item) {

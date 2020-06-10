@@ -39,16 +39,12 @@ public interface ParticipationItemizedV1Mapper {
 	 * (discounts) table.
 	 * Also updates basePrice with last-on-sale base price if present.
 	 * Uses updated base price
-	 * @param processingDate
-	 * @param userId
-	 * @param coolOffPeriodMinutes
 	 * @return
 	 */
 	int applyNewItemizedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
 	/**
 	 * Insert all itemized discounts for a participation
-	 * @param participationId
 	 * @param csDiscounts , a multiline string in the form "uniqueid,pricebookId,discountedPrice\n"
 	 * @return the number of records inserted
 	 */
@@ -56,7 +52,6 @@ public interface ParticipationItemizedV1Mapper {
 
 	/**
 	 * Delete all itemized discounts for a participation
-	 * @param participationId
 	 * @return the number of records deleted
 	 */
 	int deleteParticipationItemizedDiscounts(int participationId);

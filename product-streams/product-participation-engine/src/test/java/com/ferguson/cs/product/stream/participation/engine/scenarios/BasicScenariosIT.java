@@ -18,7 +18,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
-	 *      of _type: participation (eg calculated discount P)
+	 *      of type: participation@1 (eg calculated discount P)
 	 *   - after activation
 	 *      - verify engine activation event is created
 	 *          - mongo status is updated

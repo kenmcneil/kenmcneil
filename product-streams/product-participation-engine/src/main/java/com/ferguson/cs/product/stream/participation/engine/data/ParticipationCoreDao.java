@@ -33,7 +33,6 @@ public interface ParticipationCoreDao {
 
 	/**
 	 * get participation partial record
-	 * @param participationId
 	 * @return
 	 */
 	ParticipationItemPartial getParticipationItemPartial(int participationId);
@@ -113,6 +112,5 @@ public interface ParticipationCoreDao {
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
-
-//	int deleteAllTypesOfDiscounts(int participationId);
 }
+
