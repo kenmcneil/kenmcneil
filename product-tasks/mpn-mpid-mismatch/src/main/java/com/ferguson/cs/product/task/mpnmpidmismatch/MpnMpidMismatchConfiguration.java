@@ -22,7 +22,6 @@ public class MpnMpidMismatchConfiguration {
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.mpnmpidmismatch.model";
 	private static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.mpnmpidmismatch.data";
 
-
 	@MapperScan(basePackages = BASE_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "sqlSessionFactory")
 	@Configuration
 	protected static class DataSourceConfiguration {
