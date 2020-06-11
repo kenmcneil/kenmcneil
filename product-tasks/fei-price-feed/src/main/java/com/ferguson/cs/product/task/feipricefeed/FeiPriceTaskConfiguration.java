@@ -37,6 +37,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
+import com.ferguson.cs.product.task.feipricefeed.batch.CleanupStalePromoTasklet;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiFileSystemResource;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataFieldExtractor;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataJobListener;
@@ -101,10 +102,30 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public MyBatisCursorItemReader<Integer> promoProductReader() {
+		MyBatisCursorItemReader<Integer> reader = new MyBatisCursorItemReader<>();
+		reader.setQueryId("getPromoFeiPriceProducts");
+		reader.setSqlSessionFactory(reporterSqlSessionFactory);
+		return reader;
+	}
+
+
+	@Bean
+	@StepScope
 	public MyBatisBatchItemWriter<FeiPriceData> feiPriceDataWhitelistWriter() {
 		MyBatisBatchItemWriter<FeiPriceData> writer = new MyBatisBatchItemWriter<>();
 		writer.setSqlSessionFactory(batchSqlSessionFactory);
 		writer.setStatementId("updateFeiWhitelistPrice");
+		writer.setAssertUpdates(false);
+		return writer;
+	}
+
+	@Bean
+	@StepScope
+	public MyBatisBatchItemWriter<Integer> feiPromoPriceDataWhitelistWriter() {
+		MyBatisBatchItemWriter<Integer> writer = new MyBatisBatchItemWriter<>();
+		writer.setSqlSessionFactory(batchSqlSessionFactory);
+		writer.setStatementId("insertFeiPromoWhitelistPrice");
 		writer.setAssertUpdates(false);
 		return writer;
 	}
@@ -229,6 +250,12 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
+	@StepScope
+	public CleanupStalePromoTasklet cleanupStalePromoTasklet(FeiPriceService feiPriceService) {
+		return new CleanupStalePromoTasklet(feiPriceService);
+	}
+
+	@Bean
 	public Step writeFullPriceDataToMap(FeiPriceDataMapItemWriter feiPriceDataMapItemWriter, MyBatisCursorItemReader<FeiPriceData> fullFeiPriceDataReader) {
 		return taskBatchJobFactory.getStepBuilder("writeFullPriceDataToMap").<FeiPriceData, FeiPriceData>chunk(1000)
 				.reader(fullFeiPriceDataReader).writer(feiPriceDataMapItemWriter).build();
@@ -266,17 +293,29 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
-	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
+	public Step addPromoProductsToFeiWhitelist(MyBatisCursorItemReader<Integer> promoProductReader, MyBatisBatchItemWriter<Integer> feiPromoPriceDataWhitelistWriter) {
+		return taskBatchJobFactory.getStepBuilder("addPromoProductsToFeiWhitelist").<Integer,Integer>chunk(1000)
+				.reader(promoProductReader).writer(feiPromoPriceDataWhitelistWriter).build();
+	}
+
+	@Bean
+	public Step cleanupStalePromoProducts(CleanupStalePromoTasklet cleanupStalePromoTasklet) {
+		return taskBatchJobFactory.getStepBuilder("cleanupStalePromoProducts").tasklet(cleanupStalePromoTasklet).build();
+	}
+
+	@Bean
+	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts) {
 		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener())
-				.start(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles)
-				.next(writeDuplicateMpns()).build();
+				.start(addPromoProductsToFeiWhitelist).next(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles)
+				.next(combineLocationPriceFiles).next(writeDuplicateMpns()).next(cleanupStalePromoProducts).build();
 
 	}
 
 	@Bean
-	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles) {
+	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts) {
 		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener())
-				.start(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles).next(combineLocationPriceFiles)
+				.start(addPromoProductsToFeiWhitelist).next(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles)
+				.next(combineLocationPriceFiles).next(cleanupStalePromoProducts)
 				.build();
 	}
 

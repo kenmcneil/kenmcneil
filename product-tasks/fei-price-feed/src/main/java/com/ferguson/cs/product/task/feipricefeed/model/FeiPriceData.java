@@ -3,13 +3,14 @@ package com.ferguson.cs.product.task.feipricefeed.model;
 import java.io.Serializable;
 
 public class FeiPriceData implements Serializable {
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	private Integer uniqueId;
 	private String mpid;
 	private Double price;
 	private String brand;
 	private String status;
+	private FeiPricingType feiPricingType;
 
 	public String getMpid() {
 		return mpid;
@@ -68,5 +69,13 @@ public class FeiPriceData implements Serializable {
 
 	public void setUniqueId(Integer uniqueId) {
 		this.uniqueId = uniqueId;
+	}
+
+	public FeiPricingType getFeiPricingType() {
+		return feiPricingType;
+	}
+
+	public void setFeiPricingType(FeiPricingType feiPricingType) {
+		this.feiPricingType = feiPricingType;
 	}
 }

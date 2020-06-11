@@ -13,4 +13,6 @@ public interface FeiPriceService {
 	void incrementNumberOfRunsToday(String jobName);
 
 	List<DeprioritizedBrandView> getDeprioritizedBrandViews();
+
+	void deleteStalePromoFeiPriceData();
 }

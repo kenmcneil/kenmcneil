@@ -10,4 +10,11 @@
 		lastModified = GETDATE()
 		WHERE productUniqueId = #{uniqueId}
 	</update>
+
+	<insert id="insertFeiPromoWhitelistPrice" parameterType="int">
+		INSERT INTO mmc.product.pricingFeiWhitelist
+		(productUniqueId, lastModified, feiPricingTypeId)
+		VALUES (#{productUniqueId},GETDATE(), 2)
+	</insert>
+
 </mapper>

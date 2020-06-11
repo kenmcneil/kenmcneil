@@ -8,6 +8,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.product.task.feipricefeed.data.core.FeiPriceCoreDao;
 import com.ferguson.cs.product.task.feipricefeed.data.reporter.FeiPriceDao;
 import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
@@ -22,11 +23,13 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 	private final JobRepositoryHelper jobRepositoryHelper;
 	private final TaskControlDataDao taskControlDataDao;
 	private final FeiPriceDao feiPriceDao;
+	private final FeiPriceCoreDao feiPriceCoreDao;
 
-	public FeiPriceServiceImpl(JobRepositoryHelper jobRepositoryHelper, TaskControlDataDao taskControlDataDao, FeiPriceDao feiPriceDao) {
+	public FeiPriceServiceImpl(JobRepositoryHelper jobRepositoryHelper, TaskControlDataDao taskControlDataDao, FeiPriceDao feiPriceDao, FeiPriceCoreDao feiPriceCoreDao) {
 		this.jobRepositoryHelper = jobRepositoryHelper;
 		this.taskControlDataDao = taskControlDataDao;
 		this.feiPriceDao = feiPriceDao;
+		this.feiPriceCoreDao = feiPriceCoreDao;
 	}
 
 	@Override
@@ -73,6 +76,12 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 	@Override
 	public List<DeprioritizedBrandView> getDeprioritizedBrandViews() {
 		return feiPriceDao.getDeprioritizedBrands();
+	}
+
+
+	@Override
+	public void deleteStalePromoFeiPriceData() {
+		feiPriceCoreDao.deleteStalePromoFeiPriceData();
 	}
 
 	private TaskControlDataItem getTaskControlDataItemForToday(String jobName) {
