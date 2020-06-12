@@ -146,6 +146,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * deleting effect-specific records it added when it published the Participation.
 	 */
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
+		LOG.debug("==== unpublishing participation {} ====", itemPartial.getParticipationId());
 		int rowsAffected = getLifecycle(itemPartial.getContentTypeId()).unpublish(itemPartial, processingDate);
 		LOG.debug("{}: {} total rows deleted to unpublish participation", itemPartial.getParticipationId(), rowsAffected);
 		return rowsAffected;
