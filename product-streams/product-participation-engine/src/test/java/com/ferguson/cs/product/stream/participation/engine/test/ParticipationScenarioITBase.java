@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -41,18 +43,22 @@ import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSe
 import com.ferguson.cs.product.stream.participation.engine.ParticipationProcessor;
 import com.ferguson.cs.product.stream.participation.engine.ParticipationWriter;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemSchedule;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ParticipationTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -70,37 +76,44 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@TestConfiguration
 	public static class BaseParticipationScenarioITConfiguration {
 		@Bean
-		public BasicTestLifecycle activationDeactivationLifecycleTest (
+		public BasicWorkflowTestEffectLifecycle activationDeactivationLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new BasicTestLifecycle(participationTestUtilities);
+			return new BasicWorkflowTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SchedulingTestLifecycle schedulingLifecycleTest (
+		public SchedulingTestEffectLifecycle schedulingLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new SchedulingTestLifecycle(participationTestUtilities);
+			return new SchedulingTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public SaleIdEffectTestLifecycle saleIdEffectLifecycleTest (
+		public SaleIdTestEffectLifecycle saleIdEffectLifecycleTest (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new SaleIdEffectTestLifecycle(participationTestUtilities);
+			return new SaleIdTestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public CalculatedDiscountsTestLifecycle calculatedDiscountsTestLifecycle (
+		public CalculatedDiscountsTestEffectLifecycle calculatedDiscountsTestLifecycle (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new CalculatedDiscountsTestLifecycle(participationTestUtilities);
+			return new CalculatedDiscountsTestEffectLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public ItemizedDiscountsTestEffectLifecycle itemizedDiscountsTestLifecycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
 		}
 	}
 
 	/*
 	 * No mocking/spying needed:
-	 *      ParticipationDao
+	 *      ParticipationCoreDao
 	 *
 	 * Mock entire class:
 	 *      ConstructService
@@ -111,7 +124,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 *      participationProcessor: getProcessingDate
 	 */
 	@Autowired
-	protected ParticipationDao participationDao;
+	protected ParticipationCoreDao participationCoreDao;
+
+	@Autowired
+	protected ParticipationV1Dao participationV1Dao;
 
 	@Autowired
 	protected ParticipationEngineSettings participationEngineSettings;
@@ -134,7 +150,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	// Properties to track Scenario test state.
 	protected Date originalSimulatedDate;
 	protected Date currentSimulatedDate;
-	protected List<ParticipationTestLifecycle> lifecycleTests;
+	protected List<ParticipationTestEffectLifecycle> lifecycleTests;
 	protected Map<Integer, ParticipationItemFixture> fixtures = new HashMap<>();
 	protected Queue<ParticipationItem> pendingUnpublishParticipationQueue = new LinkedList<>();
 	protected Queue<ParticipationItem> pendingPublishParticipationQueue = new LinkedList<>();
@@ -160,7 +176,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				participationEngineSettings.getTestModeMinParticipationId());
 	}
 
-	public void testLifecycles(ParticipationTestLifecycle... params) {
+	public void testLifecycles(ParticipationTestEffectLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
 	}
 
@@ -484,7 +500,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.lastModifiedDate(currentSimulatedDate)
 				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
 				.build();
-
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
@@ -492,6 +507,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 			// set the content object
 			item.setContent(getParticipationV1Content(fixture));
+		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
+			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
+
+			// set the content object
+			item.setContent(getParticipationItemizedV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
 		}
@@ -504,7 +526,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	/**
-	 * Build the content map for the given fixture, as if it came from Construct.
+	 * Build the content map for the given fixture of type participation@1, as if it came from Construct.
 	 */
 	private Map<String, Object> getParticipationV1Content(ParticipationItemFixture fixture) {
 		ObjectNode content;
@@ -534,6 +556,42 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type @itemized-participation@1, as if it came from Construct.
+	 * Requires the fixture to include at least two list entries (pb1 and pb22, in that order). Additional entries
+	 * will be ignored.
+	 */
+	private Map<String, Object> getParticipationItemizedV1Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		// Itemized discount values are not optional. Load the matching template and fill in any
+		// discounts.
+		List<ItemizedDiscountFixture> discounts = fixture.getItemizedDiscountFixtures();
+		List<List<Object>> mappedDiscounts = discounts.stream()
+									.map(discount-> {
+										List<Object> row = new ArrayList<>();
+										row.add(discount.getUniqueId());
+										row.add("Manufacturer for uniqueId " + discount.getUniqueId());
+										row.add(discount.getPricebook1Price());
+										row.add(discount.getPricebook22Price());
+										return row;
+									})
+									.collect(Collectors.toList());
+		if (CollectionUtils.isEmpty(discounts)) {
+			Assertions.fail("Missing required itemized discount content in %s", fixture.toString());
+		}
+		content = getContentTemplate("participationItemizedV1-content-discount.json");
+		atPath(content, "/itemizedDiscounts").set("list", mapper.valueToTree(mappedDiscounts));
+		// Set the required values in content. It's ok to use only the major version, as in "participation@1"
+		// instead of "participation@1.0.0", since the minor and patch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
 	}

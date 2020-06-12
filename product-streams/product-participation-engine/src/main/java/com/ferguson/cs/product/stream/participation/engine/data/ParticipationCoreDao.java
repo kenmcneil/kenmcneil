@@ -3,14 +3,13 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 import java.util.Date;
 import java.util.List;
 
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 /**
- * This is responsible for all SQL database queries. Some methods apply to all Participation types,
- * and some are specific (e.g. participation@1 has a saleId, participation-itemized@1 doesn't).
+ * This is responsible for common Participation SQL database queries. Any methods that are specific to certain
+ * Participation types (e.g. participation@1) have been moved to daos named for those types.
  */
-public interface ParticipationDao {
+public interface ParticipationCoreDao {
 
 	/**
 	 * Mark a participation as active. This is done as part of the activation process.
@@ -31,6 +30,12 @@ public interface ParticipationDao {
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
 	ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate, Integer minParticipationId);
+
+	/**
+	 * get participation partial record
+	 * @return
+	 */
+	ParticipationItemPartial getParticipationItemPartial(int participationId);
 
 	/**
 	 * Create the participationOwnerChange temp table and fill it with the ownership
@@ -69,28 +74,6 @@ public interface ParticipationDao {
 	int deactivateProductSaleIds();
 
 	/**
-	 * Record last-on-sale base prices.
-	 * @param processingDate The date the participation is being processed.
-	 * @return The number of records modified.
-	 */
-	int updateLastOnSaleBasePrices(Date processingDate);
-
-	/**
-	 * Take the prices owned by the participation off sale.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int takePricesOffSaleAndApplyPendingBasePriceUpdates(int userId);
-
-	/**
-	 * Apply calculated discounts to products becoming owned by a Participation.
-	 * @param processingDate The date the participation is being processed.
-	 * @param userId The id of the user initiating the changes.
-	 * @return The number of records modified.
-	 */
-	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
-
-	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.
 	 * @param processingDate The date the participation is being processed.
 	 * @param userId The id of the user initiating the changes.
@@ -120,13 +103,6 @@ public interface ParticipationDao {
 	int deleteParticipationProducts(int participationId);
 
 	/**
-	 * Delete participationCalculatedDiscount rows the given Participation.
-	 * @param participationId The id of the participation from which to delete calculated discounts.
-	 * @return The number of records modified.
-	 */
-	int deleteParticipationCalculatedDiscounts(int participationId);
-
-	/**
 	 * Delete the partial participation record. Non-type specific.
 	 * @param participationId The participationId of the participationItemPartial record to delete.
 	 * @return The number of records modified.
@@ -136,9 +112,5 @@ public interface ParticipationDao {
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
-
-	int upsertParticipationCalculatedDiscounts(
-			int participationId,
-			List<ParticipationCalculatedDiscount> calculatedDiscounts
-	);
 }
+

@@ -1,4 +1,4 @@
-package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
+package com.ferguson.cs.product.stream.participation.engine.test.effects;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -7,7 +7,6 @@ import java.util.Date;
 import org.assertj.core.api.Assertions;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * on the end date.
  */
 @RequiredArgsConstructor
-public class SchedulingTestLifecycle implements ParticipationTestLifecycle {
+public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLifecycle {
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
