@@ -1,5 +1,7 @@
 package com.ferguson.cs.product.task.feipriceupdate.data;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -23,9 +25,8 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 
 	@Override
 	public void dropTempTable(String tempTableName) {
-		Assert.notNull(tempTableName);
+		Assert.hasLength(tempTableName, "tablename must be supplied");
 		feiPriceUpdateMapper.dropTempTable(tempTableName);
-
 	}
 
 	@Override
@@ -83,5 +84,10 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 	@Override
 	public Double getPreferredVendorCost(Integer uniqueId) {
 		return feiPriceUpdateMapper.getPreferredVendorCost(uniqueId);
+	}
+
+	@Override
+	public List<Integer> getFeiPromoProductUniqueIds() {
+		return feiPriceUpdateMapper.getFeiPromoProductUniqueIds();
 	}
 }

@@ -20,8 +20,6 @@ import com.ferguson.cs.utilities.DateUtils;
 
 public class FeiSendErrorReportTasklet implements Tasklet {
 
-
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeiSendErrorReportTasklet.class);
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 	private final BuildWebServicesFeignClient buildWebServicesFeignClient;
@@ -56,7 +54,7 @@ public class FeiSendErrorReportTasklet implements Tasklet {
 							.from("noreply-scheduler@build.com")
 							.subject("FEI Price Update Error Report (" + dateString +")")
 							.templateName("EMPTY")
-							.addTemplateData("body", "FEI Pricing update errors encountered. Please see the attached error report for additional details.")
+							.addTemplateData("body", "FEI Pricing update record validation failures encountered. Please see the attached report for additional details.")
 							.addRawAttachment(csvFile.getName(), Files.readAllBytes(csvFile.toPath()))
 							.build();
 
