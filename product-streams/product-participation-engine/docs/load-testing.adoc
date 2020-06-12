@@ -153,7 +153,9 @@ db.getCollection('participationItem').find({_id: {$gte: 50000}})
 
 === New Relic graphs
 
-_TODO: get links to New Relic for mongodb and dev databases_
+_TODO: get links to New Relic for mongodb database_
+
+* Last 30 minutes for cicdev2 server: https://infrastructure.newrelic.com/accounts/149471/hosts/system?filters=%7B%22and%22%3A%5B%7B%22is%22%3A%7B%22externalKey%22%3A%22cic-mssql-dev-2.Build.Internal%22%7D%7D%5D%7D&timeStart=30%20minutes%20ago[CICDEV2 New Relic Graphs]
 
 == References
 
