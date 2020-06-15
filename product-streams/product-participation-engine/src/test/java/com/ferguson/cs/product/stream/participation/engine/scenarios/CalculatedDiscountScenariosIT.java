@@ -5,20 +5,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.CalculatedDiscountsTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	@Autowired
-	protected BasicTestLifecycle basicTestLifecycle;
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
 
 	@Autowired
-	protected SaleIdEffectTestLifecycle saleIdEffectTestLifecycle;
+	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
 
 	@Autowired
-	CalculatedDiscountsTestLifecycle calculatedDiscountsTestLifecycle;
+	CalculatedDiscountsTestEffectLifecycle calculatedDiscountsTestEffectLifecycle;
 
 	/**
 	 * Scenario
@@ -30,10 +30,11 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_basicCalculatedDiscountEffect() {
+		int[] uniqueIds = getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
-				.uniqueIds(100, 101)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.calculatedDiscounts(
 						percentCalculatedDiscount(1, 10),
 						percentCalculatedDiscount(22, 10)
@@ -41,8 +42,7 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(0, 2)
 				.build();
 
-		testLifecycles(basicTestLifecycle, saleIdEffectTestLifecycle, calculatedDiscountsTestLifecycle);
-
+		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle, calculatedDiscountsTestEffectLifecycle);
 		createUserPublishEvent(p1);
 		advanceToDay(3);
 		verifySimpleLifecycleLog(p1);

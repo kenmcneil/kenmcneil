@@ -5,16 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SaleIdEffectTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	@Autowired
-	protected BasicTestLifecycle basicTestLifecycle;
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
 
 	@Autowired
-	protected SaleIdEffectTestLifecycle saleIdEffectTestLifecycle;
+	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
 
 	/**
 	 * Scenario
@@ -26,14 +26,15 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_basicSaleIdEffect() {
+		int[] uniqueIds = getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
-				.uniqueIds(100, 101)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.scheduleByDays(0, 1)
 				.build();
 
-		testLifecycles(basicTestLifecycle, saleIdEffectTestLifecycle);
+		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(2);
@@ -51,28 +52,29 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_overlappingSaleIdEffect() {
+		int[] uniqueIds = getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2000)
-				.uniqueIds(100, 101)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.scheduleByDays(0, 10)
 				.build();
 
 		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2001)
-				.uniqueIds(101, 102)
+				.uniqueIds(uniqueIds[1], uniqueIds[2])
 				.scheduleByDays(3, 6)
 				.build();
 
-		testLifecycles(saleIdEffectTestLifecycle);
+		testLifecycles(saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);
 		advanceToDay(4);
-		verifyParticipationOwnsExactly(p1, 100);
+		verifyParticipationOwnsExactly(p1, uniqueIds[0]);
 		advanceToDay(7);
-		verifyParticipationOwnsExactly(p1, 100, 101);
+		verifyParticipationOwnsExactly(p1, uniqueIds[0], uniqueIds[1]);
 		advanceToDay(11);
 		verifySimpleLifecycleLog(p1, p2);
 	}

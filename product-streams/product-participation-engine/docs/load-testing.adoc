@@ -19,14 +19,18 @@ Load testing is important to do before releasing database structure changes or m
 * Turn on load test mode
 * Clear SQL data for the Participation id range being used for testing
 * Create Participation record fixtures
-* Publish fixtures
 * Start the engine
+* Publish fixtures
 * Watch database performance (DBA assistance is valuable here)
 ** Look for slow queries or other performance issues.
 * Watch New Relic graphs for SQL database CPU, MongoDB CPU, Product Storage Synchronization
 * If desired use more Participation record fixtures to test other user events like un-publish or publish changes, or simply to test ongoing publish events.
 * Note processing start and end times
 * If needed add missing indexes or other improvements and do another load test.
+
+=== Databases and environments
+
+The dev instance of the engine is running on `cicdev1` and `mongdb-dev-1`, so you should not use those databases for the load test, since the engine running in dev will also try to process the load test records.
 
 == Detailed steps
 
@@ -39,11 +43,15 @@ Use the load test configuration properties when running the engine:
 -DparticipationEngine.testModeEnabled=true -DparticipationEngine.testModeMinParticipationId=50000
 ----
 
-The docs below use 50000 for the min value--modify if desired.
+The docs below use 50000 for the min value—modify if desired.
 
 === Clear testing data from SQL tables
 
 Delete test data before running each test to avoid data from any previous runs interfering with new tests.
+
+The mongodb records in the `participationItem` collection are cleared by the fixture-creation scripts, so you only need to manually clear the SQL data.
+
+If you don't want interaction with any non-load-test Participation records, omit the `WHERE` clauses below so that all engine Participation data is cleared.
 
 .SQL queries to clear test data
 [source,sql%collapsible]
@@ -60,13 +68,18 @@ FROM mmc.product.participationCalculatedDiscount
 WHERE participationId >= 50000
 
 DELETE
+FROM mmc.product.participationItemizedDiscount
+WHERE participationId >= 50000
+
+DELETE
 FROM mmc.product.participationItemPartial
 WHERE participationId >= 50000
 
+-- clear any sale id values set by the engine
 UPDATE
 mmc.product.sale
-SET participationId = 0
-WHERE participationId >= 50000
+SET participationId = 0, saleId = 0
+WHERE participationId != 0
 
 -- reset any prices on sale to off-sale values
 UPDATE
@@ -75,13 +88,13 @@ SET Cost = basePrice, participationId = 0
 WHERE participationId >= 50000
 	AND (Cost != basePrice OR participationId != 0)
 
+-- remove any test last-on-sale records
 DELETE plos
 FROM mmc.product.participationLastOnSale plos
 INNER JOIN mmc.dbo.Pricebook_Cost pbc
 ON plos.uniqueId = pbc.uniqueId
 AND plos.PriceBookId = pbc.PricebookId
 AND pbc.participationId >= 50000
-WHERE 1=1
 ----
 
 === Create Participation record fixtures
@@ -91,12 +104,13 @@ It's helpful to use a script to create records in the participationItem collecti
 .Previous fixture generator scripts
 * link:../load-testing/make-participation-fixtures.js[make-participation-fixtures.js]
 * link:../load-testing/make-participation-fixtures-large.js[make-participation-fixtures-large.js]
+* link:../load-testing/make-participation-mixed-fixtures.js[make-participation-mixed-fixtures.js]
 
-Run javascript files like those in mongodb shell like this:
+Run javascript files like those in the mongodb shell like this:
 
 [source,shell script]
 ----
-mongo mongodb-dev-1.build.internal:27017/core make-participation-fixtures.js
+mongo mongodb-localdev-1.build.internal:27017/core make-participation-itemized-fixtures.js
 ----
 
 === Publish fixtures
@@ -113,18 +127,35 @@ Publish the test Participation records created in the last step.
 
 === Run engine to perform load test
 
-Start the engine in your IDE with your configured properties.
+Start the engine in your IDE with your configured properties. You can also start the engine before publishing fixtures so you can watch it process the published records as they are published.
 
 .During the load test
-* Watch database performance (DBA assistance is valuable here)
+* Watch database performance (DBA assistance is valuable here).
 * Look for slow queries or other performance issues.
-* Watch New Relic graphs for SQL database CPU, MongoDB CPU, Product Storage Synchronization
+* Watch New Relic graphs for SQL database CPU, MongoDB CPU, Product Storage Synchronization (sync is only running cicdev1).
 * If desired use more Participation record fixtures to test other user events like un-publish or publish changes, or simply to test ongoing publish events.
-* Note processing start and end times
+* Note processing start and end times.
+
+==== Watch data in MongoDB
+
+.MongDB query to show a summary of current load test records.
+[source,javascript]
+----
+db.getCollection('participationItem').find({_id: {$gte: 50000}})
+.forEach(p => {
+    if (p.content._type.startsWith('participation@')) {
+        print(p._id + ', type: ' + p.content._type + ', size ' + p.content.calculatedDiscounts.uniqueIds.list.length + ', status: ' + p.status + ', updateStatus: ' + p.updateStatus);
+    } else {
+        print(p._id + ', type: ' + p.content._type + ', size ' + p.content.itemizedDiscounts.list.length + ', status: ' + p.status + ', updateStatus: ' + p.updateStatus);
+    }
+});
+----
 
 === New Relic graphs
 
-_TODO: get links to New Relic for mongodb and dev databases_
+_TODO: get links to New Relic for mongodb database_
+
+* Last 30 minutes for cicdev2 server: https://infrastructure.newrelic.com/accounts/149471/hosts/system?filters=%7B%22and%22%3A%5B%7B%22is%22%3A%7B%22externalKey%22%3A%22cic-mssql-dev-2.Build.Internal%22%7D%7D%5D%7D&timeStart=30%20minutes%20ago[CICDEV2 New Relic Graphs]
 
 == References
 

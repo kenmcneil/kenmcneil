@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,8 +25,12 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
@@ -35,36 +40,45 @@ public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
 
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
-			"INSERT INTO mmc.product.participationItemPartial " +
-					"(participationId, saleId, startDate, endDate, lastModifiedUserId, isActive) " +
-					"VALUES (?, ?, ?, ?, ?, ?)";
+			"INSERT INTO mmc.product.participationItemPartial" +
+					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId)" +
+					" VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_PRODUCT =
-			"INSERT INTO mmc.product.participationProduct VALUES " +
-					"(:participationId, :uniqueId, :isOwner)";
+			"INSERT INTO mmc.product.participationProduct VALUES" +
+					" (:participationId, :uniqueId, :isOwner)";
 
 	public static final String INSERT_PARTICIPATION_CALCULATED_DISCOUNT =
-			"INSERT INTO mmc.product.participationCalculatedDiscount " +
-					"(participationId, priceBookId, changeValue, isPercent, templateId) " +
-					"VALUES (?, ?, ?, ?, ?)";
+			"INSERT INTO mmc.product.participationCalculatedDiscount" +
+					" (participationId, priceBookId, changeValue, isPercent, templateId)" +
+					" VALUES (?, ?, ?, ?, ?)";
+
+	public static final String INSERT_PARTICIPATION_ITEMIZED_DISCOUNT =
+			"INSERT INTO mmc.product.participationItemizedDiscount" +
+					" (participationId, uniqueid, pricebookId, price)" +
+					" VALUES (?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE =
-			"INSERT INTO mmc.product.participationCalculatedDiscountTemplate " +
-					"(templateTypeId, template, description, active) " +
-					"VALUES (?, ?, ?, ?)";
+			"INSERT INTO mmc.product.participationCalculatedDiscountTemplate" +
+					" (templateTypeId, template, description, active)" +
+					" VALUES (?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_CALCULATED_DISCOUNT_TEMPLATE_TYPE =
-			"INSERT INTO mmc.product.participationCalculatedDiscountTemplateType " +
-					"(templateType) " +
-					"VALUES (?)";
+			"INSERT INTO mmc.product.participationCalculatedDiscountTemplateType" +
+					" (templateType)" +
+					" VALUES (?)";
 
 	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID =
-			"SELECT COUNT(*) FROM mmc.product.participationCalculatedDiscount " +
-					"WHERE participationId = ?";
+			"SELECT COUNT(*) FROM mmc.product.participationCalculatedDiscount" +
+					" WHERE participationId = ?";
+
+	public static final String SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_COUNT_BY_PARTICIPATIONID =
+			"SELECT COUNT(*) FROM mmc.product.participationItemizedDiscount" +
+					" WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_PRODUCT_COUNT_BY_PARTICIPATIONID =
-			"SELECT COUNT(*) FROM mmc.product.participationProduct " +
-					"WHERE participationId = ?";
+			"SELECT COUNT(*) FROM mmc.product.participationProduct" +
+					" WHERE participationId = ?";
 
 	public static final String SELECT_SALE_ID_COUNT_BY_PARTICIPATIONID =
 			"SELECT count(*) FROM mmc.product.sale WHERE participationId = ?";
@@ -76,17 +90,22 @@ public class ParticipationTestUtilities {
 			"SELECT TOP 1 id FROM mmc.product.participationCalculatedDiscountTemplate";
 
 	public static final String SELECT_PARTICIPATION_PARTIAL_BY_PARTICIPATIONID =
-			"SELECT * FROM mmc.product.participationItemPartial " +
-					"WHERE participationId = ?";
+			"SELECT * FROM mmc.product.participationItemPartial" +
+					" WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_PRODUCT_BY_PARTICIPATIONID =
-			"SELECT participationId, uniqueId, isOwner FROM mmc.product.participationProduct " +
-					"WHERE participationId = ?";
+			"SELECT participationId, uniqueId, isOwner FROM mmc.product.participationProduct" +
+					" WHERE participationId = ?";
 
 	public static final String SELECT_PARTICIPATION_CALCULATED_DISCOUNT_BY_PARTICIPATIONID =
-			"SELECT participationId, priceBookId, changeValue, isPercent, templateId " +
-					"FROM mmc.product.participationCalculatedDiscount " +
-					"WHERE participationId = ?";
+			"SELECT participationId, priceBookId, changeValue, isPercent, templateId" +
+					" FROM mmc.product.participationCalculatedDiscount" +
+					" WHERE participationId = ?";
+
+	public static final String SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_BY_PARTICIPATIONID =
+			"SELECT participationId, uniqueId, pricebookId, price" +
+					" FROM mmc.product.participationItemizedDiscount" +
+					" WHERE participationId = ?";
 
 	public static final String SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.sale WHERE uniqueId IN ( :uniqueIds )";
@@ -94,29 +113,45 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
 
+	//TODO if the below query is eventually used, I suspect @@ROWCOUNT won't work in this manner. Didn't work in SQL ui.
 	public static final String UPSERT_PRICEBOOK_COST =
-			"UPDATE mmc.dbo.PriceBook_Cost " +
-					"SET basePrice = ?, cost = ?, userId = ?, participationId = ? " +
-					"WHERE UniqueId = ? AND PriceBookId = ? " +
-					"IF @@ROWCOUNT = 0 " +
-					"INSERT INTO mmc.dbo.PriceBook_Cost " +
-					"(uniqueId, priceBookId, basePrice, cost, userId, participationId) " +
-					"VALUES (?, ?, ?, ?, ?, ?)";
+			"UPDATE mmc.dbo.PriceBook_Cost" +
+					" SET basePrice = ?, cost = ?, userId = ?, participationId = ?" +
+					" WHERE UniqueId = ? AND PriceBookId = ?" +
+					" IF @@ROWCOUNT = 0" +
+					" INSERT INTO mmc.dbo.PriceBook_Cost" +
+					" (uniqueId, priceBookId, basePrice, cost, userId, participationId)" +
+					" VALUES (?, ?, ?, ?, ?, ?)";
 
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 
+	public static final String SELECT_PRICEBOOKCOST_BASEPRICE =
+		"SELECT basePrice" +
+				" FROM mmc.dbo.PriceBook_Cost" +
+				" WHERE uniqueId = ? AND pricebookId = ?";
+
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT cost, basePrice, userId, participationId " +
-					"FROM mmc.dbo.PriceBook_Cost " +
-					"WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
+			"SELECT cost, basePrice, userId, participationId" +
+					" FROM mmc.dbo.PriceBook_Cost" +
+					" WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
+
+	public static final String UPDATE_PARTICIPATION_LASTONSALE =
+			"UPDATE mmc.product.participationLastOnSale" +
+					" SET saleDate = ?, basePrice = ?" +
+					" WHERE uniqueId= ? AND pricebookId = ?";
 
 	public static final String INSERT_PARTICIPATION_LASTONSALE =
-			"INSERT INTO mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice) " +
-					"VALUES (?, ?, ?, ?)";
+			"INSERT INTO mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice)" +
+					" VALUES (?, ?, ?, ?)";
 
-	public static final String SELECT_LASTONSALE_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT basePrice FROM mmc.product.participationLastOnSale WHERE uniqueId = ? AND pricebookId = ?";
+	public static final String SELECT_LASTONSALE_BASEPRICE =
+			"DECLARE @BasePrice DECIMAL(18,2);" +
+					" SELECT @BasePrice = 0.0;" +
+					" SELECT @BasePrice = basePrice" +
+					" FROM mmc.product.participationLastOnSale" +
+					" WHERE uniqueId = ? AND pricebookId = ?" +
+					" SELECT @BasePrice";
 
 	public static final String UPDATE_LATEST_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
 			"UPDATE mmc.product.latestBasePrice SET basePrice = ? WHERE uniqueId = ? AND pricebookId = ?";
@@ -209,6 +244,7 @@ public class ParticipationTestUtilities {
 	 *
 	 * Defaults lastModifiedUserId to test user id if none specified.
 	 * Defaults isActive to false if not specified.
+	 * Defaults contentTypeId to 1 and "calculated discounts" if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
 		validateAndSetDefaults(fixture);
@@ -222,33 +258,62 @@ public class ParticipationTestUtilities {
 				fixture.getStartDate(),
 				fixture.getEndDate(),
 				fixture.getLastModifiedUserId(),
-				fixture.getIsActive()
+				fixture.getIsActive(),
+				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId()
 		);
 
+		ParticipationContentType contentType = fixture.getContentType() != null
+				? fixture.getContentType()
+				: ParticipationContentType.PARTICIPATION_V1;
+		if (contentType == ParticipationContentType.PARTICIPATION_V1) {
+			// Insert any participationCalculatedDiscount records.
+			nullSafeStream(fixture.getCalculatedDiscountFixtures())
+					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
+					.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
+							discount.getParticipationId(),
+							discount.getPricebookId(),
+							discount.getChangeValue(),
+							discount.getIsPercent(),
+							discount.getTemplateId())
+					);
+		} else if (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
+			// Insert any participationItemizedDiscount records, provided a list of lists where the inner list
+			// is [[uniqueid, 1, pb1DiscountPrice], [uniqueId, 22, pb22DiscountPrice]]
+			nullSafeStream(fixture.getItemizedDiscountFixtures())
+					.map(discountFixture -> discountFixture.toParticipationItemizedDiscounts(participationId))
+					.forEach(discount -> {
+						jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+								discount.get(0).getUniqueId(), discount.get(0).getPricebookId(),
+								discount.get(0).getPrice());
+						jdbcTemplate.update(INSERT_PARTICIPATION_ITEMIZED_DISCOUNT, participationId,
+								discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
+								discount.get(1).getPrice());
+					});
+		}
+
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
-		if (!CollectionUtils.isEmpty(fixture.getUniqueIds())) {
+		List<Integer> uniqueIds = contentType == ParticipationContentType.PARTICIPATION_V1
+				? ParticipationV1TestLifecycle.getUniqueIds(fixture)
+				: (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1
+						? ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture)
+						: Collections.emptyList());
+		if (!CollectionUtils.isEmpty(uniqueIds)) {
 			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
-					fixture.getUniqueIds().stream()
+					uniqueIds.stream()
 							.map(uniqueId -> new ParticipationProduct(participationId, uniqueId, false))
 							.collect(Collectors.toList())
 			);
 			namedParameterJdbcTemplate.batchUpdate(INSERT_PARTICIPATION_PRODUCT, batch);
 		}
-
-		// Insert any participationCalculatedDiscount records.
-		nullSafeStream(fixture.getCalculatedDiscountFixtures())
-				.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
-				.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
-						discount.getParticipationId(),
-						discount.getPricebookId(),
-						discount.getChangeValue(),
-						discount.getIsPercent(),
-						discount.getTemplateId())
-				);
 	}
 
 	public Integer getParticipationCalculatedDiscountCount(int participationId) {
 		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
+				Integer.class, participationId);
+	}
+
+	public Integer getParticipationItemizedDiscountCount(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
 				Integer.class, participationId);
 	}
 
@@ -287,6 +352,12 @@ public class ParticipationTestUtilities {
 				participationId);
 	}
 
+	public List<ParticipationItemizedDiscount> getParticipationItemizedDiscounts(int participationId) {
+		return jdbcTemplate.query(SELECT_PARTICIPATION_ITEMIZED_DISCOUNT_BY_PARTICIPATIONID,
+				BeanPropertyRowMapper.newInstance(ParticipationItemizedDiscount.class),
+				participationId);
+	}
+
 	public List<ProductSaleParticipation> getProductSaleParticipations(List<Integer> uniqueIds) {
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
@@ -309,6 +380,25 @@ public class ParticipationTestUtilities {
 				.addValue("pricebookIds", pricebookIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID,
 				namedParameters, BeanPropertyRowMapper.newInstance(PricebookCost.class));
+	}
+
+	public void upsertParticipationLastOnSaleBase(int pricebookId, int uniqueId, Date saleDate,
+												  Double basePrice) {
+		Double existingLOSBasePrice = jdbcTemplate.queryForObject(SELECT_LASTONSALE_BASEPRICE,
+				Double.class, uniqueId, pricebookId);
+		if (existingLOSBasePrice != 0) {
+			jdbcTemplate.update(UPDATE_PARTICIPATION_LASTONSALE, saleDate, basePrice, uniqueId, pricebookId);
+		} else {
+			jdbcTemplate.update(INSERT_PARTICIPATION_LASTONSALE, pricebookId, uniqueId, saleDate, basePrice);
+		}
+	}
+
+	public void updatePricebookCostCost(Double cost, int uniqueId, int pricebookId) {
+		jdbcTemplate.update(UPDATE_PRICEBOOK_COST_COST, cost, uniqueId, pricebookId);
+	}
+
+	public Double getPricebookCostBasePrice(int uniqueId, int pricebookId) {
+		return jdbcTemplate.queryForObject(SELECT_PRICEBOOKCOST_BASEPRICE, Double.class, uniqueId, pricebookId);
 	}
 
 	/**

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Mapper">
+
+	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
+		-- Update the base price and sale date of pricebook prices that already exist in the table.
+		UPDATE
+			lastOnSale
+		SET
+			lastOnSale.basePrice = pbcost.basePrice
+		  ,lastOnSale.saleDate = #{processingDate}
+		FROM
+			mmc.product.participationLastOnSale AS lastOnSale
+		JOIN
+			tempData.participation.participationOwnerChange AS oc
+			ON oc.uniqueId = lastOnSale.uniqueId
+		JOIN
+			mmc.dbo.pricebook_cost AS pbcost
+			ON pbcost.uniqueId = lastOnSale.uniqueId
+			AND pbcost.pricebookId = lastOnSale.pricebookId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+			AND discount.pricebookId = pbcost.pricebookId
+	</update>
+
+	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
+		-- Record the base price for prices going off sale, for pricebook prices
+		-- that don't exist in the last on sale table.
+		INSERT INTO
+			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice)
+		SELECT
+			pbcost.pricebookId, pbcost.uniqueId, #{processingDate}, pbcost.basePrice
+		FROM
+			mmc.dbo.pricebook_cost AS pbcost
+		JOIN
+			tempData.participation.participationOwnerChange AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+			AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS los
+			ON los.uniqueId = pbcost.uniqueId
+			AND los.pricebookId = pbcost.pricebookId
+		WHERE
+			los.uniqueId IS NULL
+	</insert>
+
+	<update id="takePricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
+		-- Set cost to a pending base price if present, else to basePrice.
+		-- Set basePrice to a pending base price if present.
+		-- Set participationId and userId.
+		-- The cost and basePrice columns are updated in this one query in order to prevent multiple log entries with no price change.
+		UPDATE
+			pbcost
+		SET
+			pbcost.cost = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
+			pbcost.basePrice = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
+			pbcost.participationId = 0,
+			pbcost.userId = #{userId}
+		FROM
+			MMC.dbo.pricebook_cost AS pbcost
+		JOIN
+			tempData.participation.participationOwnerChange AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.oldParticipationId
+			AND discount.pricebookId = pbcost.pricebookId
+		JOIN
+			mmc.product.latestBasePrice AS lbp
+			ON lbp.uniqueId = pbcost.uniqueId
+			AND lbp.pricebookId = pbcost.pricebookId
+	</update>
+
+	<update id="applyNewCalculatedDiscounts" parameterType="map">
+		-- Apply calculated discounts to products becoming owned by a Participation.
+		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
+		-- for the calculations. Rounds the discounted price down to 2 decimal places.
+		UPDATE
+			pbcost
+		SET
+			pbcost.cost = ROUND(IIF(
+								discount.isPercent = 1,
+								COALESCE(las.basePrice, pbcost.basePrice) * discount.changeValue,
+								COALESCE(las.basePrice, pbcost.basePrice) + discount.changeValue
+								), 2),
+			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
+			pbcost.participationId = discount.participationId,
+			pbcost.userId = #{userId}
+		FROM
+			MMC.dbo.pricebook_cost AS pbcost
+		JOIN
+			tempData.participation.participationOwnerChange AS oc
+			ON oc.uniqueId = pbcost.uniqueId
+		JOIN
+			mmc.product.participationCalculatedDiscount AS discount
+			ON discount.participationId = oc.newParticipationId
+			AND discount.pricebookId = pbcost.pricebookId
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS las
+			ON las.uniqueId = pbcost.uniqueId
+			AND las.pricebookId = pbcost.pricebookId
+			AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+	</update>
+
+	<insert id="insertParticipationCalculatedDiscounts">
+		INSERT INTO mmc.product.participationCalculatedDiscount (
+		participationId,
+		pricebookId,
+		changeValue,
+		isPercent,
+		templateId
+		)
+		VALUES
+		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
+			#{calculatedDiscount.participationId},
+			#{calculatedDiscount.pricebookId},
+			#{calculatedDiscount.changeValue},
+			#{calculatedDiscount.isPercent},
+			#{calculatedDiscount.templateId}
+		</foreach>
+	</insert>
+
+	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
+		DELETE FROM
+			mmc.product.participationCalculatedDiscount
+		WHERE
+			participationId = #{participationId}
+	</delete>
+</mapper>
