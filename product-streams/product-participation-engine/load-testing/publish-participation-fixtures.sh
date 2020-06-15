@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: ./publish-participation-fixtures.sh COUNT
+# usage: ./publish-participation-fixtures.sh START_PARTICIPATION_ID COUNT
 
 SERVICES_HOST=localhost:8080
 # SERVICES_HOST=webservices-dev-1.build.internal:8080

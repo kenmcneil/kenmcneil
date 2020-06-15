@@ -4,20 +4,21 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.BasicTestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.SchedulingTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class BasicScenariosIT extends ParticipationScenarioITBase {
 	@Autowired
-	protected BasicTestLifecycle basicTestLifecycle;
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
 
 	@Autowired
-	protected SchedulingTestLifecycle schedulingTestLifecycle;
+	protected SchedulingTestEffectLifecycle schedulingTestEffectLifecycle;
 
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
+	 *      of type: participation@1 (eg calculated discount P)
 	 *   - after activation
 	 *      - verify engine activation event is created
 	 *          - mongo status is updated
@@ -39,7 +40,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		// Set up scenario
-		testLifecycles(basicTestLifecycle);
+		testLifecycles(basicWorkflowTestEffectLifecycle);
 
 		// Execute scenario steps in sequence.
 		manualPublish(p1);
@@ -59,7 +60,7 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(1, 3)
 				.build();
 
-		testLifecycles(schedulingTestLifecycle);
+		testLifecycles(schedulingTestEffectLifecycle);
 
 		manualPublish(p1);
 		advanceToDay(4);

@@ -149,9 +149,11 @@ public class ParticipationProcessor {
 	private ParticipationItemPartial getNextPendingUnpublishParticipation() {
 		ParticipationItem item = constructService.getNextPendingUnpublishParticipation(
 				participationEngineSettings.getTestModeMinParticipationId());
-		return item == null ? null : ParticipationItemPartial.builder()
-				.participationId(item.getId())
-				.lastModifiedUserId(item.getLastModifiedUserId())
-				.build();
+		if (item == null) {
+			return null;
+		}
+		ParticipationItemPartial itemPartial = participationLifecycleService.getParticipationItemPartial(item.getId());
+		itemPartial.setLastModifiedUserId(item.getLastModifiedUserId());
+		return itemPartial;
 	}
 }

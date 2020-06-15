@@ -20,49 +20,47 @@ toc::[]
 -- SHOW CURRENT TABLE VALUES FOR TEST FIXTURES
 -------------------------------------------------
 
--- There may not be a simple way to query the temp table for product ownership change.
--- select * from ##participationOwnerChange;
+-- show owner changes data from most recent activation or deactivation
+select * from tempData.participation.participationOwnerChange
+where pp.participationId >= 50000;
 
 SELECT * FROM mmc.product.participationProduct AS pp
-where pp.participationId in (50000, 50001);
+where pp.participationId >= 50000;
 
 select * from mmc.product.participationCalculatedDiscount
-where participationId in (50000, 50001);
+where participationId >= 50000;
 
 select * from mmc.product.participationItemPartial
-where participationId in (50000, 50001);
+where participationId >= 50000;
 
 SELECT plos.*
 FROM mmc.product.participationLastOnSale AS plos
 JOIN mmc.product.participationProduct AS pp
     ON pp.uniqueId = plos.uniqueId
-    AND pp.participationId IN (50000, 50001)
 JOIN mmc.product.participationCalculatedDiscount AS discount
     ON discount.participationId = pp.participationId
     AND discount.pricebookId = plos.pricebookId
-;
+WHERE pp.participationId >= 50000;
 
 SELECT DISTINCT pbcost.*
 FROM mmc.dbo.pricebook_cost AS pbcost
 JOIN mmc.product.participationProduct AS pp
     ON pp.uniqueId = pbcost.uniqueId
-    AND pp.participationId IN (50000, 50001)
 JOIN mmc.product.participationCalculatedDiscount AS discount
     ON discount.participationId = pp.participationId
     AND discount.pricebookId = pbcost.pricebookId
-ORDER BY pbcost.uniqueId, pbcost.pricebookId
-;
+WHERE pp.participationId >= 50000
+ORDER BY pbcost.uniqueId, pbcost.pricebookId;
 
 SELECT DISTINCT lbPrice.*
 FROM mmc.product.latestBasePrice AS lbPrice
 JOIN mmc.product.participationProduct AS pp
     ON pp.uniqueId = lbPrice.uniqueId
-    AND pp.participationId IN (50000, 50001)
 JOIN mmc.product.participationCalculatedDiscount AS discount
     ON discount.participationId = pp.participationId
     AND discount.pricebookId = lbPrice.pricebookId
-ORDER BY lbPrice.uniqueId, lbPrice.pricebookId
-;
+WHERE pp.participationId >= 50000
+ORDER BY lbPrice.uniqueId, lbPrice.pricebookId;
 
 SELECT * FROM mmc.product.sale
 WHERE uniqueId IN (1, 2, 3, 4);

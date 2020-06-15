@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationDao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ContentErrorMessage;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -33,28 +33,28 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	private final Map<ParticipationContentType, ParticipationLifecycle> lifecyclesByContentType;
 
 	private final ParticipationEngineSettings participationEngineSettings;
-	private final ParticipationDao participationDao;
+	private final ParticipationCoreDao participationCoreDao;
 
 	public ParticipationLifecycleServiceImpl(
 			ParticipationEngineSettings participationEngineSettings,
-			ParticipationDao participationDao,
+			ParticipationCoreDao participationCoreDao,
 			ParticipationLifecycle... lifecycles
 	) {
 		this.participationEngineSettings = participationEngineSettings;
-		this.participationDao = participationDao;
+		this.participationCoreDao = participationCoreDao;
 		lifecyclesByContentType = Arrays.stream(lifecycles)
 				.collect(Collectors.toMap(ParticipationLifecycle::getContentType, lifecycle -> lifecycle));
 	}
 
 	@Override
 	public ParticipationItemPartial getNextParticipationPendingActivation(Date processingDate) {
-		return participationDao.getNextParticipationPendingActivation(
+		return participationCoreDao.getNextParticipationPendingActivation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
 	@Override
 	public ParticipationItemPartial getNextExpiredParticipation(Date processingDate) {
-		return participationDao.getNextExpiredParticipation(
+		return participationCoreDao.getNextExpiredParticipation(
 				processingDate, participationEngineSettings.getTestModeMinParticipationId());
 	}
 
@@ -72,6 +72,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
 
+		//calls publish in the correct subclass, ParticipationV1Lifecycle, based on contentTypeId
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
 
@@ -90,9 +91,9 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== activating participation {} ====", participationId);
 
-		int affectedRows = participationDao.setParticipationIsActive(participationId, true);
+		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, true);
 
-		// (1) Apply effect-specific queries for activating this Participation. Perform set up
+		// (1) Apply non-effect-specific queries for activating this Participation. Perform set up
 		// to call deactivateEffects() and activateEffects().
 		affectedRows += activatingLifecycle.activate(itemPartial, processingDate);
 
@@ -120,7 +121,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
-		int affectedRows = participationDao.setParticipationIsActive(participationId, false);
+		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, false);
 
 		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
@@ -130,7 +131,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
 		// (3) Apply effects for all Participation types, for entities being dis-owned by the
-		// deactivating Participation that are becoming owned by other active Participations.
+		// deactivating Participation that are becoming owned by other active Participations
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
@@ -145,6 +146,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * deleting effect-specific records it added when it published the Participation.
 	 */
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
+		LOG.debug("==== unpublishing participation {} ====", itemPartial.getParticipationId());
 		int rowsAffected = getLifecycle(itemPartial.getContentTypeId()).unpublish(itemPartial, processingDate);
 		LOG.debug("{}: {} total rows deleted to unpublish participation", itemPartial.getParticipationId(), rowsAffected);
 		return rowsAffected;
@@ -152,7 +154,12 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 	@Override
 	public Boolean getParticipationIsActive(Integer participationId) {
-		return participationDao.getParticipationIsActive(participationId);
+		return participationCoreDao.getParticipationIsActive(participationId);
+	}
+
+
+	public ParticipationItemPartial getParticipationItemPartial(int participationId) {
+		return participationCoreDao.getParticipationItemPartial(participationId);
 	}
 
 	/**
@@ -187,14 +194,13 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * for that content type was registered in lifecyclesByContentType.
 	 */
 	private ParticipationLifecycle getLifecycle(Integer contentTypeId) {
-		ParticipationContentType defaultedContentTypeId = contentTypeId == null
-				? defaultContentType
-				: ParticipationContentType.fromContentTypeId(contentTypeId);
-
-		if (lifecyclesByContentType.containsKey(defaultedContentTypeId)) {
-			return lifecyclesByContentType.get(defaultedContentTypeId);
+		if (contentTypeId != null) {
+			ParticipationContentType contentType = ParticipationContentType.fromContentTypeId(contentTypeId);
+			if (lifecyclesByContentType.containsKey(contentType)) {
+				return lifecyclesByContentType.get(contentType);
+			}
 		}
-
 		throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 	}
+
 }

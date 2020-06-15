@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.feipriceupdate.data;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -87,6 +88,11 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 	@Override
 	public Double getPreferredVendorCost(Integer uniqueId) {
 		return feiPriceUpdateDao.getPreferredVendorCost(uniqueId);
+	}
+
+	@Override
+	public List<Integer> getFeiPromoProductUniqueIds() {
+		return feiPriceUpdateDao.getFeiPromoProductUniqueIds();
 	}
 
 
