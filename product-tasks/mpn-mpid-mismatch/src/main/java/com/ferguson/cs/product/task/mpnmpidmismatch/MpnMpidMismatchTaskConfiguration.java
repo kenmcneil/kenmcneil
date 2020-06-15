@@ -85,7 +85,6 @@ public class MpnMpidMismatchTaskConfiguration {
 	@Bean
 	public Step createMpnMpidMissingReport(
 			MyBatisCursorItemReader<MpnMpidProductItem> mpmMpidMissingItemReader,
-			//MpnMpidMismatchItemProcessor mpnMpidMismatchItemProcessor,
 			FlatFileItemWriter<MpnMpidProductItem> mpmMpidMissingReportWriter) {
 		return taskBatchJobFactory.getStepBuilder("writeMpnMpidMissinghData").<MpnMpidProductItem, MpnMpidProductItem>chunk(1000)
 				.reader(mpmMpidMissingItemReader).writer(mpmMpidMissingReportWriter).build();

@@ -13,6 +13,5 @@ public class MdmProductSearchResultView implements Serializable {
 	private static final long serialVersionUID = 3L;
 
 	private List<MdmProductSearchResult> mdmProductSearchResults;
-	//private Duration took;
 	private Integer total;
 }
