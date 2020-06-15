@@ -2,6 +2,7 @@ package com.ferguson.cs.product.task.wiser.dao.reporter;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,4 +20,5 @@ public interface WiserReporterMapper {
 	WiserPerformanceData getWiserPerformanceData(Date date);
 	List<ProductRevenueCategory> getProductRevenueCategorization();
 	List<WiserSale> getParticipationProductSales(@Param("date") Date date);
+	Double getCurrentPrice(@Param("uniqueId") Integer uniqueId,@Param("pricebookId") Integer pricebookId);
 }

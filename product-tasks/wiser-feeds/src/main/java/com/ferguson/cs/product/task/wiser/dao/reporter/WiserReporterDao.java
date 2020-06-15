@@ -22,4 +22,13 @@ public interface WiserReporterDao {
 	 * @return
 	 */
 	List<WiserSale> getParticipationProductSales(Date date);
+
+	/**
+	 * Gets the current price of a product
+	 *
+	 * @param uniqueId
+	 * @param pricebookId
+	 * @return price of given product in given pricebook
+	 */
+	Double getCurrentPrice(Integer uniqueId, Integer pricebookId);
 }

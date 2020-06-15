@@ -119,4 +119,9 @@ public class WiserServiceImpl implements WiserService {
 	public void populateProductRevenueCategorization() {
 		wiserDao.populateProductRevenueCategorization();
 	}
+
+	@Override
+	public Double getCurrentPrice(Integer uniqueId, Integer pricebookId) {
+		return wiserReporterDao.getCurrentPrice(uniqueId,pricebookId);
+	}
 }

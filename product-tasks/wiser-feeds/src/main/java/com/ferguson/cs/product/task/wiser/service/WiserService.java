@@ -74,4 +74,12 @@ public interface WiserService {
 	 * Populate product revenue categorization table
 	 */
 	void populateProductRevenueCategorization();
+
+	/**
+	 * Gets current price for product in pricebook
+	 * @param uniqueId
+	 * @param pricebookId
+	 * @return price in pricebook for product
+	 */
+	Double getCurrentPrice(Integer uniqueId, Integer pricebookId);
 }

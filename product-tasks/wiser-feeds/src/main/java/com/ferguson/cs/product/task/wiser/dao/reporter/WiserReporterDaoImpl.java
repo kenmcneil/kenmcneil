@@ -30,4 +30,9 @@ public class WiserReporterDaoImpl implements WiserReporterDao {
 	public List<WiserSale> getParticipationProductSales(Date date) {
 		return wiserReporterMapper.getParticipationProductSales(date);
 	}
+
+	@Override
+	public Double getCurrentPrice(Integer uniqueId, Integer pricebookId) {
+		return wiserReporterMapper.getCurrentPrice(uniqueId,pricebookId);
+	}
 }
