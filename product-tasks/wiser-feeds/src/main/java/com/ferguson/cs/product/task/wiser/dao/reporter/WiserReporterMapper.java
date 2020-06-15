@@ -2,7 +2,6 @@ package com.ferguson.cs.product.task.wiser.dao.reporter;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
