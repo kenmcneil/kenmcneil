@@ -48,4 +48,9 @@ public interface ParticipationLifecycleService {
 	 * Determine if a participation is currently active.
 	 */
 	Boolean getParticipationIsActive(Integer participationId);
+
+	/**
+	 * Get a participation partial record
+	 */
+	ParticipationItemPartial getParticipationItemPartial(int participationId);
 }

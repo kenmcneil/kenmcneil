@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.feipriceupdate.data;
 
 import java.util.Date;
+import java.util.List;
 
 import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceType;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
@@ -98,5 +99,11 @@ public interface FeiPriceUpdateService {
 	 * @Return Double
 	 */
 	Double getPreferredVendorCost(Integer uniqueId);
+
+	/**
+	 * Retrieve a list of product uniqueId's that are on promo
+	 * @Returns List<Integer>
+	 */
+	List<Integer> getFeiPromoProductUniqueIds();
 
 }

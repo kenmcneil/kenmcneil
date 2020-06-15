@@ -1,12 +1,12 @@
-package com.ferguson.cs.product.stream.participation.engine.test.lifecycle;
+package com.ferguson.cs.product.stream.participation.engine.test.effects;
 
 import java.util.Date;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 
-import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationTestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
  * TODO: Check ownership priority when the start dates are exactly the same in two overlapping Participations.
  */
 @RequiredArgsConstructor
-public class SaleIdEffectTestLifecycle implements ParticipationTestLifecycle {
+public class SaleIdTestEffectLifecycle implements ParticipationTestEffectLifecycle {
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
