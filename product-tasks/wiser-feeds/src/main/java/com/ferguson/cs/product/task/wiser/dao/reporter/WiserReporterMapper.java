@@ -19,4 +19,5 @@ public interface WiserReporterMapper {
 	WiserPerformanceData getWiserPerformanceData(Date date);
 	List<ProductRevenueCategory> getProductRevenueCategorization();
 	List<WiserSale> getParticipationProductSales(@Param("date") Date date);
+	Double getCurrentPrice(@Param("uniqueId") Integer uniqueId,@Param("pricebookId") Integer pricebookId);
 }

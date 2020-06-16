@@ -15,6 +15,10 @@ public class WiserFeedSettings {
 	private String ftpFolder;
 	private String ftpOutputFolder;
 	private String fileDownloadLocation;
+	private Double priceMinPercentDifference;
+	private Double priceMaxPercentDifference;
+	private Double priceMinDifference;
+	private Double priceMaxDifference;
 
 	public String getTemporaryLocalFilePath() {
 		return temporaryLocalFilePath;
@@ -86,5 +90,37 @@ public class WiserFeedSettings {
 
 	public void setFileDownloadLocation(String fileDownloadLocation) {
 		this.fileDownloadLocation = fileDownloadLocation;
+	}
+
+	public Double getPriceMinPercentDifference() {
+		return priceMinPercentDifference;
+	}
+
+	public void setPriceMinPercentDifference(Double priceMinPercentDifference) {
+		this.priceMinPercentDifference = priceMinPercentDifference;
+	}
+
+	public Double getPriceMaxPercentDifference() {
+		return priceMaxPercentDifference;
+	}
+
+	public void setPriceMaxPercentDifference(Double priceMaxPercentDifference) {
+		this.priceMaxPercentDifference = priceMaxPercentDifference;
+	}
+
+	public Double getPriceMinDifference() {
+		return priceMinDifference;
+	}
+
+	public void setPriceMinDifference(Double priceMinDifference) {
+		this.priceMinDifference = priceMinDifference;
+	}
+
+	public Double getPriceMaxDifference() {
+		return priceMaxDifference;
+	}
+
+	public void setPriceMaxDifference(Double priceMaxDifference) {
+		this.priceMaxDifference = priceMaxDifference;
 	}
 }

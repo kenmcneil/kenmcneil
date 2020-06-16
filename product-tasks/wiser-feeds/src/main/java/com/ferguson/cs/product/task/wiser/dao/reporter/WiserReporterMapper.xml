@@ -361,4 +361,13 @@
 		mmc.product.participationCalculatedDiscount AS d
 		ON d.participationId = pp.participationId
 	</select>
+
+
+	<select id="getCurrentPrice" parameterType="map" resultType="double">
+		SELECT pbc.Cost FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
+		WHERE pbc.UniqueId = #{uniqueId}
+		AND pbc.PricebookId = #{pricebookId}
+	</select>
+
+
 </mapper>
