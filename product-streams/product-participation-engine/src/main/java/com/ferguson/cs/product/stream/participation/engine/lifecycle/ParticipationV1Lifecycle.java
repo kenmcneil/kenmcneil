@@ -145,6 +145,10 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products disowned from other participations", participationId, rowsAffected);
 
+		rowsAffected = participationCoreDao.activateAndDeactivateProductSaleIds();
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
+
 		// Update modified date on each product modified.
 		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
 		totalRows += rowsAffected;
@@ -163,15 +167,8 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		// This is also called in ParticipationItemizedV1Lifecycle.activateEffects, so we're calling
-		// the sale id query twice. The query does not filter by its Participation type, so each call will
-		// update all products in the change table. No harm but possibly confusing and less efficient.
-		int rowsAffected = participationCoreDao.activateProductSaleIds();
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids set", participationId, rowsAffected);
-
 		// Activate any new calculated discounts.
-		rowsAffected = participationV1Dao.applyNewCalculatedDiscounts(processingDate, userId,
+		int rowsAffected = participationV1Dao.applyNewCalculatedDiscounts(processingDate, userId,
 				participationEngineSettings.getCoolOffPeriod().toMinutes());
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices discounted by calculated discounts", participationId, rowsAffected);
@@ -185,9 +182,6 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	 *
 	 * Apply queries specific to sale id and calculated discount deactivation. All queries used here are filtered to the uniqueIds
 	 * in change table rows where newParticipationId is not null.
-	 *
-	 * TODO: add the filtering as part of the work for itemized discounts ... "and the uniqueId is in
-	 *      a Participation of this type (participation@1)."
 	 */
 	@Override
 	public int deactivate(ParticipationItemPartial itemPartial, Date processingDate) {
@@ -204,6 +198,10 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(participationId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} products with new participation ownership", participationId, rowsAffected);
+
+		rowsAffected = participationCoreDao.activateAndDeactivateProductSaleIds();
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} product sale ids updated", participationId, rowsAffected);
 
 		// Update modified date on each product modified.
 		rowsAffected = participationCoreDao.updateProductModifiedDates(processingDate, userId);
@@ -223,15 +221,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		int userId = getUserId(itemPartial);
 		int totalRows = 0;
 
-		// Set saleIds for products becoming un-owned to 0.
-		// This is also called in ParticipationItemizedV1Lifecycle.deactivateEffects, so we're calling
-		// the sale id query twice. The query does not filter by its Participation type, so each call will
-		// update all products in the change table. No harm but possibly confusing and less efficient.
-		int rowsAffected = participationCoreDao.deactivateProductSaleIds();
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} product sale ids disowned", participationId, rowsAffected);
-
-		rowsAffected = participationV1Dao.updateLastOnSaleBasePrices(processingDate);
+		int rowsAffected = participationV1Dao.updateLastOnSaleBasePrices(processingDate);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
 

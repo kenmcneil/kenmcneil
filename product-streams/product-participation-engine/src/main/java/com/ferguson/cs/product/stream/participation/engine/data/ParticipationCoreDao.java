@@ -62,16 +62,10 @@ public interface ParticipationCoreDao {
 	int removeProductOwnershipForOldOwners(int participationId);
 
 	/**
-	 * Update saleIds for products becoming newly-owned.
+	 * Update saleIds for products becoming newly-owned or unowned.
 	 * @return The number of records modified.
 	 */
-	int activateProductSaleIds();
-
-	/**
-	 * Set saleIds for products becoming un-owned to 0.
-	 * @return The number of records modified.
-	 */
-	int deactivateProductSaleIds();
+	int activateAndDeactivateProductSaleIds();
 
 	/**
 	 * Update the modified date for any product that was modified, to trigger product storage update.

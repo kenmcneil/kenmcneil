@@ -30,7 +30,7 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_basicCalculatedDiscountEffect() {
-		int[] uniqueIds = getSafeTestUniqueIds();
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)

@@ -35,7 +35,6 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	public void engine_publish_unpublish() {
 		// Make fixture participation with no schedule and no effects.
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.participationId(50000)
 				.saleId(999)
 				.build();
 
@@ -56,7 +55,6 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 	@Test
 	public void engine_basicScheduling() {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
-				.participationId(50000)
 				.scheduleByDays(1, 3)
 				.build();
 

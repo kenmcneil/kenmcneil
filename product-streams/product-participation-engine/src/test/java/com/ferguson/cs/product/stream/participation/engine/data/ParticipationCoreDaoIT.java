@@ -13,24 +13,15 @@ public class ParticipationCoreDaoIT extends ParticipationEngineITBase {
 
 	@Test
 	public void setParticipationIsActive_getParticipationIsActive() {
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder().saleId(2020).build();
+		ParticipationItemFixture p2 = ParticipationItemFixture.builder().saleId(3030).build();
+		participationTestUtilities.insertParticipationFixtures(p1, p2);
 
-		participationTestUtilities.insertParticipationFixture(
-				ParticipationItemFixture.builder()
-						.participationId(52000)
-						.saleId(2020)
-						.build());
+		participationCoreDao.setParticipationIsActive(p1.getParticipationId(), false);
+		participationCoreDao.setParticipationIsActive(p2.getParticipationId(), true);
 
-		participationTestUtilities.insertParticipationFixture(
-				ParticipationItemFixture.builder()
-						.participationId(53000)
-						.saleId(3030)
-						.build());
-
-		participationCoreDao.setParticipationIsActive(52000, false);
-		participationCoreDao.setParticipationIsActive(53000, true);
-
-		Boolean isInactiveActivated = participationCoreDao.getParticipationIsActive(52000);
-		Boolean isActiveActivated = participationCoreDao.getParticipationIsActive(53000);
+		Boolean isInactiveActivated = participationCoreDao.getParticipationIsActive(p1.getParticipationId());
+		Boolean isActiveActivated = participationCoreDao.getParticipationIsActive(p2.getParticipationId());
 		Assertions.assertThat(isInactiveActivated).isFalse();
 		Assertions.assertThat(isActiveActivated).isTrue();
 	}

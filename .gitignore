@@ -42,3 +42,6 @@ coverage
 .springBeans
 **/.factorypath
 *.factorypath
+
+# do not add temporary files needed for participation-engine load testing
+product-streams/product-participation-engine/load-testing/itemized-discounts.csv

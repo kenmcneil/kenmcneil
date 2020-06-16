@@ -24,6 +24,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.CollectionUtils;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -175,12 +176,15 @@ public class ParticipationTestUtilities {
 
 	private final JdbcTemplate jdbcTemplate;
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
+	private final int firstTestParticipationId;
+	private final int[] TEST_UNIQUE_IDS = {100, 101, 102, 103, 104, 105};
 	private int nextTestParticipationId;
 
-	public ParticipationTestUtilities(JdbcTemplate jdbcTemplate) {
+	public ParticipationTestUtilities(ParticipationEngineSettings participationEngineSettings, JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+		this.firstTestParticipationId = participationEngineSettings.getTestModeMinParticipationId();
+		this.nextTestParticipationId = firstTestParticipationId;
 	}
 
 	/**
@@ -199,10 +203,11 @@ public class ParticipationTestUtilities {
 	}
 
 	/**
-	 * Set initial participation id to given value.
+	 * Returns a new test participation fixture id. Participation ids are not auto ids in the
+	 * participationItemPartial table.
 	 */
-	public void setInitialParticipationId(int id) {
-		nextTestParticipationId = id;
+	public int getFirstTestParticipationId() {
+		return firstTestParticipationId;
 	}
 
 	/**
@@ -211,6 +216,14 @@ public class ParticipationTestUtilities {
 	 */
 	public int getNextTestParticipationId() {
 		return nextTestParticipationId++;
+	}
+
+	/**
+	 * Return list of discontinued product unique ids that won't be used in real life. These probably won't be
+	 * in the participationProduct table already when tests run.
+	 */
+	public int[] getSafeTestUniqueIds() {
+		return TEST_UNIQUE_IDS;
 	}
 
 	/**
@@ -307,6 +320,12 @@ public class ParticipationTestUtilities {
 		}
 	}
 
+	public void insertParticipationFixtures(ParticipationItemFixture ...fixtures) {
+		for (ParticipationItemFixture fixture : fixtures) {
+			insertParticipationFixture(fixture);
+		}
+	}
+
 	public Integer getParticipationCalculatedDiscountCount(int participationId) {
 		return jdbcTemplate.queryForObject(SELECT_PARTICIPATION_CALCULATED_DISCOUNT_COUNT_BY_PARTICIPATIONID,
 				Integer.class, participationId);
@@ -359,9 +378,13 @@ public class ParticipationTestUtilities {
 	}
 
 	public List<ProductSaleParticipation> getProductSaleParticipations(List<Integer> uniqueIds) {
-		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
-		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
-				namedParameters, BeanPropertyRowMapper.newInstance(ProductSaleParticipation.class));
+		return uniqueIds.size() == 0
+				? Collections.emptyList()
+				: namedParameterJdbcTemplate.query(
+						SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
+						new MapSqlParameterSource("uniqueIds", uniqueIds),
+						BeanPropertyRowMapper.newInstance(ProductSaleParticipation.class)
+				);
 	}
 
 	public ProductSaleParticipation getProductSaleParticipation(int uniqueId) {

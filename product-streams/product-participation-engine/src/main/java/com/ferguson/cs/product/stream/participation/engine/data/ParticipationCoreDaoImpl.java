@@ -10,16 +10,10 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 @Repository
 public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
-	private ParticipationCoreMapper participationCoreMapper;
-	private ParticipationV1Dao participationV1Dao;
-	private ParticipationItemizedV1Dao participationItemizedV1Dao;
+	private final ParticipationCoreMapper participationCoreMapper;
 
-	public ParticipationCoreDaoImpl(ParticipationCoreMapper participationCoreMapper,
-									ParticipationV1Dao participationV1Dao,
-									ParticipationItemizedV1Dao participationItemizedV1Dao) {
+	public ParticipationCoreDaoImpl(ParticipationCoreMapper participationCoreMapper) {
 		this.participationCoreMapper = participationCoreMapper;
-		this.participationV1Dao = participationV1Dao;
-		this.participationItemizedV1Dao = participationItemizedV1Dao;
 	}
 
 	@Override
@@ -68,13 +62,8 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 	}
 
 	@Override
-	public int activateProductSaleIds() {
-		return participationCoreMapper.activateProductSaleIds();
-	}
-
-	@Override
-	public int deactivateProductSaleIds() {
-		return participationCoreMapper.deactivateProductSaleIds();
+	public int activateAndDeactivateProductSaleIds() {
+		return participationCoreMapper.activateAndDeactivateProductSaleIds();
 	}
 
 	@Override
