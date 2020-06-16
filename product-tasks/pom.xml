@@ -11,6 +11,7 @@
 		<module>dynamic-yield-feeds</module>
 		<module>fei-price-feed</module>
 		<module>fei-price-update</module>
+		<module>mpn-mpid-mismatch</module>
 	</modules>
 	
 	<parent>
