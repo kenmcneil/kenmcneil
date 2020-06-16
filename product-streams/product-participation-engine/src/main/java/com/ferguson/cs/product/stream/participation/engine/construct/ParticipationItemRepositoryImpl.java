@@ -73,7 +73,6 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 			int participationId,
 			ParticipationItemStatus status,
 			ParticipationItemUpdateStatus updateStatus,
-			int userId,
 			Date processingDate
 	) {
 		Update update = new Update();
