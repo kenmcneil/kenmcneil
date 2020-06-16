@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
+import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 
@@ -88,8 +89,11 @@ public class ParticipationItemFixture {
 	private List<LifecycleState> stateLog = new ArrayList<>();
 
 	public String toString() {
-		return String.format("Participation(id(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s)",
+		return String.format("Participation(id(%s), type(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s)",
 				participationId,
+				contentType == ParticipationContentType.PARTICIPATION_V1
+						? (CollectionUtils.isEmpty(uniqueIds) ? "SaleID" : "Calc")
+						: "Line",
 				saleId,
 				StringUtils.join(uniqueIds, ", "),
 				startDateOffsetDays != null ? startDateOffsetDays : startDate,
@@ -155,7 +159,6 @@ public class ParticipationItemFixture {
 
 		/**
 		 * For use in tests to populate itemized discounts. Values must not be null.
-		 * @return
 		 */
 		public ParticipationItemFixtureBuilder itemizedDiscounts(ItemizedDiscountFixture... discountFixtures) {
 			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {

@@ -142,38 +142,20 @@
 			owner.isOwner = 1
 	</update>
 
-	<update id="activateProductSaleIds">
+	<update id="activateAndDeactivateProductSaleIds">
 		UPDATE
 			sale
 		SET
-			sale.saleId = p.saleId,
-			sale.participationId = p.participationId
+			sale.saleId = COALESCE(p.saleId, 0),
+			sale.participationId = COALESCE(p.participationId, 0)
 		FROM
 			mmc.product.sale AS sale
 		JOIN
 			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = sale.uniqueId
-		JOIN
+		LEFT JOIN
 			mmc.product.participationItemPartial AS p
 			ON p.participationId = oc.newParticipationId
-	</update>
-
-	<update id="deactivateProductSaleIds">
-		UPDATE
-			sale
-		SET
-			sale.saleId = 0,
-			sale.participationId = 0
-		FROM
-			mmc.product.sale AS sale
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = sale.uniqueId
-		JOIN
-			mmc.product.participationItemPartial AS p
-			ON p.participationId = oc.oldParticipationId
-		WHERE
-			oc.newParticipationId IS NULL
 	</update>
 
 	<update id="updateProductModifiedDates" parameterType="map">

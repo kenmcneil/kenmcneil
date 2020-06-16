@@ -26,7 +26,7 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_basicSaleIdEffect() {
-		int[] uniqueIds = getSafeTestUniqueIds();
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2020)
@@ -52,7 +52,7 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 	 */
 	@Test
 	public void engine_overlappingSaleIdEffect() {
-		int[] uniqueIds = getSafeTestUniqueIds();
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_V1)
 				.saleId(2000)
@@ -77,5 +77,56 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 		verifyParticipationOwnsExactly(p1, uniqueIds[0], uniqueIds[1]);
 		advanceToDay(11);
 		verifySimpleLifecycleLog(p1, p2);
+	}
+
+	/**
+	 * Scenario: publish two longer p1, p2, and shorter P3 that overlaps p1 and p2. P1 and p2 are calculated discounts,
+	 * and p3 is itemized discounts.
+	 */
+	@Test
+	public void engine_overlappingSaleIdEffects() {
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
+
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
+				.saleId(100000)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
+				.scheduleByDays(1, 9)
+				.build();
+
+		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V1)
+				.saleId(100001)
+				.uniqueIds(uniqueIds[2], uniqueIds[3])
+				.scheduleByDays(0, 10)
+				.build();
+
+		ParticipationItemFixture p3 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
+				.saleId(100002)
+				.itemizedDiscounts(
+						itemizedDiscount(uniqueIds[1], 200.00, 150.00),
+						itemizedDiscount(uniqueIds[3], 400.00, 350.00)
+				)
+				.scheduleByDays(3, 7)
+				.build();
+
+		testLifecycles(saleIdTestEffectLifecycle);
+
+		createUserPublishEvent(p1);
+		createUserPublishEvent(p2);
+		createUserPublishEvent(p3);
+
+		advanceToDay(4);
+		verifyParticipationOwnsExactly(p1, uniqueIds[0]);
+		verifyParticipationOwnsExactly(p2, uniqueIds[2]);
+		verifyParticipationOwnsExactly(p3, uniqueIds[1], uniqueIds[3]);
+
+		advanceToDay(8);
+		verifyParticipationOwnsExactly(p1, uniqueIds[0], uniqueIds[1]);
+		verifyParticipationOwnsExactly(p2, uniqueIds[2], uniqueIds[3]);
+
+		advanceToDay(11);
+		verifySimpleLifecycleLog(p1, p2, p3);
 	}
 }

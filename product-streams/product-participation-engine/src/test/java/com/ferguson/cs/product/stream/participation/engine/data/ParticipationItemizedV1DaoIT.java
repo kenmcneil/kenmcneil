@@ -19,35 +19,33 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 	public ParticipationItemizedV1Dao participationItemizedV1Dao;
 
 	/**
-	 * composite test for the following dao methods:
+	 * Composite test for the following dao methods:
 	 *      updateOwnerChangesForActivation(Integer participationId)
 	 *      addProductOwnershipForNewOwners(Integer participationId)
 	 *      activateProductSaleIds(Integer participationId)
 	 *      applyNewItemizedDiscounts(Date processingDate, Integer userId)
 	 *      updateProductModifiedDates(Date processingDate, Integer userId)
 	 */
-
 	@Test
 	public void participation_owns_products_with_discounts() {
-		int[] uniqueIds = getSafeTestUniqueIds();
-		participationTestUtilities.insertParticipationFixture(
-				ParticipationItemFixture.builder()
-						.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
-						.participationId(53000)
-						.saleId(3030)
-						.isActive(true)
-						.itemizedDiscounts(
-								itemizedDiscount(uniqueIds[0], 200.00, 100.00),
-								itemizedDiscount(uniqueIds[1], 250.00, 150.00)
-						)
-						.build());
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
+				.saleId(3030)
+				.isActive(true)
+				.itemizedDiscounts(
+						itemizedDiscount(uniqueIds[0], 200.00, 100.00),
+						itemizedDiscount(uniqueIds[1], 250.00, 150.00)
+				)
+				.build();
+		participationTestUtilities.insertParticipationFixture(p1);
 
-		int rowsAffected = participationCoreDao.setParticipationIsActive(53000, true);
+		int rowsAffected = participationCoreDao.setParticipationIsActive(p1.getParticipationId(), true);
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
-		participationCoreDao.updateOwnerChangesForActivation(53000);
-		rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(53000);
+		participationCoreDao.updateOwnerChangesForActivation(p1.getParticipationId());
+		rowsAffected = participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
-		rowsAffected = participationCoreDao.activateProductSaleIds();
+		rowsAffected = participationCoreDao.activateAndDeactivateProductSaleIds();
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
 		rowsAffected = participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, 15);
@@ -59,56 +57,55 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(uniqueIds[0]);
 		Assertions.assertThat(link.getSaleId()).isEqualTo(3030);
 
-		int calcDiscountsCount = participationTestUtilities.getParticipationItemizedDiscountCount(53000);
+		int calcDiscountsCount = participationTestUtilities.getParticipationItemizedDiscountCount(p1.getParticipationId());
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(4);
 	}
 
 	/**
-	 * composite test for the following dao methods:
+	 * Composite test for the following dao methods:
 	 *      takePricesOffSaleAndApplyPendingBasePriceUpdates(Integer userId)
 	 *      updateOwnerChangesForDeactivation(Integer participationId)
 	 */
 	@Test
 	public void participation_disowns_products_with_discounts() {
-		int[] uniqueIds = getSafeTestUniqueIds();
-		participationTestUtilities.insertParticipationFixture(
-				ParticipationItemFixture.builder()
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
-						.participationId(53000)
-						.saleId(3030)
-						.isActive(false)
-						.uniqueIds(uniqueIds[0], uniqueIds[1])
-						.itemizedDiscounts(
-								itemizedDiscount(uniqueIds[0], 200.00, 100.00),
-								itemizedDiscount(uniqueIds[1], 250.00, 150.00)
-						)
-						.build());
+				.saleId(3030)
+				.isActive(false)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
+				.itemizedDiscounts(
+						itemizedDiscount(uniqueIds[0], 200.00, 100.00),
+						itemizedDiscount(uniqueIds[1], 250.00, 150.00)
+				)
+				.build();
+		participationTestUtilities.insertParticipationFixture(p1);
 
-		participationCoreDao.setParticipationIsActive(53000, true);
-		participationCoreDao.updateOwnerChangesForActivation(53000);
-		participationCoreDao.addProductOwnershipForNewOwners(53000);
-		participationCoreDao.activateProductSaleIds();
+		participationCoreDao.setParticipationIsActive(p1.getParticipationId(), true);
+		participationCoreDao.updateOwnerChangesForActivation(p1.getParticipationId());
+		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
+		participationCoreDao.activateAndDeactivateProductSaleIds();
 		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
 		participationItemizedV1Dao.applyNewItemizedDiscounts(new Date(), 1, 15);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
 
-		participationCoreDao.setParticipationIsActive(53000, false);
-		participationCoreDao.updateOwnerChangesForDeactivation(53000);
-		participationCoreDao.addProductOwnershipForNewOwners(53000);
-		participationCoreDao.deactivateProductSaleIds();
+		participationCoreDao.setParticipationIsActive(p1.getParticipationId(), false);
+		participationCoreDao.updateOwnerChangesForDeactivation(p1.getParticipationId());
+		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
+		participationCoreDao.activateAndDeactivateProductSaleIds();
 		participationItemizedV1Dao.updateLastOnSaleBasePrices(new Date());
 		int rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
-		participationCoreDao.deleteParticipationProducts(53000);
-		participationItemizedV1Dao.deleteParticipationItemizedDiscounts(53000);
-		participationCoreDao.deleteParticipationItemPartial(53000);
+		participationCoreDao.deleteParticipationProducts(p1.getParticipationId());
+		participationItemizedV1Dao.deleteParticipationItemizedDiscounts(p1.getParticipationId());
+		participationCoreDao.deleteParticipationItemPartial(p1.getParticipationId());
 
 		// Check final state
 		ProductSaleParticipation link = participationTestUtilities.getProductSaleParticipation(uniqueIds[0]);
 		Assertions.assertThat(link.getSaleId()).isNotEqualTo(3030);
 
-		int calcDiscountsCount = participationTestUtilities.getParticipationItemizedDiscountCount(53000);
+		int calcDiscountsCount = participationTestUtilities.getParticipationItemizedDiscountCount(p1.getParticipationId());
 		Assertions.assertThat(calcDiscountsCount).isEqualTo(0);
 	}
 
@@ -118,7 +115,7 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 	 */
 	@Test
 	public void participation_test_coolOffPeriod_is_honored() {
-		int[] uniqueIds = getSafeTestUniqueIds();
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		int coolOffPeriodMinutes = 15;
 		//set los.saleDate to now, los.basePrice to some value A...
 		int pricebookId = 1;
@@ -127,21 +124,20 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 		participationTestUtilities.upsertParticipationLastOnSaleBase(pricebookId, uniqueId, new Date(), startingLASBasePrice);
 
 		//publish
-		participationTestUtilities.insertParticipationFixture(
-				ParticipationItemFixture.builder()
-						.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
-						.participationId(53000)
-						.saleId(3030)
-						.isActive(false)
-						.uniqueIds(uniqueId)
-						.itemizedDiscounts(
-								itemizedDiscount(uniqueIds[0], 200.00, 100.00)
-						)
-						.build());
-		participationCoreDao.setParticipationIsActive(53000, true);
-		participationCoreDao.updateOwnerChangesForActivation(53000);
-		participationCoreDao.addProductOwnershipForNewOwners(53000);
-		participationCoreDao.activateProductSaleIds();
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
+				.saleId(3030)
+				.isActive(false)
+				.uniqueIds(uniqueId)
+				.itemizedDiscounts(
+						itemizedDiscount(uniqueIds[0], 200.00, 100.00)
+				)
+				.build();
+		participationTestUtilities.insertParticipationFixture(p1);
+		participationCoreDao.setParticipationIsActive(p1.getParticipationId(), true);
+		participationCoreDao.updateOwnerChangesForActivation(p1.getParticipationId());
+		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
+		participationCoreDao.activateAndDeactivateProductSaleIds();
 
 		//set pbcost.basePrice to some value B...
 		Double startingPBCBasePrice = 120.00;
@@ -169,16 +165,15 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 
 	@Test
 	public void deleteParticipation() {
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.saleId(2020)
+				.isActive(false)
+				.build();
+		participationTestUtilities.insertParticipationFixture(p1);
 
-		ParticipationItemFixture values = new ParticipationItemFixture();
-		values.setParticipationId(50000);
-		values.setSaleId(2020);
-		values.setIsActive(false);
-		participationTestUtilities.insertParticipationFixture(values);
-
-		int rowsAffected = participationCoreDao.deleteParticipationProducts(50000)
-				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(50000)
-				+ participationCoreDao.deleteParticipationItemPartial(50000);
+		int rowsAffected = participationCoreDao.deleteParticipationProducts(p1.getParticipationId())
+				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(p1.getParticipationId())
+				+ participationCoreDao.deleteParticipationItemPartial(p1.getParticipationId());
 
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
 	}

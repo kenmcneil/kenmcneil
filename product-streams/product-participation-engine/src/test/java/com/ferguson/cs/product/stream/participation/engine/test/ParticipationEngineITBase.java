@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.test.BaseTest;
@@ -25,19 +26,14 @@ import com.ferguson.cs.test.utilities.spring.LazyInitBeanFactoryPostProcessor;
 @Import(ParticipationEngineITBase.BaseParticipationTestConfiguration.class)
 @Transactional
 public abstract class ParticipationEngineITBase extends BaseTest {
-	private final int[] TEST_UNIQUE_IDS = {100, 101, 102, 103, 104, 105};
-
-	@Resource
-	SqlSessionFactory sqlSessionFactory;
-
-	@Autowired
-	public ParticipationTestUtilities participationTestUtilities;
-
 	@TestConfiguration
 	public static class BaseParticipationTestConfiguration {
 		@Bean
-		public ParticipationTestUtilities participationTestUtilities(JdbcTemplate jdbcTemplate) {
-			return new ParticipationTestUtilities(jdbcTemplate);
+		public ParticipationTestUtilities participationTestUtilities(
+				ParticipationEngineSettings participationEngineSettings,
+				JdbcTemplate jdbcTemplate
+		) {
+			return new ParticipationTestUtilities(participationEngineSettings, jdbcTemplate);
 		}
 
 		@Bean
@@ -45,6 +41,12 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 			return new LazyInitBeanFactoryPostProcessor();
 		}
 	}
+
+	@Resource
+	SqlSessionFactory sqlSessionFactory;
+
+	@Autowired
+	public ParticipationTestUtilities participationTestUtilities;
 
 	@Before
 	public void before() {
@@ -69,13 +71,5 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 
 	public ItemizedDiscountFixture itemizedDiscount(int uniqueId, double pricebook1Price, double pricebook22Price) {
 		return new ItemizedDiscountFixture(uniqueId, pricebook1Price, pricebook22Price);
-	}
-
-	/**
-	 * Return list of discontinued product unique ids that won't be used in real life. These probably won't be
-	 * in the participationProduct table already when tests run.
-	 */
-	public int[] getSafeTestUniqueIds() {
-		return TEST_UNIQUE_IDS;
 	}
 }

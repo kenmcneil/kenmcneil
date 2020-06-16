@@ -170,10 +170,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// Default the simulated scenario start date.
 		originalSimulatedDate = new Date();
 		currentSimulatedDate = originalSimulatedDate;
-
-		// Start the participation ids used for text fixtures at the test-mode min id.
-		participationTestUtilities.setInitialParticipationId(
-				participationEngineSettings.getTestModeMinParticipationId());
 	}
 
 	public void testLifecycles(ParticipationTestEffectLifecycle... params) {
@@ -292,21 +288,28 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedUniqueIds));
 	}
 
+	public void logSaleIds(ParticipationItemFixture fixture) {
+		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
+		String ownedSaleIds = participationTestUtilities.getProductSaleParticipations(ownedUniqueIds).stream()
+				.map(psp -> "(" + psp.getUniqueId() + ": " + psp.getSaleId().toString() + ")")
+				.collect(Collectors.joining(", "));
+		System.out.println(fixture.getParticipationId() + " sale ids(" + ownedSaleIds + ")");
+	}
+
 	/**
 	 * Set up a variety of mocks and spies to enable simulating time and user events. Also
 	 * doAnswer is used to enable AOP-like behavior to call tests before and after
 	 * listeners.
 	 */
 	private void setupMocks() {
-		Integer minParticipationId = participationEngineSettings.getTestModeMinParticipationId();
-
 		// Replace polling the mongodb database with polling the scenarios's test queues.
+		// Restrict to only process Participation ids in the IT test range.
 		doAnswer(invocation -> pendingPublishParticipationQueue.poll())
 				.when(constructService)
-				.getNextPendingPublishParticipation(minParticipationId);
+				.getNextPendingPublishParticipation(participationTestUtilities.getFirstTestParticipationId());
 		doAnswer(invocation -> pendingUnpublishParticipationQueue.poll())
 				.when(constructService)
-				.getNextPendingUnpublishParticipation(minParticipationId);
+				.getNextPendingUnpublishParticipation(participationTestUtilities.getFirstTestParticipationId());
 
 		// Whenever a processing date is requested, return the simulated date.
 		doAnswer(invocation -> currentSimulatedDate).when(participationProcessor).getProcessingDate();

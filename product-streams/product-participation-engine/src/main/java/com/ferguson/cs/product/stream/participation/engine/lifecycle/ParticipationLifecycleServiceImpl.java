@@ -127,11 +127,11 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		// for calling activateEffects() and deactivateEffects().
 		affectedRows += deactivatingLifecycle.deactivate(itemPartial, processingDate);
 
-		// (2) Remove effects of the deactivating record from un-owned entities.
+		// (2) Remove effects of the deactivating record from the entities it owns.
 		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
-		// (3) Apply effects for all Participation types, for entities being dis-owned by the
-		// deactivating Participation that are becoming owned by other active Participations
+		// (3) Apply effects of any active Participations that are taking ownership of the entities
+		// owned by the deactivating record.
 		affectedRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);

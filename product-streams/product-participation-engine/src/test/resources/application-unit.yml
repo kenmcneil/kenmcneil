@@ -4,7 +4,7 @@ participation-engine:
   schedule-fixed-delay: -1
   schedule-initial-delay: -1
   test-mode-enabled: true
-  test-mode-min-participation-id: 50000
+  test-mode-min-participation-id: 100000
   cool-off-period: 15
 
 logging:

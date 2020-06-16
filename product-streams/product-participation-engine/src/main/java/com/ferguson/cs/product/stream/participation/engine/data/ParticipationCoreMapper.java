@@ -59,17 +59,11 @@ public interface ParticipationCoreMapper {
 
 	/**
 	 * Set the saleId of each product becoming owned to the saleId of the participation taking
-	 * ownership. This is uniqueIds in participationOwnerChange where newParticipationId is not null.
+	 * ownership -- where participationOwnerChange.newParticipationId is not null.
+	 * Set product sale ids to zero where there is no new owner (newParticipationId is null).
 	 * @return The number of records modified.
 	 */
-	int activateProductSaleIds();
-
-	/**
-	 * Set product sale ids to zero where there is no new owner. This is uniqueIds in
-	 * participationOwnerChange where oldParticipationId is not null and newParticipationId is null.
-	 * @return The number of records modified.
-	 */
-	int deactivateProductSaleIds();
+	int activateAndDeactivateProductSaleIds();
 
 	/**
 	 * Update product.modified to trigger product cache update.
