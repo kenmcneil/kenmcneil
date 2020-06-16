@@ -323,7 +323,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.PUBLISHED),
 					eq(ParticipationItemUpdateStatus.NEEDS_UPDATE),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -337,7 +338,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.PUBLISHED),
 					eq(ParticipationItemUpdateStatus.NEEDS_CLEANUP),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -351,7 +353,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.ARCHIVED),
 					isNull(),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -365,7 +368,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.DRAFT),
 					isNull(),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
