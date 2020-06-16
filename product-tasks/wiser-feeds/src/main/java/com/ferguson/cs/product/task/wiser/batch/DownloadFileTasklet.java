@@ -35,7 +35,7 @@ public class DownloadFileTasklet implements Tasklet {
 		fileDownloadRequest.setLocalFilePath(localFileName);
 
 		LOG.debug("Started downloading file: {} - To local file: {}",fileDownloadRequest.getRemoteFilePath(),fileDownloadRequest.getLocalFilePath());
-		//fileDownloadFunction.apply(fileDownloadRequest);
+		fileDownloadFunction.apply(fileDownloadRequest);
 		LOG.debug("Downloaded file");
 
 		return RepeatStatus.FINISHED;
