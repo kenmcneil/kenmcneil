@@ -11,19 +11,17 @@
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		SELECT DISTINCT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status
         FROM mmc.product.product product
         INNER JOIN mmc.product.status status
         ON product.statusId = status.id
         INNER JOIN mmc.product.family family
         ON product.familyId = family.id
         INNER JOIN mmc.product.containerType containerType
-        ON family.containerTypeId = containerType.id
-        INNER JOIN mmc.product.finish finish
-        ON product.finishId = finish.id
+		ON family.containerTypeId = containerType.id
         INNER JOIN mmc.dbo.Manufacturer manufacturer
         ON family.manufacturerId = manufacturer.ID
-        INNER JOIN mmc.product.feiMPID as MPID
+        INNER JOIN mmc.product.feiMPID AS MPID
         ON product.uniqueid = MPID.uniqueid
         INNER JOIN mmc.dbo.PriceBook_Cost pricebook
         ON product.uniqueId = pricebook.UniqueId
@@ -31,6 +29,7 @@
         ON product.uniqueId = pricingFeiWhitelist.productUniqueId
         WHERE pricebook.PriceBookId = 1
         AND status.status IN ('stock','nonstock')
+        AND containerType.type = 'product'
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
@@ -46,7 +45,7 @@
 		ON product.finishId = finish.id
 		INNER JOIN mmc.dbo.Manufacturer manufacturer
 		ON family.manufacturerId = manufacturer.ID
-		INNER JOIN mmc.product.feiMPID as MPID
+		INNER JOIN mmc.product.feiMPID AS MPID
 		ON product.uniqueid = MPID.uniqueid
 		INNER JOIN mmc.dbo.PriceBook_Cost_Log pricebookCostLog
 		ON product.uniqueId = pricebookCostLog.UniqueId
@@ -59,6 +58,7 @@
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New
+		AND containerType.type = 'product'
 		AND pricebook.Cost != pricebookCostLog.Cost_Old
 		<if test="lastRanDate != null">
 		AND pricebookCostLog.Update_DateTime &gt; #{lastRanDate}
@@ -79,7 +79,7 @@
 		ON product.finishId = finish.id
 		INNER JOIN mmc.dbo.Manufacturer manufacturer
 		ON family.manufacturerId = manufacturer.ID
-		INNER JOIN mmc.product.feiMPID as MPID
+		INNER JOIN mmc.product.feiMPID AS MPID
 		ON product.uniqueid = MPID.uniqueid
 		INNER JOIN mmc.dbo.PriceBook_Cost pricebook
 		ON product.uniqueId = pricebook.UniqueId
@@ -87,6 +87,27 @@
 		ON product.uniqueId = productMap.uniqueId
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
+	</select>
+
+	<select id="getPromoFeiPriceProducts" resultType="int">
+		SELECT DISTINCT feiOwned.productUniqueId FROM mmc.product.pricingfeiowned feiOwned
+    	INNER JOIN mmc.product.product product ON feiOwned.productuniqueid = product.uniqueid
+    	INNER JOIN mmc.product.status status ON product.statusId = status.id
+    	INNER JOIN mmc.product.feiMPID MPID ON feiOwned.productUniqueId = MPID.uniqueid
+   		INNER JOIN mmc.dbo.productpreferredvendor AS productPreferredVendor ON product.uniqueid = productPreferredVendor.productuniqueid
+    	INNER JOIN omc.dbo.vendor_cost vendorCost ON productPreferredVendor.productuniqueid = vendorCost.uniqueid AND productPreferredVendor.vendoruid = vendorCost.vendoruid
+    	INNER JOIN mmc.dbo.pricebook_cost pricebook ON product.uniqueid = pricebook.uniqueid
+		INNER JOIN mmc.product.participationItemPartial AS participation ON pricebook.participationId = participation.participationId
+		INNER JOIN mmc.product.participationProduct AS partProd ON pricebook.participationId = partProd.participationId AND product.uniqueId = partProd.uniqueId
+		INNER JOIN mmc.product.participationCalculatedDiscount AS discount ON pricebook.participationId = discount.participationId
+        LEFT JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist ON feiOwned.productUniqueId = pricingFeiWhitelist.productUniqueId
+    	WHERE pricingFeiWhitelist.productUniqueId IS NULL
+        AND vendorCost.pricedoptionid IS NULL
+		AND pricebook.PriceBookId = 1
+		AND status.status in ('stock','nonstock')
+    	AND participation.isActive = 1
+    	AND partProd.isOwner = 1
+    	AND discount.changeValue IS NOT NULL
 	</select>
 
 	<resultMap id="deprioritizedBrandViewMap" type="DeprioritizedBrandView">

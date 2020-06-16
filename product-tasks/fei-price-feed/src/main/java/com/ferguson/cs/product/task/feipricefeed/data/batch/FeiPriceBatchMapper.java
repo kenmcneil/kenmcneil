@@ -7,4 +7,6 @@ import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
 @Mapper
 public interface FeiPriceBatchMapper {
 	void updateFeiWhitelistPrice(FeiPriceData feiPriceData);
+
+	void insertFeiPromoWhitelistPrice(Integer productUniqueId);
 }
