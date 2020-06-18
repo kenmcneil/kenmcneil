@@ -4,14 +4,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class SetItemWriter<T> implements ItemWriter<T> {
 
-	private Set<T> writtenItems;
+	private final Set<T> writtenItems;
 
-	@Autowired
-	public void setWrittenItems(Set<T> writtenItems) {
+	public SetItemWriter(Set<T> writtenItems) {
 		this.writtenItems = writtenItems;
 	}
 

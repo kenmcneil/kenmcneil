@@ -18,6 +18,7 @@ import com.ferguson.cs.product.task.wiser.dao.reporter.WiserReporterDao;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
+import com.ferguson.cs.product.task.wiser.model.UniqueIdPricebookIdTuple;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
 import com.ferguson.cs.utilities.DateUtils;
@@ -123,5 +124,10 @@ public class WiserServiceImpl implements WiserService {
 	@Override
 	public Double getCurrentPrice(Integer uniqueId, Integer pricebookId) {
 		return wiserReporterDao.getCurrentPrice(uniqueId,pricebookId);
+	}
+
+	@Override
+	public Map<UniqueIdPricebookIdTuple, Double> getCurrentPriceData(List<Integer> uniqueIds, int partitionSize) {
+		return wiserReporterDao.getCurrentPriceData(uniqueIds,partitionSize);
 	}
 }

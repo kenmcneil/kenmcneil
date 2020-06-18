@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
+import com.ferguson.cs.product.task.wiser.model.UniqueIdPricebookIdTuple;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 public interface WiserReporterDao {
@@ -31,4 +32,12 @@ public interface WiserReporterDao {
 	 * @return price of given product in given pricebook
 	 */
 	Double getCurrentPrice(Integer uniqueId, Integer pricebookId);
+
+	/**
+	 * Gets current price data for a list of product unique ids
+	 *
+	 * @param uniqueIds
+	 * @param  partitionSize - number of uniqueids to query the database for at a time
+	 */
+	Map<UniqueIdPricebookIdTuple, Double> getCurrentPriceData(List<Integer> uniqueIds, int partitionSize);
 }
