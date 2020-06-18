@@ -1,8 +1,8 @@
 package com.ferguson.cs.product.task.wiser.batch;
 
 import java.io.File;
+import java.util.List;
 
-import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.ResourceAwareItemReaderItemStream;
@@ -13,31 +13,29 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import com.ferguson.cs.product.task.wiser.model.WiserRecommendationData;
-import com.ferguson.cs.product.task.wiser.service.WiserService;
+import com.ferguson.cs.product.task.wiser.model.CostUploadData;
 
-public class WiserRecommendationFeedReader extends AbstractItemCountingItemStreamItemReader<WiserRecommendationData> implements
-		ResourceAwareItemReaderItemStream<WiserRecommendationData>, InitializingBean {
+public class WiserRecommendationFeedReader extends AbstractItemCountingItemStreamItemReader<CostUploadData> implements
+		ResourceAwareItemReaderItemStream<CostUploadData>, InitializingBean {
 
-	private final WiserService wiserService;
-	private final File file;
-	private FlatFileItemReader<WiserRecommendationData> csvReader;
-	private MyBatisCursorItemReader<Double> currentPriceReader;
+	private final List<Integer> recommendationUniqueIds;
+	private FlatFileItemReader<CostUploadData> csvReader;
 
-	public WiserRecommendationFeedReader(WiserService wiserService, String filePath) {
-		this.wiserService = wiserService;
-		this.file = new File(filePath);
-		csvReader = new FlatFileItemReaderBuilder<WiserRecommendationData>().fieldSetMapper(new BeanWrapperFieldSetMapper<>()).targetType(WiserRecommendationData.class).name("internalWiserRecommendationFeedReader").linesToSkip(1).delimited().delimiter(",").names(new String[] {"uniqueId","pricebookId","cost"}).resource(new FileSystemResource(file)).build();
-		currentPriceReader = new MyBatisCursorItemReader<>();
+	public WiserRecommendationFeedReader(String filePath, List<Integer> recommendationUniqueIds) {
+		File file = new File(filePath);
+		this.recommendationUniqueIds = recommendationUniqueIds;
+		csvReader = new FlatFileItemReaderBuilder<CostUploadData>().fieldSetMapper(new BeanWrapperFieldSetMapper<>()).targetType(CostUploadData.class).name("internalWiserRecommendationFeedReader").linesToSkip(1).delimited().delimiter(",").names(new String[] {"uniqueId","pricebookId","cost"}).resource(new FileSystemResource(file)).build();
+
 	}
 
 	@Override
-	protected WiserRecommendationData doRead() throws Exception {
-		WiserRecommendationData wiserRecommendationData = csvReader.read();
+	protected CostUploadData doRead() throws Exception {
+		CostUploadData wiserRecommendationData = csvReader.read();
 		if(wiserRecommendationData == null) {
 			return null;
 		}
-		wiserRecommendationData.setOldCost(wiserService.getCurrentPrice(wiserRecommendationData.getUniqueId(),wiserRecommendationData.getPricebookId()));
+		recommendationUniqueIds.add(wiserRecommendationData.getUniqueId());
+
 		return wiserRecommendationData;
 	}
 

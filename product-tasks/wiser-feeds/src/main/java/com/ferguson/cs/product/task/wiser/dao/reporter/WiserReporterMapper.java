@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.ferguson.cs.product.task.wiser.model.CostUploadData;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
 import com.ferguson.cs.product.task.wiser.model.WiserPerformanceData;
@@ -20,4 +21,5 @@ public interface WiserReporterMapper {
 	List<ProductRevenueCategory> getProductRevenueCategorization();
 	List<WiserSale> getParticipationProductSales(@Param("date") Date date);
 	Double getCurrentPrice(@Param("uniqueId") Integer uniqueId,@Param("pricebookId") Integer pricebookId);
+	List<CostUploadData> getCurrentPriceData(@Param("uniqueIds") List<Integer> uniqueIds);
 }

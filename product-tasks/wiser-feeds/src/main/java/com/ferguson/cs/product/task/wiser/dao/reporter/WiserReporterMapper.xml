@@ -362,11 +362,29 @@
 		ON d.participationId = pp.participationId
 	</select>
 
+	
+	<resultMap id="costUploadDataMap" type="CostUploadData">
+		<result property="oldCost" column="oldCost" />
+		<result property="uniqueId" column="uniqueId" />
+		<result property="pricebookId" column="pricebookId" />
+	</resultMap>
+
+
 
 	<select id="getCurrentPrice" parameterType="map" resultType="double">
 		SELECT pbc.Cost FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
 		WHERE pbc.UniqueId = #{uniqueId}
 		AND pbc.PricebookId = #{pricebookId}
+	</select>
+	
+	<select id="getCurrentPriceData" parameterType="java.util.List" resultMap="costUploadDataMap" >
+		SELECT pbc.uniqueId, pbc.pricebookId, pbc.Cost AS oldCost FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
+		WHERE pbc.PricebookId IN (1,22)
+		AND pbc.uniqueId IN (
+		<foreach collection="uniqueIds" item="uniqueId" separator=",">
+			#{uniqueId}
+		</foreach>
+		)
 	</select>
 
 

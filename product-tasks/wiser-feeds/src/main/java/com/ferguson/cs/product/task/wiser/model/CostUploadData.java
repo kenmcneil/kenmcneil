@@ -2,7 +2,7 @@ package com.ferguson.cs.product.task.wiser.model;
 
 import java.io.Serializable;
 
-public class WiserRecommendationData implements Serializable {
+public class CostUploadData implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Integer uniqueId;

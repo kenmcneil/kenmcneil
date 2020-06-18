@@ -19,7 +19,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
@@ -42,6 +41,7 @@ import com.ferguson.cs.product.task.wiser.batch.FlatteningItemStreamWriter;
 import com.ferguson.cs.product.task.wiser.batch.PopulateProductRevenueCategorizationTasklet;
 import com.ferguson.cs.product.task.wiser.batch.ProductDataHashProcessor;
 import com.ferguson.cs.product.task.wiser.batch.QuoteEnclosingDelimitedLineAggregator;
+import com.ferguson.cs.product.task.wiser.batch.SetItemReader;
 import com.ferguson.cs.product.task.wiser.batch.SetItemWriter;
 import com.ferguson.cs.product.task.wiser.batch.TruncateProductDataHashTasklet;
 import com.ferguson.cs.product.task.wiser.batch.UploadCostTasklet;
@@ -53,6 +53,7 @@ import com.ferguson.cs.product.task.wiser.batch.WiserProductDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserRecommendationFeedProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserRecommendationFeedReader;
 import com.ferguson.cs.product.task.wiser.batch.WiserRetryableJobTasklet;
+import com.ferguson.cs.product.task.wiser.model.CostUploadData;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
@@ -61,7 +62,6 @@ import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
 import com.ferguson.cs.product.task.wiser.model.WiserPerformanceData;
 import com.ferguson.cs.product.task.wiser.model.WiserPriceData;
 import com.ferguson.cs.product.task.wiser.model.WiserProductData;
-import com.ferguson.cs.product.task.wiser.model.WiserRecommendationData;
 import com.ferguson.cs.product.task.wiser.service.WiserService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
@@ -184,7 +184,7 @@ public class WiserFeedTaskConfiguration {
 	@Bean
 	@StepScope
 	public WiserRecommendationFeedReader wiserRecommendationFeedReader(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		WiserRecommendationFeedReader wiserRecommendationFeedReader = new WiserRecommendationFeedReader(wiserService, fileName);
+		WiserRecommendationFeedReader wiserRecommendationFeedReader = new WiserRecommendationFeedReader(wiserFeedSettings.getTemporaryLocalFilePath() + fileName, recommendationUniqueIds());
 		wiserRecommendationFeedReader.setName("wiserRecommendationFeedReader");
 		return wiserRecommendationFeedReader;
 	}
@@ -323,14 +323,38 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	SetItemWriter<Integer> setItemWriter() {
-		return new SetItemWriter<>();
+	SetItemWriter<Integer> productDataHashSetItemWriter() {
+		return new SetItemWriter<>(getProductDataHashUniqueIds());
+	}
+
+	@Bean
+	@StepScope
+	SetItemWriter<CostUploadData> wiserRecommendationDataSetItemWriter(Set<CostUploadData> wiserRecommendationData) {
+		return new SetItemWriter<>(wiserRecommendationData);
+	}
+
+	@Bean
+	@StepScope
+	SetItemReader<CostUploadData> wiserRecommendationSetReader(Set<CostUploadData> wiserRecommendationData) {
+		return new SetItemReader<>(wiserRecommendationData);
 	}
 
 	@Bean
 	@JobScope
 	Set<Integer> getProductDataHashUniqueIds() {
 		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	Set<CostUploadData> wiserRecommendationData() {
+		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	List<Integer> recommendationUniqueIds() {
+		return new ArrayList<>();
 	}
 
 	@Bean
@@ -459,10 +483,10 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	ItemStreamWriter<WiserRecommendationData> wiserRecommendationFileWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+	ItemStreamWriter<CostUploadData> wiserRecommendationFileWriter(@Value("#{jobExecutionContext['fileName']}") String fileName) {
 		String[] header = new String[]{"UniqueId", "PricebookId", "Cost"};
 
-		BeanWrapperFieldExtractor<WiserRecommendationData> fieldExtractor = new BeanWrapperFieldExtractor<>();
+		BeanWrapperFieldExtractor<CostUploadData> fieldExtractor = new BeanWrapperFieldExtractor<>();
 
 		fieldExtractor.setNames(new String[]{"uniqueId", "pricebookId", "cost"});
 
@@ -632,7 +656,7 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@Qualifier("recommendationDataDownloadJob")
-	public Job recommendationDataDownloadJob(Step decideIfJobShouldRun, Step uploadCost, Step processRecommendationFeed) {
+	public Job recommendationDataDownloadJob(Step decideIfJobShouldRun, Step uploadCost, Step readRecommendationFeed, Step filterRecommendations) {
 		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
 		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
 				.listener(wiserRecommendationFeedListener())
@@ -641,7 +665,8 @@ public class WiserFeedTaskConfiguration {
 				.from(decideIfJobShouldRun)
 				.on(ExitStatus.COMPLETED.getExitCode())
 				.to(downloadCsv)
-				.next(processRecommendationFeed)
+				.next(readRecommendationFeed)
+				.next(filterRecommendations)
 				.next(uploadCost)
 				.end()
 				.build();
@@ -693,7 +718,7 @@ public class WiserFeedTaskConfiguration {
 		return taskBatchJobFactory.getStepBuilder("writeProductDataHashUniqueIds")
 				.<Integer, Integer>chunk(1000)
 				.reader(productDataHashReader)
-				.writer(setItemWriter())
+				.writer(productDataHashSetItemWriter())
 				.build();
 
 
@@ -705,7 +730,7 @@ public class WiserFeedTaskConfiguration {
 		return taskBatchJobFactory.getStepBuilder("writeAllProductDataHashUniqueIds")
 				.<Integer, Integer>chunk(1000)
 				.reader(fullProductDataHashReader())
-				.writer(setItemWriter())
+				.writer(productDataHashSetItemWriter())
 				.build();
 	}
 
@@ -715,7 +740,7 @@ public class WiserFeedTaskConfiguration {
 		return taskBatchJobFactory.getStepBuilder("writePreviousDayProductDataHashUniqueIds")
 				.<Integer, Integer>chunk(1000)
 				.reader(previousDayProductDataHashReader)
-				.writer(setItemWriter())
+				.writer(productDataHashSetItemWriter())
 				.build();
 	}
 
@@ -778,18 +803,32 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("processRecommendationFeed")
-	public Step processRecommendationFeed(ItemStreamReader<WiserRecommendationData> wiserRecommendationFeedReader,
-										  ItemStreamWriter<WiserRecommendationData> wiserRecommendationFileWriter,
-										  ItemProcessor<WiserRecommendationData, WiserRecommendationData> wiserRecommendationFeedProcessor) {
-		return taskBatchJobFactory.getStepBuilder("processRecommendationFeed")
-				.<WiserRecommendationData, WiserRecommendationData>chunk((1000))
+	@Qualifier("readRecommendationFeed")
+	public Step readRecommendationFeed(ItemStreamReader<CostUploadData> wiserRecommendationFeedReader,
+									   SetItemWriter<CostUploadData> wiserRecommendationDataSetItemWriter) {
+		return taskBatchJobFactory.getStepBuilder("readRecommendationFeed")
+				.<CostUploadData, CostUploadData>chunk(10000)
 				.faultTolerant()
 				.reader(wiserRecommendationFeedReader)
+				.writer(wiserRecommendationDataSetItemWriter)
+				.build();
+	}
+
+	@Bean
+	@Qualifier("filterRecommendations")
+	public Step filterRecommendations(SetItemReader<CostUploadData> wiserRecommendationSetReader, WiserRecommendationFeedProcessor wiserRecommendationFeedProcessor, ItemStreamWriter<CostUploadData> wiserRecommendationFileWriter) {
+		return taskBatchJobFactory.getStepBuilder("filterRecommendations")
+				.<CostUploadData,CostUploadData>chunk(1000)
+				.faultTolerant()
+				.reader(wiserRecommendationSetReader)
 				.processor(wiserRecommendationFeedProcessor)
 				.writer(wiserRecommendationFileWriter)
 				.build();
 	}
+
+
+
+
 
 	@Bean
 	@Qualifier("uploadCost")
