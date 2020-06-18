@@ -26,7 +26,7 @@
 			pricebookId,
 			statusId
 		FROM tempData.dbo.${tempTableName}
-		WHERE statusId != 0	
+		WHERE statusId != 0	order by statusId, uniqueId
 	</select>
 	
 	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
@@ -54,7 +54,11 @@
 	       	[mpid] [int],
 	        [price] [decimal](18,2),
 	        [pricebookId] [int],
-	        [statusId] [int]
+	        [preferredVendorCost] [decimal](18,2),
+	        [statusId] [int],
+	        [statusMsg] [varchar](100),
+	        [margin] [decimal](18,4),
+	        [priceCalculation] [varchar](32)
 	  )
 	</insert>
 	
@@ -65,13 +69,21 @@
 			mpid,
 			price,
 			pricebookId,
-			statusId
+			preferredVendorCost,
+			statusId,
+			statusMsg,
+			margin,
+			priceCalculation
 		) VALUES (
 			#{uniqueId},
 			#{mpid},
 			#{price},
 			#{pricebookId},
-			#{status.intValue}
+			#{preferredVendorCost},
+			#{status.intValue},
+			#{statusMsg},
+			#{margin},
+			#{priceCalculation}
 		)
 	</insert>
 	
@@ -176,7 +188,8 @@
 			mmc.dbo.productPreferredVendor ppv WITH (NOLOCK) on vc.uniqueId = ppv.productUniqueid 
 			AND  ppv.vendorUID = vc.vendorUID
 		WHERE
-			ppv.productUniqueId = #{uniqueId};
+			ppv.productUniqueId = #{uniqueId}
+			AND pricedOptionID IS NULL;
 	</select>
 	
 	<select id="getFeiPromoProductUniqueIds" resultType="Integer">

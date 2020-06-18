@@ -24,6 +24,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 	private final FeiPriceUpdateService feiPriceUpdateService;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
+	private final BigDecimal profitMargin;
 	private Set<Integer> promoList = null;
 
 	public FeiPriceUpdateItemWriter(
@@ -31,6 +32,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
+		this.profitMargin = new BigDecimal(this.feiPriceUpdateSettings.getMargin()).setScale(4,BigDecimal.ROUND_HALF_DOWN);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -38,6 +40,9 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	public void write(List<? extends FeiPriceUpdateItem> items) throws Exception {
 
 		for (FeiPriceUpdateItem item : (List<FeiPriceUpdateItem>) items) {
+
+			// Default to success initially
+			item.setStatusMsg("FEI Price updated");
 
 			LOGGER.debug("FeiPriceUpdateItemWriter - Processing Item uniqueId: {}, mpid:{}, consumer price: {}",
 					item.getUniqueId(), item.getMpid(), item.getPrice());
@@ -50,9 +55,13 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 				preferredVendorCost = feiPriceUpdateService.getPreferredVendorCost(item.getUniqueId());
 				if (preferredVendorCost == null) {
 					validationStatus = PriceUpdateStatus.VENDOR_COST_LOOKUP_ERROR;
-				} else if (!isValidProfitMargin(preferredVendorCost, item.getPrice())) {
+					item.setStatusMsg("VENDOR_COST_LOOKUP_ERROR - No matching vendor preferred cost found fpr product uniqueId");
+				} else if (!isValidProfitMargin(preferredVendorCost, item)) {
 					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
+					item.setStatusMsg("LOW_MARGIN_ERROR - PB1 Profit margin below: " +  this.profitMargin);
 				}
+
+				item.setPreferredVendorCost(preferredVendorCost);
 			}
 
 			item.setStatus(validationStatus);
@@ -65,10 +74,12 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 				LOGGER.debug("FeiPriceUpdateItemWriter - Pro price: {}", proItem.getPrice());
 
-				if (!isValidProfitMargin(preferredVendorCost, proItem.getPrice())) {
+				if (!isValidProfitMargin(preferredVendorCost, proItem)) {
 					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
+					proItem.setStatusMsg("LOW_MARGIN_ERROR - PB22 Profit margin below: " + this.profitMargin);
 				}
 
+				proItem.setStatus(validationStatus);
 				feiPriceUpdateService.insertTempPriceUpdateRecord(proItem);
 			}
 		}
@@ -83,6 +94,13 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		// Validate the supplied input record
 		if (item.getUniqueId() == null) {
 			LOGGER.error("FeiPriceUpdateItemWriter - FEI Price update record must contain a uniqueId");
+			item.setStatusMsg("INPUT_VALIDATION_ERROR - FEI input record missing uniqueId");
+			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
+		}
+
+		if (item.getMpid() == null) {
+			LOGGER.error("FeiPriceUpdateItemWriter - FEI Price update record must contain a mpid");
+			item.setStatusMsg("INPUT_VALIDATION_ERROR - FEI input record missing mpid");
 			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		}
 
@@ -90,12 +108,14 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		if (item.getFeiOwnedProductId() == null) {
 			LOGGER.debug("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. Not FEI owned",
 					item.getUniqueId());
+			item.setStatusMsg("OWNED_LOOKUP_ERROR - Product not FEI owned");
 			return PriceUpdateStatus.OWNED_LOOKUP_ERROR;
 		}
 
 		if (item.getPrice() == null) {
 			LOGGER.info("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price supplied is null",
 					item.getUniqueId());
+			item.setStatusMsg("INPUT_VALIDATION_ERROR - FEI input record price = null");
 			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		} else {
 			BigDecimal bdPrice = new BigDecimal(item.getPrice());
@@ -103,6 +123,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 				LOGGER.error(
 						"FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price cannot be a zero amount",
 						item.getUniqueId());
+				item.setStatusMsg("PRICE_VALIDATION_ERROR - FEI input record price = 0");
 				return PriceUpdateStatus.PRICE_VALIDATION_ERROR;
 			}
 		}
@@ -111,6 +132,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		if (!feiPriceUpdateService.isValidMpidUniqueId(item.getMpid(),  item.getUniqueId())) {
 			LOGGER.error("FeiPriceUpdateItemWriter - Invalid MPID: {}, UniqueId: {} combination",
 					item.getMpid(),  item.getUniqueId());
+			item.setStatusMsg("DATA_MATCH_ERROR - No mpid/uniqueId match in product.feiMPID table");
 			return PriceUpdateStatus.DATA_MATCH_ERROR;
 		}
 
@@ -118,12 +140,14 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		if (!item.getFeiOwnedActive()) {
 			LOGGER.error("FeiPriceUpdateItemWriter - UniqueId: {} FEI owned inactive",
 					item.getUniqueId());
+			item.setStatusMsg("OWNED_INACTIVE_ERROR - FEI owned inactive");
 			return PriceUpdateStatus.OWNED_INACTIVE_ERROR;
 		}
 
 		// Check if product is on Promo. If it is no pricing update
 		if (isProductOnPromo(item.getUniqueId())) {
 			LOGGER.debug("FeiPriceUpdateItemWriter - Product on promo, UniqueId: {}}", item.getUniqueId());
+			item.setStatusMsg("PRODUCT_ON_PROMO - Product is on promo");
 			return PriceUpdateStatus.PRODUCT_ON_PROMO;
 		}
 
@@ -136,7 +160,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	private FeiPriceUpdateItem buildProPricingRecord(FeiPriceUpdateItem item) {
 		FeiPriceUpdateItem proPriceUpdateItem = (FeiPriceUpdateItem) SerializationUtils.clone(item);
 		proPriceUpdateItem.setPricebookId(22);
-		proPriceUpdateItem.setPrice(calculateProPricing(item));
+		proPriceUpdateItem.setPrice(calculateProPricing(proPriceUpdateItem));
 		return proPriceUpdateItem;
 	}
 
@@ -150,20 +174,26 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		// Default to customer price
 		BigDecimal proPrice = new BigDecimal(Double.toString(item.getPrice()));
 
+
 		// if UMRP then pro pricing is same as customer.
 		if (item.getUmrpId() == null) {
 			if (item.getBaseCategoryId() != null && item.getBaseCategoryId() == LIGHTING_BASE_CATEGORY_ID) {
 				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.9] to product unique ID: {}",
 						item.getUniqueId());
 				proPrice = proPrice.multiply(new BigDecimal(".9"));
+
+				item.setPriceCalculation("Lighting Category: .9");
 			} else {
 				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.97] to product unique ID: {}",
 						item.getUniqueId());
 				proPrice = proPrice.multiply(new BigDecimal(".97"));
+
+				item.setPriceCalculation(".97");
 			}
 		} else {
 			LOGGER.debug("calculateProPricing - No pro pricing multiplier for product unique ID: {}",
 					item.getUniqueId());
+			item.setPriceCalculation("N/A umrpID exists");
 		}
 
 		return proPrice.doubleValue();
@@ -172,16 +202,18 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	/*
 	 * Calculate the profit margin.  If less than 14% we will reject this pricing update.
 	 */
-	private Boolean isValidProfitMargin(Double vendorCost, Double feiPrice) {
+	private Boolean isValidProfitMargin(Double vendorCost, FeiPriceUpdateItem item) {
 
 		BigDecimal vendorPrice = new BigDecimal(Double.toString(vendorCost));
-		BigDecimal consumerPrice = new BigDecimal(Double.toString(feiPrice));
-		BigDecimal margin = (new BigDecimal(1).subtract(vendorPrice.divide(consumerPrice,2, RoundingMode.HALF_DOWN)));
+		BigDecimal consumerPrice = new BigDecimal(Double.toString(item.getPrice()));
+		BigDecimal margin = (new BigDecimal("1.0").setScale(4).subtract(vendorPrice.divide(consumerPrice,4, RoundingMode.HALF_EVEN)));
 
 		LOGGER.debug("FeiPriceUpdateItemWriter/isValidProfitMargin - Vendor Cost: {}, Fei Price: {}, profit margin: {}",
-				vendorCost, feiPrice, margin);
+				vendorCost, item.getPrice(), margin);
 
-		return margin.compareTo(new BigDecimal(feiPriceUpdateSettings.getMargin())) >= 0;
+		item.setMargin(margin.doubleValue());
+
+		return margin.compareTo(profitMargin) >= 0;
 	}
 
 	/*
