@@ -40,20 +40,20 @@ public class ConstructServiceImpl implements ConstructService {
 			int participationId,
 			ParticipationItemStatus status,
 			ParticipationItemUpdateStatus updateStatus,
-			Date processingDate
+			Date processingDate,
+			int userId
 	) {
 		ArgumentAssert.notNull(status, "status");
 		ArgumentAssert.notNull(processingDate, "processingDate");
 
 		// update the participation record
 		participationItemRepository.updateParticipationItemStatus(
-				participationId, status, updateStatus,
-				participationEngineSettings.getTaskUserId(), processingDate);
+				participationId, status, updateStatus, processingDate);
 
 		// add event for this update with a partial participation record for the details
 		ParticipationItem eventItem = ParticipationItem.builder()
 				.id(participationId)
-				.lastModifiedUserId(participationEngineSettings.getTaskUserId())
+				.lastModifiedUserId(userId)
 				.lastModifiedDate(processingDate)
 				.status(status)
 				.updateStatus(updateStatus)
@@ -61,7 +61,7 @@ public class ConstructServiceImpl implements ConstructService {
 		ContentEvent contentEvent = new ContentEvent();
 		contentEvent.setParticipationItem(eventItem);
 		contentEvent.setLastModifiedDate(processingDate);
-		contentEvent.setLastModifiedUserId(participationEngineSettings.getTaskUserId());
+		contentEvent.setLastModifiedUserId(userId);
 		contentEventRepository.save(contentEvent);
 	}
 }

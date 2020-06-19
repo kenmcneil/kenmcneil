@@ -73,13 +73,11 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 			int participationId,
 			ParticipationItemStatus status,
 			ParticipationItemUpdateStatus updateStatus,
-			int userId,
 			Date processingDate
 	) {
 		Update update = new Update();
 		update.set("status", status);
 		update.set("updateStatus", updateStatus);
-		update.set("lastModifiedUserId", userId);
 		update.set("lastModifiedDate", processingDate);
 		coreMongoTemplate.updateFirst(
 				Query.query(Criteria.where("_id").is(participationId)),

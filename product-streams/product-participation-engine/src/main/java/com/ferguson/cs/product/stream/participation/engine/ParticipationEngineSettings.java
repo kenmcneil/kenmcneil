@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @ConfigurationProperties("participation-engine")
 public class ParticipationEngineSettings {
-	/** This user id is used to attribute changes made by the engine in event logs. */
-	private Integer taskUserId;
 
 	/** How long to wait between Participation event processor runs in ms. */
 	private Integer scheduleFixedDelay;
