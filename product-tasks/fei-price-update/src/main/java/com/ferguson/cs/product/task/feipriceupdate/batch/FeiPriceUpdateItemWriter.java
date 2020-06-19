@@ -32,7 +32,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
-		this.profitMargin = new BigDecimal(this.feiPriceUpdateSettings.getMargin()).setScale(4,BigDecimal.ROUND_HALF_DOWN);
+		this.profitMargin = new BigDecimal(this.feiPriceUpdateSettings.getMargin()).setScale(4,BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@SuppressWarnings("unchecked")
