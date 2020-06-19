@@ -68,18 +68,12 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 			feiPriceUpdateService.insertTempPriceUpdateRecord(item);
 
+			// If the PB1 record passed validation build the PB22.  There are no additional validation
+			// checks for PB22
 			if (validationStatus == PriceUpdateStatus.VALID) {
 				// Create a record for Pro pricing. Input file is customer pricing only
 				FeiPriceUpdateItem proItem = buildProPricingRecord(item);
-
 				LOGGER.debug("FeiPriceUpdateItemWriter - Pro price: {}", proItem.getPrice());
-
-				if (!isValidProfitMargin(preferredVendorCost, proItem)) {
-					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
-					proItem.setStatusMsg("LOW_MARGIN_ERROR - PB22 Profit margin below: " + this.profitMargin);
-				}
-
-				proItem.setStatus(validationStatus);
 				feiPriceUpdateService.insertTempPriceUpdateRecord(proItem);
 			}
 		}
@@ -161,6 +155,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		FeiPriceUpdateItem proPriceUpdateItem = (FeiPriceUpdateItem) SerializationUtils.clone(item);
 		proPriceUpdateItem.setPricebookId(22);
 		proPriceUpdateItem.setPrice(calculateProPricing(proPriceUpdateItem));
+		proPriceUpdateItem.setMargin(null);
 		return proPriceUpdateItem;
 	}
 
@@ -173,7 +168,6 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	private Double calculateProPricing(FeiPriceUpdateItem item) {
 		// Default to customer price
 		BigDecimal proPrice = new BigDecimal(Double.toString(item.getPrice()));
-
 
 		// if UMRP then pro pricing is same as customer.
 		if (item.getUmrpId() == null) {
