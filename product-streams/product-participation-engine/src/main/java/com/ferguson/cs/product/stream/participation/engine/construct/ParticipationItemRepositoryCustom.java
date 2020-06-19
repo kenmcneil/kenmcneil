@@ -31,7 +31,6 @@ public interface ParticipationItemRepositoryCustom {
 			int participationId,
 			ParticipationItemStatus status,
 			ParticipationItemUpdateStatus updateStatus,
-			int userId,
 			Date processingDate
 	);
 }
