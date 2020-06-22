@@ -176,7 +176,7 @@
 			product.feiMPID 
 		WHERE 
 			mpid = #{mpid} AND 
-			uniqueId = #{uniqueId};
+			uniqueId = #{uniqueId}
 	</select>
 	
 	<select id="getPreferredVendorCost" resultType="Double">
@@ -189,28 +189,29 @@
 			AND  ppv.vendorUID = vc.vendorUID
 		WHERE
 			ppv.productUniqueId = #{uniqueId}
-			AND pricedOptionID IS NULL;
+			AND pricedOptionID IS NULL
 	</select>
 	
 	<select id="getFeiPromoProductUniqueIds" resultType="Integer">
-	SELECT 
-		distinct fei.productUniqueId
-	FROM 
-		mmc.product.pricingfeiowned fei (nolock)
-	INNER JOIN mmc.dbo.product p (nolock) on fei.productuniqueid = p.uniqueid
-	INNER JOIN mmc.product.feimpid mpid (nolock) on fei.productuniqueid = mpid.uniqueid
-	INNER JOIN mmc.dbo.productpreferredvendor as ppv (nolock) on p.uniqueid = ppv.productuniqueid
-	INNER JOIN omc.dbo.vendor_cost vc (nolock) on ppv.productuniqueid = vc.uniqueid and ppv.vendoruid = vc.vendoruid
-	INNER JOIN mmc.dbo.pricebook_cost pb (nolock) on p.uniqueid = pb.uniqueid
-	--to get "isActive"
-	LEFT JOIN mmc.product.participationItemPartial as partcp (nolock) on pb.participationId = partcp.participationId
-	--to be sure participation owns this prod
-	LEFT JOIN mmc.product.participationProduct as partProd (nolock) on pb.participationId = partProd.participationId AND p.uniqueId = partProd.uniqueId
-	--to find out if it's discounted
-	LEFT JOIN mmc.product.participationCalculatedDiscount as discount (nolock) on pb.participationId = discount.participationId
-	WHERE vc.pricedoptionid is null 
-		AND pb.PriceBookId = '1' 
-		AND p.status in ('stock','nonstock') 
-		AND IIF(partcp.isActive = 1 AND partProd.isOwner = 1 AND discount.changeValue IS NOT NULL, 'discounted', null) = 'discounted';
+		SELECT 
+			DISTINCT fei.productuniqueid
+		FROM mmc.product.pricingfeiowned fei (NOLOCK)
+		    INNER JOIN mmc.product.product p (NOLOCK) ON fei.productuniqueid = p.uniqueid
+			INNER JOIN mmc.product.status st on st.id = p.statusId
+		    INNER JOIN mmc.product.feimpid mpid (NOLOCK) ON fei.productuniqueid = mpid.uniqueid
+		    INNER JOIN mmc.dbo.productpreferredvendor AS ppv (NOLOCK) ON p.uniqueid = ppv.productuniqueid
+		    INNER JOIN omc.dbo.vendor_cost vc (NOLOCK) ON ppv.productuniqueid = vc.uniqueid AND ppv.vendoruid = vc.vendoruid
+		    INNER JOIN mmc.dbo.pricebook_cost pb (NOLOCK) ON p.uniqueid = pb.uniqueid
+			INNER JOIN mmc.product.participationItemPartial AS partcp (NOLOCK) ON pb.participationId = partcp.participationId
+				AND partcp.isActive = 1
+			INNER JOIN mmc.product.participationProduct AS partProd (NOLOCK) ON pb.participationId = partProd.participationId 
+				AND p.uniqueId = partProd.uniqueId AND partProd.isOwner = 1
+		    LEFT JOIN mmc.product.participationCalculatedDiscount AS calcDisc (NOLOCK) ON pb.participationId = calcDisc.participationId
+			LEFT JOIN mmc.product.participationItemizedDiscount AS lineItemDisc (NOLOCK) ON pb.participationId = lineItemDisc.participationId 
+				AND pb.uniqueId = lineItemDisc.uniqueId
+		WHERE vc.pricedoptionid IS NULL 
+			AND pb.PriceBookId = 1
+			AND st.status IN ('stock','nonstock')
+			AND (calcDisc.changeValue IS NOT NULL OR lineItemDisc.price IS NOT NULL)
 	</select>
 </mapper>
