@@ -333,33 +333,34 @@
 
 		;WITH ownedProducts AS (
 		SELECT TOP (1) WITH TIES
-		pp.uniqueId,
-		pp.participationId,
-		p.saleId,
-		p.startDate,
-		p.endDate,
-		p.lastModifiedUserId AS userId
+		participationProduct.uniqueId,
+		participationProduct.participationId,
+		participationItemPartial.saleId,
+		participationItemPartial.startDate,
+		participationItemPartial.endDate,
+		participationItemPartial.lastModifiedUserId AS userId
 		FROM
-		mmc.product.participationProduct AS pp
+		mmc.product.participationProduct AS participationProduct
 		INNER JOIN
-		mmc.product.participationItemPartial AS p
-		ON p.participationId = pp.participationId
-		AND (p.startDate IS NULL OR p.startDate &lt;= @date)
-		AND (p.endDate IS NULL OR p.endDate &gt; @date)
+		mmc.product.participationItemPartial AS participationItemPartial
+		ON participationItemPartial.participationId = participationProduct.participationId
+		AND (participationItemPartial.startDate IS NULL OR participationItemPartial.startDate &lt;= @date)
+		AND (participationItemPartial.endDate IS NULL OR participationItemPartial.endDate &gt; @date)
 		ORDER BY
-		ROW_NUMBER() OVER(PARTITION BY pp.uniqueId ORDER BY p.startDate DESC)
+		ROW_NUMBER() OVER(PARTITION BY participationProduct.uniqueId ORDER BY participationItemPartial.startDate DESC)
 		)
 
 		SELECT DISTINCT
-		uniqueId as productUniqueId,
+		participationProduct.uniqueId as productUniqueId,
 		startDate,
 		endDate,
 		@date as modifiedDate
-		FROM
-		ownedProducts AS pp
-		INNER JOIN
-		mmc.product.participationCalculatedDiscount AS d
-		ON d.participationId = pp.participationId
+		FROM ownedProducts AS participationProduct
+		LEFT JOIN mmc.product.participationCalculatedDiscount AS calculatedDiscount
+		ON calculatedDiscount.participationId = participationProduct.participationId
+        LEFT JOIN mmc.product.participationItemizedDiscount AS lineItemDiscount
+        ON lineItemDiscount.participationId = participationProduct.participationId
+        WHERE(calculatedDiscount.changeValue IS NOT NULL OR lineItemDiscount.price IS NOT NULL)
 	</select>
 
 	
