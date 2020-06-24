@@ -94,10 +94,4 @@ public interface FeiPriceUpdateMapper {
 	 */
 	List<FeiPriceUpdateItem> getFeiPriceUpdateErrors(@Param("tempTableName") String tempTableName);
 
-	/**
-	 * Retrieve a list of product uniqueId's that are on promo
-	 * @Returns List<Integer>
-	 */
-	List<Integer> getFeiPromoProductUniqueIds();
-
 }
