@@ -6,4 +6,6 @@ import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 
 public interface FeiPriceDao {
 	List<DeprioritizedBrandView> getDeprioritizedBrands();
+
+	List<Integer> getStalePromoPriceProducts();
 }

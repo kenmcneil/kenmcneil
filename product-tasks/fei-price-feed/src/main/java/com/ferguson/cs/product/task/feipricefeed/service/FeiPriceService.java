@@ -15,4 +15,6 @@ public interface FeiPriceService {
 	List<DeprioritizedBrandView> getDeprioritizedBrandViews();
 
 	void deleteStalePromoFeiPriceData();
+
+	List<Integer> getStalePromoPriceProducts();
 }

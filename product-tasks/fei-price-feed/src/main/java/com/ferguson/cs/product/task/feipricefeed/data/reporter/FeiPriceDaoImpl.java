@@ -19,4 +19,9 @@ public class FeiPriceDaoImpl implements FeiPriceDao {
 	public List<DeprioritizedBrandView> getDeprioritizedBrands() {
 		return feiPriceMapper.getDeprioritizedBrands();
 	}
+
+	@Override
+	public List<Integer> getStalePromoPriceProducts() {
+		return feiPriceMapper.getStalePromoPriceProducts();
+	}
 }

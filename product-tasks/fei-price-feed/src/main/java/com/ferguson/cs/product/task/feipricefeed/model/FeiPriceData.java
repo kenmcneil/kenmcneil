@@ -3,11 +3,11 @@ package com.ferguson.cs.product.task.feipricefeed.model;
 import java.io.Serializable;
 
 public class FeiPriceData implements Serializable {
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 4L;
 
 	private Integer uniqueId;
 	private String mpid;
-	private Double price;
+	private String price;
 	private String brand;
 	private String status;
 	private FeiPricingType feiPricingType;
@@ -20,11 +20,11 @@ public class FeiPriceData implements Serializable {
 		this.mpid = mpid;
 	}
 
-	public Double getPrice() {
+	public String getPrice() {
 		return price;
 	}
 
-	public void setPrice(Double price) {
+	public void setPrice(String price) {
 		this.price = price;
 	}
 
