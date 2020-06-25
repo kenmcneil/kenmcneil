@@ -66,7 +66,7 @@ The law requires us to have had a product at our <<#was-price-term,_Was Price_>>
 
 Was pricing is a system that provides a legally sound basis backed by data to state that a product was sold at a specific price before a sale starts.
 
-See link:was-pricing.adoc[Was Pricing].
+See link:was-pricing.adoc[Was Pricing Details].
 
 == Components
 
@@ -247,7 +247,7 @@ Product Variant:: A specific item in the Product family. This is commonly also k
 
 [#was-price-term]
 Was Price:: The Was price is the highest value at which a product was sold at that value or higher for 21 days or more in the last 90 days. This yields the highest legally sound value that can be used on the site as the _Was price_ aka the _strikeout price_. A pricebook price will have a Was price if it was off-sale at least 21 of the last 90 days.
-
++
 If a Was price exists, it will be shown to the customer as the price at which the product was being sold before the sale. It should also be used to calculate the percentage discount shown to the customer (rather than the basePrice which might be different).
 
 == References

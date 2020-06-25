@@ -48,8 +48,6 @@ When a Participation price discount effect activates, the current Was prices are
 .Was Price Calculation
 image::calculating-was-prices.svg[Was Price Calculation]
 
-In the database, Was values of 0 or null both mean there is no valid Was price.
-
 == Examples
 
 .Was Pricing Scenarios
@@ -61,7 +59,7 @@ image::was-pricing-examples.png[Was Pricing Scenarios]
 
 The Was pricing information for all products is in the `mmc.dbo.pricebookWasPrice` table.
 
-The `costList` column stores the list of the last 90 days of price history as a CSV string. The table is updated every 24 hours, to remove the oldest price entry and add the newest price to this string.
+The `costList` column stores the list of the last 90 days of price history as a CSV string. The table is updated every 24 hours, to remove the oldest price entry and add the newest price to this string. An empty value in the string indicates a day on which the product was on sale.
 
 The `wasPrice` column is function-valued and calls `mmc.dbo.udf_wasPrice` to calculate the current Was price using the values in `costList`. This function is currently executed with each record read to get the value for the wasPrice column.
 
@@ -84,7 +82,7 @@ The Was price is marshaled into product storage cost records along with the othe
 
 Clients receive the `PricebookCostView` data for each pricebook for the product.
 
-.Was prices and other sale pricing information is returned from product storage in `PricebookCostView` properties:
+.Was prices and other sale pricing information is returned from product storage in these `PricebookCostView` properties:
 [source]
 ----
 PricebookCostView {
