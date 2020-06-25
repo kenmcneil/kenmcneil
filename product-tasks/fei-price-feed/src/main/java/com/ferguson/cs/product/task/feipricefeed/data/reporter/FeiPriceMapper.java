@@ -20,4 +20,6 @@ public interface FeiPriceMapper {
 	List<DeprioritizedBrandView> getDeprioritizedBrands();
 
 	List<Integer> getPromoFeiPriceProducts();
+
+	List<Integer> getStalePromoPriceProducts();
 }

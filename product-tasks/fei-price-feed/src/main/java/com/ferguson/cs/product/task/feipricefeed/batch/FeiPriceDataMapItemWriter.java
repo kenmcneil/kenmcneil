@@ -80,8 +80,10 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 					}
 				}
 
+				double o1Price = Double.parseDouble(o1.getPrice());
+				double o2Price = Double.parseDouble(o2.getPrice());
 				//Doesn't meet any of the criteria to pick a higher priority
-				if(BigDecimal.valueOf(o1.getPrice()).compareTo(BigDecimal.valueOf(o2.getPrice())) != 0) {
+				if(BigDecimal.valueOf(o1Price).compareTo(BigDecimal.valueOf(o2Price)) != 0) {
 					duplicateData.add(o1);
 					duplicateData.add(o2);
 				}

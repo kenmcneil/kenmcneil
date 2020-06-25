@@ -84,6 +84,11 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 		feiPriceCoreDao.deleteStalePromoFeiPriceData();
 	}
 
+	@Override
+	public List<Integer> getStalePromoPriceProducts() {
+		return feiPriceDao.getStalePromoPriceProducts();
+	}
+
 	private TaskControlDataItem getTaskControlDataItemForToday(String jobName) {
 		Date today = DateUtils.today();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MMddyyyy");

@@ -2,27 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.task.feipricefeed.data.core.FeiPriceCoreMapper">
-
 	<delete id="deleteStalePromoFeiPriceData" >
 		DELETE pricingFeiWhitelist FROM mmc.product.pricingFeiWhitelist pricingFeiWhitelist
-		LEFT JOIN (SELECT feiOwned.productUniqueId FROM mmc.product.pricingfeiowned feiOwned
-    	INNER JOIN mmc.product.product product ON feiOwned.productuniqueid = product.uniqueid
-    	INNER JOIN mmc.product.status status ON product.statusId = status.id
-    	INNER JOIN mmc.product.feiMPID MPID ON feiOwned.productUniqueId = MPID.uniqueid
-   		INNER JOIN mmc.dbo.productpreferredvendor AS productPreferredVendor ON product.uniqueid = productPreferredVendor.productuniqueid
-    	INNER JOIN omc.dbo.vendor_cost vendorCost ON productPreferredVendor.productuniqueid = vendorCost.uniqueid AND productPreferredVendor.vendoruid = vendorCost.vendoruid
-    	INNER JOIN mmc.dbo.pricebook_cost pricebook ON product.uniqueid = pricebook.uniqueid
-		INNER JOIN mmc.product.participationItemPartial AS participation ON pricebook.participationId = participation.participationId
-		INNER JOIN mmc.product.participationProduct AS partProd ON pricebook.participationId = partProd.participationId AND product.uniqueId = partProd.uniqueId
-		INNER JOIN mmc.product.participationCalculatedDiscount AS discount ON pricebook.participationId = discount.participationId
-    	WHERE vendorCost.pricedoptionid IS NULL
-		AND pricebook.PriceBookId = 1
-		AND status.status in ('stock','nonstock')
-    	AND participation.isActive = 1
-    	AND partProd.isOwner = 1
-    	AND discount.changeValue IS NOT NULL) promoProduct
-    	ON pricingFeiWhitelist.productUniqueId = promoProduct.productUniqueId
-    	WHERE promoProduct.productUniqueId IS NULL
-    	AND pricingFeiWhitelist.feiPricingTypeId = 2
+		WHERE lastKnownPrice &lt; 0
+		AND pricingFeiWhitelist.feiPricingTypeId = 2
 	</delete>
 </mapper>
