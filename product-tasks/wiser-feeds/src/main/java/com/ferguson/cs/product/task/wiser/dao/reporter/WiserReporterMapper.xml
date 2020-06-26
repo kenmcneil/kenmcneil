@@ -380,7 +380,17 @@
 	
 	<select id="getCurrentPriceData" parameterType="java.util.List" resultMap="costUploadDataMap" >
 		SELECT pbc.uniqueId, pbc.pricebookId, pbc.Cost AS oldCost FROM mmc.dbo.Pricebook_Cost pbc WITH(NOLOCK)
+		INNER JOIN mmc.product.product product WITH(NOLOCK)
+		ON pbc.UniqueId = product.uniqueId
+		INNER JOIN mmc.product.status status WITH(NOLOCK)
+		ON product.statusId = status.id
+		LEFT JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
+		ON pbc.uniqueId = pricingFeiWhitelist.productUniqueId
+		LEFT JOIN mmc.product.pricingfeiowned feiOwned
+		ON pbc.uniqueId = feiOwned.productUniqueId
 		WHERE pbc.PricebookId IN (1,22)
+		AND (pricingFeiWhitelist.productUniqueId IS NOT NULL OR feiOwned.productUniqueId IS NOT NULL)
+		AND status.status IN ('stock','nonstock')
 		AND pbc.uniqueId IN (
 		<foreach collection="uniqueIds" item="uniqueId" separator=",">
 			#{uniqueId}
