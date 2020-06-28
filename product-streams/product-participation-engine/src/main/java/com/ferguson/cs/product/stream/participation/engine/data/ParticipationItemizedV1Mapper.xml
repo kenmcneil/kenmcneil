@@ -24,8 +24,8 @@
 				) AS pricebookId,
 			--last string
 			SUBSTRING(	value,
-						  (CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1))+1),
-						  LEN(value)
+						(CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1))+1),
+						LEN(value)
 				) AS price
 		FROM
 			STRING_SPLIT(@discountRows, @newline)
@@ -41,7 +41,7 @@
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
-		    pbCost.wasPrice = COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0)
+			pbCost.wasPrice = COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0)
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
@@ -130,7 +130,7 @@
 		SET
 			pbCost.cost = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
 			pbCost.basePrice = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
-		    pbCost.wasPrice = 0.00,
+			pbCost.wasPrice = 0.00,
 			pbCost.participationId = 0,
 			pbCost.userId = #{userId}
 		FROM

@@ -9,7 +9,7 @@
 		SET
 			lastOnSale.basePrice = pbCost.basePrice ,
 			lastOnSale.saleDate = #{processingDate},
-		    lastOnSale.wasPrice = pbCost.wasPrice
+			lastOnSale.wasPrice = pbCost.wasPrice
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
 		JOIN
@@ -60,7 +60,7 @@
 			pbCost.cost = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
 			pbCost.basePrice = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
 			pbCost.participationId = 0,
-		    pbCost.wasPrice = 0.00,
+			pbCost.wasPrice = 0.00,
 			pbCost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
