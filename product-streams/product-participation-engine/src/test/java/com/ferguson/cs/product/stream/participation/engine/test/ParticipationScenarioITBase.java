@@ -109,6 +109,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		) {
 			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
 		}
+
+		//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	}
 
 	/*
@@ -601,6 +603,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type participation-coupon@1, as if it came from Construct.
+	 */
+	private void getParticipationCouponV1Content(ParticipationItemFixture fixture) {
+		//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	}
 
 	private ObjectNode getContentTemplate(String templateFilename) {

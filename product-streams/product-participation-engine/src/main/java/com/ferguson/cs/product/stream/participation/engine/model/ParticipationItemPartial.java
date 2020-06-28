@@ -24,4 +24,6 @@ public class ParticipationItemPartial {
 	private Integer lastModifiedUserId;
 	private Boolean isActive;
 	private Integer contentTypeId;
+	private Boolean isCoupon;
+	private Boolean shouldBlockDynamicPricing;
 }

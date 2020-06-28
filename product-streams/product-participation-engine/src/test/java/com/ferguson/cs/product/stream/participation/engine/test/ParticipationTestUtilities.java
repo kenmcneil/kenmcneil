@@ -302,6 +302,8 @@ public class ParticipationTestUtilities {
 								discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
 								discount.get(1).getPrice());
 					});
+		} else if (contentType == ParticipationContentType.PARTICIPATION_COUPON_V1) {
+			//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		}
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.

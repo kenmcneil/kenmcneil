@@ -77,6 +77,7 @@ public class ParticipationEngineConfiguration {
 		return new ParticipationItemizedV1Lifecycle(participationEngineSettings,
 				participationCoreDao, participationItemizedV1Dao);
 	}
+//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	@Bean
 	public ParticipationLifecycleService participationLifecycleService(
@@ -84,6 +85,7 @@ public class ParticipationEngineConfiguration {
 			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Lifecycle participationV1Lifecycle,
 			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle
+			//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	) {
 		return new ParticipationLifecycleServiceImpl(participationEngineSettings,
 				participationCoreDao, participationV1Lifecycle, participationItemizedV1Lifecycle);
