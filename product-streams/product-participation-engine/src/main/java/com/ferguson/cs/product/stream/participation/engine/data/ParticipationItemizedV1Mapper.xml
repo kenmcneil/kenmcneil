@@ -65,11 +65,6 @@
 			ON losPB1.uniqueId = pbCost.uniqueId
 			AND losPB1.pricebookId = 1
 			AND DATEDIFF_BIG(minute, losPB1.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
--- TODO you are not using this table?
--- 		JOIN
--- 			mmc.dbo.pricebook_cost AS PB1Cost
--- 			ON pbCost.uniqueId = PB1Cost.uniqueId
--- 			AND PB1Cost = 1
 	</update>
 
 	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
