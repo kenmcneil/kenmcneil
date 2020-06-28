@@ -71,9 +71,15 @@ public class CalculatedDiscountsTestEffectLifecycle implements ParticipationTest
 					Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
 					Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
 					Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
+					Double pb1WasPrice = participationTestUtilities.getCoalescedWasPrice(pbcost.getUniqueId());
+					Double pb1PrevBasePrice =
+							participationTestUtilities.getCoalescedPrevBasePrice(pbcost.getUniqueId());
+					Double pb1CalcBasePrice = pb1WasPrice > 0
+							? Math.min(pb1WasPrice, pb1PrevBasePrice)
+							: pb1PrevBasePrice;
 					Double expectedCost = discount.getIsPercent()
-							? Math.round(100.0 * discount.getChangeValue() * pbcost.getBasePrice()) / 100.0
-							: discount.getChangeValue() + pbcost.getBasePrice();
+							? Math.round(100.0 * discount.getChangeValue() * pb1CalcBasePrice) / 100.0
+							: discount.getChangeValue() + pb1CalcBasePrice;
 					Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
 				});
 			});
