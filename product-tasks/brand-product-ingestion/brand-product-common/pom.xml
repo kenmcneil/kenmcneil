@@ -5,7 +5,7 @@
   <parent>
     <artifactId>brand-product-ingestion</artifactId>
     <groupId>com.ferguson.cs.product</groupId>
-    <version>1.0.102-SNAPSHOT</version>
+    <version>1.0.102</version>
   </parent>
   <artifactId>brand-product-common</artifactId>
   <name>brand-product-common</name>
