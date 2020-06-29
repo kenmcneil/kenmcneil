@@ -2,15 +2,12 @@ package com.ferguson.cs.product.task.feipriceupdate.batch;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
@@ -25,7 +22,6 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	private final FeiPriceUpdateService feiPriceUpdateService;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
 	private final BigDecimal profitMargin;
-	private Set<Integer> promoList = null;
 
 	public FeiPriceUpdateItemWriter(
 			FeiPriceUpdateService feiPriceUpdateService,
@@ -138,13 +134,6 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			return PriceUpdateStatus.OWNED_INACTIVE_ERROR;
 		}
 
-		// Check if product is on Promo. If it is no pricing update
-		if (isProductOnPromo(item.getUniqueId())) {
-			LOGGER.debug("FeiPriceUpdateItemWriter - Product on promo, UniqueId: {}}", item.getUniqueId());
-			item.setStatusMsg("PRODUCT_ON_PROMO - Product is on promo");
-			return PriceUpdateStatus.PRODUCT_ON_PROMO;
-		}
-
 		return PriceUpdateStatus.VALID;
 	}
 
@@ -208,22 +197,5 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		item.setMargin(margin.doubleValue());
 
 		return margin.compareTo(profitMargin) >= 0;
-	}
-
-	/*
-	 *  Get the promo unique ID's once.  Don't want to re-retrive every time.
-	 */
-	private boolean isProductOnPromo(Integer productUniqueId) {
-		// Get the promo unique ID's once.  Don't want to re-retrive every time.
-		if (this.promoList == null) {
-			List<Integer>  promoProductList = feiPriceUpdateService.getFeiPromoProductUniqueIds();
-			if (!CollectionUtils.isEmpty(promoProductList)) {
-				promoList = new HashSet<>(promoProductList);
-			}
-		}
-		if (promoList != null && promoList.contains(productUniqueId)) {
-			return true;
-		}
-		return false;
 	}
 }
