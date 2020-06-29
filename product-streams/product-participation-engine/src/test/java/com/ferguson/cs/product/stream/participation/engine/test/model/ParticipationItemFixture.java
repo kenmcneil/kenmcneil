@@ -41,7 +41,10 @@ public class ParticipationItemFixture {
 	private Integer saleId = 0;
 	@Builder.Default
 	private Boolean isSimulatedPublish = false;
-	//LWH?????????????
+	@Builder.Default
+	private Boolean isCoupon = false;
+	@Builder.Default
+	private Boolean shouldBlockDynamicPricing = true;
 
 	/**
 	 * Controls how the ParticipationItem.content map is created. The map will be created based on
@@ -84,8 +87,6 @@ public class ParticipationItemFixture {
 	 * Use in tests to populate records in the participationItemizedDiscount table.
 	 */
 	private List<ItemizedDiscountFixture> itemizedDiscountFixtures;
-
-	//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)

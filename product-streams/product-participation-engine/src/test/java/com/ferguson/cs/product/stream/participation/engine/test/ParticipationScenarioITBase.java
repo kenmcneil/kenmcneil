@@ -53,6 +53,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CouponTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ParticipationTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
@@ -110,7 +111,12 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
 		}
 
-		//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		@Bean
+		public CouponTestEffectLifecycle couponTestEffectLifeCycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new CouponTestEffectLifecycle(participationTestUtilities);
+		}
 	}
 
 	/*
@@ -511,18 +517,21 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.build();
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
+			//TODO make calculatedDiscount content required here after Coupon type goes live
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
-
 			// set the content object
 			item.setContent(getParticipationV1Content(fixture));
 		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
 			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
-
 			// set the content object
 			item.setContent(getParticipationItemizedV1Content(fixture));
+		} else if ("participation-coupon@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
+			//TODO should this test isCoupon = true?
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
 		}
@@ -603,13 +612,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
-	}
-
-	/**
-	 * Build the content map for the given fixture of type participation-coupon@1, as if it came from Construct.
-	 */
-	private void getParticipationCouponV1Content(ParticipationItemFixture fixture) {
-		//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	}
 
 	private ObjectNode getContentTemplate(String templateFilename) {

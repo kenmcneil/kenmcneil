@@ -12,6 +12,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.Participati
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationCouponV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleServiceImpl;
@@ -78,16 +79,25 @@ public class ParticipationEngineConfiguration {
 				participationCoreDao, participationItemizedV1Dao);
 	}
 //LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	@Bean
+	public ParticipationCouponV1Lifecycle participationCouponV1Lifecycle(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationCoreDao participationCoreDao
+	) {
+		return new ParticipationCouponV1Lifecycle(participationEngineSettings, participationCoreDao);
+	}
 
 	@Bean
 	public ParticipationLifecycleService participationLifecycleService(
 			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Lifecycle participationV1Lifecycle,
-			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle
+			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle,
+			ParticipationCouponV1Lifecycle participationCouponV1Lifecycle
 			//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	) {
 		return new ParticipationLifecycleServiceImpl(participationEngineSettings,
-				participationCoreDao, participationV1Lifecycle, participationItemizedV1Lifecycle);
+				participationCoreDao, participationV1Lifecycle, participationItemizedV1Lifecycle,
+				participationCouponV1Lifecycle);
 	}
 }

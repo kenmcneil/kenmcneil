@@ -2,6 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.test;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -25,11 +26,13 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationCouponV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -256,7 +259,8 @@ public class ParticipationTestUtilities {
 	 * This is similar to a publish operation.
 	 *
 	 * Defaults lastModifiedUserId to test user id if none specified.
-	 * Defaults isActive to false if not specified.
+	 * Defaults isActive and isCoupon to false if not specified.
+	 * Defaults shouldBlockDynamicPricing to true if not specified.
 	 * Defaults contentTypeId to 1 and "calculated discounts" if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
@@ -272,14 +276,17 @@ public class ParticipationTestUtilities {
 				fixture.getEndDate(),
 				fixture.getLastModifiedUserId(),
 				fixture.getIsActive(),
-				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId()
+				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId(),
+				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
+				fixture.getShouldBlockDynamicPricing() == null ? 1 : fixture.getShouldBlockDynamicPricing()
 		);
 
 		ParticipationContentType contentType = fixture.getContentType() != null
 				? fixture.getContentType()
 				: ParticipationContentType.PARTICIPATION_V1;
+
+		// Insert discount records, where applicable
 		if (contentType == ParticipationContentType.PARTICIPATION_V1) {
-			// Insert any participationCalculatedDiscount records.
 			nullSafeStream(fixture.getCalculatedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
 					.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
@@ -302,16 +309,17 @@ public class ParticipationTestUtilities {
 								discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
 								discount.get(1).getPrice());
 					});
-		} else if (contentType == ParticipationContentType.PARTICIPATION_COUPON_V1) {
-			//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		}
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
-		List<Integer> uniqueIds = contentType == ParticipationContentType.PARTICIPATION_V1
-				? ParticipationV1TestLifecycle.getUniqueIds(fixture)
-				: (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1
-						? ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture)
-						: Collections.emptyList());
+		List<Integer> uniqueIds = new ArrayList<>();
+		if (contentType ==ParticipationContentType.PARTICIPATION_V1) {
+			uniqueIds = ParticipationV1TestLifecycle.getUniqueIds(fixture);
+		} else if (contentType ==ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
+			uniqueIds = ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
+		} else if (contentType ==ParticipationContentType.PARTICIPATION_COUPON_V1) {
+			uniqueIds = ParticipationCouponV1TestLifecycle.getUniqueIds(fixture);
+		}
 		if (!CollectionUtils.isEmpty(uniqueIds)) {
 			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
 					uniqueIds.stream()
@@ -445,6 +453,8 @@ public class ParticipationTestUtilities {
 		String fixtureAsString = fixture.toString();
 		Assertions.assertThat(getParticipationItemPartial(participationId)).as("Unexpected participationItemPartial record: " + fixtureAsString).isNull();
 		Assertions.assertThat(getParticipationCalculatedDiscountCount(participationId)).as("Unexpected participationCalculatedDiscount record: " + fixtureAsString).isEqualTo(0);
+		Assertions.assertThat(getParticipationItemizedDiscountCount(participationId)).as("Unexpected " +
+				"participationItemizedDiscount record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getParticipationProductCount(participationId)).as("Unexpected participationProduct record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getParticipationSaleIdCount(participationId)).as("Unexpected participation id in product.sale record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getPricebookCostParticipationCount(participationId)).as("Unexpected participation id in pricebook_cost record: " + fixtureAsString).isEqualTo(0);

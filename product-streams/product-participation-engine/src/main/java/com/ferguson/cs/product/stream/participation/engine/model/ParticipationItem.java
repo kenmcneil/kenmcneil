@@ -42,5 +42,7 @@ public class ParticipationItem implements Serializable {
 	private Date displayEndDate;
 	private Set<Integer> deletedProductUniqueIds;
 	private ParticipationItemUpdateStatus updateStatus;
+	private Boolean isCoupon;
+	private Boolean shouldBlockDynamicPricing;
 	private Map<String, Object> content;
 }
