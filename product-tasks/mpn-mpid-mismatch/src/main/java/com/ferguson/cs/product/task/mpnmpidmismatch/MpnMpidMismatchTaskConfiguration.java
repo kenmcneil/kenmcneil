@@ -149,7 +149,7 @@ public class MpnMpidMismatchTaskConfiguration {
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMissingCsvPrefix(), dateString );
-		String[] header = new String[]{"uniqueId", "productId", "manufacturer", "finish", "upc", "sku","mpn"};
+		String[] header = new String[]{"p_uniqueId", "p_productId", "p_manufacturer", "p_finish", "p_upc", "p_sku","vm_mpn"};
 
 		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
 		String filepath = mpnMpidMismatchSettings.getReportOutputFolder() + slash + filename;
@@ -202,26 +202,28 @@ public class MpnMpidMismatchTaskConfiguration {
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("%s_%s.csv", mpnMpidMismatchSettings.getMismatchCsvPrefix(), dateString );
 		String[] header = new String[]{
-				"uniqueId",
-				"product_id",
-				"manufacturer",
-				"finish",
-				"mpn",
+				"p_uniqueId",
+				"p_productId",
+				"p_manufacturer",
+				"p_finish",
+				"vm_mpn",
 				"mdm_mpn_match",
-				"mpid",
+				"fm_mpid",
 				"mdm_mpid_match",
-				"sku",
+				"p_sku",
+				"vm_sku",
 				"mdm_mpn_sku",
 				"mdm_mpid_sku",
-				"upc",
+				"p_upc",
+				"vm_upc",
 				"mdm_mpn_upc",
 				"mdm_mpid_upc",
 				"mdm_mpn_Primary_vendor_id",
 				"mdm_mpid_Primary_vendor_id",
-				"mdm_mpn_description",
-				"mdm_mpid_description",
 				"mdm_mpn_alternate_code",
-				"mdm_mpid_alternate_code"
+				"mdm_mpid_alternate_code",
+				"mdm_mpn_description",
+				"mdm_mpid_description"
 		};
 
 		String slash = mpnMpidMismatchSettings.getReportOutputFolder().endsWith("/") ? "" : "/";
