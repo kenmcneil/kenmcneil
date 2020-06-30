@@ -31,7 +31,6 @@ public class MpnMpidMismatchLineAggregator <T> extends ExtractorLineAggregator<T
 			return "\"" + ObjectUtils.nullSafeToString(fields[0]) + "\"";
 		}
 
-
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < fields.length; i++) {
 			if (i > 0) {
