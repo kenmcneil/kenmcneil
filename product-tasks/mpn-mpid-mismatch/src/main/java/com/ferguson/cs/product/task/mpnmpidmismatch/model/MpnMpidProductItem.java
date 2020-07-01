@@ -7,14 +7,16 @@ import lombok.Setter;
 @Setter
 
 public class MpnMpidProductItem {
-	private Integer uniqueId;
-	private String productId;
-	private String manufacturer;
-	private String finish;
-	private String sku;
-	private String upc;
-	private String mpn;
-	private Integer mpid;
+	private Integer pUniqueId;
+	private String pProductId;
+	private String pManufacturer;
+	private String pFinish;
+	private String pSku;
+	private String vmSku;
+	private String pUpc;
+	private String vmUpc;
+	private String vmMpn;
+	private Integer fmMpid;
 	private Boolean mdmMpidMatch;
 	private Boolean mdmMpnMatch;
 

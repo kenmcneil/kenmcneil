@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IgnoredErrorType;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -102,12 +103,13 @@ public class MpnMpidMismatchEmailReportTasklet implements Tasklet{
 				BufferedReader br = new BufferedReader(new FileReader(mismatchCsv));
 				while ((currentLine = br.readLine()) != null) {
 
-					String str[] = currentLine.split(",");
+					// splits on comma outside the double quotes
+					String str[] = currentLine.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 					numFields = str.length;
 					XSSFRow currentRow=sheetMismatch.createRow(RowNum);
 
 					for(int i=0;i<str.length;i++){
-						currentRow.createCell(i).setCellValue(str[i]);
+						currentRow.createCell(i).setCellValue(cleanString(str[i]));
 					}
 
 					RowNum++;
@@ -136,7 +138,7 @@ public class MpnMpidMismatchEmailReportTasklet implements Tasklet{
 					XSSFRow currentRow=sheetMissing.createRow(RowNum);
 
 					for(int i=0;i<str.length;i++){
-						currentRow.createCell(i).setCellValue(str[i]);
+						currentRow.createCell(i).setCellValue(cleanString(str[i]));
 
 						// Highlight the values that were inserted into feiMPID
 						if (i == 0 || i == (str.length - 1)) {
@@ -212,6 +214,29 @@ public class MpnMpidMismatchEmailReportTasklet implements Tasklet{
 
 		if (rptFile.exists()) {
 			FileUtils.deleteQuietly(new File(reportFile));
+		}
+	}
+
+	// Our line aggregator calls StringEscapeUtils.escapeCsv() on the column text which will
+	// wrap the String in double quotes and also escape inner quotes with the addition of
+	// double quote when certain chars are found in the string.  This method will clean that
+	// up so the column text is cleaner.
+	private String cleanString(String value) {
+		if (!StringUtils.isEmpty(value)) {
+
+			// Remove beginning/ending double quotes
+			if (value.startsWith("\"")) {
+				value = value.substring(1, value.length());
+			}
+			if (value.endsWith("\"")) {
+				value = value.substring(0, value.length() - 1);
+			}
+
+			// Now replace and repeating double quotes with a single quote
+			return value.replaceAll("\"\"", "\"");
+
+		} else {
+			return value;
 		}
 	}
 

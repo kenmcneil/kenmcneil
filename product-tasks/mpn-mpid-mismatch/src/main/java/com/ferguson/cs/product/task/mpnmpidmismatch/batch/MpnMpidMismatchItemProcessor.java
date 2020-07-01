@@ -24,8 +24,8 @@ public class MpnMpidMismatchItemProcessor implements ItemProcessor<MpnMpidProduc
 
 		// MDM lookup by mpid
 		try {
-			LOGGER.debug("MpnMpidMismatchItemProcessor - calling getMdmProductView api with mpid: {}", item.getMpid());
-			MdmProductView mdmMpidProdView = pdmMdmWebservicesFeignClient.getMdmProductView(new Long(item.getMpid()));
+			LOGGER.debug("MpnMpidMismatchItemProcessor - calling getMdmProductView api with mpid: {}", item.getFmMpid());
+			MdmProductView mdmMpidProdView = pdmMdmWebservicesFeignClient.getMdmProductView(new Long(item.getFmMpid()));
 
 			if (mdmMpidProdView != null) {
 				item.setMdmMpidMatch(true);
@@ -37,8 +37,8 @@ public class MpnMpidMismatchItemProcessor implements ItemProcessor<MpnMpidProduc
 
 		// MDM lookup by mpn
 		try {
-			LOGGER.debug("MpnMpidMismatchItemProcessor - calling getMdmProductView api with mpn: {}", item.getMpn());
-			MdmProductView mdmMpnProdView = pdmMdmWebservicesFeignClient.getMdmProductView(new Long(item.getMpn()));
+			LOGGER.debug("MpnMpidMismatchItemProcessor - calling getMdmProductView api with mpn: {}", item.getVmMpn());
+			MdmProductView mdmMpnProdView = pdmMdmWebservicesFeignClient.getMdmProductView(new Long(item.getVmMpn()));
 
 			if (mdmMpnProdView != null) {
 				item.setMdmMpnMatch(true);
