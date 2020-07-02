@@ -274,7 +274,7 @@ public class FeiPriceUpdateTaskConfiguration {
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("yyyyMMdd_HHmmss");
 		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
 		String filename = String.format("build_fei_price_update_error_report_%s.csv", dateString );
-		String[] names = new String[]{"uniqueId", "mpid", "pricebookId", "price", "Status"};
+		String[] names = new String[]{"uniqueId", "mpid", "pricebookId", "price", "StatusMsg"};
 
 		// Stick this in execution context.  Will check in error report email step to see if it exists and if so it will
 		// get sent out.  If no error records then the file won't be created.

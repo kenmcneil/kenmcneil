@@ -54,7 +54,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 					item.setStatusMsg("VENDOR_COST_LOOKUP_ERROR - No matching vendor preferred cost found fpr product uniqueId");
 				} else if (!isValidProfitMargin(preferredVendorCost, item)) {
 					validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
-					item.setStatusMsg("LOW_MARGIN_ERROR - PB1 Profit margin below: " +  this.profitMargin);
+					item.setStatusMsg("LOW_MARGIN_ERROR - PB1 Profit margin: " + item.getMargin() + " is below: " + this.profitMargin);
 				}
 
 				item.setPreferredVendorCost(preferredVendorCost);
@@ -103,7 +103,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 		}
 
 		if (item.getPrice() == null) {
-			LOGGER.info("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price supplied is null",
+			LOGGER.error("FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price supplied is null",
 					item.getUniqueId());
 			item.setStatusMsg("INPUT_VALIDATION_ERROR - FEI input record price = null");
 			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
@@ -120,7 +120,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 		// Validate mpid and uniqueId
 		if (!feiPriceUpdateService.isValidMpidUniqueId(item.getMpid(),  item.getUniqueId())) {
-			LOGGER.error("FeiPriceUpdateItemWriter - Invalid MPID: {}, UniqueId: {} combination",
+			LOGGER.debug("FeiPriceUpdateItemWriter - Invalid MPID: {}, UniqueId: {} combination",
 					item.getMpid(),  item.getUniqueId());
 			item.setStatusMsg("DATA_MATCH_ERROR - No mpid/uniqueId match in product.feiMPID table");
 			return PriceUpdateStatus.DATA_MATCH_ERROR;
@@ -128,10 +128,23 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 		// Validate FEI owned active status
 		if (!item.getFeiOwnedActive()) {
-			LOGGER.error("FeiPriceUpdateItemWriter - UniqueId: {} FEI owned inactive",
+			LOGGER.debug("FeiPriceUpdateItemWriter - UniqueId: {} FEI owned inactive",
 					item.getUniqueId());
 			item.setStatusMsg("OWNED_INACTIVE_ERROR - FEI owned inactive");
 			return PriceUpdateStatus.OWNED_INACTIVE_ERROR;
+		}
+
+		// Validate IMAP price.  Fei price can not be below the IMAP price
+		if (item.getMapPrice() != null) {
+			BigDecimal feiPrice = new BigDecimal(item.getPrice()).setScale(4,BigDecimal.ROUND_HALF_EVEN);;
+			BigDecimal floorPrice = new BigDecimal(item.getMapPrice()).setScale(4,BigDecimal.ROUND_HALF_EVEN);;
+
+			if (feiPrice.compareTo(floorPrice) < 0 ) {
+				LOGGER.debug("FeiPriceUpdateItemWriter - UniqueId: {} - Fei Price: {} is less than IMAP price: {}",
+						item.getUniqueId(),feiPrice.toString(),floorPrice.toString());
+				item.setStatusMsg("IMAP_PRICE_ERROR - FEI price: " + feiPrice.toString() + " below MAP price: " + floorPrice.toString());
+				return PriceUpdateStatus.IMAP_PRICE_ERROR;
+			}
 		}
 
 		return PriceUpdateStatus.VALID;
