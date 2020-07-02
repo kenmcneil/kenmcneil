@@ -32,6 +32,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 				item.setFeiOwnedProductId(productDetails.getFeiOwnedProductId());
 				item.setBaseCategoryId(productDetails.getBaseCategoryId());
 				item.setFeiOwnedActive(productDetails.getFeiOwnedActive());
+				item.setMapPrice(productDetails.getMapPrice());
 				// Here our item record is a customer priced item. In the writer I will create a
 				// 2nd pro pricing record for pricebookId 22 with the calculated pro price.
 				item.setPricebookId(1);
