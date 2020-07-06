@@ -401,7 +401,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			afterActivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
 		}).when(participationLifecycleService).activateByType(any(ParticipationItemPartial.class), any(Date.class));
-//TODO wtf do these actually do?
+
 		// Set up before and after calls for when an DEACTIVATE event is processed.
 		doAnswer(invocation -> {
 			beforeDeactivate(invocation.getArgument(0), invocation.getArgument(1));
@@ -534,7 +534,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
 			// set the content object
-			//TODO dynamic is getting set to true here somehow
 			item.setContent(getParticipationCouponV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());

@@ -126,16 +126,6 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
 
-	//TODO if the below query is eventually used, I suspect @@ROWCOUNT won't work in this manner. Didn't work in SQL ui.
-	public static final String UPSERT_PRICEBOOK_COST =
-			"UPDATE mmc.dbo.PriceBook_Cost" +
-					" SET basePrice = ?, cost = ?, userId = ?, participationId = ?" +
-					" WHERE UniqueId = ? AND PriceBookId = ?" +
-					" IF @@ROWCOUNT = 0" +
-					" INSERT INTO mmc.dbo.PriceBook_Cost" +
-					" (uniqueId, priceBookId, basePrice, cost, userId, participationId)" +
-					" VALUES (?, ?, ?, ?, ?, ?)";
-
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 

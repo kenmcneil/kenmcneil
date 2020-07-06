@@ -68,7 +68,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		// Get content enum type based on _type in the content. Must be a valid content type.
 		ParticipationContentType contentType = ParticipationContentType
 				.fromNameWithMajorVersion(getContentTypeNameWithMajorVersion(item));
-		//TODO contentType is null here
 		if (contentType == null) {
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
@@ -138,7 +137,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				.reduce(0, Integer::sum);
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
-//TODO fails around here
+
 		return affectedRows;
 	}
 

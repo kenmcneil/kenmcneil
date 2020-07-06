@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ParticipationCouponV1TestLifecycle implements ParticipationTestLifecycle {
-	//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	/**
 	 * Helper to get a non-null list of expected unique ids from the fixture.
 	 */

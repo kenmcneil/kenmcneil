@@ -38,10 +38,9 @@ import lombok.RequiredArgsConstructor;
  *   }
  * }
  */
-//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 @RequiredArgsConstructor
 public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
-//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	private static final Logger LOG = LoggerFactory.getLogger(ParticipationCouponV1Lifecycle.class);
 

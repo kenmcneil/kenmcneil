@@ -11,7 +11,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTe
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class CouponScenariosIT extends ParticipationScenarioITBase {
-	//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	@Autowired
 	protected BasicWorkflowTestEffectLifecycle basicWorkFlowTestEffectLifecycle;
 

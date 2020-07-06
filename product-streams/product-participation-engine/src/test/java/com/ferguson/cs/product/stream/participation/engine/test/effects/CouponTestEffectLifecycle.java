@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class CouponTestEffectLifecycle implements ParticipationTestEffectLifecycle {
-	//LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	private final ParticipationTestUtilities participationTestUtilities;
 
 	/**
