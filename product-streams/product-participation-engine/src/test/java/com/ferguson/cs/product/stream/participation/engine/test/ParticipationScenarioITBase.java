@@ -530,7 +530,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			// set the content object
 			item.setContent(getParticipationItemizedV1Content(fixture));
 		} else if ("participation-coupon@1".equals(fixture.getContentType().nameWithMajorVersion())) {
-			//TEMP values are good here
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
 			// set the content object

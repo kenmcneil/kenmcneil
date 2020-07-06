@@ -41,15 +41,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSal
 
 public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
-/*				participationId,
-				fixture.getSaleId(),
-				fixture.getStartDate(),
-				fixture.getEndDate(),
-				fixture.getLastModifiedUserId(),
-				fixture.getIsActive(),
-				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId(),
-				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
-				fixture.getShouldBlockDynamicPricing() == null ? 1 : fixture.getShouldBlockDynamicPricing()*/
+
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
 			"INSERT INTO mmc.product.participationItemPartial" +
 					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId, " +
@@ -258,7 +250,7 @@ public class ParticipationTestUtilities {
 	 *
 	 * Defaults lastModifiedUserId to test user id if none specified.
 	 * Defaults isActive and isCoupon to false if not specified.
-	 * Defaults shouldBlockDynamicPricing to true if not specified.
+	 * Defaults shouldBlockDynamicPricing to false if not specified.
 	 * Defaults contentTypeId to 1 and "calculated discounts" if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
@@ -276,7 +268,7 @@ public class ParticipationTestUtilities {
 				fixture.getIsActive(),
 				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId(),
 				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
-				fixture.getShouldBlockDynamicPricing() == null ? 1 : fixture.getShouldBlockDynamicPricing()
+				fixture.getShouldBlockDynamicPricing() == null ? 0 : fixture.getShouldBlockDynamicPricing()
 		);
 
 		ParticipationContentType contentType = fixture.getContentType() != null
