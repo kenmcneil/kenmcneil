@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
  *     "value": "",
  *     "_type": "atom-toggle-radios@1.0.0"
  *   },
- *   "blockDynamicPricing": {
+ *   "shouldBlockDynamicPricing": {
  *     "value": "",
  *     "_type": "atom-toggle-radios@1.0.0"
  *   },
@@ -45,7 +45,7 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	private static final String[] PRODUCT_SALE_ID_PATH = {"productSale", "saleId"};
 	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"uniqueIds", "list"};
 	private static final String[] IS_COUPON_PATH = {"isCoupon", "value"};
-	private static final String[] SHOULD_BLOCK_DYNAMIC_PRICING_PATH = {"blockDynamicPricing", "value"};
+	private static final String[] SHOULD_BLOCK_DYNAMIC_PRICING_PATH = {"shouldBlockDynamicPricing", "value"};
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;

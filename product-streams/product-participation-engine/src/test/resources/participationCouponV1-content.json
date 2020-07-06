@@ -8,7 +8,7 @@
     "value": "",
     "_type": "atom-toggle-radios@1.0.0"
   },
-  "blockDynamicPricing": {
+  "shouldBlockDynamicPricing": {
     "value": "",
     "_type": "atom-toggle-radios@1.0.0"
   },
