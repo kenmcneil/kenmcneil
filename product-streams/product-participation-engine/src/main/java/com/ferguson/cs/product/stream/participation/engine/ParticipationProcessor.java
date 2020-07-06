@@ -62,6 +62,7 @@ public class ParticipationProcessor {
 				participationEngineSettings.getTestModeMinParticipationId());
 		while (item != null) {
 			try {
+				//TODO it happens here that item has coupon true but in the db it ends up coupon false
 				participationWriter.processPublish(item, getProcessingDate());
 				LOG.info("participation {} published", item.getId());
 			} catch (Exception e) {

@@ -59,6 +59,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.effects.Particip
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.CouponFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -400,7 +401,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			afterActivate(invocation.getArgument(0), invocation.getArgument(1));
 			return null;
 		}).when(participationLifecycleService).activateByType(any(ParticipationItemPartial.class), any(Date.class));
-
+//TODO wtf do these actually do?
 		// Set up before and after calls for when an DEACTIVATE event is processed.
 		doAnswer(invocation -> {
 			beforeDeactivate(invocation.getArgument(0), invocation.getArgument(1));
@@ -529,9 +530,12 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			// set the content object
 			item.setContent(getParticipationItemizedV1Content(fixture));
 		} else if ("participation-coupon@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			//TEMP values are good here
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
-			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
-			//TODO should this test isCoupon = true?
+			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+			// set the content object
+			//TODO dynamic is getting set to true here somehow
+			item.setContent(getParticipationCouponV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
 		}
@@ -610,6 +614,29 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type participation-coupon@1, as if it came from Construct.
+	 */
+	private Map<String, Object> getParticipationCouponV1Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		CouponFixture coupon = fixture.getCouponFixture();
+
+		content = getContentTemplate("participationCouponV1-content.json");
+
+		// Set the required values in content. It's ok to use only the major version, as in "participation-coupon@1"
+		// instead of "participation-coupon@1.0.0", since the minor patch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine, it just works.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put( "saleId", fixture.getSaleId());
+		atPath(content, "/isCoupon").put("value", fixture.getIsCoupon());
+		atPath(content, "/blockDynamicPricing").put("value", fixture.getShouldBlockDynamicPricing());
+		atPath(content, "/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
 	}

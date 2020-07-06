@@ -138,7 +138,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				.reduce(0, Integer::sum);
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
-
+//TODO fails around here
 		return affectedRows;
 	}
 

@@ -44,7 +44,7 @@ public class ParticipationItemFixture {
 	@Builder.Default
 	private Boolean isCoupon = false;
 	@Builder.Default
-	private Boolean shouldBlockDynamicPricing = true;
+	private Boolean shouldBlockDynamicPricing = false;
 
 	/**
 	 * Controls how the ParticipationItem.content map is created. The map will be created based on
@@ -87,6 +87,11 @@ public class ParticipationItemFixture {
 	 * Use in tests to populate records in the participationItemizedDiscount table.
 	 */
 	private List<ItemizedDiscountFixture> itemizedDiscountFixtures;
+
+	/**
+	 * Use in tests to populate coupon values
+	 */
+	private CouponFixture couponFixture;
 
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)
@@ -171,6 +176,17 @@ public class ParticipationItemFixture {
 				Assertions.assertThat(discountFixture.getPricebook22Price()).isNotNull();
 			});
 			this.itemizedDiscountFixtures = Arrays.asList(discountFixtures);
+			return this;
+		}
+
+		/**
+		 *  For use in tests to populate coupon. Values must not be null.
+		 */
+		public ParticipationItemFixtureBuilder coupon(CouponFixture couponFixture) {
+			Assertions.assertThat(couponFixture).isNotNull();
+			Assertions.assertThat(couponFixture.getIsCoupon()).isNotNull();
+			Assertions.assertThat(couponFixture.getShouldBlockDynamicPricing()).isNotNull();
+			this.couponFixture = couponFixture;
 			return this;
 		}
 

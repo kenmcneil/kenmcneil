@@ -17,6 +17,27 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * {
+ *   "_type": "participation-coupon@1.1.0",
+ *   "productSale": {
+ *     "saleId": 0,
+ *     "_type": "atom-product-sale@1.0.0"
+ *   },
+ *   "isCoupon": {
+ *     "value": "",
+ *     "_type": "atom-toggle-radios@1.0.0"
+ *   },
+ *   "blockDynamicPricing": {
+ *     "value": "",
+ *     "_type": "atom-toggle-radios@1.0.0"
+ *   },
+ *   "uniqueIds": {
+ *     "list": [],
+ *     "_type": "atom-id-list@1.0.0"
+ *   }
+ * }
+ */
 //LWH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 @RequiredArgsConstructor
 public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
@@ -25,8 +46,9 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	private static final Logger LOG = LoggerFactory.getLogger(ParticipationCouponV1Lifecycle.class);
 
 	private static final String[] PRODUCT_SALE_ID_PATH = {"productSale", "saleId"};
-//	TODO finish path below to get uniqueIds. Calc Disc's is {"calculatedDiscounts", "uniqueIds", "list"}
-	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"", ""};
+	private static final String[] PRODUCT_UNIQUE_IDS_PATH = {"uniqueIds", "list"};
+	private static final String[] IS_COUPON_PATH = {"isCoupon", "value"};
+	private static final String[] SHOULD_BLOCK_DYNAMIC_PRICING_PATH = {"blockDynamicPricing", "value"};
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;
@@ -50,8 +72,8 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 				.endDate(item.getSchedule() == null ? null : item.getSchedule().getTo())
 				.lastModifiedUserId(item.getLastModifiedUserId())
 				.isActive(false)
-				.isCoupon(item.getIsCoupon())
-				.shouldBlockDynamicPricing(item.getShouldBlockDynamicPricing())
+				.isCoupon(getIsCoupon(item))
+				.shouldBlockDynamicPricing(getShouldBlockDynamicPricing(item))
 				.contentTypeId(ParticipationContentType.PARTICIPATION_COUPON_V1.contentTypeId())
 				.build();
 
@@ -168,5 +190,19 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	private List<Integer> getUniqueIds(ParticipationItem item) {
 		List<Integer> ids = ParticipationLifecycle.getAtPath(item, PRODUCT_UNIQUE_IDS_PATH);
 		return ids == null ? new ArrayList<>() : ids;
+	}
+
+	/**
+	 * Extract isCoupon from the content map.
+	 */
+	private Boolean getIsCoupon(ParticipationItem item) {
+		return ParticipationLifecycle.getAtPath(item, IS_COUPON_PATH);
+	}
+
+	/**
+	 * Extract shouldBlockDynamicPricing from the content map.
+	 */
+	private Boolean getShouldBlockDynamicPricing(ParticipationItem item) {
+		return ParticipationLifecycle.getAtPath(item, SHOULD_BLOCK_DYNAMIC_PRICING_PATH);
 	}
 }

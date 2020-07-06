@@ -37,10 +37,13 @@ public class CouponScenariosIT extends ParticipationScenarioITBase {
 		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.saleId(2020)
+				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.isCoupon(true)
 				.shouldBlockDynamicPricing(false)
 				.scheduleByDays(0,2)
 				.contentType(ParticipationContentType.PARTICIPATION_COUPON_V1)
+				.isCoupon(true)
+				.shouldBlockDynamicPricing(false)
 				.build();
 
 		testLifecycles(basicWorkFlowTestEffectLifecycle, saleIdTestEffectLifecycle, couponTestEffectLifecycle);

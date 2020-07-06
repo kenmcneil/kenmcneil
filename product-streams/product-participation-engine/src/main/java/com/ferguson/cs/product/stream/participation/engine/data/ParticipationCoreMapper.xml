@@ -196,7 +196,9 @@
 			endDate,
 			lastModifiedUserId,
 			isActive,
-			contentTypeId
+			contentTypeId,
+			isCoupon,
+			shouldBlockDynamicPricing
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
@@ -217,7 +219,9 @@
 			endDate,
 			lastModifiedUserId,
 			isActive,
-			contentTypeId
+			contentTypeId,
+			isCoupon,
+			shouldBlockDynamicPricing
 		FROM
 			mmc.product.participationItemPartial
 		WHERE
@@ -244,7 +248,9 @@
 					endDate = #{endDate, jdbcType=TIMESTAMP},
 					lastModifiedUserId = #{lastModifiedUserId},
 					isActive = #{isActive},
-					contentTypeId = #{contentTypeId}
+					contentTypeId = #{contentTypeId},
+					isCoupon = #{isCoupon},
+					shouldBlockDynamicPricing = #{shouldBlockDynamicPricing}
 				WHERE
 					participationId = #{participationId}
 			END
@@ -257,7 +263,9 @@
 					endDate,
 					lastModifiedUserId,
 					isActive,
-					contentTypeId
+					contentTypeId,
+					isCoupon,
+					shouldBlockDynamicPricing
 				)
 				VALUES (
 						   #{participationId},
@@ -266,7 +274,9 @@
 						   #{endDate, jdbcType=TIMESTAMP},
 						   #{lastModifiedUserId},
 						   #{isActive},
-						   #{contentTypeId}
+						   #{contentTypeId},
+						   #{isCoupon},
+						   #{shouldBlockDynamicPricing}
 					   );
 			END
 	</insert>

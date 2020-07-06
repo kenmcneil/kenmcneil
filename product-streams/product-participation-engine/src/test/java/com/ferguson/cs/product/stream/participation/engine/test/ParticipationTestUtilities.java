@@ -42,11 +42,20 @@ import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSal
 
 public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
-
+/*				participationId,
+				fixture.getSaleId(),
+				fixture.getStartDate(),
+				fixture.getEndDate(),
+				fixture.getLastModifiedUserId(),
+				fixture.getIsActive(),
+				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId(),
+				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
+				fixture.getShouldBlockDynamicPricing() == null ? 1 : fixture.getShouldBlockDynamicPricing()*/
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
 			"INSERT INTO mmc.product.participationItemPartial" +
-					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId)" +
-					" VALUES (?, ?, ?, ?, ?, ?, ?)";
+					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId, " +
+					"isCoupon, shouldBlockDynamicPricing)" +
+					" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_PRODUCT =
 			"INSERT INTO mmc.product.participationProduct VALUES" +
