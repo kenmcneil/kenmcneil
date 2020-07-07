@@ -632,8 +632,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// to edit the record, but since the minor and patch is ignored in the engine, it just works.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put( "saleId", fixture.getSaleId());
-		atPath(content, "/isCoupon").put("value", fixture.getIsCoupon());
-		atPath(content, "/shouldBlockDynamicPricing").put("value", fixture.getShouldBlockDynamicPricing());
+		atPath(content, "/isCoupon").put("selected", fixture.getIsCoupon());
+		atPath(content, "/shouldBlockDynamicPricing").put("selected", fixture.getShouldBlockDynamicPricing());
 		atPath(content, "/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
