@@ -88,11 +88,6 @@ public class ParticipationItemFixture {
 	 */
 	private List<ItemizedDiscountFixture> itemizedDiscountFixtures;
 
-	/**
-	 * Use in tests to populate coupon values
-	 */
-	private CouponFixture couponFixture;
-
 	@Builder.Default
 	@Setter(AccessLevel.PRIVATE)
 	private List<LifecycleState> stateLog = new ArrayList<>();
@@ -176,17 +171,6 @@ public class ParticipationItemFixture {
 				Assertions.assertThat(discountFixture.getPricebook22Price()).isNotNull();
 			});
 			this.itemizedDiscountFixtures = Arrays.asList(discountFixtures);
-			return this;
-		}
-
-		/**
-		 *  For use in tests to populate coupon. Values must not be null.
-		 */
-		public ParticipationItemFixtureBuilder coupon(CouponFixture couponFixture) {
-			Assertions.assertThat(couponFixture).isNotNull();
-			Assertions.assertThat(couponFixture.getIsCoupon()).isNotNull();
-			Assertions.assertThat(couponFixture.getShouldBlockDynamicPricing()).isNotNull();
-			this.couponFixture = couponFixture;
 			return this;
 		}
 

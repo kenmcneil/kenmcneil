@@ -59,7 +59,6 @@ import com.ferguson.cs.product.stream.participation.engine.test.effects.Particip
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
-import com.ferguson.cs.product.stream.participation.engine.test.model.CouponFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -621,8 +620,6 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 	private Map<String, Object> getParticipationCouponV1Content(ParticipationItemFixture fixture) {
 		ObjectNode content;
-
-		CouponFixture coupon = fixture.getCouponFixture();
 
 		content = getContentTemplate("participationCouponV1-content.json");
 

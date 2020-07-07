@@ -249,9 +249,8 @@
 					lastModifiedUserId = #{lastModifiedUserId},
 					isActive = #{isActive},
 					contentTypeId = #{contentTypeId},
-					isCoupon = IIF(#{isCoupon} IS NULL, 0, #{isCoupon}),
-					shouldBlockDynamicPricing = IIF(#{shouldBlockDynamicPricing} IS NULL, 0,
-						#{shouldBlockDynamicPricing})
+					isCoupon = COALESCE(#{isCoupon},0),
+					shouldBlockDynamicPricing = COALESCE(#{shouldBlockDynamicPricing}, 0)
 				WHERE
 					participationId = #{participationId}
 			END
@@ -276,9 +275,8 @@
 						   #{lastModifiedUserId},
 						   #{isActive},
 						   #{contentTypeId},
-						   IIF(#{isCoupon} IS NULL, 0, #{isCoupon}),
-						   IIF(#{shouldBlockDynamicPricing} IS NULL, 0,
-								#{shouldBlockDynamicPricing})
+						   COALESCE(#{isCoupon},0),
+						   COALESCE(#{shouldBlockDynamicPricing}, 0)
 					   );
 			END
 	</insert>

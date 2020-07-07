@@ -42,8 +42,6 @@ public class CouponScenariosIT extends ParticipationScenarioITBase {
 				.shouldBlockDynamicPricing(false)
 				.scheduleByDays(0,2)
 				.contentType(ParticipationContentType.PARTICIPATION_COUPON_V1)
-				.isCoupon(true)
-				.shouldBlockDynamicPricing(false)
 				.build();
 
 		testLifecycles(basicWorkFlowTestEffectLifecycle, saleIdTestEffectLifecycle, couponTestEffectLifecycle);

@@ -192,14 +192,14 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	/**
 	 * Extract isCoupon from the content map.
 	 */
-	private Boolean getIsCoupon(ParticipationItem item) {
+	private boolean getIsCoupon(ParticipationItem item) {
 		return ParticipationLifecycle.getAtPath(item, IS_COUPON_PATH);
 	}
 
 	/**
 	 * Extract shouldBlockDynamicPricing from the content map.
 	 */
-	private Boolean getShouldBlockDynamicPricing(ParticipationItem item) {
+	private boolean getShouldBlockDynamicPricing(ParticipationItem item) {
 		return ParticipationLifecycle.getAtPath(item, SHOULD_BLOCK_DYNAMIC_PRICING_PATH);
 	}
 }

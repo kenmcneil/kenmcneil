@@ -44,8 +44,8 @@ public class ParticipationTestUtilities {
 
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
 			"INSERT INTO mmc.product.participationItemPartial" +
-					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId, " +
-					"isCoupon, shouldBlockDynamicPricing)" +
+					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId," +
+					" isCoupon, shouldBlockDynamicPricing)" +
 					" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_PRODUCT =
@@ -249,8 +249,7 @@ public class ParticipationTestUtilities {
 	 * This is similar to a publish operation.
 	 *
 	 * Defaults lastModifiedUserId to test user id if none specified.
-	 * Defaults isActive and isCoupon to false if not specified.
-	 * Defaults shouldBlockDynamicPricing to false if not specified.
+	 * Defaults isActive, shouldBlockDynamicPricing and isCoupon to false if not specified.
 	 * Defaults contentTypeId to 1 and "calculated discounts" if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
@@ -266,7 +265,8 @@ public class ParticipationTestUtilities {
 				fixture.getEndDate(),
 				fixture.getLastModifiedUserId(),
 				fixture.getIsActive(),
-				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId(),
+				fixture.getContentType() == null ? ParticipationContentType.PARTICIPATION_V1.contentTypeId() :
+						fixture.getContentType().contentTypeId(),
 				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
 				fixture.getShouldBlockDynamicPricing() == null ? 0 : fixture.getShouldBlockDynamicPricing()
 		);
