@@ -45,7 +45,7 @@
 			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
 			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
 			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
-			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.id
+			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.manufacturerId
 			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId
 			LEFT OUTER JOIN mmc.dbo.product_imap_flag pm ON p.uniqueId = pm.uniqueId	
 		WHERE p.uniqueId =#{uniqueId}
