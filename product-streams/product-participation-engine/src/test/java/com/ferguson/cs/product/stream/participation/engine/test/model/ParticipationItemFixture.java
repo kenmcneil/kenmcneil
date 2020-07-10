@@ -41,6 +41,10 @@ public class ParticipationItemFixture {
 	private Integer saleId = 0;
 	@Builder.Default
 	private Boolean isSimulatedPublish = false;
+	@Builder.Default
+	private Boolean isCoupon = false;
+	@Builder.Default
+	private Boolean shouldBlockDynamicPricing = false;
 
 	/**
 	 * Controls how the ParticipationItem.content map is created. The map will be created based on

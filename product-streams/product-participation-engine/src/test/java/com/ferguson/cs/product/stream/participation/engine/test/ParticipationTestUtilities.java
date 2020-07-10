@@ -2,6 +2,7 @@ package com.ferguson.cs.product.stream.participation.engine.test;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -30,6 +31,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCo
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationCouponV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -42,8 +44,9 @@ public class ParticipationTestUtilities {
 
 	public static final String INSERT_PARTICIPATION_ITEM_PARTIAL_SQL =
 			"INSERT INTO mmc.product.participationItemPartial" +
-					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId)" +
-					" VALUES (?, ?, ?, ?, ?, ?, ?)";
+					" (participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId," +
+					" isCoupon, shouldBlockDynamicPricing)" +
+					" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	public static final String INSERT_PARTICIPATION_PRODUCT =
 			"INSERT INTO mmc.product.participationProduct VALUES" +
@@ -113,16 +116,6 @@ public class ParticipationTestUtilities {
 
 	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
-
-	//TODO if the below query is eventually used, I suspect @@ROWCOUNT won't work in this manner. Didn't work in SQL ui.
-	public static final String UPSERT_PRICEBOOK_COST =
-			"UPDATE mmc.dbo.PriceBook_Cost" +
-					" SET basePrice = ?, cost = ?, userId = ?, participationId = ?" +
-					" WHERE UniqueId = ? AND PriceBookId = ?" +
-					" IF @@ROWCOUNT = 0" +
-					" INSERT INTO mmc.dbo.PriceBook_Cost" +
-					" (uniqueId, priceBookId, basePrice, cost, userId, participationId)" +
-					" VALUES (?, ?, ?, ?, ?, ?)";
 
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
@@ -256,7 +249,7 @@ public class ParticipationTestUtilities {
 	 * This is similar to a publish operation.
 	 *
 	 * Defaults lastModifiedUserId to test user id if none specified.
-	 * Defaults isActive to false if not specified.
+	 * Defaults isActive, shouldBlockDynamicPricing and isCoupon to false if not specified.
 	 * Defaults contentTypeId to 1 and "calculated discounts" if not specified.
 	 */
 	public void insertParticipationFixture(ParticipationItemFixture fixture) {
@@ -272,14 +265,18 @@ public class ParticipationTestUtilities {
 				fixture.getEndDate(),
 				fixture.getLastModifiedUserId(),
 				fixture.getIsActive(),
-				fixture.getContentType() == null ? 1 : fixture.getContentType().contentTypeId()
+				fixture.getContentType() == null ? ParticipationContentType.PARTICIPATION_V1.contentTypeId() :
+						fixture.getContentType().contentTypeId(),
+				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
+				fixture.getShouldBlockDynamicPricing() == null ? 0 : fixture.getShouldBlockDynamicPricing()
 		);
 
 		ParticipationContentType contentType = fixture.getContentType() != null
 				? fixture.getContentType()
 				: ParticipationContentType.PARTICIPATION_V1;
+
+		// Insert discount records, where applicable
 		if (contentType == ParticipationContentType.PARTICIPATION_V1) {
-			// Insert any participationCalculatedDiscount records.
 			nullSafeStream(fixture.getCalculatedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
 					.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
@@ -305,11 +302,14 @@ public class ParticipationTestUtilities {
 		}
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
-		List<Integer> uniqueIds = contentType == ParticipationContentType.PARTICIPATION_V1
-				? ParticipationV1TestLifecycle.getUniqueIds(fixture)
-				: (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1
-						? ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture)
-						: Collections.emptyList());
+		List<Integer> uniqueIds = new ArrayList<>();
+		if (contentType ==ParticipationContentType.PARTICIPATION_V1) {
+			uniqueIds = ParticipationV1TestLifecycle.getUniqueIds(fixture);
+		} else if (contentType ==ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
+			uniqueIds = ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
+		} else if (contentType ==ParticipationContentType.PARTICIPATION_COUPON_V1) {
+			uniqueIds = ParticipationCouponV1TestLifecycle.getUniqueIds(fixture);
+		}
 		if (!CollectionUtils.isEmpty(uniqueIds)) {
 			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
 					uniqueIds.stream()
@@ -443,6 +443,8 @@ public class ParticipationTestUtilities {
 		String fixtureAsString = fixture.toString();
 		Assertions.assertThat(getParticipationItemPartial(participationId)).as("Unexpected participationItemPartial record: " + fixtureAsString).isNull();
 		Assertions.assertThat(getParticipationCalculatedDiscountCount(participationId)).as("Unexpected participationCalculatedDiscount record: " + fixtureAsString).isEqualTo(0);
+		Assertions.assertThat(getParticipationItemizedDiscountCount(participationId)).as("Unexpected " +
+				"participationItemizedDiscount record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getParticipationProductCount(participationId)).as("Unexpected participationProduct record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getParticipationSaleIdCount(participationId)).as("Unexpected participation id in product.sale record: " + fixtureAsString).isEqualTo(0);
 		Assertions.assertThat(getPricebookCostParticipationCount(participationId)).as("Unexpected participation id in pricebook_cost record: " + fixtureAsString).isEqualTo(0);
