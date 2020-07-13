@@ -1,8 +1,6 @@
 package com.ferguson.cs.product.task.feipricefeed.batch;
 
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.classify.Classifier;
 
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
