@@ -81,6 +81,8 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 				.lastModifiedUserId(item.getLastModifiedUserId())
 				.isActive(false)
 				.contentTypeId(ParticipationContentType.PARTICIPATION_ITEMIZED_V1.contentTypeId())
+				.isCoupon(false)
+				.shouldBlockDynamicPricing(true)
 				.build();
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
