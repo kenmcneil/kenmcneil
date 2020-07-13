@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.task.feipricefeed.batch;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -13,15 +14,16 @@ import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
+import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceDataStatus;
 import com.ferguson.cs.product.task.feipricefeed.service.FeiPriceService;
 
 public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiPriceData> {
-	private final Map<String, FeiPriceData> feiPriceDataMap;
+	private final Map<String, List<FeiPriceData>> feiPriceDataMap;
 	private final FeiPriceService feiPriceService;
 	private FeiPriceDataComparator feiPriceDataComparator = new FeiPriceDataComparator();
 	private Set<FeiPriceData> duplicateData;
 
-	public FeiPriceDataMapItemWriter(Map<String, FeiPriceData> feiPriceDataMap, FeiPriceService feiPriceService) {
+	public FeiPriceDataMapItemWriter(Map<String, List<FeiPriceData>> feiPriceDataMap, FeiPriceService feiPriceService) {
 		this.feiPriceDataMap = feiPriceDataMap;
 		this.feiPriceService = feiPriceService;
 	}
@@ -35,9 +37,22 @@ public class FeiPriceDataMapItemWriter extends AbstractItemStreamItemWriter<FeiP
 	@Override
 	public void write(List<? extends FeiPriceData> items) throws Exception {
 		for(FeiPriceData item : items) {
-			if(!feiPriceDataMap.containsKey(item.getMpid()) || feiPriceDataComparator.compare(item,feiPriceDataMap.get(item.getMpid())) > 0) {
-				feiPriceDataMap.put(item.getMpid(),item);
+			if(feiPriceDataMap.containsKey(item.getMpid())) {
+				List<FeiPriceData> existingRecords = feiPriceDataMap.get(item.getMpid()).stream().filter(p -> p.getFeiPriceDataStatus() == null || p.getFeiPriceDataStatus() == FeiPriceDataStatus.VALID || p.getFeiPriceDataStatus() == FeiPriceDataStatus.OVERRIDE).collect(Collectors.toList());
+				if(!existingRecords.isEmpty()) {
+					//There is only ever 1 valid or override record
+					FeiPriceData existingRecord = existingRecords.get(0);
+					if(feiPriceDataComparator.compare(item,existingRecord) > 0) {
+						feiPriceDataMap.get(item.getMpid()).remove(existingRecord);
+					} else if(feiPriceDataComparator.compare(item,existingRecord) < 0) {
+						continue;
+					} else {
+						item.setFeiPriceDataStatus(FeiPriceDataStatus.UNRESOLVED_DUPLICATE_MPID);
+					}
+				}
+
 			}
+			feiPriceDataMap.computeIfAbsent(item.getMpid(),p -> new ArrayList<>()).add(item);
 		}
 	}
 

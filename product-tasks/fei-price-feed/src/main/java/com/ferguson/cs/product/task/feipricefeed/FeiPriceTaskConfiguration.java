@@ -16,9 +16,12 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.MultiResourceItemReader;
@@ -28,8 +31,10 @@ import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
+import org.springframework.batch.item.support.ClassifierCompositeItemWriter;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -38,13 +43,17 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 import com.ferguson.cs.product.task.feipricefeed.batch.CleanupStalePromoTasklet;
+import com.ferguson.cs.product.task.feipricefeed.batch.ErrorFeiPriceDataFieldExtractor;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiFileSystemResource;
+import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataClassifier;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataFieldExtractor;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataItemProcessor;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataJobListener;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemReader;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemWriter;
+import com.ferguson.cs.product.task.feipricefeed.batch.SendErrorReportTasklet;
 import com.ferguson.cs.product.task.feipricefeed.batch.SetItemReader;
+import com.ferguson.cs.product.task.feipricefeed.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
 import com.ferguson.cs.product.task.feipricefeed.service.FeiPriceService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
@@ -165,6 +174,14 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public ClassifierCompositeItemWriter<FeiPriceData> feiPriceDataClassifierCompositeItemWriter(ItemStreamWriter<FeiPriceData> errorFeiPriceDataWriter) {
+		ClassifierCompositeItemWriter<FeiPriceData> writer = new ClassifierCompositeItemWriter<>();
+		writer.setClassifier(new FeiPriceDataClassifier(compositeFeiPriceDataWriter(), errorFeiPriceDataWriter));
+		return writer;
+	}
+
+	@Bean
+	@StepScope
 	public MultiResourceItemReader<String> allFilesReader() {
 		Resource[] resources;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
@@ -182,7 +199,7 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public FeiPriceDataMapItemReader feiPriceDataMapItemReader(Map<String, FeiPriceData> feiPriceDataMap) {
+	public FeiPriceDataMapItemReader feiPriceDataMapItemReader(Map<String, List<FeiPriceData>> feiPriceDataMap) {
 		return new FeiPriceDataMapItemReader(feiPriceDataMap);
 	}
 
@@ -211,9 +228,8 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<FeiPriceData> feiImapPriceDataWriter(FeiFileSystemResource feiFileSystemResource) {
-		Date now = DateUtils.now();
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MMddyy");
-		String dateString = DateUtils.dateToString(now, dateTimeFormatter);
+		String dateString = DateUtils.dateToString(DateUtils.now(), dateTimeFormatter);
 		String filename = String.format("build_imap_pricing_%s.csv", dateString);
 		String[] names = new String[]{"uniqueId", "mpid", "price"};
 		feiFileSystemResource
@@ -225,8 +241,25 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
+	@StepScope
+	public FlatFileItemWriter<FeiPriceData> errorFeiPriceDataWriter(@Value("#{stepExecution.jobExecution}") JobExecution jobExecution) {
+		String[] columnNames = new String[]{"uniqueId", "mpid", "price", "brand", "product status", "error reason"};
+		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MMddyy");
+		String dateString = DateUtils.dateToString(DateUtils.now(), dateTimeFormatter);
+		String filePath = String
+				.format("%s" + "outbound_fei_errors_%s.csv", feiPriceSettings.getStorageFilePath(), dateString);
+		jobExecution.getExecutionContext().putString("errorReport", filePath);
+
+		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",")
+				.fieldExtractor(new ErrorFeiPriceDataFieldExtractor())
+				.headerCallback(p -> p
+						.write(String.join(",", columnNames))).name("errorFeiPriceDataWriter")
+				.resource(new FileSystemResource(filePath)).shouldDeleteIfEmpty(true).build();
+	}
+
+	@Bean
 	@JobScope
-	public Map<String, FeiPriceData> feiPriceDataMap() {
+	public Map<String, List<FeiPriceData>> feiPriceDataMap() {
 		return new HashMap<>();
 	}
 
@@ -238,7 +271,7 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public FeiPriceDataMapItemWriter feiPriceDataMapItemWriter(Map<String,FeiPriceData> feiPriceDataMap) {
+	public FeiPriceDataMapItemWriter feiPriceDataMapItemWriter(Map<String, List<FeiPriceData>> feiPriceDataMap) {
 		return new FeiPriceDataMapItemWriter(feiPriceDataMap, feiPriceService);
 	}
 
@@ -267,8 +300,14 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	@StepScope
+	public SendErrorReportTasklet sendErrorReportTasklet(FeiPriceSettings feiPriceSettings, BuildWebServicesFeignClient buildWebServicesFeignClient) {
+		return new SendErrorReportTasklet(feiPriceSettings, buildWebServicesFeignClient);
+	}
+
+	@Bean
+	@StepScope
 	public FeiPriceDataItemProcessor feiPriceDataItemProcessor(FeiPriceService feiPriceService) {
-		return new FeiPriceDataItemProcessor(feiPriceService);
+		return new FeiPriceDataItemProcessor(feiPriceService, feiPriceSettings);
 	}
 
 	@Bean
@@ -278,10 +317,16 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
-	public Step writeLocationPriceDataToFiles(FeiPriceDataMapItemReader feiPriceDataMapItemReader, CompositeItemWriter<FeiPriceData> compositeFeiPriceDataWriter, FeiPriceDataItemProcessor feiPriceDataItemProcessor) {
+	public Step writeLocationPriceDataToFiles(FeiPriceDataMapItemReader feiPriceDataMapItemReader,
+											  ClassifierCompositeItemWriter<FeiPriceData> feiPriceDataClassifierCompositeItemWriter,
+											  FeiPriceDataItemProcessor feiPriceDataItemProcessor,
+											  ItemStreamWriter<FeiPriceData> compositeFeiPriceDataWriter,
+											  ItemStreamWriter<FeiPriceData> errorFeiPriceDataWriter) {
 		return taskBatchJobFactory
 				.getStepBuilder("writeLocationPriceDataToFiles").<FeiPriceData, FeiPriceData>chunk(1000)
-				.reader(feiPriceDataMapItemReader).processor(feiPriceDataItemProcessor).writer(compositeFeiPriceDataWriter).build();
+				.reader(feiPriceDataMapItemReader).processor(feiPriceDataItemProcessor)
+				.writer(feiPriceDataClassifierCompositeItemWriter).stream(compositeFeiPriceDataWriter)
+				.stream(errorFeiPriceDataWriter).build();
 	}
 
 	@Bean
@@ -310,34 +355,41 @@ public class FeiPriceTaskConfiguration {
 
 	@Bean
 	public Step addPromoProductsToFeiWhitelist(MyBatisCursorItemReader<Integer> promoProductReader, MyBatisBatchItemWriter<Integer> feiPromoPriceDataWhitelistWriter) {
-		return taskBatchJobFactory.getStepBuilder("addPromoProductsToFeiWhitelist").<Integer,Integer>chunk(1000)
+		return taskBatchJobFactory.getStepBuilder("addPromoProductsToFeiWhitelist").<Integer, Integer>chunk(1000)
 				.reader(promoProductReader).writer(feiPromoPriceDataWhitelistWriter).build();
 	}
 
 	@Bean
 	public Step cleanupStalePromoProducts(CleanupStalePromoTasklet cleanupStalePromoTasklet) {
-		return taskBatchJobFactory.getStepBuilder("cleanupStalePromoProducts").tasklet(cleanupStalePromoTasklet).build();
+		return taskBatchJobFactory.getStepBuilder("cleanupStalePromoProducts").tasklet(cleanupStalePromoTasklet)
+				.build();
 	}
 
 	@Bean
 	public Step markStalePromoProducts(MyBatisCursorItemReader<FeiPriceData> stalePromoPriceReader, MyBatisBatchItemWriter<FeiPriceData> feiPriceDataWhitelistWriter) {
-		return taskBatchJobFactory.getStepBuilder("markStalePromoProducts").<FeiPriceData,FeiPriceData>chunk(1000)
+		return taskBatchJobFactory.getStepBuilder("markStalePromoProducts").<FeiPriceData, FeiPriceData>chunk(1000)
 				.reader(stalePromoPriceReader).writer(feiPriceDataWhitelistWriter).build();
 	}
 
 	@Bean
-	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts) {
+	public Step sendErrorReport(SendErrorReportTasklet sendErrorReportTasklet) {
+		return taskBatchJobFactory.getStepBuilder("sendErrorReport").tasklet(sendErrorReportTasklet).build();
+	}
+
+	@Bean
+	public Job uploadFeiFullPriceFile(Step writeFullPriceDataToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts, Step sendErrorReport) {
 		return taskBatchJobFactory.getJobBuilder("uploadFeiFullPriceFile").listener(feiPriceDataJobListener())
 				.start(addPromoProductsToFeiWhitelist).next(writeFullPriceDataToMap).next(writeLocationPriceDataToFiles)
-				.next(combineLocationPriceFiles).next(writeDuplicateMpns()).next(cleanupStalePromoProducts).build();
+				.next(combineLocationPriceFiles).next(cleanupStalePromoProducts).next(sendErrorReport).build();
 
 	}
 
 	@Bean
-	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts) {
+	public Job uploadFeiPriceChangesFile(Step writePriceDataChangesToMap, Step writeLocationPriceDataToFiles, Step combineLocationPriceFiles, Step addPromoProductsToFeiWhitelist, Step cleanupStalePromoProducts, Step sendErrorReport) {
 		return taskBatchJobFactory.getJobBuilder("uploadFeiPriceChangesFile").listener(feiPriceDataJobListener())
-				.start(addPromoProductsToFeiWhitelist).next(writePriceDataChangesToMap).next(writeLocationPriceDataToFiles)
-				.next(combineLocationPriceFiles).next(cleanupStalePromoProducts)
+				.start(addPromoProductsToFeiWhitelist).next(writePriceDataChangesToMap)
+				.next(writeLocationPriceDataToFiles)
+				.next(combineLocationPriceFiles).next(cleanupStalePromoProducts).next(sendErrorReport)
 				.build();
 	}
 
