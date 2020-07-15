@@ -9,6 +9,7 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.newrelic.api.agent.NewRelic;
 
 /**
@@ -153,6 +154,16 @@ public class ParticipationProcessor {
 			return null;
 		}
 		ParticipationItemPartial itemPartial = participationLifecycleService.getParticipationItemPartial(item.getId());
+		if (itemPartial ==  null) {
+			constructService.updateParticipationItemStatus(
+					item.getId(),
+					ParticipationItemStatus.DRAFT,
+					null,
+					getProcessingDate(),
+					item.getLastModifiedUserId()
+			);
+			return null;
+		}
 		itemPartial.setLastModifiedUserId(item.getLastModifiedUserId());
 		return itemPartial;
 	}

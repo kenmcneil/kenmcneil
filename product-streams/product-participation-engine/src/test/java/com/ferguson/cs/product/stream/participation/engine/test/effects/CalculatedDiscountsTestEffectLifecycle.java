@@ -78,8 +78,8 @@ public class CalculatedDiscountsTestEffectLifecycle implements ParticipationTest
 							? Math.min(pb1WasPrice, pb1PrevBasePrice)
 							: pb1PrevBasePrice;
 					Double expectedCost = discount.getIsPercent()
-							? Math.round(100.0 * discount.getChangeValue() * pb1CalcBasePrice) / 100.0
-							: discount.getChangeValue() + pb1CalcBasePrice;
+							? Math.round(100.0 * discount.getChangeValue() * pbcost.getBasePrice()) / 100.0
+							: discount.getChangeValue() + pbcost.getBasePrice();
 					Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
 				});
 			});

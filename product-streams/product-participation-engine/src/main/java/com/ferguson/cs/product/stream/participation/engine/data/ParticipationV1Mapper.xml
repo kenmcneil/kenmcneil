@@ -81,21 +81,16 @@
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
 		-- for the calculations. Rounds the discounted price down to 2 decimal places.
-		DECLARE @PB1PrevBasePrice decimal(18,2);
 		DECLARE @PB1WasPrice decimal(18,2);
-		DECLARE @PB1CalcBasePrice decimal(18,2);
 		UPDATE
 			pbCost
 		SET
-			@PB1PrevBasePrice = COALESCE(losPB1.basePrice, PB1Cost.basePrice),
 			@PB1WasPrice = COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0.00),
-			@PB1CalcBasePrice = 	IIF(@PB1WasPrice &gt; 0 AND @PB1WasPrice &lt; @PB1PrevBasePrice,
-										@PB1WasPrice,
-										@PB1PrevBasePrice),
-			pbCost.cost = ROUND(	IIF(discount.isPercent = 1,
-										@PB1CalcBasePrice * discount.changeValue,
-										@PB1CalcBasePrice + discount.changeValue),
-							2),
+			pbcost.cost = ROUND(IIF(
+										discount.isPercent = 1,
+										COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
+										COALESCE(los.basePrice, pbCost.basePrice) + discount.changeValue
+									), 2),
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
