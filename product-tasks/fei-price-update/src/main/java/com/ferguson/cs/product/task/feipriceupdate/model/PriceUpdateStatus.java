@@ -11,7 +11,7 @@ public enum PriceUpdateStatus implements IntMappedEnum  {
 	PRICE_VALIDATION_ERROR(5),
 	INPUT_VALIDATION_ERROR(6),
 	VENDOR_COST_LOOKUP_ERROR(7),
-	PRODUCT_ON_PROMO(8);
+	IMAP_PRICE_ERROR(8);
 
 	final int intValue;
 

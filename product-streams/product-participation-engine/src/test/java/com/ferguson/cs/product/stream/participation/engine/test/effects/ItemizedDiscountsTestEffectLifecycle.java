@@ -74,7 +74,6 @@ public class ItemizedDiscountsTestEffectLifecycle implements ParticipationTestEf
 					Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
 					Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
 					Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
-					//TODO how does below know which PBid?
 					Double expectedCost = discount.getPrice();
 					Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
 				});

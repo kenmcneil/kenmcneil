@@ -4,25 +4,27 @@
 <mapper namespace="com.ferguson.cs.product.task.mpnmpidmismatch.data.MpnMpidMismatchMapper">
 
 	<resultMap id="MpnMpidProductMap" type="MpnMpidProductItem">
-		<result column="uniqueId" property="uniqueId"/>
-		<result column="productId" property="productId"/>
-		<result column="manufacturer" property="manufacturer"/>
-		<result column="finish" property="finish"/>
-		<result column="sku" property="sku"/>
-		<result column="upc" property="upc"/>
-		<result column="mpn" property="mpn"/>
-		<result column="mpid" property="mpid"/>
+		<result column="p_uniqueId" property="pUniqueId"/>
+		<result column="p_productId" property="pProductId"/>
+		<result column="p_manufacturer" property="pManufacturer"/>
+		<result column="p_finish" property="pFinish"/>
+		<result column="p_sku" property="pSku"/>
+		<result column="p_upc" property="pUpc"/>
+		<result column="vm_sku" property="vmSku"/>
+		<result column="vm_upc" property="vmUpc"/>
+		<result column="vm_mpn" property="vmMpn"/>
+		<result column="fm_mpid" property="fmMpid"/>
 	</resultMap>
 	
 	<select id="getMpnMpidMissingItems" resultMap="MpnMpidProductMap">
 		SELECT 
-			p.uniqueId as uniqueId, 
-			p.productId as productId,
-			p.manufacturer as manufacturer,
-			p.finish as finish,
-			p.UPC as upc,
-			p.sku as sku,
-			vm.mpn as mpn
+			p.uniqueId as p_uniqueId, 
+			p.productId as p_productId,
+			p.manufacturer as p_manufacturer,
+			p.finish as p_finish,
+			p.UPC as p_upc,
+			p.sku as p_sku,
+			vm.mpn as vm_mpn
 		FROM 
 			omc.dbo.vendor_mapping vm with (nolock)
 		INNER JOIN mmc.dbo.product p with (nolock)
@@ -37,14 +39,16 @@
 	
 	<select id="getMpnMpidMismatchItems" resultMap="MpnMpidProductMap">	
 		SELECT 
-			p.uniqueId as uniqueId, 
-			p.productId as productId,
-			p.manufacturer as manufacturer,
-			p.finish as finish,
-			p.UPC as upc,
-			p.sku as sku,
-			vm.mpn as mpn,
-			fm.mpid as mpid
+			p.uniqueId as p_uniqueId, 
+			p.productId as p_productId,
+			p.manufacturer as p_manufacturer,
+			p.finish as p_finish,
+			p.UPC as p_upc,
+			vm.UPC as vm_upc,
+			p.sku as p_sku,
+			vm.sku as vm_sku,
+			vm.mpn as vm_mpn,
+			fm.mpid as fm_mpid
 		FROM 
 			omc.dbo.vendor_mapping vm with (nolock)
 		INNER JOIN mmc.dbo.product p with (nolock)

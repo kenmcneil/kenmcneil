@@ -18,9 +18,14 @@ public class FeiPriceDataFieldExtractor implements FieldExtractor<FeiPriceData> 
 	@NonNull
 	public Object[] extract(FeiPriceData item) {
 		Object[] fields = new Object[2];
+		double price = Double.parseDouble(item.getPrice());
 
 		fields[0] = String.format("%s*P#%s",location,item.getMpid());
-		fields[1] = item.getPrice();
+		if(price < 0) {
+			fields[1] = "###";
+		} else {
+			fields[1] = item.getPrice();
+		}
 		return fields;
 	}
 }

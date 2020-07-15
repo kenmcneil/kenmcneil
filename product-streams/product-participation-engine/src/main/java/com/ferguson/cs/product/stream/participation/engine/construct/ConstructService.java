@@ -24,13 +24,13 @@ public interface ConstructService {
 
 	/**
 	 * Update status fields and last-modified info in the given participation record,
-	 * and add an event to record the update. Records the change as being made by the
-	 * headless user that is configured in participation-engine.task-user-id.
+	 * and add an event to record the update.
 	 */
 	void updateParticipationItemStatus(
 			int participationId,
 			ParticipationItemStatus status,
 			ParticipationItemUpdateStatus updateStatus,
-			Date processingDate
+			Date processingDate,
+			int userId
 	);
 }

@@ -95,10 +95,12 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.build();
 
 		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
-				.contentType(ParticipationContentType.PARTICIPATION_V1)
+				.contentType(ParticipationContentType.PARTICIPATION_COUPON_V1)
 				.saleId(100001)
 				.uniqueIds(uniqueIds[2], uniqueIds[3])
 				.scheduleByDays(0, 10)
+				.isCoupon(true)
+				.shouldBlockDynamicPricing(true)
 				.build();
 
 		ParticipationItemFixture p3 = ParticipationItemFixture.builder()

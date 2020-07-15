@@ -10,12 +10,14 @@
 		<result column="baseCategoryId" property="baseCategoryId"/>
 		<result column="manufacturerId" property="manufacturerId"/>
 		<result column="umrpId" property="umrpId"/>
+		<result column="mapPrice" property="mapPrice"/>
 		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
 		<result column="feiOwnedActive" property="feiOwnedActive"/>
 		<result column="pricebookId" property="pricebookId"/>	
 		<result column="statusId" property="status"
 				javaType="PriceUpdateStatus"
 				typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>	
+		<result column="statusMsg" property="statusMsg"/>
 	</resultMap>
 	
 	<select id="getFeiPriceUpdateErrors" resultMap="feiPriceUpdateDataMap">
@@ -24,9 +26,9 @@
 			mpid,
 			price,
 			pricebookId,
-			statusId
+			statusMsg
 		FROM tempData.dbo.${tempTableName}
-		WHERE statusId != 0	
+		WHERE statusId != 0	order by uniqueId
 	</select>
 	
 	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
@@ -35,6 +37,7 @@
 			bc.base_category_id as baseCategoryId,
 			m.id as manufacturerId,
 			umrp.id as umrpId,
+			pm.MAP_price as mapPrice,
 			fei.productUniqueId as feiOwnedProductId,
 			fei.active as feiOwnedActive
 		from
@@ -42,8 +45,9 @@
 			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
 			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
 			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
-			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.id
-			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId		
+			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.manufacturerId
+			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId
+			LEFT OUTER JOIN mmc.dbo.product_imap_flag pm ON p.uniqueId = pm.uniqueId	
 		WHERE p.uniqueId =#{uniqueId}
 	</select>
 	
@@ -54,7 +58,11 @@
 	       	[mpid] [int],
 	        [price] [decimal](18,2),
 	        [pricebookId] [int],
-	        [statusId] [int]
+	        [preferredVendorCost] [decimal](18,2),
+	        [statusId] [int],
+	        [statusMsg] [varchar](100),
+	        [margin] [decimal](18,4),
+	        [priceCalculation] [varchar](32)
 	  )
 	</insert>
 	
@@ -65,13 +73,21 @@
 			mpid,
 			price,
 			pricebookId,
-			statusId
+			preferredVendorCost,
+			statusId,
+			statusMsg,
+			margin,
+			priceCalculation
 		) VALUES (
 			#{uniqueId},
 			#{mpid},
 			#{price},
 			#{pricebookId},
-			#{status.intValue}
+			#{preferredVendorCost},
+			#{status.intValue},
+			#{statusMsg},
+			#{margin},
+			#{priceCalculation}
 		)
 	</insert>
 	
@@ -164,7 +180,7 @@
 			product.feiMPID 
 		WHERE 
 			mpid = #{mpid} AND 
-			uniqueId = #{uniqueId};
+			uniqueId = #{uniqueId}
 	</select>
 	
 	<select id="getPreferredVendorCost" resultType="Double">
@@ -176,28 +192,8 @@
 			mmc.dbo.productPreferredVendor ppv WITH (NOLOCK) on vc.uniqueId = ppv.productUniqueid 
 			AND  ppv.vendorUID = vc.vendorUID
 		WHERE
-			ppv.productUniqueId = #{uniqueId};
+			ppv.productUniqueId = #{uniqueId}
+			AND pricedOptionID IS NULL
 	</select>
 	
-	<select id="getFeiPromoProductUniqueIds" resultType="Integer">
-	SELECT 
-		distinct fei.productUniqueId
-	FROM 
-		mmc.product.pricingfeiowned fei (nolock)
-	INNER JOIN mmc.dbo.product p (nolock) on fei.productuniqueid = p.uniqueid
-	INNER JOIN mmc.product.feimpid mpid (nolock) on fei.productuniqueid = mpid.uniqueid
-	INNER JOIN mmc.dbo.productpreferredvendor as ppv (nolock) on p.uniqueid = ppv.productuniqueid
-	INNER JOIN omc.dbo.vendor_cost vc (nolock) on ppv.productuniqueid = vc.uniqueid and ppv.vendoruid = vc.vendoruid
-	INNER JOIN mmc.dbo.pricebook_cost pb (nolock) on p.uniqueid = pb.uniqueid
-	--to get "isActive"
-	LEFT JOIN mmc.product.participationItemPartial as partcp (nolock) on pb.participationId = partcp.participationId
-	--to be sure participation owns this prod
-	LEFT JOIN mmc.product.participationProduct as partProd (nolock) on pb.participationId = partProd.participationId AND p.uniqueId = partProd.uniqueId
-	--to find out if it's discounted
-	LEFT JOIN mmc.product.participationCalculatedDiscount as discount (nolock) on pb.participationId = discount.participationId
-	WHERE vc.pricedoptionid is null 
-		AND pb.PriceBookId = '1' 
-		AND p.status in ('stock','nonstock') 
-		AND IIF(partcp.isActive = 1 AND partProd.isOwner = 1 AND discount.changeValue IS NOT NULL, 'discounted', null) = 'discounted';
-	</select>
 </mapper>

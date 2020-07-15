@@ -28,7 +28,6 @@ This allows scenarios like a long-running participation for a product, say for a
 On deactivation, all effects are removed, and effects are applied from any lower-priority active Participations.
 
 .Illustration of participations overlapping by priority and time. The area of each box represents products, and left-to-right represents time.
-[caption=""]
 image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram,400]
 
 === Effects
@@ -46,10 +45,9 @@ image::participations-overlapping-diagram.jpg[Overlapping Participations Diagram
 |`uniqueIds` list, `type`, `pb 1 discount`, `pb 22 discount`, `template`
 |Apply flat or percentage discounts to the pricebook 1 and 22 prices of the entered products in `uniqueIds`, and store the id of the entered template for use in the store.
 
-//|Itemized Discounts
-//|list of { `uniqueId`, `pb 1 price`, `pb 22 price` }
-//|Set pb1 and pb22 pricebook prices to specific values for each variant as authored.
-
+|Itemized Discounts
+|list of { `uniqueId`, `pb 1 price`, `pb 22 price` }
+|Set pb1 and pb22 pricebook prices to specific values for each variant as authored.
 |===
 
 === Price Changes
@@ -58,17 +56,25 @@ When a calculated discount effect is activated, discounts are applied to pricebo
 
 When an effect activates and changes a pricebook price, the price and base price values become locked. Price changes from other systems such as the Cost Uploader or Wiser are saved but not applied to the locked prices. At deactivation (schedule end date), changes made by the effect are removed and the most recent of any pending base price changes are applied.
 
-When prices are updated, product storage updates are triggered, which updates pricing data in product storage cache records in MongoDB.
+Price or Sale ID changes trigger product storage updates to the cache records in MongoDB.
 
 * For more information on downstream consumption of price changes see link:https://github.com/buildcom/core-services/blob/master/docs/product-domain/product-domain-layout.adoc[Product Data Access & Services].
 
-== System Diagram
+== Was pricing
+
+The law requires us to have had a product at our <<#was-price-term,_Was Price_>>, aka the strikeout price, for a “reasonable and substantial amount of time in the last 90 days.”
+
+Was pricing is a system that provides a legally sound basis backed by data to state that a product was sold at a specific price before a sale starts.
+
+See link:was-pricing.adoc[Was Pricing Details].
+
+== Components
+
+=== System Diagram
 
 .System Diagram
 (diagram under construction)
 //image::participation-lifecycle.png[Participations Architecture Diagram]
-
-== Components
 
 === Construct
 
@@ -186,7 +192,7 @@ mmc.dbo.pricebook_cost_log
 NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.
 
 
-=== Cost Uploader / PDM
+=== Cost Uploader and PDM
 
 ==== Sale Price Change Protection
 
@@ -197,6 +203,17 @@ Then if the pricebook price is not in an active participation with a discount (n
 Otherwise, if the pricebook price is owned by a participation, changes to the discounted prices are prevented. This is done to prevent changes to a sale once it has started.
 
 At the end of the sale, any latest base prices updated during the sale are used to update the pricebook prices.
+
+The specific logic to allow a price change or not is located in two stored procedures:
+
+* `dsp_pricebookCostUpdater` &mdash; for cost uploader
+* `dsp_pricebookCostUpsert` &mdash; for PDM
+
+=== Pricing Feed to Wiser
+
+When the pricing feed to wiser is generated, prices that are discounted in any Participations are excluded from re-pricing by setting the isPromo value in the feed data to true.
+
+Ensure the query in `getParticipationProductSales` in `WiserReporterMapper.xml` is updated if needed, since it uses the participation system tables.
 
 === Stores and Native App
 
@@ -222,8 +239,16 @@ Participation Effect:: An _effect_ is a specific change or set of changes made t
 [#sale-id-term]
 Sale ID:: The id of a ProductSale record, edited in OMC, which has a date range, a title, and a description. The id is used in various ways to link a product variant and other entities such as coupons in a marketing campaign.
 
+[#strikeout-price-term]
+Strikeout Price:: A synonym for a <<#was-price-term,Was Price>>.
+
 [#product-variant-term]
 Product Variant:: A specific item in the Product family. This is commonly also known as _Product Finish_, _Unique ID_, or simply _product_. For more detail on product terminology see link:../../../README.adoc#build-terms-to-product-domain-terms[Build Terms to Product Domain Terms].
+
+[#was-price-term]
+Was Price:: The Was price is the highest value at which a product was sold at that value or higher for 21 days or more in the last 90 days. This yields the highest legally sound value that can be used on the site as the _Was price_ aka the _strikeout price_. A pricebook price will have a Was price if it was off-sale at least 21 of the last 90 days.
++
+If a Was price exists, it will be shown to the customer as the price at which the product was being sold before the sale. It should also be used to calculate the percentage discount shown to the customer (rather than the basePrice which might be different).
 
 == References
 

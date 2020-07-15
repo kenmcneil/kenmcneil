@@ -81,6 +81,8 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 				.lastModifiedUserId(item.getLastModifiedUserId())
 				.isActive(false)
 				.contentTypeId(ParticipationContentType.PARTICIPATION_ITEMIZED_V1.contentTypeId())
+				.isCoupon(false)
+				.shouldBlockDynamicPricing(true)
 				.build();
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
@@ -97,7 +99,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	@Override
 	public int activate(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		int userId = getUserId(itemPartial);
+		int userId = itemPartial.getLastModifiedUserId();
 		int totalRows = 0;
 
 		// Determine what products are changing ownership and store into temp table,
@@ -128,7 +130,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	@Override
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		int userId = getUserId(itemPartial);
+		int userId = itemPartial.getLastModifiedUserId();
 		int totalRows = 0;
 
 		// Activate any new itemized discounts.
@@ -150,7 +152,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	@Override
 	public int deactivate(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		int userId = getUserId(itemPartial);
+		int userId = itemPartial.getLastModifiedUserId();
 		int totalRows = 0;
 
 		// Determine what products are changing ownership and store into temp table.
@@ -182,7 +184,7 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	@Override
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
-		int userId = getUserId(itemPartial);
+		int userId = itemPartial.getLastModifiedUserId();
 		int totalRows = 0;
 
 		int rowsAffected = participationItemizedV1Dao.updateLastOnSaleBasePrices(processingDate);
@@ -249,14 +251,5 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 		} else {
 			return (double) o;
 		}
-	}
-
-	/**
-	 * Return either the last modified user id from the Participation, or the task user id.
-	 */
-	private int getUserId(ParticipationItemPartial itemPartial) {
-		return itemPartial.getLastModifiedUserId() == null
-				? participationEngineSettings.getTaskUserId()
-				: itemPartial.getLastModifiedUserId();
 	}
 }

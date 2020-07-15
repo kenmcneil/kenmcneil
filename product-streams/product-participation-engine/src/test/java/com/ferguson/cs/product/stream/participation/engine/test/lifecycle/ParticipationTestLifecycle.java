@@ -29,6 +29,10 @@ public interface ParticipationTestLifecycle {
 			return ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
 		}
 
+		if (ParticipationContentType.PARTICIPATION_COUPON_V1.equals(fixture.getContentType())) {
+			return ParticipationCouponV1TestLifecycle.getUniqueIds(fixture);
+		}
+
 		return Collections.emptyList();
 	}
 }

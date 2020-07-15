@@ -8,10 +8,11 @@
 		<result column="price" property="price"/>
 		<result column="brand" property="brand" />
 		<result column="status" property="status" />
+		<result column="feiPricingTypeId" property="feiPricingType" javaType="FeiPricingType" typeHandler="com.ferguson.cs.product.task.feipricefeed.data.IntMappedEnumTypeHandler" />
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT DISTINCT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		SELECT DISTINCT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId
         FROM mmc.product.product product
         INNER JOIN mmc.product.status status
         ON product.statusId = status.id
@@ -33,7 +34,7 @@
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status
+		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -99,7 +100,10 @@
     	INNER JOIN mmc.dbo.pricebook_cost pricebook ON product.uniqueid = pricebook.uniqueid
 		INNER JOIN mmc.product.participationItemPartial AS participation ON pricebook.participationId = participation.participationId
 		INNER JOIN mmc.product.participationProduct AS partProd ON pricebook.participationId = partProd.participationId AND product.uniqueId = partProd.uniqueId
-		INNER JOIN mmc.product.participationCalculatedDiscount AS discount ON pricebook.participationId = discount.participationId
+		LEFT JOIN mmc.product.participationCalculatedDiscount AS calculatedDiscount
+		ON calculatedDiscount.participationId = partProd.participationId
+        LEFT JOIN mmc.product.participationItemizedDiscount AS lineItemDiscount
+        ON lineItemDiscount.participationId = partProd.participationId
         LEFT JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist ON feiOwned.productUniqueId = pricingFeiWhitelist.productUniqueId
     	WHERE pricingFeiWhitelist.productUniqueId IS NULL
         AND vendorCost.pricedoptionid IS NULL
@@ -107,7 +111,33 @@
 		AND status.status in ('stock','nonstock')
     	AND participation.isActive = 1
     	AND partProd.isOwner = 1
-    	AND discount.changeValue IS NOT NULL
+    	AND (calculatedDiscount.changeValue IS NOT NULL OR lineItemDiscount.price IS NOT NULL)
+	</select>
+
+	<select id="getStalePromoPriceProducts" resultType="int">
+		SELECT pricingFeiWhitelist.productUniqueId FROM mmc.product.pricingFeiWhitelist pricingFeiWhitelist
+		LEFT JOIN (SELECT feiOwned.productUniqueId FROM mmc.product.pricingfeiowned feiOwned
+    	INNER JOIN mmc.product.product product ON feiOwned.productuniqueid = product.uniqueid
+    	INNER JOIN mmc.product.status status ON product.statusId = status.id
+    	INNER JOIN mmc.product.feiMPID MPID ON feiOwned.productUniqueId = MPID.uniqueid
+   		INNER JOIN mmc.dbo.productpreferredvendor AS productPreferredVendor ON product.uniqueid = productPreferredVendor.productuniqueid
+    	INNER JOIN omc.dbo.vendor_cost vendorCost ON productPreferredVendor.productuniqueid = vendorCost.uniqueid AND productPreferredVendor.vendoruid = vendorCost.vendoruid
+    	INNER JOIN mmc.dbo.pricebook_cost pricebook ON product.uniqueid = pricebook.uniqueid
+		INNER JOIN mmc.product.participationItemPartial AS participation ON pricebook.participationId = participation.participationId
+		INNER JOIN mmc.product.participationProduct AS partProd ON pricebook.participationId = partProd.participationId AND product.uniqueId = partProd.uniqueId
+		LEFT JOIN mmc.product.participationCalculatedDiscount AS calculatedDiscount
+		ON calculatedDiscount.participationId = partProd.participationId
+        LEFT JOIN mmc.product.participationItemizedDiscount AS lineItemDiscount
+        ON lineItemDiscount.participationId = partProd.participationId
+    	WHERE vendorCost.pricedoptionid IS NULL
+		AND pricebook.PriceBookId = 1
+		AND status.status in ('stock','nonstock')
+    	AND participation.isActive = 1
+    	AND partProd.isOwner = 1
+    	AND (calculatedDiscount.changeValue IS NOT NULL OR lineItemDiscount.price IS NOT NULL)) promoProduct
+    	ON pricingFeiWhitelist.productUniqueId = promoProduct.productUniqueId
+    	WHERE promoProduct.productUniqueId IS NULL
+    	AND pricingFeiWhitelist.feiPricingTypeId = 2
 	</select>
 
 	<resultMap id="deprioritizedBrandViewMap" type="DeprioritizedBrandView">

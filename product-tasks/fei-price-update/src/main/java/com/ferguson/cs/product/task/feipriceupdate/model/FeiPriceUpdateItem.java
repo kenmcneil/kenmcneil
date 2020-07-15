@@ -18,9 +18,15 @@ public class FeiPriceUpdateItem implements Serializable {
 	private Integer baseCategoryId;
 	private Integer manufacturerId;
 	private Integer umrpId;
+	private Double mapPrice;
 	private Integer feiOwnedProductId;
 	private Integer pricebookId;
-	private Double preferedVendorCost;
+	private Double preferredVendorCost;
 	private Boolean feiOwnedActive;
 	private PriceUpdateStatus status;
+
+	// Added for research purposes.
+	private String statusMsg;
+	private Double margin;
+	private String priceCalculation;
 }

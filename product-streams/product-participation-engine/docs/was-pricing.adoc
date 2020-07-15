@@ -1,0 +1,101 @@
+= Was Pricing
+:toc: macro
+:sectlinks:
+:sectanchors:
+:stylesheet: ../../../asciidoctor.css
+:imagesdir: images
+
+link:../README.adoc[README] &raquo; link:system-overview.adoc[System Overview] &raquo; Was Pricing
+
+toc::[]
+
+== What is Was Pricing?
+
+The law requires us to have had a product at our <<#was-price-term,_Was Price_>>, aka the strikeout price, for a “reasonable and substantial amount of time in the last 90 days.”
+
+Was pricing is a system that provides a legally sound basis backed by data to state that a product was sold at a specific price before a sale starts:
+
+* Each product variant (finish) has a calculated Was price based on the last 90 days of price history. The calculation is based solely on pricebook 1 prices.
+* A daily process updates the Was price for each product.
+* When a sale starts, current Was prices are used as part of the discount price calculations.
+* Was prices are stored with the sale price and base price during a sale in the `pricebook_cost` table. The Was value in the pricebook price record is set to 0 when not on sale, or when there's no valid Was price.
+* Was prices are marshaled into product storage cache and returned to clients in the API.
+* The Was price acts as three important data points:
+** It _can_ be the basis from which a discounted price is calculated.
+** It _is_ used to calculate the percentage discount to show to customers.
+** When null, it indicates that we cannot show the "was" or percentage discount for the price to customers since we don't have enough off-sale price history in the last 90 days.
+
+== Was Price Calculation
+
+The heuristic described below will be applied in all price discount calculations. For a pricebook price being discounted, the last 90 days of pricing data is used to determine if it's ok to tell the customer a specific price at which the product was for sale.
+
+The Was price is the highest value at which it was sold at that value or higher for 21 days or more in the last 90 days. This yields the highest legally sound value that can be used on the site. A pricebook price will have a Was price if it was not on sale at least 21 of the last 90 days.
+
+If a Was price exists, it will be shown to the customer as the price at which the product was being sold before the sale. It should also be used to calculate the percentage discount shown to the customer (rather than the basePrice which might be different).
+
+When a Participation price discount effect activates, the current Was prices are used as part of the discount price calculations:
+
+* When there is no valid Was price, the sale price is calculated from the base price.
+* With a valid Was price, the sale price is calculated from the minimum of the Was price or the base price.
+* Discounts for PB 1 and PB 22 are based on PB 1 Was and Base prices. The PB 22 sale prices are not based on PB22 base price values.
+* Discount amounts or percentages thus are based on PB 1 values.
+
+.Simple Was price calculation for a pricebook price
+* Get the price at the end of each of the last 90 days as a list of 90 values. The value for a day will be null if it was on sale that day else it will be the base price.
+* Sort the day prices from highest to lowest.
+* The 21st entry in the list is the highest valid Was price. If it's null then there is no valid Was price.
+
+.Was Price Calculation
+image::calculating-was-prices.svg[Was Price Calculation]
+
+== Examples
+
+.Was Pricing Scenarios
+image::was-pricing-examples.png[Was Pricing Scenarios]
+
+== Database
+
+=== The pricebookWasPrice table
+
+The Was pricing information for all products is in the `mmc.dbo.pricebookWasPrice` table.
+
+The `costList` column stores the list of the last 90 days of price history as a CSV string. The table is updated every 24 hours, to remove the oldest price entry and add the newest price to this string. An empty value in the string indicates a day on which the product was on sale.
+
+The `wasPrice` column is function-valued and calls `mmc.dbo.udf_wasPrice` to calculate the current Was price using the values in `costList`. This function is currently executed with each record read to get the value for the wasPrice column.
+
+=== The pricebook_cost table
+
+The Was price only changes in the `pricebook_cost` table when a Participation activates or deactivates a price change.
+
+.When a Participation price change activates (starts):
+* The `cost` column is set to the discounted price.
+* The `wasPrice` column is set to the current Was price, which may be 0 indicating no valid Was price or a valid non-zero Was price value.
+
+.When a Participation price change deactivates (ends):
+* The `basePrice` is updated from the latestBasePrice table if a permanent price change occurred during the sale.
+* The `cost` is updated to the new `basePrice` value.
+* The `pricebook_cost.wasPrice` value is set to zero.
+
+== Product Storage Cache
+
+The Was price is marshaled into product storage cost records along with the other pricing-related properties when pricebook prices are updated.
+
+Clients receive the `PricebookCostView` data for each pricebook for the product.
+
+.Was prices and other sale pricing information is returned from product storage in these `PricebookCostView` properties:
+[source]
+----
+PricebookCostView {
+    ...
+    Double cost;
+    Double basePrice;
+    Double wasPrice;
+    ParticipationPriceDiscount discount: {
+        String saleDescription;
+        Integer participationId
+        ParticipationDiscountType discountType;
+        Double discountAmount;
+    }
+    ...
+}
+----

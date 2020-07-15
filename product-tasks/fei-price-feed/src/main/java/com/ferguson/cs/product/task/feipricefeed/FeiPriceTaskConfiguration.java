@@ -40,6 +40,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import com.ferguson.cs.product.task.feipricefeed.batch.CleanupStalePromoTasklet;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiFileSystemResource;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataFieldExtractor;
+import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataItemProcessor;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataJobListener;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemReader;
 import com.ferguson.cs.product.task.feipricefeed.batch.FeiPriceDataMapItemWriter;
@@ -135,6 +136,15 @@ public class FeiPriceTaskConfiguration {
 	public MyBatisCursorItemReader<FeiPriceData> feiImapPriceDataReader() {
 		MyBatisCursorItemReader<FeiPriceData> reader = new MyBatisCursorItemReader<>();
 		reader.setQueryId("getFeiImapPriceData");
+		reader.setSqlSessionFactory(reporterSqlSessionFactory);
+		return reader;
+	}
+
+	@Bean
+	@StepScope
+	public MyBatisCursorItemReader<FeiPriceData> stalePromoPriceReader() {
+		MyBatisCursorItemReader<FeiPriceData> reader = new MyBatisCursorItemReader<>();
+		reader.setQueryId("getStalePromoPriceProducts");
 		reader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return reader;
 	}
@@ -256,16 +266,22 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
+	@StepScope
+	public FeiPriceDataItemProcessor feiPriceDataItemProcessor(FeiPriceService feiPriceService) {
+		return new FeiPriceDataItemProcessor(feiPriceService);
+	}
+
+	@Bean
 	public Step writeFullPriceDataToMap(FeiPriceDataMapItemWriter feiPriceDataMapItemWriter, MyBatisCursorItemReader<FeiPriceData> fullFeiPriceDataReader) {
 		return taskBatchJobFactory.getStepBuilder("writeFullPriceDataToMap").<FeiPriceData, FeiPriceData>chunk(1000)
 				.reader(fullFeiPriceDataReader).writer(feiPriceDataMapItemWriter).build();
 	}
 
 	@Bean
-	public Step writeLocationPriceDataToFiles(FeiPriceDataMapItemReader feiPriceDataMapItemReader, CompositeItemWriter<FeiPriceData> compositeFeiPriceDataWriter) {
+	public Step writeLocationPriceDataToFiles(FeiPriceDataMapItemReader feiPriceDataMapItemReader, CompositeItemWriter<FeiPriceData> compositeFeiPriceDataWriter, FeiPriceDataItemProcessor feiPriceDataItemProcessor) {
 		return taskBatchJobFactory
 				.getStepBuilder("writeLocationPriceDataToFiles").<FeiPriceData, FeiPriceData>chunk(1000)
-				.reader(feiPriceDataMapItemReader).writer(compositeFeiPriceDataWriter).build();
+				.reader(feiPriceDataMapItemReader).processor(feiPriceDataItemProcessor).writer(compositeFeiPriceDataWriter).build();
 	}
 
 	@Bean
@@ -301,6 +317,12 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	public Step cleanupStalePromoProducts(CleanupStalePromoTasklet cleanupStalePromoTasklet) {
 		return taskBatchJobFactory.getStepBuilder("cleanupStalePromoProducts").tasklet(cleanupStalePromoTasklet).build();
+	}
+
+	@Bean
+	public Step markStalePromoProducts(MyBatisCursorItemReader<FeiPriceData> stalePromoPriceReader, MyBatisBatchItemWriter<FeiPriceData> feiPriceDataWhitelistWriter) {
+		return taskBatchJobFactory.getStepBuilder("markStalePromoProducts").<FeiPriceData,FeiPriceData>chunk(1000)
+				.reader(stalePromoPriceReader).writer(feiPriceDataWhitelistWriter).build();
 	}
 
 	@Bean

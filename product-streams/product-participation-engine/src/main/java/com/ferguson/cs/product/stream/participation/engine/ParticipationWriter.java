@@ -44,7 +44,8 @@ public class ParticipationWriter {
 				item.getId(),
 				ParticipationItemStatus.PUBLISHED,
 				ParticipationItemUpdateStatus.NEEDS_UPDATE,
-				processingDate
+				processingDate,
+				item.getLastModifiedUserId()
 		);
 	}
 
@@ -55,7 +56,8 @@ public class ParticipationWriter {
 				itemPartial.getParticipationId(),
 				ParticipationItemStatus.PUBLISHED,
 				ParticipationItemUpdateStatus.NEEDS_CLEANUP,
-				processingDate
+				processingDate,
+				itemPartial.getLastModifiedUserId()
 		);
 	}
 
@@ -69,7 +71,8 @@ public class ParticipationWriter {
 				itemPartial.getParticipationId(),
 				ParticipationItemStatus.ARCHIVED,
 				null,
-				processingDate
+				processingDate,
+				itemPartial.getLastModifiedUserId()
 		);
 	}
 
@@ -83,7 +86,8 @@ public class ParticipationWriter {
 				itemPartial.getParticipationId(),
 				ParticipationItemStatus.DRAFT,
 				null,
-				processingDate
+				processingDate,
+				itemPartial.getLastModifiedUserId()
 		);
 	}
 }

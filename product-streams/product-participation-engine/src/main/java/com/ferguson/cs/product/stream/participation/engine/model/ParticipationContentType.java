@@ -2,7 +2,8 @@ package com.ferguson.cs.product.stream.participation.engine.model;
 
 public enum ParticipationContentType {
 	PARTICIPATION_V1(1, "participation@1"),
-	PARTICIPATION_ITEMIZED_V1(2, "participation-itemized@1");
+	PARTICIPATION_ITEMIZED_V1(2, "participation-itemized@1"),
+	PARTICIPATION_COUPON_V1(3, "participation-coupon@1");
 
 	private final int contentTypeId;
 	private final String nameWithMajorVersion;

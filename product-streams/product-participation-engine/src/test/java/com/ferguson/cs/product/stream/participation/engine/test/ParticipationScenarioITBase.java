@@ -53,6 +53,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CouponTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ParticipationTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
@@ -108,6 +109,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				ParticipationTestUtilities participationTestUtilities
 		) {
 			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public CouponTestEffectLifecycle couponTestEffectLifeCycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new CouponTestEffectLifecycle(participationTestUtilities);
 		}
 	}
 
@@ -323,7 +331,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.PUBLISHED),
 					eq(ParticipationItemUpdateStatus.NEEDS_UPDATE),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -337,7 +346,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.PUBLISHED),
 					eq(ParticipationItemUpdateStatus.NEEDS_CLEANUP),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -351,7 +361,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.ARCHIVED),
 					isNull(),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -365,7 +376,8 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 					anyInt(),
 					eq(ParticipationItemStatus.DRAFT),
 					isNull(),
-					any(Date.class));
+					any(Date.class),
+					anyInt());
 
 			// Prep for next time it's called.
 			Mockito.clearInvocations(constructService);
@@ -505,18 +517,22 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.build();
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			// check requirements of this type of participation
+			//TODO make calculatedDiscount content required here after Coupon type goes live
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
-
 			// set the content object
 			item.setContent(getParticipationV1Content(fixture));
 		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
 			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
-
 			// set the content object
 			item.setContent(getParticipationItemizedV1Content(fixture));
+		} else if ("participation-coupon@1".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+			// set the content object
+			item.setContent(getParticipationCouponV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
 		}
@@ -595,6 +611,27 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type participation-coupon@1, as if it came from Construct.
+	 */
+	private Map<String, Object> getParticipationCouponV1Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		content = getContentTemplate("participationCouponV1-content.json");
+
+		// Set the required values in content. It's ok to use only the major version, as in "participation-coupon@1"
+		// instead of "participation-coupon@1.0.0", since the minor patch versions indicate non-breaking changes
+		// in the major version. Records from Construct would have the specific @x.y.z version that was used
+		// to edit the record, but since the minor and patch is ignored in the engine, it just works.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put( "saleId", fixture.getSaleId());
+		atPath(content, "/isCoupon").put("selected", fixture.getIsCoupon());
+		atPath(content, "/shouldBlockDynamicPricing").put("selected", fixture.getShouldBlockDynamicPricing());
+		atPath(content, "/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
 
 		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
 	}
