@@ -12,6 +12,8 @@ public class FeiPriceSettings {
 	private String temporaryFilePath;
 	private String storageFilePath;
 	private String imapFilePath;
+	private Double minimumMargin;
+	private String[] errorReportEmailList;
 
 	public Map<String, String> getLocations() {
 		return locations;
@@ -43,5 +45,21 @@ public class FeiPriceSettings {
 
 	public void setImapFilePath(String imapFilePath) {
 		this.imapFilePath = imapFilePath;
+	}
+
+	public Double getMinimumMargin() {
+		return minimumMargin;
+	}
+
+	public void setMinimumMargin(Double minimumMargin) {
+		this.minimumMargin = minimumMargin;
+	}
+
+	public String[] getErrorReportEmailList() {
+		return errorReportEmailList;
+	}
+
+	public void setErrorReportEmailList(String[] errorReportEmailList) {
+		this.errorReportEmailList = errorReportEmailList;
 	}
 }

@@ -9,10 +9,15 @@
 		<result column="brand" property="brand" />
 		<result column="status" property="status" />
 		<result column="feiPricingTypeId" property="feiPricingType" javaType="FeiPricingType" typeHandler="com.ferguson.cs.product.task.feipricefeed.data.IntMappedEnumTypeHandler" />
+		<result column="preferredVendorCost" property="preferredVendorCost" />
+		<result column="feiPriceDataStatusId" property="feiPriceDataStatus" javaType="FeiPriceDataStatus" typeHandler="com.ferguson.cs.product.task.feipricefeed.data.IntMappedEnumTypeHandler" />
 	</resultMap>
 
 	<select id="getFullFeiPriceData" resultMap="feiPriceDataMap">
-		SELECT DISTINCT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId
+		SELECT DISTINCT product.uniqueId, pricebook.cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId, vendorCost.cost preferredVendorCost,
+		CASE WHEN pricingFeiWhitelist.overrideMargin = 1 AND (pricingFeiWhitelist.overrideMarginExpiration > GETDATE() OR pricingFeiWhitelist.overrideMarginExpiration IS NULL)
+		THEN 4
+		ELSE NULL END AS feiPriceDataStatusId
         FROM mmc.product.product product
         INNER JOIN mmc.product.status status
         ON product.statusId = status.id
@@ -28,13 +33,22 @@
         ON product.uniqueId = pricebook.UniqueId
         INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
         ON product.uniqueId = pricingFeiWhitelist.productUniqueId
+        INNER JOIN mmc.dbo.productPreferredVendor preferredVendor
+        ON product.uniqueId = preferredVendor.productUniqueId
+        INNER JOIN omc.dbo.vendor_cost vendorCost
+        ON preferredVendor.vendorUid = vendorCost.vendorUid
+		AND product.uniqueId = vendorCost.uniqueID
+		AND vendorCost.pricedOptionID IS NULL
         WHERE pricebook.PriceBookId = 1
         AND status.status IN ('stock','nonstock')
         AND containerType.type = 'product'
 	</select>
 
 	<select id="getFeiPriceChangesSinceLastRun" resultMap="feiPriceDataMap">
-		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId
+		SELECT DISTINCT product.uniqueId, pricebook.Cost price, MPID.mpid mpid, manufacturer.name brand, status.status, pricingFeiWhitelist.feiPricingTypeId, vendorCost.cost preferredVendorCost,
+		CASE WHEN pricingFeiWhitelist.overrideMargin = 1 AND (pricingFeiWhitelist.overrideMarginExpiration > GETDATE() OR pricingFeiWhitelist.overrideMarginExpiration IS NULL)
+		THEN 4
+		ELSE NULL END AS feiPriceDataStatusId
 		FROM mmc.product.product product
 		INNER JOIN mmc.product.status status
 		ON product.statusId = status.id
@@ -56,6 +70,12 @@
 		INNER JOIN mmc.product.pricingFeiWhitelist pricingFeiWhitelist
 		ON product.uniqueId = pricingFeiWhitelist.productUniqueId
 		AND (pricebook.Cost != pricingFeiWhiteList.lastKnownPrice OR pricingFeiWhitelist.lastKnownPrice IS NULL)
+		INNER JOIN mmc.dbo.productPreferredVendor preferredVendor
+		ON product.uniqueId = preferredVendor.productUniqueId
+		INNER JOIN omc.dbo.vendor_cost vendorCost
+		ON preferredVendor.vendorUid = vendorCost.vendorUid
+		AND vendorCost.uniqueID = product.uniqueId
+		AND vendorCost.pricedOptionId IS NULL
 		WHERE pricebook.PriceBookId = 1
 		AND status.status IN ('stock','nonstock')
 		AND pricebookCostLog.Cost_Old != pricebookCostLog.Cost_New

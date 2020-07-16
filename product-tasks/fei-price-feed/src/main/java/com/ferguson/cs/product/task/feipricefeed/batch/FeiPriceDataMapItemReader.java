@@ -1,37 +1,33 @@
 package com.ferguson.cs.product.task.feipricefeed.batch;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.batch.item.support.AbstractItemStreamItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
-import com.ferguson.cs.product.task.feipricefeed.FeiPriceSettings;
 import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
 
 public class FeiPriceDataMapItemReader extends AbstractItemStreamItemReader<FeiPriceData> {
 
-	private final Map<String,FeiPriceData> feiPriceDataMap;
-	private FeiPriceSettings feiPriceSettings;
+	private final Map<String, List<FeiPriceData>> feiPriceDataMap;
 
-	public FeiPriceDataMapItemReader(Map<String, FeiPriceData> feiPriceDataMap) {
+	public FeiPriceDataMapItemReader(Map<String, List<FeiPriceData>> feiPriceDataMap) {
 		this.feiPriceDataMap = feiPriceDataMap;
 	}
 
-	@Autowired
-	public void setFeiPriceSettings(FeiPriceSettings feiPriceSettings) {
-		this.feiPriceSettings = feiPriceSettings;
-	}
-
 	@Override
-	public FeiPriceData read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+	public FeiPriceData read() {
 		Iterator<String> iterator = feiPriceDataMap.keySet().iterator();
 
-		if (iterator.hasNext()) {
-			return feiPriceDataMap.remove(iterator.next());
+		while(iterator.hasNext()) {
+			List<FeiPriceData> list = feiPriceDataMap.get(iterator.next());
+			if(CollectionUtils.isEmpty(list)) {
+				iterator.remove();
+				continue;
+			}
+			return list.remove(0);
 		}
 		return null;
 	}
