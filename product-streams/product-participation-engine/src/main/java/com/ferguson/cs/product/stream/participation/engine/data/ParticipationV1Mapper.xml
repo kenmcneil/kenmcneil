@@ -81,11 +81,11 @@
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
 		-- for the calculations. Rounds the discounted price down to 2 decimal places.
-		DECLARE @PB1WasPrice decimal(18,2);
+		DECLARE @wasPrice decimal(18,2);
 		UPDATE
 			pbCost
 		SET
-			@PB1WasPrice = COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0.00),
+			@wasPrice = COALESCE(wasPrice.wasPrice, 0.00),
 			pbcost.cost = ROUND(IIF(
 										discount.isPercent = 1,
 										COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
@@ -94,7 +94,7 @@
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
-			pbCost.wasPrice = @PB1WasPrice
+			pbCost.wasPrice = @wasPrice
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
@@ -112,11 +112,6 @@
 			ON los.uniqueId = pbCost.uniqueId
 			AND los.pricebookId = pbCost.pricebookId
 			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS losPB1
-			ON losPB1.uniqueId = pbCost.uniqueId
-			AND losPB1.pricebookId = 1
-			AND DATEDIFF_BIG(minute, losPB1.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 		LEFT JOIN
 			MMC.dbo.pricebook_cost AS PB1Cost
 			ON pbCost.uniqueId = PB1Cost.uniqueId

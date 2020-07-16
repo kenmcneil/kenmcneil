@@ -41,7 +41,7 @@
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
-			pbCost.wasPrice = COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0)
+			pbCost.wasPrice = COALESCE(wasPrice.wasPrice, 0)
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
@@ -60,11 +60,6 @@
 			ON los.uniqueId = pbCost.uniqueId
 			AND los.pricebookId = pbCost.pricebookId
 			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS losPB1
-			ON losPB1.uniqueId = pbCost.uniqueId
-			AND losPB1.pricebookId = 1
-			AND DATEDIFF_BIG(minute, losPB1.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
 
 	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
