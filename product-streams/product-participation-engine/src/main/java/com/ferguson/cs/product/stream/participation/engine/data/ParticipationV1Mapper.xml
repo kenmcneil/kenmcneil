@@ -85,7 +85,7 @@
 		UPDATE
 			pbCost
 		SET
-			@wasPrice = COALESCE(wasPrice.wasPrice, 0.00),
+			@wasPrice = COALESCE(los.wasPrice, wasPrice.wasPrice, 0.00),
 			pbcost.cost = ROUND(IIF(
 										discount.isPercent = 1,
 										COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
@@ -112,10 +112,6 @@
 			ON los.uniqueId = pbCost.uniqueId
 			AND los.pricebookId = pbCost.pricebookId
 			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
-		LEFT JOIN
-			MMC.dbo.pricebook_cost AS PB1Cost
-			ON pbCost.uniqueId = PB1Cost.uniqueId
-			AND PB1Cost.pricebookId = 1
 	</update>
 
 	<insert id="insertParticipationCalculatedDiscounts">

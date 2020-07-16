@@ -41,7 +41,7 @@
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
-			pbCost.wasPrice = COALESCE(wasPrice.wasPrice, 0)
+			pbCost.wasPrice = COALESCE(los.wasPrice, wasPrice.wasPrice, 0)
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
