@@ -7,43 +7,44 @@
 		UPDATE
 			lastOnSale
 		SET
-			lastOnSale.basePrice = pbcost.basePrice
-		  ,lastOnSale.saleDate = #{processingDate}
+			lastOnSale.basePrice = pbCost.basePrice ,
+			lastOnSale.saleDate = #{processingDate},
+			lastOnSale.wasPrice = pbCost.wasPrice
 		FROM
 			mmc.product.participationLastOnSale AS lastOnSale
 		JOIN
 			tempData.participation.participationOwnerChange AS oc
 			ON oc.uniqueId = lastOnSale.uniqueId
 		JOIN
-			mmc.dbo.pricebook_cost AS pbcost
-			ON pbcost.uniqueId = lastOnSale.uniqueId
-			AND pbcost.pricebookId = lastOnSale.pricebookId
+			mmc.dbo.pricebook_cost AS pbCost
+			ON pbCost.uniqueId = lastOnSale.uniqueId
+			AND pbCost.pricebookId = lastOnSale.pricebookId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbcost.pricebookId
+			AND discount.pricebookId = pbCost.pricebookId
 	</update>
 
 	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
 		-- Record the base price for prices going off sale, for pricebook prices
 		-- that don't exist in the last on sale table.
 		INSERT INTO
-			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice)
+			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice, wasPrice)
 		SELECT
-			pbcost.pricebookId, pbcost.uniqueId, #{processingDate}, pbcost.basePrice
+			pbCost.pricebookId, pbCost.uniqueId, #{processingDate}, pbCost.basePrice, pbCost.wasPrice
 		FROM
-			mmc.dbo.pricebook_cost AS pbcost
+			mmc.dbo.pricebook_cost AS pbCost
 		JOIN
 			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbcost.uniqueId
+			ON oc.uniqueId = pbCost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbcost.pricebookId
+			AND discount.pricebookId = pbCost.pricebookId
 		LEFT JOIN
 			mmc.product.participationLastOnSale AS los
-			ON los.uniqueId = pbcost.uniqueId
-			AND los.pricebookId = pbcost.pricebookId
+			ON los.uniqueId = pbCost.uniqueId
+			AND los.pricebookId = pbCost.pricebookId
 		WHERE
 			los.uniqueId IS NULL
 	</insert>
@@ -54,56 +55,63 @@
 		-- Set participationId and userId.
 		-- The cost and basePrice columns are updated in this one query in order to prevent multiple log entries with no price change.
 		UPDATE
-			pbcost
+			pbCost
 		SET
-			pbcost.cost = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
-			pbcost.basePrice = IIF(lbp.basePrice != pbcost.basePrice, lbp.basePrice, pbcost.basePrice),
-			pbcost.participationId = 0,
-			pbcost.userId = #{userId}
+			pbCost.cost = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
+			pbCost.basePrice = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
+			pbCost.participationId = 0,
+			pbCost.wasPrice = 0.00,
+			pbCost.userId = #{userId}
 		FROM
-			MMC.dbo.pricebook_cost AS pbcost
+			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
 			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbcost.uniqueId
+			ON oc.uniqueId = pbCost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbcost.pricebookId
+			AND discount.pricebookId = pbCost.pricebookId
 		JOIN
 			mmc.product.latestBasePrice AS lbp
-			ON lbp.uniqueId = pbcost.uniqueId
-			AND lbp.pricebookId = pbcost.pricebookId
+			ON lbp.uniqueId = pbCost.uniqueId
+			AND lbp.pricebookId = pbCost.pricebookId
 	</update>
 
 	<update id="applyNewCalculatedDiscounts" parameterType="map">
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
 		-- for the calculations. Rounds the discounted price down to 2 decimal places.
+		DECLARE @wasPrice decimal(18,2);
 		UPDATE
-			pbcost
+			pbCost
 		SET
+			@wasPrice = COALESCE(los.wasPrice, wasPrice.wasPrice, 0.00),
 			pbcost.cost = ROUND(IIF(
-								discount.isPercent = 1,
-								COALESCE(las.basePrice, pbcost.basePrice) * discount.changeValue,
-								COALESCE(las.basePrice, pbcost.basePrice) + discount.changeValue
-								), 2),
-			pbcost.basePrice = COALESCE(las.basePrice, pbcost.basePrice),
-			pbcost.participationId = discount.participationId,
-			pbcost.userId = #{userId}
+										discount.isPercent = 1,
+										COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
+										COALESCE(los.basePrice, pbCost.basePrice) + discount.changeValue
+									), 2),
+			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
+			pbCost.participationId = discount.participationId,
+			pbCost.userId = #{userId},
+			pbCost.wasPrice = @wasPrice
 		FROM
-			MMC.dbo.pricebook_cost AS pbcost
+			MMC.dbo.pricebook_cost AS pbCost
 		JOIN
 			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbcost.uniqueId
+			ON oc.uniqueId = pbCost.uniqueId
 		JOIN
 			mmc.product.participationCalculatedDiscount AS discount
 			ON discount.participationId = oc.newParticipationId
-			AND discount.pricebookId = pbcost.pricebookId
+			AND discount.pricebookId = pbCost.pricebookId
 		LEFT JOIN
-			mmc.product.participationLastOnSale AS las
-			ON las.uniqueId = pbcost.uniqueId
-			AND las.pricebookId = pbcost.pricebookId
-			AND DATEDIFF_BIG(minute, las.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			mmc.dbo.pricebookwasprice AS wasPrice
+			ON wasPrice.uniqueId = pbCost.uniqueId
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS los
+			ON los.uniqueId = pbCost.uniqueId
+			AND los.pricebookId = pbCost.pricebookId
+			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
 
 	<insert id="insertParticipationCalculatedDiscounts">

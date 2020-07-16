@@ -117,6 +117,23 @@ public class ParticipationTestUtilities {
 	public static final String SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID =
 			"SELECT * FROM mmc.product.modified WHERE uniqueId IN ( :uniqueIds )";
 
+	private static final String SELECT_COALESCED_WASPRICE =
+			"SELECT COALESCE(losPB1.wasPrice, wasPrice.wasPrice, 0.00)" +
+					" FROM mmc.dbo.pricebookwasprice AS wasPrice\n" +
+					" LEFT JOIN mmc.product.participationLastOnSale AS losPB1" +
+					" ON losPB1.uniqueId = wasPrice.uniqueId" +
+					" AND losPB1.pricebookId = 1" +
+					" WHERE wasPrice.uniqueId = ?";
+
+	private static final String SELECT_COALESCED_PREVIOUS_BASEPRICE =
+			"SELECT COALESCE(losPB1.basePrice, PB1Cost.basePrice)" +
+					" FROM mmc.dbo.pricebook_cost AS PB1Cost" +
+					" LEFT JOIN mmc.product.participationLastOnSale AS losPB1" +
+					" ON PB1Cost.uniqueId = losPB1.uniqueId" +
+					" AND PB1Cost.pricebookId = losPB1.uniqueId" +
+					" WHERE PB1Cost.uniqueId = ?" +
+					" AND PB1Cost.pricebookId = 1";
+
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 
@@ -126,7 +143,7 @@ public class ParticipationTestUtilities {
 				" WHERE uniqueId = ? AND pricebookId = ?";
 
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT cost, basePrice, userId, participationId" +
+			"SELECT uniqueId, cost, basePrice, userId, participationId" +
 					" FROM mmc.dbo.PriceBook_Cost" +
 					" WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
 
@@ -403,6 +420,14 @@ public class ParticipationTestUtilities {
 				.addValue("pricebookIds", pricebookIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID,
 				namedParameters, BeanPropertyRowMapper.newInstance(PricebookCost.class));
+	}
+
+	public Double getCoalescedWasPrice(Integer uniqueId) {
+		return jdbcTemplate.queryForObject(SELECT_COALESCED_WASPRICE, Double.class, uniqueId);
+	}
+
+	public Double getCoalescedPrevBasePrice(Integer uniqueId) {
+		return jdbcTemplate.queryForObject(SELECT_COALESCED_PREVIOUS_BASEPRICE, Double.class, uniqueId);
 	}
 
 	public void upsertParticipationLastOnSaleBase(int pricebookId, int uniqueId, Date saleDate,
