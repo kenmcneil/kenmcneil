@@ -333,34 +333,47 @@
 
 		;WITH ownedProducts AS (
 		SELECT TOP (1) WITH TIES
-		participationProduct.uniqueId,
-		participationProduct.participationId,
-		participationItemPartial.saleId,
-		participationItemPartial.startDate,
-		participationItemPartial.endDate,
-		participationItemPartial.lastModifiedUserId AS userId
+		pp.uniqueId,
+		pp.participationId,
+		p.saleId,
+		p.startDate,
+		p.endDate,
+		p.lastModifiedUserId AS userId,
+		COALESCE(
+		(SELECT TOP 1 1
+		FROM mmc.product.participationCalculatedDiscount
+		WHERE participationId = pp.participationId),
+		(SELECT TOP 1 1
+		FROM mmc.product.participationItemizedDiscount
+		WHERE participationId = pp.participationId
+		AND uniqueId = pp.uniqueId),
+		(SELECT TOP 1 1
+		FROM mmc.product.participationItemPartial
+		WHERE participationId = pp.participationId
+		AND contentTypeId = 3 -- participation-coupon@1
+		AND shouldBlockDynamicPricing = 1),
+		0
+		) AS hasDiscount
 		FROM
-		mmc.product.participationProduct AS participationProduct
+		mmc.product.participationProduct AS pp
 		INNER JOIN
-		mmc.product.participationItemPartial AS participationItemPartial
-		ON participationItemPartial.participationId = participationProduct.participationId
-		AND (participationItemPartial.startDate IS NULL OR participationItemPartial.startDate &lt;= @date)
-		AND (participationItemPartial.endDate IS NULL OR participationItemPartial.endDate &gt; @date)
+		mmc.product.participationItemPartial AS p
+		ON p.participationId = pp.participationId
+		AND (p.startDate IS NULL OR p.startDate &lt;= @date)
+		AND (p.endDate IS NULL OR p.endDate &gt; @date)
 		ORDER BY
-		ROW_NUMBER() OVER(PARTITION BY participationProduct.uniqueId ORDER BY participationItemPartial.startDate DESC)
+		ROW_NUMBER() OVER(PARTITION BY pp.uniqueId ORDER BY p.startDate DESC)
 		)
-
-		SELECT DISTINCT
-		participationProduct.uniqueId as productUniqueId,
-		startDate,
-		endDate,
+		SELECT
+		ownedProducts.participationId,
+		ownedProducts.uniqueId as productUniqueId,
+		ownedProducts.startDate,
+		ownedProducts.endDate,
 		@date as modifiedDate
-		FROM ownedProducts AS participationProduct
-		LEFT JOIN mmc.product.participationCalculatedDiscount AS calculatedDiscount
-		ON calculatedDiscount.participationId = participationProduct.participationId
-        LEFT JOIN mmc.product.participationItemizedDiscount AS lineItemDiscount
-        ON lineItemDiscount.participationId = participationProduct.participationId
-        WHERE(calculatedDiscount.changeValue IS NOT NULL OR lineItemDiscount.price IS NOT NULL)
+		FROM
+		ownedProducts
+		WHERE
+		ownedProducts.hasDiscount = 1
 	</select>
 
 	
