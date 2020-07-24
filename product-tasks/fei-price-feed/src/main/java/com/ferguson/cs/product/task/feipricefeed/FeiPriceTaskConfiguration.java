@@ -242,7 +242,7 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	@StepScope
 	public FlatFileItemWriter<FeiPriceData> errorFeiPriceDataWriter(@Value("#{stepExecution.jobExecution}") JobExecution jobExecution) {
-		String[] columnNames = new String[]{"uniqueId", "mpid", "price", "brand", "product status", "error reason"};
+		String[] columnNames = new String[]{"uniqueId", "mpid", "price", "brand", "product status", "error reason", "Pricing Type"};
 		DateTimeFormatter dateTimeFormatter = DateUtils.getDateTimeFormatter("MMddyy");
 		String dateString = DateUtils.dateToString(DateUtils.now(), dateTimeFormatter);
 		String filePath = String
@@ -257,18 +257,6 @@ public class FeiPriceTaskConfiguration {
 	}
 
 	@Bean
-	@JobScope
-	public Map<String, List<FeiPriceData>> feiPriceDataMap() {
-		return new HashMap<>();
-	}
-
-	@Bean
-	@JobScope
-	public Set<FeiPriceData> duplicateData() {
-		return new HashSet<>();
-	}
-
-	@Bean
 	@StepScope
 	public FeiPriceDataMapItemWriter feiPriceDataMapItemWriter(Map<String, List<FeiPriceData>> feiPriceDataMap) {
 		return new FeiPriceDataMapItemWriter(feiPriceDataMap, feiPriceService);
@@ -278,17 +266,6 @@ public class FeiPriceTaskConfiguration {
 	@StepScope
 	public SetItemReader<FeiPriceData> duplicateDataReader() {
 		return new SetItemReader<>(duplicateData());
-	}
-
-	@Bean
-	@StepScope
-	public FlatFileItemWriter<FeiPriceData> duplicateDataWriter() {
-		String[] fields = new String[]{"uniqueId", "mpid", "price", "brand", "status"};
-
-		return new FlatFileItemWriterBuilder<FeiPriceData>().delimited().delimiter(",").names(fields)
-				.headerCallback(p -> p
-						.write(String.join(",", fields))).name("duplicateDataWriter")
-				.resource(new FileSystemResource(feiPriceSettings.getStorageFilePath() + "duplicate_mpns.csv")).build();
 	}
 
 	@Bean
@@ -307,6 +284,24 @@ public class FeiPriceTaskConfiguration {
 	@StepScope
 	public FeiPriceDataItemProcessor feiPriceDataItemProcessor(FeiPriceService feiPriceService) {
 		return new FeiPriceDataItemProcessor(feiPriceService, feiPriceSettings);
+	}
+
+	@Bean
+	@JobScope
+	public Map<String, List<FeiPriceData>> feiPriceDataMap() {
+		return new HashMap<>();
+	}
+
+	@Bean
+	@JobScope
+	public Set<FeiPriceData> duplicateData() {
+		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	public FeiPriceDataJobListener feiPriceDataJobListener() {
+		return new FeiPriceDataJobListener(feiPriceService, feiPriceSettings);
 	}
 
 	@Bean
@@ -338,12 +333,6 @@ public class FeiPriceTaskConfiguration {
 	public Step combineLocationPriceFiles(MultiResourceItemReader<String> allFilesReader, FlatFileItemWriter<String> aggregateWriter) {
 		return taskBatchJobFactory.getStepBuilder("combineLocationPriceFiles").<String, String>chunk(100000)
 				.reader(allFilesReader).writer(aggregateWriter).build();
-	}
-
-	@Bean
-	public Step writeDuplicateMpns() {
-		return taskBatchJobFactory.getStepBuilder("writeDuplicateMpns").<FeiPriceData, FeiPriceData>chunk(1000)
-				.reader(duplicateDataReader()).writer(duplicateDataWriter()).build();
 	}
 
 	@Bean
@@ -395,12 +384,6 @@ public class FeiPriceTaskConfiguration {
 	@Bean
 	public Job uploadFeiImapPriceFile(Step writeFeiImapPriceData) {
 		return taskBatchJobFactory.getJobBuilder("uploadFeiImapPriceFile").start(writeFeiImapPriceData).build();
-	}
-
-	@Bean
-	@JobScope
-	public FeiPriceDataJobListener feiPriceDataJobListener() {
-		return new FeiPriceDataJobListener(feiPriceService, feiPriceSettings);
 	}
 
 	private FlatFileItemWriter<FeiPriceData> feiPriceDataWriter(String location) {
