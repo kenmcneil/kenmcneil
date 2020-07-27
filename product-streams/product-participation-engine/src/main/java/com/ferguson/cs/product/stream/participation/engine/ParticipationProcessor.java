@@ -9,7 +9,6 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ConstructSe
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.newrelic.api.agent.NewRelic;
 
 /**
@@ -56,7 +55,8 @@ public class ParticipationProcessor {
 	}
 
 	/**
-	 * Publish each participation that's pending publish.
+	 * Publish each participation that's pending publish. Polls for a ParticipationItem from Construct to publish,
+	 * processes it, and repeats until no more records to process.
 	 */
 	public void processPendingPublishes() {
 		ParticipationItem item = constructService.getNextPendingPublishParticipation(
@@ -80,18 +80,20 @@ public class ParticipationProcessor {
 	 * Unpublish each participation that's pending unpublish.
 	 */
 	public void processPendingUnpublishes() {
-		ParticipationItemPartial itemPartial = getNextPendingUnpublishParticipation();
-		while (itemPartial != null) {
+		ParticipationItem item = constructService.getNextPendingUnpublishParticipation(
+				participationEngineSettings.getTestModeMinParticipationId());
+		while (item != null) {
 			try {
-				participationWriter.processUnpublish(itemPartial, getProcessingDate());
-				LOG.info("participation {} unpublished to draft status", itemPartial.getParticipationId());
+				participationWriter.processUnpublish(item, getProcessingDate());
+				LOG.info("participation {} unpublished to draft status", item.getId());
 			} catch (Exception e) {
-				String errorMessage = "Error unpublishing participation " + itemPartial.getParticipationId();
+				String errorMessage = "Error unpublishing participation " + item.getId();
 				NewRelic.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
-			itemPartial = getNextPendingUnpublishParticipation();
+			item = constructService.getNextPendingUnpublishParticipation(
+					participationEngineSettings.getTestModeMinParticipationId());
 		}
 	}
 
@@ -140,31 +142,5 @@ public class ParticipationProcessor {
 			processingDate = getProcessingDate();
 			itemPartial = participationLifecycleService.getNextExpiredParticipation(processingDate);
 		}
-	}
-
-	/**
-	 * Get the next pending unpublish event from Construct as a ParticipationItemPartial.
-	 * Populates only the participationId and lastModifiedUserId since that's what comes from the
-	 * Construct service and is all that's needed to process the unpublish.
-	 */
-	private ParticipationItemPartial getNextPendingUnpublishParticipation() {
-		ParticipationItem item = constructService.getNextPendingUnpublishParticipation(
-				participationEngineSettings.getTestModeMinParticipationId());
-		if (item == null) {
-			return null;
-		}
-		ParticipationItemPartial itemPartial = participationLifecycleService.getParticipationItemPartial(item.getId());
-		if (itemPartial ==  null) {
-			constructService.updateParticipationItemStatus(
-					item.getId(),
-					ParticipationItemStatus.DRAFT,
-					null,
-					getProcessingDate(),
-					item.getLastModifiedUserId()
-			);
-			return null;
-		}
-		itemPartial.setLastModifiedUserId(item.getLastModifiedUserId());
-		return itemPartial;
 	}
 }

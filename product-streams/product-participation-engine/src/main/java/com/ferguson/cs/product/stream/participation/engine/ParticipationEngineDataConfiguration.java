@@ -29,7 +29,6 @@ public class ParticipationEngineDataConfiguration {
 
 	@Bean
 	@Primary
-	@ConfigurationProperties("datasource.core")
 	public DataSource coreDataSource() {
 		return dataSourceProperties().initializeDataSourceBuilder().build();
 	}
