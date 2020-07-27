@@ -7,7 +7,7 @@ import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceData;
 public class ErrorFeiPriceDataFieldExtractor implements FieldExtractor<FeiPriceData> {
 	@Override
 	public Object[] extract(FeiPriceData item) {
-		Object[] fields = new Object[6];
+		Object[] fields = new Object[7];
 
 		fields[0] = item.getUniqueId();
 		fields[1] = item.getMpid();
@@ -15,6 +15,7 @@ public class ErrorFeiPriceDataFieldExtractor implements FieldExtractor<FeiPriceD
 		fields[3] = item.getBrand();
 		fields[4] = item.getStatus();
 		fields[5] = item.getFeiPriceDataStatus().getStringValue();
+		fields[6] = item.getFeiPricingType().getStringValue();
 
 		return fields;
 	}
