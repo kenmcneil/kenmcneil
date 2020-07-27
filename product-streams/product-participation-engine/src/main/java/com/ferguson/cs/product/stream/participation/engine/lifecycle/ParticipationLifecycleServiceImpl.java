@@ -72,7 +72,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
 
-		//calls publish in the correct subclass, ParticipationV1Lifecycle, based on contentTypeId
+		// Call publish in the lifecycle class matching the contentTypeId.
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
 

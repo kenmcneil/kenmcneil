@@ -13,6 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @ConfigurationProperties("participation-engine")
 public class ParticipationEngineSettings {
+	/**
+	 * Control whether scheduler is enabled. If false, no records will be processed. If true,
+	 * lifecycle events will be processed at the interval configured in scheduleFixedDelay.
+	 */
+	private Boolean processingEnabled;
 
 	/** How long to wait between Participation event processor runs in ms. */
 	private Integer scheduleFixedDelay;

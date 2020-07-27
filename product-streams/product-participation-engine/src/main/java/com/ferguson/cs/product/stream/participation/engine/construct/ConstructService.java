@@ -11,13 +11,15 @@ public interface ConstructService {
 	/**
 	 * Query for and return a participation that is pending publish. Return null if none found.
 	 * Optionally restrict to records with id >= minParticipationId (for test mode).
+	 * Populates only the participationId and lastModifiedUserId.
 	 * This is a user-initiated event.
 	 */
 	ParticipationItem getNextPendingPublishParticipation(Integer minParticipationId);
 
 	/**
-	 * Query for and return a participation that is pending unpublish. Return null if none found.
+	 * Query for and return a participation that is pending unpublish. Returns null if none found.
 	 * Optionally restrict to records with id >= minParticipationId (for test mode).
+	 * Populates only the participationId and lastModifiedUserId.
 	 * This is a user-initiated event.
 	 */
 	ParticipationItem getNextPendingUnpublishParticipation(Integer minParticipationId);

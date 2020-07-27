@@ -120,8 +120,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	/*
-	 * No mocking/spying needed:
-	 *      ParticipationCoreDao
+	 * Mocking and spying
 	 *
 	 * Mock entire class:
 	 *      ConstructService
@@ -152,7 +151,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	@SpyBean
 	protected ParticipationProcessor participationProcessor;
 
-	// For converting a ParticipationItemFixture to a ParticipationItem
+	// For creating the content map when converting a ParticipationItemFixture to a ParticipationItem.
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	// Properties to track Scenario test state.
@@ -383,7 +382,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			Mockito.clearInvocations(constructService);
 
 			return null;
-		}).when(participationWriter).processUnpublish(any(ParticipationItemPartial.class), any(Date.class));
+		}).when(participationWriter).processUnpublish(any(ParticipationItem.class), any(Date.class));
 
 		// Set up before and after calls for when a PUBLISH event is processed.
 		doAnswer(invocation -> {

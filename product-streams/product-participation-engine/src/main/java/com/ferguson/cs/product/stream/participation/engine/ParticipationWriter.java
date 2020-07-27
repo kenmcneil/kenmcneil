@@ -25,8 +25,8 @@ public class ParticipationWriter {
 	}
 
 	/**
-	 * Poll for a ParticipationItem to publish, and upserts its data into SQL tables.
-	 * If this Participation is currently active then deactivate it first.
+	 * Publish the given ParticipationItem by upserting its data into SQL tables.
+	 * If this Participation is currently active then deactivates it first.
 	 */
 	@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
@@ -76,18 +76,34 @@ public class ParticipationWriter {
 		);
 	}
 
+	/**
+	 * Deactivate given participation if needed and unpublish. If the record is not present in SQL then simply
+	 * set Construct record to draft status.
+	 */
 	@Transactional
-	public void processUnpublish(ParticipationItemPartial itemPartial, Date processingDate) {
-		if (participationLifecycleService.getParticipationIsActive(itemPartial.getParticipationId())) {
-			participationLifecycleService.deactivateByType(itemPartial, processingDate);
+	public void processUnpublish(ParticipationItem item, Date processingDate) {
+		// Get the participation item from SQL. If not there, then we'll skip any SQL changes and change the Construct
+		// record to be DRAFT status (assumes the SQL Participation record is not present because the engine already
+		// unpublished the record in SQL and the corresponding unpublish Construct update failed silently).
+		ParticipationItemPartial itemPartial = participationLifecycleService.getParticipationItemPartial(item.getId());
+		if (itemPartial != null) {
+			// Update the user id in SQL to the latest from Construct.
+			itemPartial.setLastModifiedUserId(item.getLastModifiedUserId());
+
+			// If active then deactivate before unpublishing.
+			if (itemPartial.getIsActive()) {
+				participationLifecycleService.deactivateByType(itemPartial, processingDate);
+			}
+			participationLifecycleService.unpublishByType(itemPartial, processingDate);
 		}
-		participationLifecycleService.unpublishByType(itemPartial, processingDate);
+
+		// Update record in Construct to DRAFT status.
 		constructService.updateParticipationItemStatus(
-				itemPartial.getParticipationId(),
+				item.getId(),
 				ParticipationItemStatus.DRAFT,
 				null,
 				processingDate,
-				itemPartial.getLastModifiedUserId()
+				item.getLastModifiedUserId()
 		);
 	}
 }
