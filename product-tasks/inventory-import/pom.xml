@@ -15,7 +15,6 @@
 		<module>inventory-import-common</module>
 		<module>inventory-import-ftp</module>
 		<module>inventory-import-email</module>
-		<module>manhattan-inventory-processor</module>
 		<module>electrolux-inventory-processor</module>
 	</modules>
 	<dependencyManagement>
@@ -34,11 +33,6 @@
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>inventory-import-email</artifactId>
 				<version>1.0.7-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>com.ferguson.cs.product</groupId>
-				<artifactId>manhattan-inbound-processor</artifactId>
-				<version>1.0.20-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
