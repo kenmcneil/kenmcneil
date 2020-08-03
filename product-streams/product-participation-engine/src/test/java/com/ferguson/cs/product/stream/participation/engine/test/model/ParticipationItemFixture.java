@@ -92,6 +92,7 @@ public class ParticipationItemFixture {
 	@Setter(AccessLevel.PRIVATE)
 	private List<LifecycleState> stateLog = new ArrayList<>();
 
+	@Override
 	public String toString() {
 		return String.format("Participation(id(%s), type(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s)",
 				participationId,
@@ -175,7 +176,7 @@ public class ParticipationItemFixture {
 		}
 
 		public ParticipationItemFixtureBuilder simulatedPublish() {
-			this.isSimulatedPublish = true;
+			isSimulatedPublish(true);
 			return this;
 		}
 	}

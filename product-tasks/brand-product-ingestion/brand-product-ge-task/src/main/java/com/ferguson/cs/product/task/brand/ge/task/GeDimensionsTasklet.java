@@ -14,14 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.task.brand.ge.services.GeProductApiService;
 import com.ferguson.cs.product.task.brand.model.SystemSource;
 import com.ferguson.cs.product.task.brand.service.ProductDistributionService;
-import com.ge_products.api.FilterValue;
 import com.ge_products.api.GeProductDimension;
+import com.ge_products.api.GeProductDimensionValue;
 import com.ge_products.api.GeProductSearchCriteria;
 import com.ge_products.api.GeProductSearchResult;
 
 /**
  * This tasklet is used to execute the Dimension GE API
- * 
+ *
  * @author c-chandra
  *
  */
@@ -48,10 +48,10 @@ public class GeDimensionsTasklet implements Tasklet {
 				/*
 				 * Get Active products filter.
 				 * TODO: We need to fetch Obsolete products  ?
-				 * 
+				 *
 				 */
 				if (filter.getKey().equalsIgnoreCase("Obsolete")) {
-					for (FilterValue filterValue : filter.getValue().getFilterValues()) {
+					for (GeProductDimensionValue filterValue : filter.getValue().getFilterValues()) {
 						if ("FALSE".equalsIgnoreCase(filterValue.getLabel())) {
 							systemSource.setActiveProductsFetched(filterValue.getCount());
 							GeProductSearchCriteria geApiSearchCriteria = new GeProductSearchCriteria();
