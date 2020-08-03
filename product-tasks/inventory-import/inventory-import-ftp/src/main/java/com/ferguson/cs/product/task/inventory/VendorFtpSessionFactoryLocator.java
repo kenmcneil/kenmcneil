@@ -12,24 +12,25 @@ import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 
-class VendorFtpSessionFactoryLocator implements SessionFactoryLocator {
+class VendorFtpSessionFactoryLocator implements SessionFactoryLocator<Object> {
 
-	private final Map<Object, SessionFactory> sessionFactoryMap = new HashMap<>();
+	private final Map<Object, SessionFactory<? extends Object>> sessionFactoryMap = new HashMap<>();
 	private static final int MILLISECOND_TIMEOUT = 15000;
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public SessionFactory getSessionFactory(Object key) {
-		SessionFactory sessionFactory = sessionFactoryMap.get(key);
+	public SessionFactory<Object> getSessionFactory(Object key) {
+		SessionFactory<? extends Object> sessionFactory = sessionFactoryMap.get(key);
 
 		if (sessionFactory == null) {
 			sessionFactory = generateSessionFactory((VendorFtpData) key);
 			sessionFactoryMap.put(key, sessionFactory);
 		}
 
-		return sessionFactory;
+		return (SessionFactory<Object>)sessionFactory;
 	}
 
-	private SessionFactory generateSessionFactory(VendorFtpData key) {
+	private SessionFactory<? extends Object> generateSessionFactory(VendorFtpData key) {
 
 		if (key.getFtpPort() == InventoryImportCommonConfiguration.FTP_PORT) {
 			DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();

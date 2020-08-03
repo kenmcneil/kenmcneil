@@ -66,21 +66,20 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-					<includes>
-						<include>**/*TEST.java</include>
-					</includes>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<reportsDirectory>${project.build.directory}/failsafe-reports</reportsDirectory>
-					<includes>
-						<include>**/*IT.java</include>
-					</includes>
+					<archive>
+						<manifestEntries>
+							<Add-Opens>java.base/java.lang java.base/java.util java.base/java.lang.reflect java.base/java.text java.desktop/java.awt.font</Add-Opens>
+						</manifestEntries>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -27,7 +27,6 @@ import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.batch.item.support.ClassifierCompositeItemWriter;
@@ -233,7 +232,6 @@ public class FeiPriceTaskConfiguration {
 		String[] names = new String[]{"uniqueId", "mpid", "price"};
 		feiFileSystemResource
 				.setFileSystemResource(new FileSystemResource(feiPriceSettings.getImapFilePath() + filename));
-		DelimitedLineAggregator<FeiPriceData> lineAggregator = new DelimitedLineAggregator<>();
 		return new FlatFileItemWriterBuilder<FeiPriceData>().resource(feiFileSystemResource.getFileSystemResource())
 				.name("feiImapPriceDataWriter")
 				.delimited().names(names).headerCallback(writer -> writer.write(String.join(",", names))).build();

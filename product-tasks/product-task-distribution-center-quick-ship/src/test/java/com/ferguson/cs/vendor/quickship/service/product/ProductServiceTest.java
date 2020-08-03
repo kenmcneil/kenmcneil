@@ -1,8 +1,8 @@
 package com.ferguson.cs.vendor.quickship.service.product;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
 import java.math.BigDecimal;
 
@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.ferguson.cs.test.utilities.ValueUtils;
+import com.ferguson.cs.test.utilities.random.RandomUtils;
 import com.ferguson.cs.vendor.quickship.model.category.ShippingCalculationView;
 import com.ferguson.cs.vendor.quickship.model.product.Product;
 import com.ferguson.cs.vendor.quickship.service.category.CategoryService;
@@ -36,7 +36,7 @@ public class ProductServiceTest {
 
 	@Test
 	public void testIsFreeShipping_freeShippingFlag() {
-		Product product = ValueUtils.getRandomValue(Product.class);
+		Product product = RandomUtils.randomInstance(Product.class);
 		product.setFreeShipping(true);
 		product.setDefaultPriceBookCost(BigDecimal.valueOf(9.00));
 
@@ -52,7 +52,7 @@ public class ProductServiceTest {
 
 	@Test
 	public void testIsFreeShipping_storeCategoryPriceThreshold() {
-		Product product = ValueUtils.getRandomValue(Product.class);
+		Product product = RandomUtils.randomInstance(Product.class);
 		product.setFreeShipping(false);
 		product.setDefaultPriceBookCost(BigDecimal.valueOf(7.77));
 		ShippingCalculationView storeShippingCalculationView = new ShippingCalculationView();
@@ -70,7 +70,7 @@ public class ProductServiceTest {
 
 	@Test
 	public void testIsFreeShipping_productCategoryPriceThreshold() {
-		Product product = ValueUtils.getRandomValue(Product.class);
+		Product product = RandomUtils.randomInstance(Product.class);
 		product.setFreeShipping(false);
 		product.setDefaultPriceBookCost(BigDecimal.valueOf(7.77));
 
@@ -98,7 +98,7 @@ public class ProductServiceTest {
 
 	@Test
 	public void testIsFreeShipping_notFreeShipping() {
-		Product product = ValueUtils.getRandomValue(Product.class);
+		Product product = RandomUtils.randomInstance(Product.class);
 		product.setFreeShipping(false);
 		product.setDefaultPriceBookCost(BigDecimal.valueOf(7.77));
 

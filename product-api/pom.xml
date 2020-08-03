@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
@@ -13,14 +14,14 @@
 	<name>product-api</name>
 
 	<dependencies>
-	    <dependency>
-	        <groupId>org.projectlombok</groupId>
-	        <artifactId>lombok</artifactId>
-	        <scope>provided</scope>
-	    </dependency>
 		<dependency>
-            <groupId>com.ferguson.cs.product</groupId>
-            <artifactId>product-model</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.ferguson.cs.product</groupId>
+			<artifactId>product-model</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.ferguson.cs</groupId>
@@ -30,10 +31,10 @@
 			<groupId>com.ferguson.cs</groupId>
 			<artifactId>api-unified-cache</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>com.ferguson.cs</groupId>
-            <artifactId>api-utilities</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-utilities</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
 			<artifactId>mybatis-spring-boot-starter</artifactId>
@@ -50,11 +51,11 @@
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>com.ferguson.cs</groupId>
-            <artifactId>api-test-utilities</artifactId>
+		<dependency>
+			<groupId>com.ferguson.cs</groupId>
+			<artifactId>api-test-utilities</artifactId>
 			<scope>test</scope>
-        </dependency>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
@@ -63,19 +64,31 @@
 	</dependencies>
 
 	<build>
-        <finalName>product-api</finalName>
+		<finalName>product-api</finalName>
 		<plugins>
-			<!-- This is so that we don't push the artifact up to artifactory during deployment -->
+			<!-- This is so that we don't push the artifact up to artifactory during 
+				deployment -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
-			</plugin>			
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Add-Opens>java.base/java.lang java.base/java.util java.base/java.lang.reflect java.base/java.text java.desktop/java.awt.font</Add-Opens>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

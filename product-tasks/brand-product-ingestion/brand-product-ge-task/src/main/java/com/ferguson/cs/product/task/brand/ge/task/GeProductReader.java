@@ -29,6 +29,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 
 	GeProductSearchCriteria criteria = null;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void doReadPage() {
 		if (results == null) {
@@ -37,7 +38,7 @@ public class GeProductReader extends AbstractPagingItemReader<GeProduct> impleme
 			results.clear();
 		}
 		if (criteria == null) {
-			criteria = (GeProductSearchCriteria)((Stack)executionContext.get("dimensionFilter")).pop();
+			criteria = (GeProductSearchCriteria)((Stack<Object>)executionContext.get("dimensionFilter")).pop();
 		}
 		results.addAll(fetchGeProducts(criteria));
 	}

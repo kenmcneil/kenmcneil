@@ -28,7 +28,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
-		this.profitMargin = new BigDecimal(this.feiPriceUpdateSettings.getMargin()).setScale(4,BigDecimal.ROUND_HALF_EVEN);
+		this.profitMargin = BigDecimal.valueOf(this.feiPriceUpdateSettings.getMargin()).setScale(4,RoundingMode.HALF_EVEN);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,7 +108,7 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 			item.setStatusMsg("INPUT_VALIDATION_ERROR - FEI input record price = null");
 			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		} else {
-			BigDecimal bdPrice = new BigDecimal(item.getPrice());
+			BigDecimal bdPrice = BigDecimal.valueOf(item.getPrice());
 			if (bdPrice.compareTo(BigDecimal.ZERO) == 0) {
 				LOGGER.error(
 						"FeiPriceUpdateItemWriter - Skipping product unique ID : {}. price cannot be a zero amount",
@@ -136,8 +136,8 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 
 		// Validate IMAP price.  Fei price can not be below the IMAP price
 		if (item.getMapPrice() != null) {
-			BigDecimal feiPrice = new BigDecimal(item.getPrice()).setScale(4,BigDecimal.ROUND_HALF_EVEN);;
-			BigDecimal floorPrice = new BigDecimal(item.getMapPrice()).setScale(4,BigDecimal.ROUND_HALF_EVEN);;
+			BigDecimal feiPrice = BigDecimal.valueOf(item.getPrice()).setScale(4,RoundingMode.HALF_EVEN);
+			BigDecimal floorPrice = BigDecimal.valueOf(item.getMapPrice()).setScale(4,RoundingMode.HALF_EVEN);
 
 			if (feiPrice.compareTo(floorPrice) < 0 ) {
 				LOGGER.debug("FeiPriceUpdateItemWriter - UniqueId: {} - Fei Price: {} is less than IMAP price: {}",
@@ -169,20 +169,20 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	 */
 	private Double calculateProPricing(FeiPriceUpdateItem item) {
 		// Default to customer price
-		BigDecimal proPrice = new BigDecimal(Double.toString(item.getPrice()));
+		BigDecimal proPrice = BigDecimal.valueOf(item.getPrice());
 
 		// if UMRP then pro pricing is same as customer.
 		if (item.getUmrpId() == null) {
 			if (item.getBaseCategoryId() != null && item.getBaseCategoryId() == LIGHTING_BASE_CATEGORY_ID) {
 				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.9] to product unique ID: {}",
 						item.getUniqueId());
-				proPrice = proPrice.multiply(new BigDecimal(".9"));
+				proPrice = proPrice.multiply(BigDecimal.valueOf(.9));
 
 				item.setPriceCalculation("Lighting Category: .9");
 			} else {
 				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.97] to product unique ID: {}",
 						item.getUniqueId());
-				proPrice = proPrice.multiply(new BigDecimal(".97"));
+				proPrice = proPrice.multiply(BigDecimal.valueOf(.97));
 
 				item.setPriceCalculation(".97");
 			}
@@ -200,9 +200,9 @@ public class FeiPriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateItem> 
 	 */
 	private Boolean isValidProfitMargin(Double vendorCost, FeiPriceUpdateItem item) {
 
-		BigDecimal vendorPrice = new BigDecimal(Double.toString(vendorCost));
-		BigDecimal consumerPrice = new BigDecimal(Double.toString(item.getPrice()));
-		BigDecimal margin = (new BigDecimal("1.0").setScale(4).subtract(vendorPrice.divide(consumerPrice,4, RoundingMode.HALF_EVEN)));
+		BigDecimal vendorPrice = BigDecimal.valueOf(vendorCost);
+		BigDecimal consumerPrice = BigDecimal.valueOf(item.getPrice());
+		BigDecimal margin = (BigDecimal.valueOf(1.0).setScale(4).subtract(vendorPrice.divide(consumerPrice,4, RoundingMode.HALF_EVEN)));
 
 		LOGGER.debug("FeiPriceUpdateItemWriter/isValidProfitMargin - Vendor Cost: {}, Fei Price: {}, profit margin: {}",
 				vendorCost, item.getPrice(), margin);

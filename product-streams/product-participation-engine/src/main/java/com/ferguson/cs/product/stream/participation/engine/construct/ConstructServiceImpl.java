@@ -11,7 +11,6 @@ import com.ferguson.cs.utilities.ArgumentAssert;
 
 public class ConstructServiceImpl implements ConstructService {
 
-	private final ParticipationEngineSettings participationEngineSettings;
 	private final ContentEventRepository contentEventRepository;
 	private final ParticipationItemRepository participationItemRepository;
 
@@ -20,7 +19,6 @@ public class ConstructServiceImpl implements ConstructService {
 			ContentEventRepository contentEventRepository,
 			ParticipationItemRepository participationItemRepository
 	) {
-		this.participationEngineSettings = participationEngineSettings;
 		this.contentEventRepository = contentEventRepository;
 		this.participationItemRepository = participationItemRepository;
 	}
