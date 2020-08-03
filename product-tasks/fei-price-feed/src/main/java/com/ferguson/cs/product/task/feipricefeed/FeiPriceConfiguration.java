@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Primary;
 public class FeiPriceConfiguration {
 
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.model";
-	private static final String REPORTER_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.reporter";
-	private static final String CORE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.core";
-	private static final String BATCH_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.batch";
+	protected static final String REPORTER_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.reporter";
+	protected static final String CORE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.core";
+	protected static final String BATCH_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.batch";
 	private final FeiPriceSettings feiPriceSettings;
 
 	public FeiPriceConfiguration(FeiPriceSettings feiPriceSettings) {

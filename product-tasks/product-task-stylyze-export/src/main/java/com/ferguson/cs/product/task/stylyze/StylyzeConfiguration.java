@@ -20,7 +20,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 public class StylyzeConfiguration {
 
 	private static final String BASE_ALIAS_PACKAGE = "com.ferguson.cs.product.task.stylyze";
-	private static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.stylyze.data";
+	protected static final String BASE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.stylyze.data";
 
 	@Bean
 	@ConfigurationProperties("stylyze")

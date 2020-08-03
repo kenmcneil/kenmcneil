@@ -560,7 +560,7 @@ public final class GeProductApiHelper {
 						}
 						// Binary Object Details related to feature are de-serialized in BenefitCopy
 						// Have not found any example response with content at the Product level
-						
+
 						processProductRecordBinaryObject(fragment.get(field), record);
 						break;
 					default:
@@ -572,9 +572,9 @@ public final class GeProductApiHelper {
 											objectMapper.readValue(fragment.get(field).toString(), String[].class)
 									)
 							);
-						}	
+						}
 						break;
-				}	
+				}
 			}
 		}
 
@@ -1012,7 +1012,7 @@ public final class GeProductApiHelper {
 		if (geProduct.getAttributes() != null && !geProduct.getAttributes().isEmpty()) {
 			for (GeProductAttribute geAttribute : geProduct.getAttributes()) {
 				addToDeSerializedState(deSerializedState, "Attribute_" + geAttribute.getDefinition() + "_" + geAttribute.getDisplayName(), geAttribute.getValue());
-				addToDeSerializedState(deSerializedState, "Attribute_" + geAttribute.getDefinition() + "_" + geAttribute.getDisplayName() + "_UOM", geAttribute.getUOM());
+				addToDeSerializedState(deSerializedState, "Attribute_" + geAttribute.getDefinition() + "_" + geAttribute.getDisplayName() + "_UOM", geAttribute.getUom());
 			}
 		}
 		jsonReference = new JsonReference();
@@ -1081,7 +1081,7 @@ public final class GeProductApiHelper {
 			if (!CollectionUtils.isEmpty(relationships)) {
 				int i = 0;
 				for (GeProductRelationship relationship : relationships) {
-					addToDeSerializedState(deSerializedState, "Accessory_" + i + "_SKU", relationship.getSKU());
+					addToDeSerializedState(deSerializedState, "Accessory_" + i + "_SKU", relationship.getSku());
 					i++;
 				}
 			}
@@ -1089,7 +1089,7 @@ public final class GeProductApiHelper {
 			if (!CollectionUtils.isEmpty(relationships)) {
 				int i = 0;
 				for (GeProductRelationship relationship : relationships) {
-					addToDeSerializedState(deSerializedState, "Cross-Sell Colors_" + i + "_SKU", relationship.getSKU());
+					addToDeSerializedState(deSerializedState, "Cross-Sell Colors_" + i + "_SKU", relationship.getSku());
 					i++;
 				}
 			}

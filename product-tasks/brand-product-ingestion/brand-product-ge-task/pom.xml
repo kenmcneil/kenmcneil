@@ -24,9 +24,9 @@
 	
    <dependencies> 
   		<dependency>
-			<groupId>com.ge_products</groupId>
-			<artifactId>ge_products-api</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<groupId>com.ge.products</groupId>
+			<artifactId>ge-products-api</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency> 
 		<dependency>  
 			<groupId>com.ferguson.cs.product</groupId>
