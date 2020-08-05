@@ -8,11 +8,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class ParticipationEngineTask {
 	private final static Logger LOG = LoggerFactory.getLogger(ParticipationEngineTask.class);
 
-	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationProcessor participationProcessor;
+	private final ParticipationHistoryProcessor participationHistoryProcessor;
+	private final ParticipationEngineSettings participationEngineSettings;
 
-	public ParticipationEngineTask(ParticipationProcessor participationProcessor, ParticipationEngineSettings participationEngineSettings) {
+	public ParticipationEngineTask(
+			ParticipationProcessor participationProcessor,
+			ParticipationHistoryProcessor participationHistoryProcessor,
+			ParticipationEngineSettings participationEngineSettings
+	) {
 		this.participationProcessor = participationProcessor;
+		this.participationHistoryProcessor = participationHistoryProcessor;
 		this.participationEngineSettings = participationEngineSettings;
 
 		if (BooleanUtils.isNotTrue(participationEngineSettings.getProcessingEnabled())) {
@@ -33,6 +39,7 @@ public class ParticipationEngineTask {
 	public void pollForEvents() {
 		if (BooleanUtils.isTrue(participationEngineSettings.getProcessingEnabled())) {
 			participationProcessor.process();
+			participationHistoryProcessor.process();
 		}
 	}
 }
