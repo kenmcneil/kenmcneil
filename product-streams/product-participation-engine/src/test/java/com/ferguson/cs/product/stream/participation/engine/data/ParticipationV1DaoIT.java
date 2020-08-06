@@ -1,11 +1,13 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
@@ -119,5 +121,22 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 				+ participationCoreDao.deleteParticipationItemPartial(p1.getParticipationId());
 
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
+	}
+
+	@Test
+	public void insertParticipationCalculatedDiscountsHistory() {
+		// step 1 - insert a participationItemPartialHistory record
+		int participationItemPartialHistoryId = 1;
+
+		// step 2 - test insert to calc discounts history table with the id from the record above
+		ParticipationCalculatedDiscount pcd1 = percentCalculatedDiscount(1, 20)
+				.toParticipationCalculatedDiscount(participationItemPartialHistoryId);
+		ParticipationCalculatedDiscount pcd2 = percentCalculatedDiscount(22, 25)
+				.toParticipationCalculatedDiscount(participationItemPartialHistoryId);
+		participationV1Dao.insertParticipationCalculatedDiscountsHistory(participationItemPartialHistoryId,
+				Arrays.asList(pcd1, pcd2));
+
+		// step 3 - verify the inserted data is correct
+		// ...
 	}
 }

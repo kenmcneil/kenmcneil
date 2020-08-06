@@ -138,4 +138,22 @@
 		WHERE
 			participationId = #{participationId}
 	</delete>
+
+	<insert id="insertParticipationCalculatedDiscountsHistory">
+		INSERT INTO mmc.product.participationCalculatedDiscountHistory (
+			participationItemPartialHistoryId,
+			pricebookId,
+			changeValue,
+			isPercent,
+			templateId
+		)
+		VALUES
+		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
+			#{calculatedDiscount.participationId},
+			#{calculatedDiscount.pricebookId},
+			#{calculatedDiscount.changeValue},
+			#{calculatedDiscount.isPercent},
+			#{calculatedDiscount.templateId}
+		</foreach>
+	</insert>
 </mapper>

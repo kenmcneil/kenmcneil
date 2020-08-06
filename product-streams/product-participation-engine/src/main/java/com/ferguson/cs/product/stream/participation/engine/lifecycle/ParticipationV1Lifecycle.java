@@ -249,9 +249,9 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	@Override
 	public int publishToHistory(ParticipationItem item, Date processingDate) {
 		ParticipationItemPartial itemPartial = buildItemPartial(item);
-		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
-		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
-		rowsAffected += participationV1Dao.upsertParticipationCalculatedDiscounts(
+		int rowsAffected = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		rowsAffected += participationCoreDao.insertParticipationProductsHistory(item.getId(), getUniqueIds(item));
+		rowsAffected += participationV1Dao.insertParticipationCalculatedDiscountsHistory(
 				item.getId(), getParticipationCalculatedDiscounts(item));
 		return rowsAffected;
 	}

@@ -110,9 +110,9 @@ public interface ParticipationCoreDao {
 
 	// HISTORY
 
-	int upsertParticipationItemPartialHistory(ParticipationItemPartial itemPartial);
+	int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial);
 
-	int upsertParticipationProductsHistory(int participationId, List<Integer> uniqueIds);
+	int insertParticipationProductsHistory(int participationId, List<Integer> uniqueIds);
 
 	int updateActivatedHistory(int participationId, Date processingDate);
 

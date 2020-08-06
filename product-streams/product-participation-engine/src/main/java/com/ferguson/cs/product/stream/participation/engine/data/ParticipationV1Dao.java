@@ -53,7 +53,7 @@ public interface ParticipationV1Dao {
 
 	// HISTORY
 
-	int upsertParticipationCalculatedDiscountsHistory(
+	int insertParticipationCalculatedDiscountsHistory(
 			int participationId,
 			List<ParticipationCalculatedDiscount> calculatedDiscounts
 	);

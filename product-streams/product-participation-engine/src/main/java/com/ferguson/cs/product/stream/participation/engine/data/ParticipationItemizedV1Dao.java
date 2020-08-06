@@ -44,12 +44,11 @@ public interface ParticipationItemizedV1Dao {
 	/**
 	 * Upserts itemized prices for a Participation where present. Removes existing itemized discounts for that
 	 * participation first, then inserts any passed in.
-	 * @return
 	 */
 	int upsertParticipationItemizedDiscounts(List<ParticipationItemizedDiscount> participationItemizedDiscounts);
 
 
 	// HISTORY
 
-	int upsertParticipationItemizedDiscountsHistory(List<ParticipationItemizedDiscount> participationItemizedDiscounts);
+	int insertParticipationItemizedDiscountsHistory(List<ParticipationItemizedDiscount> participationItemizedDiscounts);
 }
