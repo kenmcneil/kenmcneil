@@ -21,7 +21,8 @@ public class ProductApplication {
 	}
 
 	//This is needed because the reactive lettuce driver relies on the reactor scheduler
-	//to make a blocking call when getting a redis connection. This will result in
+	//to make a blocking call when getting a redis connection. This will result in Reactor's scheduler thread pool
+	//being created. If we don't shut the thread pool down, it results in warnings on shutdown.
 	@Bean(destroyMethod = "destroy")
 	public DisposableBean reactorShutdown() {
 		return Schedulers::shutdownNow;
