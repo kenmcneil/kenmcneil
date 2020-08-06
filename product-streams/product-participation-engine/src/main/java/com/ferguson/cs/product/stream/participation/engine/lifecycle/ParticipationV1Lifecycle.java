@@ -96,15 +96,8 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		return ParticipationContentType.PARTICIPATION_V1;
 	}
 
-	/**
-	 * The publish handler is fully responsible for inserting or updating all of its data
-	 * that needs to be stored in SQL, thus this upserts to the tables that represent this
-	 * Participation type: participationProduct, participationCalculatedDiscount,
-	 * and participationItemPartial.
-	 */
-	@Override
-	public int publish(ParticipationItem item, Date processingDate) {
-		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+	private ParticipationItemPartial buildItemPartial(ParticipationItem item) {
+		return ParticipationItemPartial.builder()
 				.participationId(item.getId())
 				.saleId(getSaleId(item))
 				.startDate(item.getSchedule() == null ? null : item.getSchedule().getFrom())
@@ -115,6 +108,17 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 				.isCoupon(false)
 				.shouldBlockDynamicPricing(true)
 				.build();
+	}
+
+	/**
+	 * The publish handler is fully responsible for inserting or updating all of its data
+	 * that needs to be stored in SQL, thus this upserts to the tables that represent this
+	 * Participation type: participationProduct, participationCalculatedDiscount,
+	 * and participationItemPartial.
+	 */
+	@Override
+	public int publish(ParticipationItem item, Date processingDate) {
+		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
 		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
@@ -240,6 +244,26 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		return participationCoreDao.deleteParticipationProducts(participationId)
 				+ participationV1Dao.deleteParticipationCalculatedDiscounts(participationId)
 				+ participationCoreDao.deleteParticipationItemPartial(participationId);
+	}
+
+	@Override
+	public int publishToHistory(ParticipationItem item, Date processingDate) {
+		ParticipationItemPartial itemPartial = buildItemPartial(item);
+		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
+		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
+		rowsAffected += participationV1Dao.upsertParticipationCalculatedDiscounts(
+				item.getId(), getParticipationCalculatedDiscounts(item));
+		return rowsAffected;
+	}
+
+	@Override
+	public int updateActivatedHistory(ParticipationItemPartial itemPartial, Date processingDate) {
+		return participationCoreDao.updateActivatedHistory(itemPartial.getParticipationId(), processingDate);
+	}
+
+	@Override
+	public int updateDeactivatedHistory(ParticipationItemPartial itemPartial, Date processingDate) {
+		return participationCoreDao.updateDeactivatedHistory(itemPartial.getParticipationId(), processingDate);
 	}
 
 	/**

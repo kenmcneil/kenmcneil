@@ -76,6 +76,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
 
+		getLifecycle(contentType.contentTypeId()).publishToHistory(item, processingDate);
+
 		return rowsAffected;
 	}
 
@@ -108,6 +110,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("{}: {} total rows updated to activate", participationId, affectedRows);
 
+		activatingLifecycle.updateActivatedHistory(itemPartial, processingDate);
+
 		return affectedRows;
 	}
 
@@ -137,6 +141,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				.reduce(0, Integer::sum);
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
+
+		deactivatingLifecycle.updateDeactivatedHistory(itemPartial, processingDate);
 
 		return affectedRows;
 	}

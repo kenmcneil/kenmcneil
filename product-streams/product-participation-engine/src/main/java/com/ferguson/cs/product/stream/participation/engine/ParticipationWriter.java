@@ -94,6 +94,7 @@ public class ParticipationWriter {
 			if (itemPartial.getIsActive()) {
 				participationLifecycleService.deactivateByType(itemPartial, processingDate);
 			}
+
 			participationLifecycleService.unpublishByType(itemPartial, processingDate);
 		}
 

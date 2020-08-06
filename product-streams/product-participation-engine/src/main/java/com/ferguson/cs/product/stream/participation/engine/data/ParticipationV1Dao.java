@@ -49,4 +49,12 @@ public interface ParticipationV1Dao {
 			int participationId,
 			List<ParticipationCalculatedDiscount> calculatedDiscounts
 	);
+
+
+	// HISTORY
+
+	int upsertParticipationCalculatedDiscountsHistory(
+			int participationId,
+			List<ParticipationCalculatedDiscount> calculatedDiscounts
+	);
 }

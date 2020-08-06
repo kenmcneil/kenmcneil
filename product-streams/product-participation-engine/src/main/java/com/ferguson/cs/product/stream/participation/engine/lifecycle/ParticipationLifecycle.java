@@ -73,6 +73,16 @@ public interface ParticipationLifecycle {
 	@Transactional(propagation = Propagation.MANDATORY)
 	int unpublish(ParticipationItemPartial itemPartial, Date processingDate);
 
+
+	@Transactional(propagation = Propagation.MANDATORY)
+	int publishToHistory(ParticipationItem item, Date processingDate);
+
+	@Transactional(propagation = Propagation.MANDATORY)
+	int updateActivatedHistory(ParticipationItemPartial itemPartial, Date processingDate);
+
+	@Transactional(propagation = Propagation.MANDATORY)
+	int updateDeactivatedHistory(ParticipationItemPartial itemPartial, Date processingDate);
+
 	/**
 	 * Traverse the content map and return value of the last key in the path, or null.
 	 */

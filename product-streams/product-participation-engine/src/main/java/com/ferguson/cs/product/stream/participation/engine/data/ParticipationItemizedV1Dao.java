@@ -47,4 +47,9 @@ public interface ParticipationItemizedV1Dao {
 	 * @return
 	 */
 	int upsertParticipationItemizedDiscounts(List<ParticipationItemizedDiscount> participationItemizedDiscounts);
+
+
+	// HISTORY
+
+	int upsertParticipationItemizedDiscountsHistory(List<ParticipationItemizedDiscount> participationItemizedDiscounts);
 }

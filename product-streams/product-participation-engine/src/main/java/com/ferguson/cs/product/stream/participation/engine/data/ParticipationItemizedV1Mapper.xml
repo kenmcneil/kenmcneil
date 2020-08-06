@@ -17,7 +17,7 @@
 			@participationId,
 			--first string up to comma
 			SUBSTRING(value, 1, CHARINDEX(',', value, 0) - 1) AS uniqueId,
-			--string between commmas
+			--string between commas
 			SUBSTRING(  value,
 						CHARINDEX(',',value, 0)+1,
 						CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1)) - (CHARINDEX(',',value, 0)+1)

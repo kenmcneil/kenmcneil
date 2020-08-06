@@ -106,5 +106,16 @@ public interface ParticipationCoreDao {
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
+
+
+	// HISTORY
+
+	int upsertParticipationItemPartialHistory(ParticipationItemPartial itemPartial);
+
+	int upsertParticipationProductsHistory(int participationId, List<Integer> uniqueIds);
+
+	int updateActivatedHistory(int participationId, Date processingDate);
+
+	int updateDeactivatedHistory(int participationId, Date processingDate);
 }
 

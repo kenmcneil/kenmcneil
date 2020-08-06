@@ -39,7 +39,6 @@ public class ParticipationEngineTask {
 	public void pollForEvents() {
 		if (BooleanUtils.isTrue(participationEngineSettings.getProcessingEnabled())) {
 			participationProcessor.process();
-			participationHistoryProcessor.process();
 		}
 	}
 }
