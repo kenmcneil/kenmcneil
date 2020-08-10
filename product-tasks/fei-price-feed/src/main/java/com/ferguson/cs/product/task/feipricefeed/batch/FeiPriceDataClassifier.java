@@ -8,6 +8,7 @@ import com.ferguson.cs.product.task.feipricefeed.model.FeiPriceDataStatus;
 
 public class FeiPriceDataClassifier implements Classifier <FeiPriceData, ItemWriter<? super FeiPriceData>> {
 
+	private static final long serialVersionUID = 1L;
 	private final ItemWriter<FeiPriceData> validFeiPriceDataItemWriter;
 	private final ItemWriter<FeiPriceData> errorFeiPriceDataItemWriter;
 

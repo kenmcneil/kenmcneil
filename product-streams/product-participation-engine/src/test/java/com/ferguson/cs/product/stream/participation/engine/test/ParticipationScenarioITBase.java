@@ -164,6 +164,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 	private boolean ranBeforeAll = false;
 
+	@Override
 	@Before
 	public void before() {
 		super.before();
@@ -190,7 +191,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 
 	public void advanceToDay(int dayNumber) {
 		Date futureDate = new Date(originalSimulatedDate.getTime() + TimeUnit.DAYS.toMillis(dayNumber));
-		Assertions.assertThat(futureDate).isAfterOrEqualsTo(currentSimulatedDate);
+		Assertions.assertThat(futureDate).isAfterOrEqualTo(currentSimulatedDate);
 		processEventsUpTo(futureDate);
 	}
 

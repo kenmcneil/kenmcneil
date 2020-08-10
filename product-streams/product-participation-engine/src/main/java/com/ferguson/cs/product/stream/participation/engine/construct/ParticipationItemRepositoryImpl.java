@@ -19,14 +19,12 @@ public class ParticipationItemRepositoryImpl implements ParticipationItemReposit
 	private final String PARTICIPATION_ITEM_COLLECTION_NAME = "participationItem";
 
 	private MongoOperations coreMongoTemplate;
-	private ParticipationEngineSettings participationEngineSettings;
 
 	ParticipationItemRepositoryImpl(
 			MongoOperations coreMongoTemplate,
 			ParticipationEngineSettings participationEngineSettings
 	) {
 		this.coreMongoTemplate = coreMongoTemplate;
-		this.participationEngineSettings = participationEngineSettings;
 	}
 
 	/**

@@ -21,11 +21,6 @@ public class FeiPriceConfiguration {
 	protected static final String REPORTER_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.reporter";
 	protected static final String CORE_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.core";
 	protected static final String BATCH_MAPPER_PACKAGE = "com.ferguson.cs.product.task.feipricefeed.data.batch";
-	private final FeiPriceSettings feiPriceSettings;
-
-	public FeiPriceConfiguration(FeiPriceSettings feiPriceSettings) {
-		this.feiPriceSettings = feiPriceSettings;
-	}
 
 	@MapperScan(basePackages = FeiPriceConfiguration.REPORTER_MAPPER_PACKAGE, annotationClass = Mapper.class, sqlSessionFactoryRef = "reporterSqlSessionFactory")
 	@Configuration

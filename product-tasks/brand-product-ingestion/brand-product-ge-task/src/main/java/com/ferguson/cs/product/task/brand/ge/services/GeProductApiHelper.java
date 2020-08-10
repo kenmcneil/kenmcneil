@@ -784,22 +784,6 @@ public final class GeProductApiHelper {
 	/**
 	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
 	 * property value based on named property and desired index location within the property values list.
-	 * The return value is converted to Long.  If the property is not found, a NULL is returned.
-	 *
-	 * @param properties   - Mapped list of GE Property objects
-	 * @param propertyName - name of property for which value is requested
-	 * @param index        - index into the list of property values
-	 * @return value - requested property value as Long or NULL if property is not found
-	 */
-	private static Long getGePropertyAsLong(Map<String, List<String>> properties, String propertyName, Integer index) {
-
-		String propertyValueAsString = (getGeProperty(properties, propertyName, index));
-		return StringUtils.isEmpty(propertyValueAsString) ? null : Long.parseLong(propertyValueAsString);
-	}
-
-	/**
-	 * Finds a specific property from a Mapped list of GE Property objects and returns a single
-	 * property value based on named property and desired index location within the property values list.
 	 * The return value is converted to Boolean.  If the property is not found, the input
 	 * missingAsTrue parameter identifies the value to return.
 	 *
@@ -834,46 +818,6 @@ public final class GeProductApiHelper {
 		return propertyValueAsString.isEmpty() ? null : DateUtils.stringToDate(propertyValueAsString, GE_DATE_FORMAT);
 	}
 
-	/**
-	 * Logs information regarding GE content that was encountered but was not
-	 * expected (and is not currently supported).
-	 *
-	 * @param fieldIdentifier     - name of GE field encountered
-	 * @param value               - value of the GE Field encountered
-	 * @param referenceIdentifier - a string to provide reference context (e.g.,
-	 *                            product identifier)
-	 */
-	private static void checkAndLogUnsupportedGeElement(String fieldIdentifier, String value, String referenceIdentifier) {
-		if (!StringUtils.isEmpty(value)) {
-			LOGGER.warn("*****WARNING: GE field '{}' found (value: {}) referenced by: {}", fieldIdentifier, value, referenceIdentifier);
-		}
-	}
-
-	private static String correctFilename(String filename) {
-
-		if (filename == null) {
-			return null;
-		}
-
-		if (!filename.contains("_")) { // avoid unnecessary checks
-			return filename;
-		}
-
-		if (filename.contains("_jpg")) {
-			filename = filename.replaceFirst("(?s)(.*)_jpg", "$1.jpg");
-		} else if (filename.contains("_JPG")) {
-			filename = filename.replaceFirst("(?s)(.*)_JPG", "$1.JPG");
-		} else if (filename.contains("_gif")) {
-			filename = filename.replaceFirst("(?s)(.*)_gif", "$1.gif");
-		} else if (filename.contains("_GIF")) {
-			filename = filename.replaceFirst("(?s)(.*)_GIF", "$1.GIF");
-		} else if (filename.contains("_png")) {
-			filename = filename.replaceFirst("(?s)(.*)_png", "$1.png");
-		} else if (filename.contains("_PNG")) {
-			filename = filename.replaceFirst("(?s)(.*)_PNG", "$1.PNG");
-		}
-		return filename;
-	}
 
 	public static JsonNode convertResultsToJson(String response) {
 

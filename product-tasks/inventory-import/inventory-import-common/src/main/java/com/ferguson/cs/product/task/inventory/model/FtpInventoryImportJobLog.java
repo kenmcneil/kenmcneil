@@ -1,6 +1,9 @@
 package com.ferguson.cs.product.task.inventory.model;
 
 public class FtpInventoryImportJobLog extends InventoryImportJobLog {
+
+	private static final long serialVersionUID = 1L;
+
 	private String fileName;
 	private Boolean isSftp;
 
