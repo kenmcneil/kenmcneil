@@ -55,4 +55,10 @@ public interface ParticipationItemizedV1Mapper {
 	 * @return the number of records deleted
 	 */
 	int deleteParticipationItemizedDiscounts(int participationId);
+
+	/**
+	 *
+	 */
+	int insertParticipationItemizedDiscountsHistory(
+			int participationItemPartialHistoryId, String csDiscountedPricesRows);
 }

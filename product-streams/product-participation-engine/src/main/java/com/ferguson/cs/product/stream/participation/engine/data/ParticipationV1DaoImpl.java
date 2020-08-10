@@ -55,4 +55,17 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 		}
 		return rowsAffected;
 	}
+
+	// HISTORY
+
+	@Override
+	public int insertParticipationCalculatedDiscountsHistory(
+			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts) {
+		int rowsAffected = 0;
+		if (!calculatedDiscounts.isEmpty()) {
+			rowsAffected += participationV1Mapper.insertParticipationCalculatedDiscountsHistory
+					(participationItemPartialHistoryId, calculatedDiscounts);
+		}
+		return rowsAffected;
+	}
 }

@@ -1,6 +1,7 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -117,4 +118,40 @@ public interface ParticipationCoreMapper {
 			" FROM mmc.product.participationItemPartial" +
 			" WHERE participationId = #{participationId}")
 	ParticipationItemPartial getParticipationItemPartial(int participationId);
+
+	// HISTORY
+
+	/**
+	 *
+	 */
+	int getHighestParticipationHistoryVersionId(int participationId);
+
+	/**
+	 *
+	 */
+	int getparticipationItemPartialHistoryId(int participationId,int currentVersionId);
+	/**
+	 *
+	 */
+	int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial, int versionId);
+
+	/**
+	 *
+	 */
+	int insertParticipationProductsHistory(int participationItemPartialHistoryId, String csvUniqueIds);
+
+	/**
+	 *
+	 */
+	int updateActivatedHistory(int participationId, Date processingDate);
+
+	/**
+	 *
+	 */
+	int updateDeactivatedHistory(int participationId, Date processingDate);
+
+	/**
+	 *
+	 */
+	int updateWoodchipperDates(int participationId, Date processingDate);
 }

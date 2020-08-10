@@ -117,5 +117,7 @@ public interface ParticipationCoreDao {
 	int updateActivatedHistory(int participationId, Date processingDate);
 
 	int updateDeactivatedHistory(int participationId, Date processingDate);
+
+	int getparticipationItemPartialHistoryId(int participationId);
 }
 

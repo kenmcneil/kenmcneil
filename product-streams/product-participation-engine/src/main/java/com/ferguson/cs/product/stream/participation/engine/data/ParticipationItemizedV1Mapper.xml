@@ -143,4 +143,33 @@
 		DELETE FROM mmc.product.participationItemizedDiscount
 		WHERE participationId = #{participationId}
 	</delete>
+
+	<insert id="insertParticipationItemizedDiscountsHistory" parameterType="map">
+		DECLARE @participationItemPartialHistoryId INT = #{participationItemPartialHistoryId}
+		DECLARE @discountRows VARCHAR(MAX) = #{csDiscounts}
+		DECLARE @newline VARCHAR(1) = CHAR(10)
+
+		INSERT INTO logs.dbo.participationItemizedDiscountHistory (
+			participationItemPartialHistoryId,
+			uniqueId,
+			pricebookId,
+			price
+		)
+		SELECT
+			@participationItemPartialHistoryId,
+			--first string up to comma
+			SUBSTRING(value, 1, CHARINDEX(',', value, 0) - 1) AS uniqueId,
+			--string between commas
+			SUBSTRING(  value,
+						CHARINDEX(',',value, 0)+1,
+						CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1)) - (CHARINDEX(',',value, 0)+1)
+				) AS pricebookId,
+			--last string
+			SUBSTRING(	value,
+						  (CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1))+1),
+						  LEN(value)
+				) AS price
+		FROM
+			STRING_SPLIT(@discountRows, @newline)
+	</insert>
 </mapper>

@@ -149,7 +149,7 @@
 		)
 		VALUES
 		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
-			#{calculatedDiscount.participationId},
+			#{participationItemPartialHistoryId},
 			#{calculatedDiscount.pricebookId},
 			#{calculatedDiscount.changeValue},
 			#{calculatedDiscount.isPercent},

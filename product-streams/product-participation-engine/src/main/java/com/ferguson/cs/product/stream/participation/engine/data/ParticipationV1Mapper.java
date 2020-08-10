@@ -66,4 +66,10 @@ public interface ParticipationV1Mapper {
 	 * @return The number of records modified.
 	 */
 	int deleteParticipationCalculatedDiscounts(int participationId);
+
+	/**
+	 *
+	 */
+	int insertParticipationCalculatedDiscountsHistory(
+			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

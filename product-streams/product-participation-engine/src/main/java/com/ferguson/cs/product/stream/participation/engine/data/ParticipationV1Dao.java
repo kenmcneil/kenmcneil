@@ -46,15 +46,14 @@ public interface ParticipationV1Dao {
 	 * discount records, then inserts any calculated discount records.
 	 */
 	int upsertParticipationCalculatedDiscounts(
-			int participationId,
-			List<ParticipationCalculatedDiscount> calculatedDiscounts
-	);
+			int participationId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
 
 
 	// HISTORY
 
+	/**
+	 *
+	 */
 	int insertParticipationCalculatedDiscountsHistory(
-			int participationId,
-			List<ParticipationCalculatedDiscount> calculatedDiscounts
-	);
+			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

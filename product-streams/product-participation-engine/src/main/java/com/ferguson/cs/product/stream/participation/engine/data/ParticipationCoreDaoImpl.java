@@ -106,4 +106,44 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 		}
 		return rowsAffected;
 	}
+
+	// HISTORY
+
+	@Override
+	public int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial) {
+		Integer currentVersionId =
+				participationCoreMapper.getHighestParticipationHistoryVersionId(itemPartial.getParticipationId());
+		int nextVersionId = currentVersionId == null ? 1 : currentVersionId + 1;
+		return participationCoreMapper.insertParticipationItemPartialHistory(itemPartial, nextVersionId);
+	}
+
+	@Override
+	public int insertParticipationProductsHistory(int participationId, List<Integer> uniqueIds) {
+		int rowsAffected = 0;
+		if (!uniqueIds.isEmpty()) {
+			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
+			rowsAffected += participationCoreMapper.insertParticipationProductsHistory(
+					getparticipationItemPartialHistoryId(participationId), csvUniqueIds);
+		}
+		return rowsAffected;
+	}
+
+	@Override
+	public int updateActivatedHistory(int participationId, Date processingDate) {
+		return participationCoreMapper.updateActivatedHistory(participationId, processingDate);
+	}
+
+	@Override
+	public int updateDeactivatedHistory(int participationId, Date processingDate) {
+		int rowsAffected = participationCoreMapper.updateDeactivatedHistory(participationId, processingDate);
+		// reset expiration counter start date on all versions of this participation so that they expire together
+		participationCoreMapper.updateWoodchipperDates(participationId, processingDate);
+		return rowsAffected;
+	}
+
+	@Override
+	public int getparticipationItemPartialHistoryId(int participationId) {
+		int currentVersionId = participationCoreMapper.getHighestParticipationHistoryVersionId(participationId);
+		return participationCoreMapper.getparticipationItemPartialHistoryId(participationId,currentVersionId);
+	}
 }

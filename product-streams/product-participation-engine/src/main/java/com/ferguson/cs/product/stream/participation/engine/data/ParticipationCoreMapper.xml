@@ -296,4 +296,116 @@
 			string_split(@uniqueidList,',');
 	</insert>
 
+	<select id="getHighestParticipationHistoryVersionId" parameterType="int" resultType="int">
+		SELECT
+			MAX(versionId)
+		FROM
+			logs.dbo.participationItemPartialHistory
+		WHERE
+			participationId = #{participationId}
+	</select>
+	(int participationId,int currentVersionId);
+	<select id="getparticipationItemPartialHistoryId" parameterType="int" resultType="int">
+		SELECT
+			id
+		FROM
+			logs.dbo.participationItemPartialHistory
+		WHERE
+			participationId = #{participationId}
+			AND versionId = #{versionId}
+	</select>
+	<insert id="insertParticipationItemPartialHistory" parameterType="map">
+		INSERT INTO
+			logs.dbo.participationItemPartialHistory (
+				participationId,
+				versionId,
+				saleId,
+				startDate,
+				endDate,
+				lastModifiedUserId,
+				contentTypeId,
+				isCoupon,
+				shouldBlockDynamicPricing,
+				startOrActivatedDate,
+				endOrDeactivatedDate,
+				woodchipperDate
+			)
+			VALUES (
+				#{participationId},
+				#{versionId},
+				#{startDate, jdbcType=TIMESTAMP},
+				#{endDate, jdbcType=TIMESTAMP},
+				#{lastModifiedUserId},
+				#{contentTypeId},
+				COALESCE(#{isCoupon},0),
+				COALESCE(#{shouldBlockDynamicPricing}, 0),
+				#{startDate, jdbcType=TIMESTAMP},
+				#{endDate, jdbcType=TIMESTAMP},
+				#{endDate, jdbcType=TIMESTAMP}
+			)
+	</insert>
+
+	<insert id="insertParticipationProductsHistory" parameterType="map">
+		DECLARE @participationItemPartialHistoryId INT = #{participationItemPartialHistoryId}
+		DECLARE @uniqueidList VARCHAR(MAX) = #{csvUniqueIds}
+
+		INSERT INTO
+			logs.dbo.participationProductHistory (
+				participationItemPartialHistoryId,
+				uniqueId,
+				isOwner
+			)
+		SELECT
+			@participationItemPartialHistoryId as participationItemPartialHistoryId,
+			value as uniqueId,
+			0
+		FROM
+			string_split(@uniqueidList,',');
+	</insert>
+
+	<update id="updateActivatedHistory" parameterType="map">
+		UPDATE
+			logs.dbo.participationItemPartialHistory
+		SET
+			wasActivated = 1,
+			startOrActivatedDate = #{processingDate, jdbcType=TIMESTAMP}
+		WHERE
+			participationId = #{participationId}
+			AND versionId = (
+				SELECT
+					MAX(versionId)
+				FROM
+					 logs.dbo.participationItemPartialHistory
+				WHERE
+					  participationId = #{participationId}
+				)
+	</update>
+
+	<update id="updateDeactivatedHistory" parameterType="map">
+		UPDATE
+			logs.dbo.participationItemPartialHistory
+		SET
+			wasDeactivated = 1,
+			endOrDeactivatedDate = #{processingDate, jdbcType=TIMESTAMP}
+		WHERE
+			participationId = #{participationId}
+		  AND versionId = (
+			SELECT
+				MAX(versionId)
+			FROM
+				logs.dbo.participationItemPartialHistory
+			WHERE
+				participationId = #{participationId}
+		)
+	</update>
+
+	<update id="updateWoodchipperDates" parameterType="map">
+		UPDATE
+			logs.dbo.participationItemPartialHistory
+		SET
+			woodchipperDate = #{processingDate, jdbcType=TIMESTAMP}
+		WHERE
+			participationId = #{participationId}
+	</update>
+
 </mapper>
