@@ -164,8 +164,12 @@ public class ParticipationTestUtilities {
 					" WHERE uniqueId = ? AND pricebookId = ?" +
 					" SELECT @BasePrice";
 
-	public static final String UPDATE_LATEST_BASEPRICE_BY_UNIQUEID_PRICEBOOKID =
-			"UPDATE mmc.product.latestBasePrice SET basePrice = ? WHERE uniqueId = ? AND pricebookId = ?";
+	private static final String SELECT_HISTORICAL_UNIQUEID =
+			"SELECT TOP 1 pph.uniqueId" +
+					" FROM logs.dbo.participationItemPartialHistory AS ph\n" +
+					" LEFT JOIN logs.dbo.participationProductHistory AS pph" +
+					" ON ph.id = pph.participationItemPartialHistoryId" +
+					" WHERE ph.participationId = ?";
 
 	// modified from https://stackoverflow.com/a/16390624/9488171
 	private static <T> ResultSetExtractor<T> singletonExtractor(RowMapper<? extends T> mapper) {
@@ -447,6 +451,10 @@ public class ParticipationTestUtilities {
 
 	public Double getPricebookCostBasePrice(int uniqueId, int pricebookId) {
 		return jdbcTemplate.queryForObject(SELECT_PRICEBOOKCOST_BASEPRICE, Double.class, uniqueId, pricebookId);
+	}
+
+	public int getHistoricalUniqueId(int participationId) {
+		return jdbcTemplate.queryForObject(SELECT_HISTORICAL_UNIQUEID, int.class, participationId);
 	}
 
 	/**
