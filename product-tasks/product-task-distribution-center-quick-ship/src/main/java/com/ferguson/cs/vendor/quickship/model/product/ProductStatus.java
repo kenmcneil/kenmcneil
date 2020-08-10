@@ -1,13 +1,14 @@
 package com.ferguson.cs.vendor.quickship.model.product;
 
 import com.ferguson.cs.utilities.IntMappedEnum;
+import com.ferguson.cs.utilities.StringMappedEnum;
 
 /**
  * Enumeration representing the various product statuses.
  *
  * @author francisco.cha
  */
-public enum ProductStatus implements IntMappedEnum {
+public enum ProductStatus implements IntMappedEnum, StringMappedEnum {
 
 	DISCONTINUED(1, "discontinued"),
 	NONSTOCK(2, "nonstock"),
@@ -28,6 +29,11 @@ public enum ProductStatus implements IntMappedEnum {
 	@Override
 	public int getIntValue() {
 		return intValue;
+	}
+
+	@Override
+	public String getStringValue() {
+		return stringValue;
 	}
 
 }

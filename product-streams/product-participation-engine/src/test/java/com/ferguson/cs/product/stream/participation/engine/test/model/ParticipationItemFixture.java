@@ -176,7 +176,7 @@ public class ParticipationItemFixture {
 		}
 
 		public ParticipationItemFixtureBuilder simulatedPublish() {
-			isSimulatedPublish(true);
+			this.isSimulatedPublish(true);
 			return this;
 		}
 	}

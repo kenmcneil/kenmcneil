@@ -24,6 +24,7 @@ import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 public class FtpInventoryImportServiceImpl implements InventoryImportService {
 	private FtpInventoryDao ftpInventoryDao;
 	private InventoryImportJobLogService inventoryImportJobLogService;
+	@SuppressWarnings("rawtypes")
 	private DelegatingSessionFactory delegatingSessionFactory;
 	private InventoryGateway inventoryGateway;
 
@@ -40,7 +41,7 @@ public class FtpInventoryImportServiceImpl implements InventoryImportService {
 	}
 
 	@Autowired
-	public void setDelegatingSessionFactory(DelegatingSessionFactory delegatingSessionFactory) {
+	public void setDelegatingSessionFactory(@SuppressWarnings("rawtypes") DelegatingSessionFactory delegatingSessionFactory) {
 		this.delegatingSessionFactory = delegatingSessionFactory;
 	}
 

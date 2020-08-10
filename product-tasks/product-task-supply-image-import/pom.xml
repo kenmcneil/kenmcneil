@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.ferguson.cs.product</groupId>
     <artifactId>product-tasks</artifactId>
-    <version>1.0.116-SNAPSHOT</version>
+    <version>1.0.117-SNAPSHOT</version>
   </parent>
   <artifactId>product-task-supply-image-import</artifactId>
   
@@ -15,6 +15,18 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- This is to suppress Java 11 reflective access warnings when running the application from a jar file. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Add-Opens>java.base/java.lang java.base/java.util java.base/java.lang.reflect java.base/java.text java.desktop/java.awt.font</Add-Opens>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -45,6 +57,11 @@
             <groupId>com.ferguson.cs</groupId>
             <artifactId>api-starter-client</artifactId>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 

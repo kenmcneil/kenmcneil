@@ -37,6 +37,7 @@ public class FtpInventoryImportConfiguration {
 		this.inventoryImportSettings = inventoryImportSettings;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Bean
 	@ServiceActivator(inputChannel = INBOUND_SFTP_CHANNEL)
 	public MessageHandler inboundSftpHandler() {
@@ -51,6 +52,7 @@ public class FtpInventoryImportConfiguration {
 		return sftpOutboundGateway;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Bean
 	@ServiceActivator(inputChannel = INBOUND_FTP_CHANNEL)
 	public MessageHandler inboundFtpHandler() {
@@ -66,9 +68,10 @@ public class FtpInventoryImportConfiguration {
 		return ftpOutboundGateway;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Bean
 	public DelegatingSessionFactory vendorFtpSessionFactory() {
-		return new DelegatingSessionFactory(vendorFtpSessionFactoryLocator());
+		return new DelegatingSessionFactory<>(vendorFtpSessionFactoryLocator());
 	}
 
 	@Bean

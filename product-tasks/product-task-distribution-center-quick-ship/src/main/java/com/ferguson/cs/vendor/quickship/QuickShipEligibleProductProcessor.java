@@ -17,7 +17,6 @@ import com.ferguson.cs.vendor.quickship.service.vendor.VendorService;
 public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Product>, List<DistributionCenterProductQuickShip>> {
 	private final ProductService productService;
 	private final VendorService vendorService;
-	private final CategoryService categoryService;
 	private ShippingCalculationView buildShippingCalculationView;
 	private static final int BUILD_SITE_ID = 82;
 	private static final int BUILD_STORE_ID = 248;
@@ -26,7 +25,6 @@ public class QuickShipEligibleProductProcessor implements ItemProcessor<List<Pro
 	public QuickShipEligibleProductProcessor(ProductService productService, VendorService vendorService, CategoryService categoryService) {
 		this.productService = productService;
 		this.vendorService = vendorService;
-		this.categoryService = categoryService;
 		buildShippingCalculationView = categoryService.getStoreShippingCalculationView(BUILD_SITE_ID,BUILD_STORE_ID,STANDARD_DELIVERY_CALCULATION_NAME_ID);
 	}
 

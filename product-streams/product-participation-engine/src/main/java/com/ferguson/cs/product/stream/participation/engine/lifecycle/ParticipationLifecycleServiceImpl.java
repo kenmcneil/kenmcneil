@@ -25,10 +25,9 @@ import com.ferguson.cs.product.stream.participation.engine.model.ValidationExcep
  * ParticipationLifecycleService constructor in ParticipationEngineConfiguration.
  */
 public class ParticipationLifecycleServiceImpl implements ParticipationLifecycleService {
-	private final static Logger LOG = LoggerFactory.getLogger(ParticipationLifecycleServiceImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ParticipationLifecycleServiceImpl.class);
 
 	private static final String CONTENT_TYPE_KEY = "_type";
-	private static final ParticipationContentType defaultContentType = ParticipationContentType.PARTICIPATION_V1;
 
 	private final Map<ParticipationContentType, ParticipationLifecycle> lifecyclesByContentType;
 
@@ -62,6 +61,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * Call the lifecycle publish method for the type of the given Participation to handle
 	 * adding its effect-specific records.
 	 */
+	@Override
 	public int publishByType(ParticipationItem item, Date processingDate) {
 		LOG.debug("==== publishing participation {} ====", item.getId());
 
@@ -87,6 +87,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * that are becoming newly-owned by the activating Participation (such as products);
 	 * and call activateEffects for the activating Participation.
 	 */
+	@Override
 	public int activateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		ParticipationLifecycle activatingLifecycle = getLifecycle(itemPartial.getContentTypeId());
@@ -119,6 +120,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * Call deactivate methods for each Participation type: call deactivate for this item;
 	 * call deactivate effects for this item; and finally call activateEffects for all types.
 	 */
+	@Override
 	public int deactivateByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		ParticipationLifecycle deactivatingLifecycle = getLifecycle(itemPartial.getContentTypeId());
@@ -151,6 +153,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	 * Call the lifecycle unpublish method for the type of the given Participation to handle
 	 * deleting effect-specific records it added when it published the Participation.
 	 */
+	@Override
 	public int unpublishByType(ParticipationItemPartial itemPartial, Date processingDate) {
 		LOG.debug("==== unpublishing participation {} ====", itemPartial.getParticipationId());
 		int rowsAffected = getLifecycle(itemPartial.getContentTypeId()).unpublish(itemPartial, processingDate);
@@ -164,6 +167,7 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 	}
 
 
+	@Override
 	public ParticipationItemPartial getParticipationItemPartial(int participationId) {
 		return participationCoreDao.getParticipationItemPartial(participationId);
 	}
@@ -179,16 +183,6 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				String[] parts = fullType.split("\\.");
 				return parts[0];
 			}
-		}
-		return null;
-	}
-
-	/**
-	 * Get the content._type value or null if not present.
-	 */
-	private String getContentType(ParticipationItem item) {
-		if (item.getContent() != null && item.getContent().containsKey(CONTENT_TYPE_KEY)) {
-			return (String) item.getContent().get(CONTENT_TYPE_KEY);
 		}
 		return null;
 	}
