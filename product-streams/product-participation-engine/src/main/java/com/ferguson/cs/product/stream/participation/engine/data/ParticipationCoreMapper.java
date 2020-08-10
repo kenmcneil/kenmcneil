@@ -123,12 +123,12 @@ public interface ParticipationCoreMapper {
 	/**
 	 *
 	 */
-	int getHighestParticipationHistoryVersionId(int participationId);
+	Integer getHighestParticipationHistoryVersionId(int participationId);
 
 	/**
 	 *
 	 */
-	int getparticipationItemPartialHistoryId(int participationId,int currentVersionId);
+	int getparticipationItemPartialHistoryId(int participationId,int versionId);
 	/**
 	 *
 	 */

@@ -113,7 +113,8 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 	public int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial) {
 		Integer currentVersionId =
 				participationCoreMapper.getHighestParticipationHistoryVersionId(itemPartial.getParticipationId());
-		int nextVersionId = currentVersionId == null ? 1 : currentVersionId + 1;
+		Integer nextVersionId = currentVersionId == null ? 1 : currentVersionId + 1;
+		System.out.println(nextVersionId);
 		return participationCoreMapper.insertParticipationItemPartialHistory(itemPartial, nextVersionId);
 	}
 

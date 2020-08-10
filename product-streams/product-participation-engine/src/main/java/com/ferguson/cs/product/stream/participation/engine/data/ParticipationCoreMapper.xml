@@ -233,7 +233,7 @@
 		ORDER BY endDate
 	</select>
 
-	<insert id="upsertParticipationItemPartial">
+	<insert id="upsertParticipationItemPartial" parameterType="map">
 		IF EXISTS (
 				SELECT id
 				FROM mmc.product.participationItemPartial
@@ -304,7 +304,7 @@
 		WHERE
 			participationId = #{participationId}
 	</select>
-	(int participationId,int currentVersionId);
+
 	<select id="getparticipationItemPartialHistoryId" parameterType="int" resultType="int">
 		SELECT
 			id
@@ -314,6 +314,7 @@
 			participationId = #{participationId}
 			AND versionId = #{versionId}
 	</select>
+
 	<insert id="insertParticipationItemPartialHistory" parameterType="map">
 		INSERT INTO
 			logs.dbo.participationItemPartialHistory (
@@ -331,17 +332,18 @@
 				woodchipperDate
 			)
 			VALUES (
-				#{participationId},
+				#{itemPartial.participationId},
 				#{versionId},
-				#{startDate, jdbcType=TIMESTAMP},
-				#{endDate, jdbcType=TIMESTAMP},
-				#{lastModifiedUserId},
-				#{contentTypeId},
-				COALESCE(#{isCoupon},0),
-				COALESCE(#{shouldBlockDynamicPricing}, 0),
-				#{startDate, jdbcType=TIMESTAMP},
-				#{endDate, jdbcType=TIMESTAMP},
-				#{endDate, jdbcType=TIMESTAMP}
+				#{itemPartial.saleId},
+				#{itemPartial.startDate, jdbcType=TIMESTAMP},
+				#{itemPartial.endDate, jdbcType=TIMESTAMP},
+				#{itemPartial.lastModifiedUserId},
+				#{itemPartial.contentTypeId},
+				COALESCE(#{itemPartial.isCoupon},0),
+				COALESCE(#{itemPartial.shouldBlockDynamicPricing}, 0),
+				#{itemPartial.startDate, jdbcType=TIMESTAMP},
+				#{itemPartial.endDate, jdbcType=TIMESTAMP},
+				#{itemPartial.endDate, jdbcType=TIMESTAMP}
 			)
 	</insert>
 
