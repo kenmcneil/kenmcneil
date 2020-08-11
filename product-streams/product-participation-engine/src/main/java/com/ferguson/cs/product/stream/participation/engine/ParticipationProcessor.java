@@ -62,15 +62,8 @@ public class ParticipationProcessor {
 		ParticipationItem item = constructService.getNextPendingPublishParticipation(
 				participationEngineSettings.getTestModeMinParticipationId());
 		while (item != null) {
-			try {
 				participationWriter.processPublish(item, getProcessingDate());
 				LOG.info("participation {} published", item.getId());
-			} catch (Exception e) {
-				String errorMessage = "Error publishing participation " + item.getId();
-				NewRelic.noticeError(errorMessage);
-				throw new RuntimeException(errorMessage, e);
-			}
-
 			item = constructService.getNextPendingPublishParticipation(
 					participationEngineSettings.getTestModeMinParticipationId());
 		}

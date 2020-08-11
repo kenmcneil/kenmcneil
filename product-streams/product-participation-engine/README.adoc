@@ -1,10 +1,13 @@
 = Participation Engine
+:toc: macro
 :sectlinks:
 :sectanchors:
 :stylesheet: ../../asciidoctor.css
 :imagesdir: ../../images
 
-== Documentation
+toc::[]
+
+== Documentation Links
 
 * link:docs/system-overview.adoc[Participation System Overview]
 * link:docs/scenario-tests.adoc[Scenario Tests]
@@ -16,13 +19,18 @@
 
 === Monitoring
 
-NewRelic is notified for application exceptions, including connection errors, exceptions from code logic, or database errors.
+New Relic is instrumented to record transactions for publish, unpublish, activate, and deactivate events. Within each transaction type,  exceptions from code logic, network errors, database errors, etc, are noticed and associated with the transaction in which they occur.
+
+Participation-related events in NR are recorded as non-web transactions.
+
+* link:++https://one.newrelic.com/launcher/nr1-core.explorer?launcher=eyJzZWxlY3RlZEluc3RhbmNlIjpudWxsfQ==&pane=eyJuZXJkbGV0SWQiOiJhcG0tbmVyZGxldHMub3ZlcnZpZXciLCJlbnRpdHlJZCI6Ik1UUTVORGN4ZkVGUVRYeEJVRkJNU1VOQlZFbFBUbncyTmprME9Ua3lOamsifQ==&sidebars[0]=eyJuZXJkbGV0SWQiOiJucjEtY29yZS5hY3Rpb25zIiwiZW50aXR5SWQiOiJNVFE1TkRjeGZFRlFUWHhCVUZCTVNVTkJWRWxQVG53Mk5qazBPVGt5TmprIiwic2VsZWN0ZWROZXJkbGV0Ijp7Im5lcmRsZXRJZCI6ImFwbS1uZXJkbGV0cy5vdmVydmlldyJ9fQ==&platform[timeRange][duration]=1800000&platform[$isFallbackTimeRange]=true&platform[filters]=IihuYW1lIGxpa2UgJ3BhcnRpY2knIG9yIGlkID0gJ3BhcnRpY2knIG9yIGRvbWFpbklkID0gJ3BhcnRpY2knKSI=++[Production application overview in New Relic]
+* link:++https://one.newrelic.com/launcher/infra.infra?pane=eyJuZXJkbGV0SWQiOiJpbmZyYS5ob3N0cyIsImZlYXR1cmUiOiJzeXN0ZW0iLCJob3N0c0ZpbHRlcnMiOnsiYW5kIjpbeyJvciI6W3sibGlrZSI6eyJhcG1BcHBsaWNhdGlvbk5hbWVzIjoifHBhcnRpY2lwYXRpb24tZW5naW5lIChUZXN0KXwifX0seyJsaWtlIjp7ImFwbUFwcGxpY2F0aW9uTmFtZXMiOiJ8cGFydGljaXBhdGlvbi1lbmdpbmUgKERldmVsb3BtZW50KXwifX0seyJsaWtlIjp7ImFwbUFwcGxpY2F0aW9uTmFtZXMiOiJ8cGFydGljaXBhdGlvbi1lbmdpbmV8In19XX1dfX0&platform[timeRange][duration]=1800000&platform[accountId]=149471++[Infrastructure pages in New Relic for all servers]
 
 === Configuration
 
 See https://github.com/buildcom/config/blob/master/apps/product-services-participation-engine.yml[configuration properties] &nearr; on github for the current application configuration.
 
-== Development
+== Development [[development]]
 
 === Local Run Configuration
 
@@ -111,6 +119,36 @@ a|Runs with `localdev` by default. You should not need to change it. +
 `-Dspring.profiles.active=XXXXX`
 
 |===
+
+=== New Relic configuration for local development
+
+You can configure and use the New Relic java agent locally. This is needed e.g. when modifying the New Relic instrumentation in the app. This is not needed for development or to run the engine locally unless you want to modify or test the NR instrumentation or simply to see your local engine transactions in NR.
+
+When configured, engine events and any errors from your local instance will show up in the `participation-engine (Development)` service in New Relic.
+
+You will need to select your computer name or whatever host on which you are running the engine locally, in the Instances menu in NR. This will filter to only your events.
+
+==== Set up and usage steps
+
+1. Copy the NR license key from the right-hand sidebar under `License Key:` at https://rpm.newrelic.com/accounts/149471. Treat this like you would a password, and do not paste it in chat or commit it to any repositories.
+2. Download the new relic java agent jar from https://docs.newrelic.com/docs/release-notes/agent-release-notes/java-release-notes. The current version is 5.14 but a newer version should work fine. If you make any changes requiring changes that are in a later version, you'll have to ask SRE to update NR on the participation-engine hosts to the required version.
+    a. Put the downloaded `newrelic.jar` file at the top level in your project directory or set the location in the setting below.
+    b. Ensure that it's not a sibling of the `newrelic.yml` file that comes with the download (to avoid its settings from colliding with the settings below).
+3. Add the configuration params below to your run configuration in your IDE. If running on the command line with `java -jar ...`, add the params there.
+    a. Do not modify the `app_name`.
+    b. Be sure to use double quotes on the param values.
+4. Start up the app and check that it starts correctly and has some INFO log entries from the NR agent. It will also show the location of its log file, which will be a sibling of the `newrelic.jar` file unless configured differently. If you have any problems it's good to check the log file.
+5. Generate some events / errors.
+6. To find the Services page for the engine, browse to NR, select `APM`, filter by `participation`, and choose `participation-engine (Development)`. Or navigate directly to link:++https://one.newrelic.com/launcher/nr1-core.explorer?pane=eyJuZXJkbGV0SWQiOiJhcG0tbmVyZGxldHMub3ZlcnZpZXciLCJlbnRpdHlJZCI6Ik1UUTVORGN4ZkVGUVRYeEJVRkJNU1VOQlZFbFBUbncyTmpJMU1qUTROalUiLCJ0cmFuc2FjdGlvblR5cGUiOnsidHJhbnNhY3Rpb25UeXBlIjoiT3RoZXIifX0=&sidebars[0]=eyJuZXJkbGV0SWQiOiJucjEtY29yZS5hY3Rpb25zIiwiZW50aXR5SWQiOiJNVFE1TkRjeGZFRlFUWHhCVUZCTVNVTkJWRWxQVG53Mk5qSTFNalE0TmpVIiwic2VsZWN0ZWROZXJkbGV0Ijp7Im5lcmRsZXRJZCI6ImFwbS1uZXJkbGV0cy5vdmVydmlldyJ9fQ==&platform[timeRange][duration]=3600000&platform[$isFallbackTimeRange]=false&platform[filters]=IihuYW1lIGxpa2UgJ3BhcnRpY2knIG9yIGlkID0gJ3BhcnRpY2knIG9yIGRvbWFpbklkID0gJ3BhcnRpY2knKSI=&platform[accountId]=149471++[that page].
+7. You can also look at the servers directly, by navigating to `Infrastructure` then using the `FILTER HOSTS >` button on the left sidebar and filtering by `participation`.
+
+.Configuration to enable New Relic locally.
+[source]
+----
+-Dnewrelic.config.license_key="${the NR license key you copied}"
+-Dnewrelic.config.app_name="participation-engine (Development)"
+-javaagent:./newrelic.jar
+----
 
 === Development / Debugging
 
