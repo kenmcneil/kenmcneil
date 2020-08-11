@@ -12,8 +12,6 @@ import java.util.Set;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -76,8 +74,6 @@ public class WiserFeedTaskConfiguration {
 	private WiserFeedSettings wiserFeedSettings;
 	private WiserFeedConfiguration.WiserGateway wiserGateway;
 	private TaskBatchJobFactory taskBatchJobFactory;
-
-	private static final Logger LOG = LoggerFactory.getLogger(WiserFeedTaskConfiguration.class);
 
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
@@ -398,7 +394,7 @@ public class WiserFeedTaskConfiguration {
 
 		};
 
-		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
+		BeanWrapperFieldExtractor<WiserProductData> extractor = new BeanWrapperFieldExtractor<>();
 		extractor.setNames(new String[]{"sku",
 				"productName",
 				"productUrl",
@@ -435,7 +431,7 @@ public class WiserFeedTaskConfiguration {
 				"effective_date",
 				"reg_price"};
 
-		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
+		BeanWrapperFieldExtractor<WiserPriceData> extractor = new BeanWrapperFieldExtractor<>();
 		extractor.setNames(new String[]{"sku",
 				"channel",
 				"effectiveDate",
@@ -459,7 +455,7 @@ public class WiserFeedTaskConfiguration {
 				"ncr",
 				"marketplace_id"};
 
-		BeanWrapperFieldExtractor extractor = new BeanWrapperFieldExtractor();
+		BeanWrapperFieldExtractor<WiserPerformanceData> extractor = new BeanWrapperFieldExtractor<>();
 		extractor.setNames(new String[]{"sku",
 				"transactionDate",
 				"grossUnits",
@@ -860,22 +856,22 @@ public class WiserFeedTaskConfiguration {
 				.build();
 	}
 
-	private FlatFileItemWriter getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor fieldExtractor) {
-		FlatFileItemWriter<?> fileItemWriter = new FlatFileItemWriter<>();
+	private <T> FlatFileItemWriter<T> getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor<T> fieldExtractor) {
+		FlatFileItemWriter<T> fileItemWriter = new FlatFileItemWriter<>();
 
 		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", fileHeader)));
 
 		fileItemWriter.setResource(new FileSystemResource(filePath));
 
 
-		LineAggregator lineAggregator = createLineAggregator(fieldExtractor);
+		LineAggregator<T> lineAggregator = createLineAggregator(fieldExtractor);
 		fileItemWriter.setLineAggregator(lineAggregator);
 
 		return fileItemWriter;
 	}
 
-	private LineAggregator createLineAggregator(FieldExtractor fieldExtractor) {
-		QuoteEnclosingDelimitedLineAggregator lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
+	private <T> LineAggregator<T> createLineAggregator(FieldExtractor<T> fieldExtractor) {
+		QuoteEnclosingDelimitedLineAggregator<T> lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
 		lineAggregator.setDelimiter(",");
 		lineAggregator.setFieldExtractor(fieldExtractor);
 		return lineAggregator;

@@ -26,7 +26,7 @@ import com.ferguson.cs.product.task.inventory.model.FtpInventoryImportJobLog;
 import com.ferguson.cs.product.task.inventory.model.InventoryImportJobStatus;
 import com.ferguson.cs.product.task.inventory.model.VendorFtpData;
 import com.ferguson.cs.test.BaseTest;
-import com.ferguson.cs.test.utilities.ValueUtils;
+import com.ferguson.cs.test.utilities.random.RandomUtils;
 
 public class FtpInventoryImportServiceTest extends BaseTest {
 	@Mock
@@ -35,6 +35,7 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 	@Mock
 	private InventoryImportJobLogService inventoryImportJobLogService;
 
+	@SuppressWarnings("rawtypes")
 	@Mock
 	private DelegatingSessionFactory delegatingSessionFactory;
 
@@ -52,7 +53,7 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 
 	@Test
 	public void testDownloadVendorInventoryFiles_ftp_success() {
-		VendorFtpData vendorFtpData = ValueUtils.getRandomValue(VendorFtpData.class);
+		VendorFtpData vendorFtpData = RandomUtils.randomInstance(VendorFtpData.class);
 		vendorFtpData.setFtpPort(InventoryImportCommonConfiguration.FTP_PORT);
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);
@@ -73,7 +74,7 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 
 	@Test
 	public void testDownloadVendorInventoryFiles_ftp_failure() {
-		VendorFtpData vendorFtpData = ValueUtils.getRandomValue(VendorFtpData.class);
+		VendorFtpData vendorFtpData = RandomUtils.randomInstance(VendorFtpData.class);
 		vendorFtpData.setFtpPort(InventoryImportCommonConfiguration.FTP_PORT);
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);
@@ -99,7 +100,7 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 
 	@Test
 	public void testDownloadVendorInventoryFiles_sftp_success() {
-		VendorFtpData vendorFtpData = ValueUtils.getRandomValue(VendorFtpData.class);
+		VendorFtpData vendorFtpData = RandomUtils.randomInstance(VendorFtpData.class);
 		vendorFtpData.setFtpPort(InventoryImportCommonConfiguration.SFTP_PORT);
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);
@@ -119,7 +120,7 @@ public class FtpInventoryImportServiceTest extends BaseTest {
 
 	@Test
 	public void testDownloadVendorInventoryFiles_sftp_failure() {
-		VendorFtpData vendorFtpData = ValueUtils.getRandomValue(VendorFtpData.class);
+		VendorFtpData vendorFtpData = RandomUtils.randomInstance(VendorFtpData.class);
 		vendorFtpData.setFtpPort(InventoryImportCommonConfiguration.SFTP_PORT);
 		List<VendorFtpData> vendorFtpDataList = new ArrayList<>();
 		vendorFtpDataList.add(vendorFtpData);

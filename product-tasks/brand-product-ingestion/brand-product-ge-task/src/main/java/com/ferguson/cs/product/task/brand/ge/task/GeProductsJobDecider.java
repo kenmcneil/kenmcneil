@@ -12,9 +12,10 @@ public class GeProductsJobDecider implements JobExecutionDecider {
 	public static final String COMPLETED = "COMPLETED";
 	public static final String CONTINUE = "CONTINUE";
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
-		Stack<String> dimensionFilter = (Stack)jobExecution.getExecutionContext().get("dimensionFilter");
+		Stack<String> dimensionFilter = (Stack<String>)jobExecution.getExecutionContext().get("dimensionFilter");
 		if (!dimensionFilter.isEmpty()) {
 			return new FlowExecutionStatus(CONTINUE);
 		} else {

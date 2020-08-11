@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.brand.ge.task;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.batch.item.ItemWriter;
@@ -15,8 +16,9 @@ public class GeProductWriter implements ItemWriter<BrandProduct> {
 	@Autowired
 	protected ProductDistributionService productDistributionService;
 
+	@Override
 	public void write(List<? extends BrandProduct> products) throws Exception {
-		productDistributionService.saveProducts((List<BrandProduct>) products);
+		productDistributionService.saveProducts(new ArrayList<>( products));
 	}
 
 }

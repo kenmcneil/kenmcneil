@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -47,9 +46,9 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	private static final String[] IS_COUPON_PATH = {"isCoupon", "selected"};
 	private static final String[] SHOULD_BLOCK_DYNAMIC_PRICING_PATH = {"shouldBlockDynamicPricing", "selected"};
 
-	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;
 
+	@Override
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_COUPON_V1;
 	}

@@ -2,14 +2,13 @@ package com.ferguson.cs.product.task.wiser.utility;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
-import org.apache.commons.io.Charsets;
+import java.nio.charset.StandardCharsets;
 
 public class CloudinaryHelper {
 	private static final Integer DEFAULT_HEIGHT = 320;
 	private static final Integer DEFAULT_WIDTH = 320;
 	private static final String CLOUDINARY_PREFIX = "https://s3.img-b.com/image/private/";
-	private static final String CHAR_SET = Charsets.UTF_8.displayName();
+	private static final String CHAR_SET = StandardCharsets.UTF_8.displayName();
 
 	private CloudinaryHelper() { }
 

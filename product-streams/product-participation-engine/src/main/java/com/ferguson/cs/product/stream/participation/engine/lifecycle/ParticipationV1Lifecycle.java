@@ -92,6 +92,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 	private final ParticipationCoreDao participationCoreDao;
 	private final ParticipationV1Dao participationV1Dao;
 
+	@Override
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_V1;
 	}
@@ -292,10 +293,10 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 			Integer participationId,
 			Integer pricebookId,
 			String discountAmount,
-			Boolean isPercentDisc,
+			boolean isPercentDisc,
 			Integer discountTemplateId
 	) {
-		Double changeValue = new Double(discountAmount);
+		Double changeValue = Double.valueOf(discountAmount);
 
 		// If the discount is a percent off value then convert to a scaling factor: (100 - percent off) / 100
 		// else the discount is a amount off value, convert to a value to add: -amount

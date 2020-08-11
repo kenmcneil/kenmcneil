@@ -81,10 +81,9 @@ public class ParticipationEngineConfiguration {
 
 	@Bean
 	public ParticipationCouponV1Lifecycle participationCouponV1Lifecycle(
-			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao
 	) {
-		return new ParticipationCouponV1Lifecycle(participationEngineSettings, participationCoreDao);
+		return new ParticipationCouponV1Lifecycle(participationCoreDao);
 	}
 
 	@Bean
