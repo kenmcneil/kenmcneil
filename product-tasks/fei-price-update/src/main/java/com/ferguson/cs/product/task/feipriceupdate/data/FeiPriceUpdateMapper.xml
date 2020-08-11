@@ -115,7 +115,7 @@
 	</insert>
 	
 	<!-- Insert temp table price update records into pricebookCostUpdates table in preparation for job execution -->
-	<insert id="loadPriceBookCostUpdatesFromTempTable" parameterType="PricebookLoadCriteria" useGeneratedKeys="true" keyProperty="id">
+	<insert id="loadPriceBookCostUpdatesFromTempTable" parameterType="PricebookLoadCriteria" >
 		insert into tempData.dbo.pricebookCostUpdates (
 			costUpdateJobId,
 			uniqueId,
