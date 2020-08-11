@@ -111,22 +111,17 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 
 	@Override
 	public int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial) {
-		Integer currentVersionId =
-				participationCoreMapper.getHighestParticipationHistoryVersionId(itemPartial.getParticipationId());
-		Integer nextVersionId = currentVersionId == null ? 1 : currentVersionId + 1;
-		System.out.println(nextVersionId);
+		int nextVersionId =
+				participationCoreMapper.getHighestParticipationHistoryVersionId(itemPartial.getParticipationId()) +1;
 		return participationCoreMapper.insertParticipationItemPartialHistory(itemPartial, nextVersionId);
 	}
 
 	@Override
-	public int insertParticipationProductsHistory(int participationId, List<Integer> uniqueIds) {
-		int rowsAffected = 0;
+	public void insertParticipationProductsHistory(int partialHistoryId, List<Integer> uniqueIds) { ;
 		if (!uniqueIds.isEmpty()) {
 			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
-			rowsAffected += participationCoreMapper.insertParticipationProductsHistory(
-					getparticipationItemPartialHistoryId(participationId), csvUniqueIds);
+			participationCoreMapper.insertParticipationProductsHistory(partialHistoryId, csvUniqueIds);
 		}
-		return rowsAffected;
 	}
 
 	@Override

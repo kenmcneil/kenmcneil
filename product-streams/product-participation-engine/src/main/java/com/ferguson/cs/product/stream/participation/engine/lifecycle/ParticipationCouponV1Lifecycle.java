@@ -208,13 +208,11 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	// HISTORY
 
 	@Override
-	public int publishToHistory(ParticipationItem item, Date processingDate) {
+	public void publishToHistory(ParticipationItem item, Date processingDate) {
 		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
-		int rowsAffected = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
-		rowsAffected += participationCoreDao.insertParticipationProductsHistory(item.getId(), getUniqueIds(item));
-
-		return rowsAffected;
+		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
 	}
 
 	@Override

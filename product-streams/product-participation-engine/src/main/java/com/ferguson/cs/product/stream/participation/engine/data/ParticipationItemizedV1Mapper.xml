@@ -145,7 +145,7 @@
 	</delete>
 
 	<insert id="insertParticipationItemizedDiscountsHistory" parameterType="map">
-		DECLARE @participationItemPartialHistoryId INT = #{participationItemPartialHistoryId}
+		DECLARE @partialHistoryId INT = #{partialHistoryId}
 		DECLARE @discountRows VARCHAR(MAX) = #{csDiscounts}
 		DECLARE @newline VARCHAR(1) = CHAR(10)
 
@@ -156,7 +156,7 @@
 			price
 		)
 		SELECT
-			@participationItemPartialHistoryId,
+			@partialHistoryId,
 			--first string up to comma
 			SUBSTRING(value, 1, CHARINDEX(',', value, 0) - 1) AS uniqueId,
 			--string between commas

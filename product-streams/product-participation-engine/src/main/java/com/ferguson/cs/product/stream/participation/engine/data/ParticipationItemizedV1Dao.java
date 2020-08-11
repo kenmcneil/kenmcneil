@@ -54,6 +54,6 @@ public interface ParticipationItemizedV1Dao {
 	 *insertParticipationCalculatedDiscountsHistory(
 	 * 				 (getParticipationItemizedDiscounts(item)))
 	 */
-	int insertParticipationItemizedDiscountsHistory(
-			int participationItemPartialHistoryId, List<ParticipationItemizedDiscount> itemizedDiscounts);
+	void insertParticipationItemizedDiscountsHistory(
+			int partialHistoryId, List<ParticipationItemizedDiscount> itemizedDiscounts);
 }

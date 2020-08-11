@@ -54,6 +54,6 @@ public interface ParticipationV1Dao {
 	/**
 	 *
 	 */
-	int insertParticipationCalculatedDiscountsHistory(
-			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
+	void insertParticipationCalculatedDiscountsHistory(
+			int partialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

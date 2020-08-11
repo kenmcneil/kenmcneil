@@ -1,11 +1,17 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
@@ -121,20 +127,39 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
 	}
 
-//	@Test
-//	public void insertParticipationCalculatedDiscountsHistory() {
-//		// step 1 - insert a participationItemPartialHistory record
-//		int participationItemPartialHistoryId = 1;
-//
-//		// step 2 - test insert to calc discounts history table with the id from the record above
-//		ParticipationCalculatedDiscount pcd1 = percentCalculatedDiscount(1, 20)
-//				.toParticipationCalculatedDiscount(participationItemPartialHistoryId);
-//		ParticipationCalculatedDiscount pcd2 = percentCalculatedDiscount(22, 25)
-//				.toParticipationCalculatedDiscount(participationItemPartialHistoryId);
-//		participationV1Dao.insertParticipationCalculatedDiscountsHistory(participationItemPartialHistoryId,
-//				Arrays.asList(pcd1, pcd2));
-//
-//		// step 3 - verify the inserted data is correct
-//		// ...
-//	}
+	@Test
+	public void insertParticipationItemPartialHistory_insertParticipationCalculatedDiscountsHistory() {
+		int tUniqueId = 123456;
+		int tParticipationId = 10000;
+		double tDiscount = 27;
+		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+				.participationId(tParticipationId)
+				.saleId(1010)
+				.startDate(new Date())
+				.endDate(new Date())
+				.lastModifiedUserId(1)
+				.isActive(false)
+				.isCoupon(true)
+				.shouldBlockDynamicPricing(false)
+				.contentTypeId(ParticipationContentType.PARTICIPATION_COUPON_V1.contentTypeId())
+				.build();
+		List<Integer> uniqueIds = new ArrayList<>();
+		uniqueIds.add(tUniqueId);
+		List<ParticipationCalculatedDiscount> calculatedDiscounts = new ArrayList<>();
+		ParticipationCalculatedDiscount discount = new ParticipationCalculatedDiscount();
+		discount.setChangeValue(tDiscount);
+		discount.setIsPercent(true);
+		discount.setParticipationId(tParticipationId);
+		discount.setPricebookId(1);
+		discount.setTemplateId(1);
+		calculatedDiscounts.add(discount);
+
+		int identity = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(identity, uniqueIds);
+		participationV1Dao.insertParticipationCalculatedDiscountsHistory(identity, calculatedDiscounts);
+
+		double returnedPercentage = participationTestUtilities.getCalculatedHistoryChangeValue(
+				tParticipationId);
+		Assertions.assertThat(returnedPercentage).isEqualTo(tDiscount);
+	}
 }

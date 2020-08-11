@@ -71,5 +71,5 @@ public interface ParticipationV1Mapper {
 	 *
 	 */
 	int insertParticipationCalculatedDiscountsHistory(
-			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
+			int partialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
 }

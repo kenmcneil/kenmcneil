@@ -74,7 +74,7 @@ public interface ParticipationLifecycle {
 	int unpublish(ParticipationItemPartial itemPartial, Date processingDate);
 
 	@Transactional(propagation = Propagation.MANDATORY)
-	int publishToHistory(ParticipationItem item, Date processingDate);
+	void publishToHistory(ParticipationItem item, Date processingDate);
 
 	@Transactional(propagation = Propagation.MANDATORY)
 	int updateActivatedHistory(ParticipationItemPartial itemPartial, Date processingDate);

@@ -260,15 +260,13 @@ public class ParticipationItemizedV1Lifecycle implements ParticipationLifecycle 
 	// HISTORY
 
 	@Override
-	public int publishToHistory(ParticipationItem item, Date processingDate) {
+	public void publishToHistory(ParticipationItem item, Date processingDate) {
 		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
-		int rowsAffected = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
-		rowsAffected += participationCoreDao.insertParticipationProductsHistory(item.getId(), getUniqueIds(item));
-		int participationItemPartialHistoryId = participationCoreDao.getparticipationItemPartialHistoryId(item.getId());
-		rowsAffected += participationItemizedV1Dao.insertParticipationItemizedDiscountsHistory(
-				participationItemPartialHistoryId, (getParticipationItemizedDiscounts(item)));
-		return rowsAffected;
+		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
+		participationItemizedV1Dao.insertParticipationItemizedDiscountsHistory(
+				partialHistoryId, (getParticipationItemizedDiscounts(item)));
 	}
 
 	@Override

@@ -59,13 +59,10 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 	// HISTORY
 
 	@Override
-	public int insertParticipationCalculatedDiscountsHistory(
-			int participationItemPartialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts) {
-		int rowsAffected = 0;
+	public void insertParticipationCalculatedDiscountsHistory(
+			int partialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts) {
 		if (!calculatedDiscounts.isEmpty()) {
-			rowsAffected += participationV1Mapper.insertParticipationCalculatedDiscountsHistory
-					(participationItemPartialHistoryId, calculatedDiscounts);
+			participationV1Mapper.insertParticipationCalculatedDiscountsHistory(partialHistoryId, calculatedDiscounts);
 		}
-		return rowsAffected;
 	}
 }

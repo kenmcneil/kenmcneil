@@ -59,6 +59,6 @@ public interface ParticipationItemizedV1Mapper {
 	/**
 	 *
 	 */
-	int insertParticipationItemizedDiscountsHistory(
-			int participationItemPartialHistoryId, String csDiscountedPricesRows);
+	void insertParticipationItemizedDiscountsHistory(
+			int partialHistoryId, String csDiscounts);
 }

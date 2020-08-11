@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -170,6 +171,24 @@ public class ParticipationTestUtilities {
 					" LEFT JOIN logs.dbo.participationProductHistory AS pph" +
 					" ON ph.id = pph.participationItemPartialHistoryId" +
 					" WHERE ph.participationId = ?";
+
+	private static final String SELECT_HISTORICAL_ITEMIZED_PRICE =
+			"SELECT TOP 1 price" +
+			" FROM logs.dbo.participationItemizedDiscountHistory AS iDHis" +
+			" JOIN logs.dbo.participationProductHistory AS pph" +
+			" ON iDHis.uniqueId = pph.uniqueId" +
+			" AND iDHis.participationItemPartialHistoryId = pph.participationItemPartialHistoryId" +
+			" JOIN logs.dbo.participationItemPartialHistory AS ph" +
+			" ON ph.id = pph.participationItemPartialHistoryId" +
+			" WHERE ph.participationId = ? AND iDHis.uniqueId = ? AND iDHis.pricebookId = 1";
+
+	private static final String SELECT_HISTORICAL_CALCULATED_CHANGE_VALUE = "SELECT TOP 1 changeValue" +
+			" FROM logs.dbo.participationCalculatedDiscountHistory AS cDHis" +
+			" JOIN logs.dbo.participationProductHistory AS pph" +
+			" ON cDHis.participationItemPartialHistoryId = pph.participationItemPartialHistoryId" +
+			" JOIN logs.dbo.participationItemPartialHistory AS ph" +
+			" ON ph.id = pph.participationItemPartialHistoryId" +
+			" WHERE ph.participationId = ? AND cDHis.pricebookId = 1";
 
 	// modified from https://stackoverflow.com/a/16390624/9488171
 	private static <T> ResultSetExtractor<T> singletonExtractor(RowMapper<? extends T> mapper) {
@@ -455,6 +474,15 @@ public class ParticipationTestUtilities {
 
 	public int getHistoricalUniqueId(int participationId) {
 		return jdbcTemplate.queryForObject(SELECT_HISTORICAL_UNIQUEID, int.class, participationId);
+	}
+
+
+	public double getItemizedHistoryPrice(int participationId, int uniqueId) {
+		return jdbcTemplate.queryForObject(SELECT_HISTORICAL_ITEMIZED_PRICE, double.class, participationId, uniqueId);
+	}
+
+	public double getCalculatedHistoryChangeValue(int tParticipationId) {
+		return jdbcTemplate.queryForObject(SELECT_HISTORICAL_CALCULATED_CHANGE_VALUE, double.class, tParticipationId);
 	}
 
 	/**

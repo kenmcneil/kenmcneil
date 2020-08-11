@@ -140,7 +140,7 @@
 	</delete>
 
 	<insert id="insertParticipationCalculatedDiscountsHistory">
-		INSERT INTO mmc.product.participationCalculatedDiscountHistory (
+		INSERT INTO logs.dbo.participationCalculatedDiscountHistory (
 			participationItemPartialHistoryId,
 			pricebookId,
 			changeValue,
@@ -149,7 +149,7 @@
 		)
 		VALUES
 		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
-			#{participationItemPartialHistoryId},
+			#{partialHistoryId},
 			#{calculatedDiscount.pricebookId},
 			#{calculatedDiscount.changeValue},
 			#{calculatedDiscount.isPercent},

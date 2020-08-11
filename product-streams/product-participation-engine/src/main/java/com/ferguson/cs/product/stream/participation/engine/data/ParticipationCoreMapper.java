@@ -123,7 +123,7 @@ public interface ParticipationCoreMapper {
 	/**
 	 *
 	 */
-	Integer getHighestParticipationHistoryVersionId(int participationId);
+	int getHighestParticipationHistoryVersionId(int participationId);
 
 	/**
 	 *
@@ -137,7 +137,7 @@ public interface ParticipationCoreMapper {
 	/**
 	 *
 	 */
-	int insertParticipationProductsHistory(int participationItemPartialHistoryId, String csvUniqueIds);
+	void insertParticipationProductsHistory(int participationItemPartialHistoryId, String csvUniqueIds);
 
 	/**
 	 *

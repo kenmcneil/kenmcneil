@@ -34,7 +34,6 @@ public class ParticipationCoreDaoIT extends ParticipationEngineITBase {
 
 	@Test
 	public void insertParticipationItemPartialHistory_insertParticipationProductsHistory() {
-		//arrange
 		int tUniqueId = 123456;
 		int tParticipationId = 10000;
 		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
@@ -52,8 +51,8 @@ public class ParticipationCoreDaoIT extends ParticipationEngineITBase {
 		uniqueIds.add(tUniqueId);
 
 		//act
-		participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
-		participationCoreDao.insertParticipationProductsHistory(itemPartial.getParticipationId(), uniqueIds);
+		int identity = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(identity, uniqueIds);
 
 		//assert
 		int returnedUniqueId = participationTestUtilities.getHistoricalUniqueId(tParticipationId);
