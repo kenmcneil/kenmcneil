@@ -111,28 +111,24 @@ public interface ParticipationCoreDao {
 	// HISTORY
 
 	/**
-	 *
+	 * store core Participation state to log table upon publication
 	 */
 	int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial);
 
 	/**
-	 *
+	 * associate products to participation log
 	 */
 	void insertParticipationProductsHistory(int partialHistoryId, List<Integer> uniqueIds);
 
 	/**
-	 *
+	 * record date of current participation version activation for posterity
 	 */
 	int updateActivatedHistory(int participationId, Date processingDate);
 
 	/**
-	 *
+	 * record date of current participation version deactivation for posterity
 	 */
 	int updateDeactivatedHistory(int participationId, Date processingDate);
 
-	/**
-	 *
-	 */
-	int getparticipationItemPartialHistoryId(int participationId);
 }
 

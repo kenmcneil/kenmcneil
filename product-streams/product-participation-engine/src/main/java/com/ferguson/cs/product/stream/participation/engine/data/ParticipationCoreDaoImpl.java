@@ -136,10 +136,4 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 		participationCoreMapper.updateWoodchipperDates(participationId, processingDate);
 		return rowsAffected;
 	}
-
-	@Override
-	public int getparticipationItemPartialHistoryId(int participationId) {
-		int currentVersionId = participationCoreMapper.getHighestParticipationHistoryVersionId(participationId);
-		return participationCoreMapper.getparticipationItemPartialHistoryId(participationId,currentVersionId);
-	}
 }

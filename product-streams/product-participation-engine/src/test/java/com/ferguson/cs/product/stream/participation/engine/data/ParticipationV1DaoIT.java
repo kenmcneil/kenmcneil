@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCalculatedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;

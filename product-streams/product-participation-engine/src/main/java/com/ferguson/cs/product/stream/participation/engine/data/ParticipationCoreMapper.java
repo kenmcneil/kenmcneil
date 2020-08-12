@@ -121,36 +121,32 @@ public interface ParticipationCoreMapper {
 	// HISTORY
 
 	/**
-	 *
+	 * find the history log id of the last version of a published participation
 	 */
 	int getHighestParticipationHistoryVersionId(int participationId);
 
 	/**
-	 *
-	 */
-	int getparticipationItemPartialHistoryId(int participationId,int versionId);
-	/**
-	 *
+	 * store the state of a newly published participation to historical log
 	 */
 	int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial, int versionId);
 
 	/**
-	 *
+	 * relate products to a historical record of a published participation
 	 */
 	void insertParticipationProductsHistory(int participationItemPartialHistoryId, String csvUniqueIds);
 
 	/**
-	 *
+	 * record date of current participation version activation for posterity
 	 */
 	int updateActivatedHistory(int participationId, Date processingDate);
 
 	/**
-	 *
+	 * record date of current participation version activation for posterity
 	 */
 	int updateDeactivatedHistory(int participationId, Date processingDate);
 
 	/**
-	 *
+	 * reset the expiration "timer" for all versions of a participation
 	 */
 	int updateWoodchipperDates(int participationId, Date processingDate);
 }

@@ -52,7 +52,7 @@ public interface ParticipationV1Dao {
 	// HISTORY
 
 	/**
-	 *
+	 * store state of published discount and relate it to published participation version in history
 	 */
 	void insertParticipationCalculatedDiscountsHistory(
 			int partialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts);
