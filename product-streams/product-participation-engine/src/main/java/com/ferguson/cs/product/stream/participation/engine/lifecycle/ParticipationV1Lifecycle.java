@@ -320,7 +320,7 @@ public class ParticipationV1Lifecycle implements ParticipationLifecycle {
 		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
 		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
-		participationCoreDao.insertParticipationProductsHistory(item.getId(), getUniqueIds(item));
+		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
 
 		participationV1Dao.insertParticipationCalculatedDiscountsHistory(
 				partialHistoryId, getParticipationCalculatedDiscounts(item));
