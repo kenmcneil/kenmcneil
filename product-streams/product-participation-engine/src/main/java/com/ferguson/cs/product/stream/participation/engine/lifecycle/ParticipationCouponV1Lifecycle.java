@@ -53,15 +53,8 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 		return ParticipationContentType.PARTICIPATION_COUPON_V1;
 	}
 
-
-	/**
-	 * "Publish" method upserts all necessary participation data to SQL for future or immediate activation,
-	 * where participation is of Coupon type
-	 * @return total rows affected in the db
-	 */
-	@Override
-	public int publish(ParticipationItem item, Date processingDate) {
-		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+	private ParticipationItemPartial buildItemPartial(ParticipationItem item) {
+		return ParticipationItemPartial.builder()
 				.participationId(item.getId())
 				.saleId(getSaleId(item))
 				.startDate(item.getSchedule() == null ? null : item.getSchedule().getFrom())
@@ -72,6 +65,16 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 				.shouldBlockDynamicPricing(getShouldBlockDynamicPricing(item))
 				.contentTypeId(ParticipationContentType.PARTICIPATION_COUPON_V1.contentTypeId())
 				.build();
+	}
+
+	/**
+	 * "Publish" method upserts all necessary participation data to SQL for future or immediate activation,
+	 * where participation is of Coupon type
+	 * @return total rows affected in the db
+	 */
+	@Override
+	public int publish(ParticipationItem item, Date processingDate) {
+		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
 		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
@@ -200,5 +203,25 @@ public class ParticipationCouponV1Lifecycle implements ParticipationLifecycle{
 	 */
 	private boolean getShouldBlockDynamicPricing(ParticipationItem item) {
 		return ParticipationLifecycle.getAtPath(item, SHOULD_BLOCK_DYNAMIC_PRICING_PATH);
+	}
+
+	// HISTORY
+
+	@Override
+	public void publishToHistory(ParticipationItem item, Date processingDate) {
+		ParticipationItemPartial itemPartial = buildItemPartial(item);
+
+		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
+	}
+
+	@Override
+	public int updateActivatedHistory(ParticipationItemPartial itemPartial, Date processingDate) {
+		return participationCoreDao.updateActivatedHistory(itemPartial.getParticipationId(), processingDate);
+	}
+
+	@Override
+	public int updateDeactivatedHistory(ParticipationItemPartial itemPartial, Date processingDate) {
+		return participationCoreDao.updateDeactivatedHistory(itemPartial.getParticipationId(), processingDate);
 	}
 }

@@ -106,4 +106,34 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 		}
 		return rowsAffected;
 	}
+
+	// HISTORY
+
+	@Override
+	public int insertParticipationItemPartialHistory(ParticipationItemPartial itemPartial) {
+		int nextVersionId =
+				participationCoreMapper.getHighestParticipationHistoryVersionId(itemPartial.getParticipationId()) +1;
+		return participationCoreMapper.insertParticipationItemPartialHistory(itemPartial, nextVersionId);
+	}
+
+	@Override
+	public void insertParticipationProductsHistory(int partialHistoryId, List<Integer> uniqueIds) { ;
+		if (!uniqueIds.isEmpty()) {
+			String csvUniqueIds = StringUtils.collectionToCommaDelimitedString(uniqueIds);
+			participationCoreMapper.insertParticipationProductsHistory(partialHistoryId, csvUniqueIds);
+		}
+	}
+
+	@Override
+	public int updateActivatedHistory(int participationId, Date processingDate) {
+		return participationCoreMapper.updateActivatedHistory(participationId, processingDate);
+	}
+
+	@Override
+	public int updateDeactivatedHistory(int participationId, Date processingDate) {
+		int rowsAffected = participationCoreMapper.updateDeactivatedHistory(participationId, processingDate);
+		// reset expiration counter start date on all versions of this participation so that they expire together
+		participationCoreMapper.updateWoodchipperDates(participationId, processingDate);
+		return rowsAffected;
+	}
 }

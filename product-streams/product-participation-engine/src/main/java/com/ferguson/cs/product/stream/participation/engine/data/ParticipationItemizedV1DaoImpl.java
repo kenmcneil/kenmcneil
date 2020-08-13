@@ -61,4 +61,18 @@ public class ParticipationItemizedV1DaoImpl implements ParticipationItemizedV1Da
 		return rowsAffected;
 	}
 
+	// HISTORY
+
+	@Override
+	public void insertParticipationItemizedDiscountsHistory(
+			int partialHistoryId, List<ParticipationItemizedDiscount> itemizedDiscounts) {
+		String csDiscounts = itemizedDiscounts.stream()
+				.map(discountedPricesRow -> discountedPricesRow.getUniqueId() + ","
+						+ discountedPricesRow.getPricebookId() + ","
+						+ discountedPricesRow.getPrice()
+				).collect(Collectors.joining("\n"));
+		participationItemizedV1Mapper.insertParticipationItemizedDiscountsHistory
+					(partialHistoryId, csDiscounts);
+	}
+
 }

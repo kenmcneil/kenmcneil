@@ -1,13 +1,17 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
@@ -176,5 +180,38 @@ public class ParticipationItemizedV1DaoIT extends ParticipationEngineITBase {
 				+ participationCoreDao.deleteParticipationItemPartial(p1.getParticipationId());
 
 		Assertions.assertThat(rowsAffected).isEqualTo(1);
+	}
+
+	@Test
+	public void insertParticipationItemPartialHistory_insertParticipationItemizedDiscountsHistory() {
+		int tUniqueId = 123456;
+		int tParticipationId = 10000;
+		double tPrice = 100.00;
+		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+				.participationId(tParticipationId)
+				.saleId(1010)
+				.startDate(new Date())
+				.endDate(new Date())
+				.lastModifiedUserId(1)
+				.isActive(false)
+				.isCoupon(true)
+				.shouldBlockDynamicPricing(false)
+				.contentTypeId(ParticipationContentType.PARTICIPATION_COUPON_V1.contentTypeId())
+				.build();
+		List<Integer> uniqueIds = new ArrayList<>();
+		uniqueIds.add(tUniqueId);
+		List<ParticipationItemizedDiscount> itemizedDiscounts = new ArrayList<>();
+		ParticipationItemizedDiscount discount = new ParticipationItemizedDiscount();
+		discount.setUniqueId(tUniqueId);
+		discount.setPricebookId(1);
+		discount.setPrice(tPrice);
+		itemizedDiscounts.add(discount);
+
+		int identity = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(identity, uniqueIds);
+		participationItemizedV1Dao.insertParticipationItemizedDiscountsHistory(identity,itemizedDiscounts);
+
+		double returnedPrice = participationTestUtilities.getItemizedHistoryPrice(tParticipationId, tUniqueId);
+		Assertions.assertThat(returnedPrice).isEqualTo(tPrice);
 	}
 }

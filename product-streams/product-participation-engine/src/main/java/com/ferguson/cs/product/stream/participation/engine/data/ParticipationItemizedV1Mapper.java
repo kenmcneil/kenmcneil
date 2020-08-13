@@ -55,4 +55,10 @@ public interface ParticipationItemizedV1Mapper {
 	 * @return the number of records deleted
 	 */
 	int deleteParticipationItemizedDiscounts(int participationId);
+
+	/**
+	 * store state of published discount and relate it to published participation version in history
+	 */
+	void insertParticipationItemizedDiscountsHistory(
+			int partialHistoryId, String csDiscounts);
 }

@@ -115,6 +115,7 @@ public class ParticipationWriter {
 			if (itemPartial.getIsActive()) {
 				participationLifecycleService.deactivateByType(itemPartial, processingDate);
 			}
+
 			participationLifecycleService.unpublishByType(itemPartial, processingDate);
 		} else {
 			NewRelic.addCustomParameter("warning-previous-construct-unpublished-update-failed", item.getId());

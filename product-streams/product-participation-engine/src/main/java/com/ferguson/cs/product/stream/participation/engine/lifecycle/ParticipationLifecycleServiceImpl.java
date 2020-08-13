@@ -72,9 +72,11 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 			throw new ValidationException(ContentErrorMessage.INVALID_PARTICIPATION_CONTENT_TYPE.toString());
 		}
 
-		// Call publish in the lifecycle class matching the contentTypeId.
-		int rowsAffected = getLifecycle(contentType.contentTypeId()).publish(item, processingDate);
+		// Use the lifecycle class for the Participation to publish the record and a snapshot for history.
+		int itemLifecyleId = contentType.contentTypeId();
+		int rowsAffected = getLifecycle(itemLifecyleId).publish(item, processingDate);
 		LOG.debug("{}: {} total rows updated to publish", item.getId(), rowsAffected);
+		getLifecycle(itemLifecyleId).publishToHistory(item, processingDate);
 
 		return rowsAffected;
 	}
@@ -109,6 +111,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("{}: {} total rows updated to activate", participationId, affectedRows);
 
+		activatingLifecycle.updateActivatedHistory(itemPartial, processingDate);
+
 		return affectedRows;
 	}
 
@@ -139,6 +143,8 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 				.reduce(0, Integer::sum);
 
 		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
+
+		deactivatingLifecycle.updateDeactivatedHistory(itemPartial, processingDate);
 
 		return affectedRows;
 	}

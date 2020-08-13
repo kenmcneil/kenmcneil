@@ -1,9 +1,15 @@
 package com.ferguson.cs.product.stream.participation.engine.data;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationEngineITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -24,5 +30,32 @@ public class ParticipationCoreDaoIT extends ParticipationEngineITBase {
 		Boolean isActiveActivated = participationCoreDao.getParticipationIsActive(p2.getParticipationId());
 		Assertions.assertThat(isInactiveActivated).isFalse();
 		Assertions.assertThat(isActiveActivated).isTrue();
+	}
+
+	@Test
+	public void insertParticipationItemPartialHistory_insertParticipationProductsHistory() {
+		int tUniqueId = 123456;
+		int tParticipationId = 10000;
+		ParticipationItemPartial itemPartial = ParticipationItemPartial.builder()
+				.participationId(tParticipationId)
+				.saleId(1010)
+				.startDate(new Date())
+				.endDate(new Date())
+				.lastModifiedUserId(1)
+				.isActive(false)
+				.isCoupon(true)
+				.shouldBlockDynamicPricing(false)
+				.contentTypeId(ParticipationContentType.PARTICIPATION_COUPON_V1.contentTypeId())
+				.build();
+		List<Integer> uniqueIds = new ArrayList<>();
+		uniqueIds.add(tUniqueId);
+
+		//act
+		int identity = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
+		participationCoreDao.insertParticipationProductsHistory(identity, uniqueIds);
+
+		//assert
+		int returnedUniqueId = participationTestUtilities.getHistoricalUniqueId(tParticipationId);
+		Assertions.assertThat(returnedUniqueId).isEqualTo(tUniqueId);
 	}
 }
