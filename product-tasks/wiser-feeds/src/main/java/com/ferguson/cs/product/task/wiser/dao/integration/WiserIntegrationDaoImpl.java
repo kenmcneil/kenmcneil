@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobLog;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 @Repository
@@ -53,5 +54,15 @@ public class WiserIntegrationDaoImpl implements WiserIntegrationDao {
 	@Override
 	public void populateProductRevenueCategorization() {
 		wiserIntegrationMapper.populateProductRevenueCategorization();
+	}
+
+	@Override
+	public void insertRecommendationJobLog(RecommendationJobLog recommendationJobLog) {
+		wiserIntegrationMapper.insertRecommendationJobLog(recommendationJobLog);
+	}
+
+	@Override
+	public void deleteRecommendationJobLogsAfterDateTime(Date runDateTime) {
+		wiserIntegrationMapper.deleteRecommendationJobLogsAfterDateTime(runDateTime);
 	}
 }

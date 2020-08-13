@@ -51,6 +51,7 @@ import com.ferguson.cs.product.task.wiser.batch.WiserProductDataProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserRecommendationFeedProcessor;
 import com.ferguson.cs.product.task.wiser.batch.WiserRecommendationFeedReader;
 import com.ferguson.cs.product.task.wiser.batch.WiserRetryableJobTasklet;
+import com.ferguson.cs.product.task.wiser.batch.WiserValidateRecommendationJobTasklet;
 import com.ferguson.cs.product.task.wiser.model.CostUploadData;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
@@ -74,6 +75,7 @@ public class WiserFeedTaskConfiguration {
 	private WiserFeedSettings wiserFeedSettings;
 	private WiserFeedConfiguration.WiserGateway wiserGateway;
 	private TaskBatchJobFactory taskBatchJobFactory;
+	public static final String RECOMMENDATION_JOB_NAME = "recommendationDataDownloadJob";
 
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
@@ -113,10 +115,63 @@ public class WiserFeedTaskConfiguration {
 		this.wiserGateway = wiserGateway;
 	}
 
+	/***Tasklets***/
+
 	@Bean
 	public WiserRetryableJobTasklet wiserRetryableJobDecider(JobRepositoryHelper jobRepositoryHelper) {
 		return new WiserRetryableJobTasklet(jobRepositoryHelper);
 	}
+
+	@Bean
+	public WiserValidateRecommendationJobTasklet wiserValidateRecommendationJobTasklet(WiserService wiserService, JobRepositoryHelper jobRepositoryHelper) {
+		return new WiserValidateRecommendationJobTasklet(wiserService,jobRepositoryHelper);
+	}
+
+	@Bean
+	@StepScope
+	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		return new UploadFileTasklet(wiserFeedSettings.getTemporaryLocalFilePath() + fileName);
+	}
+
+
+	@Bean
+	@StepScope
+	DownloadFileTasklet threeSixtyPiDownloadFileTasklet() {
+		return new DownloadFileTasklet(f -> {
+			File file = wiserGateway.receive360piFileSftp(f);
+			wiserGateway.deleteWiserFileSftp(f.getRemoteFilePath());
+			return file;
+		});
+	}
+
+	@Bean
+	@StepScope
+	DownloadFileTasklet wiserDownloadFileTasklet() {
+		return new DownloadFileTasklet(f -> wiserGateway.receiveWiserFileSftp(f));
+	}
+
+	@Bean
+	@StepScope
+	TruncateProductDataHashTasklet truncateProductDataHashTasklet() {
+		return new TruncateProductDataHashTasklet();
+	}
+
+	@Bean
+	@StepScope
+	UploadCostTasklet uploadCostTasklet() {
+		return new UploadCostTasklet();
+	}
+
+	@Bean
+	@StepScope
+	PopulateProductRevenueCategorizationTasklet populateProductRevenueCategorizationTasklet(WiserService wiserService) {
+		return new PopulateProductRevenueCategorizationTasklet(wiserService);
+	}
+
+	/***End Tasklets***/
+
+
+	/***Readers***/
 
 	@Bean
 	@StepScope
@@ -185,6 +240,21 @@ public class WiserFeedTaskConfiguration {
 		return wiserRecommendationFeedReader;
 	}
 
+	@Bean
+	@StepScope
+	SetItemReader<CostUploadData> wiserRecommendationSetReader(Set<CostUploadData> wiserRecommendationData) {
+		return new SetItemReader<>(wiserRecommendationData);
+	}
+
+	@Bean
+	@StepScope
+	public ItemStreamReader<String> wiserRecommendationFileReader(@Value("#{jobExecutionContext['fileName']}") String fileName) {
+		return new FlatFileItemReaderBuilder<String>()
+				.resource(new FileSystemResource(wiserFeedSettings.getTemporaryLocalFilePath() + fileName))
+				.linesToSkip(1).name("wiserRecommendationFileReader").lineMapper(new PassThroughLineMapper()).build();
+
+	}
+
 	private MyBatisCursorItemReader<Integer> getProductDataHashReader(Date startDate) {
 		MyBatisCursorItemReader<Integer> productDataHashReader = new MyBatisCursorItemReader<>();
 		productDataHashReader.setQueryId("getProductDataHashUniqueIds");
@@ -204,6 +274,10 @@ public class WiserFeedTaskConfiguration {
 		wiserPriceDataReader.setSqlSessionFactory(reporterSqlSessionFactory);
 		return wiserPriceDataReader;
 	}
+
+	/***End Readers***/
+
+	/***Writers***/
 
 	@Bean
 	@StepScope
@@ -248,77 +322,6 @@ public class WiserFeedTaskConfiguration {
 
 	@Bean
 	@StepScope
-	public ProductDataHashProcessor hashedProductDataProcessor() {
-		return new ProductDataHashProcessor();
-	}
-
-	@Bean
-	@StepScope
-	public WiserProductDataProcessor wiserProductDataProcessor() {
-		return new WiserProductDataProcessor();
-	}
-
-	@Bean
-	@StepScope
-	public WiserPriceDataProcessor wiserPriceDataProcessor() {
-		return new WiserPriceDataProcessor();
-	}
-
-	@Bean
-	@StepScope
-	public WiserPerformanceDataProcessor wiserPerformanceDataProcessor() {
-		return new WiserPerformanceDataProcessor();
-	}
-
-	@Bean
-	@StepScope
-	public WiserRecommendationFeedProcessor wiserRecommendationFeedProcessor() {
-		return new WiserRecommendationFeedProcessor();
-	}
-
-	@Bean
-	@StepScope
-	UploadFileTasklet uploadFileTasklet(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		return new UploadFileTasklet(wiserFeedSettings.getTemporaryLocalFilePath() + fileName);
-	}
-
-
-	@Bean
-	@StepScope
-	DownloadFileTasklet threeSixtyPiDownloadFileTasklet() {
-		return new DownloadFileTasklet(f -> {
-			File file = wiserGateway.receive360piFileSftp(f);
-			wiserGateway.deleteWiserFileSftp(f.getRemoteFilePath());
-			return file;
-		});
-	}
-
-	@Bean
-	@StepScope
-	DownloadFileTasklet wiserDownloadFileTasklet() {
-		return new DownloadFileTasklet(f -> wiserGateway.receiveWiserFileSftp(f));
-	}
-
-	@Bean
-	@StepScope
-	TruncateProductDataHashTasklet truncateProductDataHashTasklet() {
-		return new TruncateProductDataHashTasklet();
-	}
-
-	@Bean
-	@StepScope
-	UploadCostTasklet uploadCostTasklet() {
-		return new UploadCostTasklet();
-	}
-
-	@Bean
-	@StepScope
-	PopulateProductRevenueCategorizationTasklet populateProductRevenueCategorizationTasklet(WiserService wiserService) {
-		return new PopulateProductRevenueCategorizationTasklet(wiserService);
-	}
-
-	@Bean
-	@StepScope
 	SetItemWriter<Integer> productDataHashSetItemWriter() {
 		return new SetItemWriter<>(getProductDataHashUniqueIds());
 	}
@@ -327,42 +330,6 @@ public class WiserFeedTaskConfiguration {
 	@StepScope
 	SetItemWriter<CostUploadData> wiserRecommendationDataSetItemWriter(Set<CostUploadData> wiserRecommendationData) {
 		return new SetItemWriter<>(wiserRecommendationData);
-	}
-
-	@Bean
-	@StepScope
-	SetItemReader<CostUploadData> wiserRecommendationSetReader(Set<CostUploadData> wiserRecommendationData) {
-		return new SetItemReader<>(wiserRecommendationData);
-	}
-
-	@Bean
-	@JobScope
-	Set<Integer> getProductDataHashUniqueIds() {
-		return new HashSet<>();
-	}
-
-	@Bean
-	@JobScope
-	Set<CostUploadData> wiserRecommendationData() {
-		return new HashSet<>();
-	}
-
-	@Bean
-	@JobScope
-	List<Integer> recommendationUniqueIds() {
-		return new ArrayList<>();
-	}
-
-	@Bean
-	@JobScope
-	Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
-		return new HashMap<>();
-	}
-
-	@Bean
-	@JobScope
-	Map<Integer, ProductConversionBucket> getProductConversionBuckets() {
-		return new HashMap<>();
 	}
 
 	@Bean
@@ -468,14 +435,6 @@ public class WiserFeedTaskConfiguration {
 		return getFlatFileItemWriter(header, wiserFeedSettings.getTemporaryLocalFilePath() + fileName, extractor);
 	}
 
-	@Bean
-	@StepScope
-	public ItemStreamReader<String> wiserRecommendationFileReader(@Value("#{jobExecutionContext['fileName']}") String fileName) {
-		return new FlatFileItemReaderBuilder<String>()
-				.resource(new FileSystemResource(wiserFeedSettings.getTemporaryLocalFilePath() + fileName))
-				.linesToSkip(1).name("wiserRecommendationFileReader").lineMapper(new PassThroughLineMapper()).build();
-
-	}
 
 	@Bean
 	@StepScope
@@ -489,36 +448,124 @@ public class WiserFeedTaskConfiguration {
 		return getFlatFileItemWriter(header, wiserFeedSettings.getFileDownloadLocation() + fileName, fieldExtractor);
 	}
 
+	private <T> FlatFileItemWriter<T> getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor<T> fieldExtractor) {
+		FlatFileItemWriter<T> fileItemWriter = new FlatFileItemWriter<>();
+
+		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", fileHeader)));
+
+		fileItemWriter.setResource(new FileSystemResource(filePath));
+
+
+		LineAggregator<T> lineAggregator = createLineAggregator(fieldExtractor);
+		fileItemWriter.setLineAggregator(lineAggregator);
+
+		return fileItemWriter;
+	}
+
+	/***End Writers***/
+
+	/***Processors***/
+
+	@Bean
+	@StepScope
+	public ProductDataHashProcessor hashedProductDataProcessor() {
+		return new ProductDataHashProcessor();
+	}
+
+	@Bean
+	@StepScope
+	public WiserProductDataProcessor wiserProductDataProcessor() {
+		return new WiserProductDataProcessor();
+	}
+
+	@Bean
+	@StepScope
+	public WiserPriceDataProcessor wiserPriceDataProcessor() {
+		return new WiserPriceDataProcessor();
+	}
+
+	@Bean
+	@StepScope
+	public WiserPerformanceDataProcessor wiserPerformanceDataProcessor() {
+		return new WiserPerformanceDataProcessor();
+	}
+
+	@Bean
+	@StepScope
+	public WiserRecommendationFeedProcessor wiserRecommendationFeedProcessor() {
+		return new WiserRecommendationFeedProcessor();
+	}
+
+	/***End Processors***/
+
+	/***Data Beans***/
+	@Bean
+	@JobScope
+	Set<Integer> getProductDataHashUniqueIds() {
+		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	Set<CostUploadData> wiserRecommendationData() {
+		return new HashSet<>();
+	}
+
+	@Bean
+	@JobScope
+	List<Integer> recommendationUniqueIds() {
+		return new ArrayList<>();
+	}
+
+	@Bean
+	@JobScope
+	Map<Integer, ProductRevenueCategory> getProductRevenueCategorization() {
+		return new HashMap<>();
+	}
+
+	@Bean
+	@JobScope
+	Map<Integer, ProductConversionBucket> getProductConversionBuckets() {
+		return new HashMap<>();
+	}
+
+	/***End Data Beans***/
+
+	/***Listeners***/
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserProductCatalogFeedListener() {
-		return new WiserFeedListener(WiserFeedType.PRODUCT_CATALOG_FEED);
+		return new WiserFeedListener(WiserFeedType.PRODUCT_CATALOG_FEED,wiserService);
 	}
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserPriceFeedListener() {
-		return new WiserFeedListener(WiserFeedType.PRICE_FEED);
+		return new WiserFeedListener(WiserFeedType.PRICE_FEED,wiserService);
 	}
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserCompetitorFeedListener() {
-		return new WiserFeedListener(WiserFeedType.COMPETITOR_FEED);
+		return new WiserFeedListener(WiserFeedType.COMPETITOR_FEED,wiserService);
 	}
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserPerformanceFeedListener() {
-		return new WiserFeedListener(WiserFeedType.PERFORMANCE_FEED);
+		return new WiserFeedListener(WiserFeedType.PERFORMANCE_FEED,wiserService);
 	}
 
 	@Bean
 	@JobScope
 	public WiserFeedListener wiserRecommendationFeedListener() {
-		return new WiserFeedListener(WiserFeedType.RECOMMENDATION_FEED);
+		return new WiserFeedListener(WiserFeedType.RECOMMENDATION_FEED,wiserService);
 	}
+
+	/***End Listeners***/
+
+	/***Jobs***/
 
 	/**
 	 * Writes hashes for each product that has changed since the last run of this job. Changing ProductData or the
@@ -651,10 +698,10 @@ public class WiserFeedTaskConfiguration {
 	}
 
 	@Bean
-	@Qualifier("recommendationDataDownloadJob")
+	@Qualifier(RECOMMENDATION_JOB_NAME)
 	public Job recommendationDataDownloadJob(Step decideIfJobShouldRun, Step uploadCost, Step readRecommendationFeed, Step filterRecommendations) {
 		Step downloadCsv = downloadCsv(wiserDownloadFileTasklet());
-		return taskBatchJobFactory.getJobBuilder("recommendationDataDownloadJob")
+		return taskBatchJobFactory.getJobBuilder(RECOMMENDATION_JOB_NAME)
 				.listener(wiserRecommendationFeedListener())
 				.start(decideIfJobShouldRun)
 				.on(ExitStatus.NOOP.getExitCode()).end()
@@ -667,6 +714,17 @@ public class WiserFeedTaskConfiguration {
 				.end()
 				.build();
 	}
+
+	@Bean
+	@Qualifier("validateRecommendationJob")
+	public Job validateRecommendationJob(Step validateRecommendationJobStep) {
+		return taskBatchJobFactory.getJobBuilder("validateRecommendationJob").start(validateRecommendationJobStep)
+				.build();
+	}
+
+	/***End Jobs***/
+
+	/***Steps***/
 
 	@Bean
 	@Qualifier("insertProductDataHash")
@@ -822,10 +880,6 @@ public class WiserFeedTaskConfiguration {
 				.build();
 	}
 
-
-
-
-
 	@Bean
 	@Qualifier("uploadCost")
 	public Step uploadCost(UploadCostTasklet uploadCostTasklet) {
@@ -850,25 +904,22 @@ public class WiserFeedTaskConfiguration {
 				.build();
 	}
 
-	public Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
+	@Bean
+	@Qualifier("validateRecommendationJobStep")
+	public Step validateRecommendationJobStep(WiserValidateRecommendationJobTasklet wiserValidateRecommendationJobTasklet) {
+		return taskBatchJobFactory.getStepBuilder("validateRecommendationJobStep")
+				.tasklet(wiserValidateRecommendationJobTasklet).build();
+	}
+
+	private Step downloadCsv(DownloadFileTasklet downloadFileTasklet) {
 		return taskBatchJobFactory.getStepBuilder("downloadCsv")
 				.tasklet(downloadFileTasklet)
 				.build();
 	}
 
-	private <T> FlatFileItemWriter<T> getFlatFileItemWriter(String[] fileHeader, String filePath, FieldExtractor<T> fieldExtractor) {
-		FlatFileItemWriter<T> fileItemWriter = new FlatFileItemWriter<>();
+	/***End Steps***/
 
-		fileItemWriter.setHeaderCallback(writer -> writer.write(String.join(",", fileHeader)));
-
-		fileItemWriter.setResource(new FileSystemResource(filePath));
-
-
-		LineAggregator<T> lineAggregator = createLineAggregator(fieldExtractor);
-		fileItemWriter.setLineAggregator(lineAggregator);
-
-		return fileItemWriter;
-	}
+	/***Misc Spring Batch Stuff***/
 
 	private <T> LineAggregator<T> createLineAggregator(FieldExtractor<T> fieldExtractor) {
 		QuoteEnclosingDelimitedLineAggregator<T> lineAggregator = new QuoteEnclosingDelimitedLineAggregator<>();
@@ -877,4 +928,5 @@ public class WiserFeedTaskConfiguration {
 		return lineAggregator;
 	}
 
+	/***End Misc Spring Batch Stuff***/
 }

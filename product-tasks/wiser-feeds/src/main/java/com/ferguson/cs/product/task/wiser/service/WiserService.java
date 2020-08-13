@@ -7,6 +7,7 @@ import java.util.Map;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobLog;
 import com.ferguson.cs.product.task.wiser.model.UniqueIdPricebookIdTuple;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
@@ -91,4 +92,8 @@ public interface WiserService {
 	 * @param  partitionSize - number of uniqueids to query the database for at a time
 	 */
 	Map<UniqueIdPricebookIdTuple, Double> getCurrentPriceData(List<Integer> uniqueIds, int partitionSize);
+
+	void insertRecommendationJobLog(RecommendationJobLog recommendationJobLog);
+
+	void deleteTodaysRecommendationJobLogs();
 }

@@ -68,4 +68,14 @@
 		FROM Integration.wiser.productConversionBucket pcb
 		where productUniqueId = #{productUniqueId}
 	</select>
+
+	<insert id="insertRecommendationJobLog" parameterType="RecommendationJobLog">
+		INSERT INTO Integration.wiser.recommendationJobLog (runDateTime, successful, recommendationJobFailureCauseId)
+		VALUEs (#{runDateTime}, #{successful}, #{recommendationJobFailureCause.intValue})
+	</insert>
+
+	<delete id="deleteRecommendationJobLogsAfterDateTime" parameterType="date">
+		DELETE Integration.wiser.recommendationJobLog
+		WHERE runDateTime &gt; #{runDateTime}
+	</delete>
 </mapper>
