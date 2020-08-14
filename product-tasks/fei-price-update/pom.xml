@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>product-tasks</artifactId>
 		<groupId>com.ferguson.cs.product</groupId>
-		<version>1.0.120-SNAPSHOT</version>
+		<version>1.0.120</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
