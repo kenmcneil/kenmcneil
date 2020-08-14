@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobLog;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 
 public interface WiserIntegrationDao {
@@ -48,4 +49,18 @@ public interface WiserIntegrationDao {
 	 * Populate product revenue categorization table
 	 */
 	void populateProductRevenueCategorization();
+
+	/**
+	 * Inserts recommendation job log
+	 *
+	 * @param recommendationJobLog
+	 */
+	void insertRecommendationJobLog(RecommendationJobLog recommendationJobLog);
+
+	/**
+	 * Deletes all recommendation job logs after a specific date time
+	 *
+	 * @param runDateTime
+	 */
+	void deleteRecommendationJobLogsAfterDateTime(Date runDateTime);
 }

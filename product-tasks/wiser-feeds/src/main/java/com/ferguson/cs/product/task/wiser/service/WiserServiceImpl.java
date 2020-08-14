@@ -18,6 +18,7 @@ import com.ferguson.cs.product.task.wiser.dao.reporter.WiserReporterDao;
 import com.ferguson.cs.product.task.wiser.model.ProductConversionBucket;
 import com.ferguson.cs.product.task.wiser.model.ProductDataHash;
 import com.ferguson.cs.product.task.wiser.model.ProductRevenueCategory;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobLog;
 import com.ferguson.cs.product.task.wiser.model.UniqueIdPricebookIdTuple;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
 import com.ferguson.cs.task.batch.util.JobRepositoryHelper;
@@ -130,4 +131,17 @@ public class WiserServiceImpl implements WiserService {
 	public Map<UniqueIdPricebookIdTuple, Double> getCurrentPriceData(List<Integer> uniqueIds, int partitionSize) {
 		return wiserReporterDao.getCurrentPriceData(uniqueIds,partitionSize);
 	}
+
+	@Override
+	public void insertRecommendationJobLog(RecommendationJobLog recommendationJobLog) {
+		wiserIntegrationDao.insertRecommendationJobLog(recommendationJobLog);
+	}
+
+	@Override
+	public void deleteTodaysRecommendationJobLogs() {
+		Date startOfToday = DateUtils.today();
+		wiserIntegrationDao.deleteRecommendationJobLogsAfterDateTime(startOfToday);
+	}
+
+
 }

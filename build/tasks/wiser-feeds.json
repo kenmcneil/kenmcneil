@@ -58,5 +58,11 @@
     "name" : "wiser-recommendation-data-download-job",
     "jobName" : "recommendationDataDownloadJob",
     "heapSize" : "512m"
+  },
+  {
+    "appName" : "wiser-feeds",
+    "name" : "wiser-validate-recommendation-job",
+    "jobName" : "validateRecommendationJob",
+    "heapSize" : "256m"
   }
 ]

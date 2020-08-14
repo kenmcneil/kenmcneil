@@ -10,8 +10,11 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.messaging.MessageHandlingException;
 
 import com.ferguson.cs.product.task.wiser.model.FileDownloadRequest;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobFailureCause;
+import com.jcraft.jsch.SftpException;
 
 public class DownloadFileTasklet implements Tasklet {
 
@@ -35,7 +38,18 @@ public class DownloadFileTasklet implements Tasklet {
 		fileDownloadRequest.setLocalFilePath(localFileName);
 
 		LOG.debug("Started downloading file: {} - To local file: {}",fileDownloadRequest.getRemoteFilePath(),fileDownloadRequest.getLocalFilePath());
-		fileDownloadFunction.apply(fileDownloadRequest);
+		try {
+			fileDownloadFunction.apply(fileDownloadRequest);
+		} catch (IllegalStateException isee) {
+			jobExecutionContext.put("failureCause", RecommendationJobFailureCause.FTP);
+			throw isee;
+		} catch (MessageHandlingException mhe) {
+			if(mhe.getMostSpecificCause() instanceof SftpException && mhe.getMostSpecificCause().getMessage().contains("No such file")) {
+				jobExecutionContext.put("failureCause", RecommendationJobFailureCause.FILE_MISSING);
+
+			}
+			throw mhe;
+		}
 		LOG.debug("Downloaded file");
 
 		return RepeatStatus.FINISHED;

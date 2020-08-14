@@ -5,13 +5,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.task.wiser.ThreeSixtyPiSettings;
 import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobFailureCause;
+import com.ferguson.cs.product.task.wiser.model.RecommendationJobLog;
 import com.ferguson.cs.product.task.wiser.model.WiserFeedType;
+import com.ferguson.cs.product.task.wiser.service.WiserService;
 import com.ferguson.cs.utilities.DateUtils;
 
 public class WiserFeedListener implements JobExecutionListener {
@@ -20,9 +24,11 @@ public class WiserFeedListener implements JobExecutionListener {
 	private WiserFeedType wiserFeedType;
 	private WiserFeedSettings wiserFeedSettings;
 	private ThreeSixtyPiSettings threeSixtyPiSettings;
+	private final WiserService wiserService;
 
-	public WiserFeedListener(WiserFeedType wiserFeedType) {
+	public WiserFeedListener(WiserFeedType wiserFeedType,WiserService wiserService) {
 		this.wiserFeedType = wiserFeedType;
+		this.wiserService = wiserService;
 	}
 
 
@@ -85,6 +91,21 @@ public class WiserFeedListener implements JobExecutionListener {
 		if(wiserFeedType == WiserFeedType.RECOMMENDATION_FEED) {
 			File file = new File(wiserFeedSettings.getTemporaryLocalFilePath() + jobExecution.getExecutionContext().getString("fileName"));
 			FileUtils.deleteQuietly(file);
+			RecommendationJobLog recommendationJobLog = new RecommendationJobLog();
+			recommendationJobLog.setRunDateTime(DateUtils.now());
+			wiserService.deleteTodaysRecommendationJobLogs();
+			if(jobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
+				recommendationJobLog.setSuccessful(true);
+			} else {
+				recommendationJobLog.setSuccessful(false);
+				RecommendationJobFailureCause failureCause = (RecommendationJobFailureCause)jobExecution.getExecutionContext().get("failureCause");
+				if(failureCause != null) {
+					recommendationJobLog.setRecommendationJobFailureCause(failureCause);
+				} else {
+					recommendationJobLog.setRecommendationJobFailureCause(RecommendationJobFailureCause.UNKNOWN_ERROR);
+				}
+			}
+			wiserService.insertRecommendationJobLog(recommendationJobLog);
 		}
 	}
 }
