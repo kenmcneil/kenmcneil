@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class ProductData implements Serializable {
-	private static final long serialVersionUID = 4L;
+	private static final long serialVersionUID = 5L;
 
 	private String productId;
 	private Integer compositeId;
@@ -32,6 +32,12 @@ public class ProductData implements Serializable {
 	private String hctCategory;
 	private String conversionCategory;
 	private Double listPrice;
+	private Boolean isLiquidated;
+	private String stockStatus;
+	private String preferredVendor;
+	private String productSeries;
+	private String handletype;
+	private String omniChannelStatus;
 
 	public String getProductId() {
 		return productId;
@@ -239,5 +245,53 @@ public class ProductData implements Serializable {
 
 	public void setListPrice(Double listPrice) {
 		this.listPrice = listPrice;
+	}
+
+	public Boolean getIsLiquidated() {
+		return isLiquidated;
+	}
+
+	public void setIsLiquidated(Boolean isLiquidated) {
+		this.isLiquidated = isLiquidated;
+	}
+
+	public String getStockStatus() {
+		return stockStatus;
+	}
+
+	public void setStockStatus(String stockStatus) {
+		this.stockStatus = stockStatus;
+	}
+
+	public String getPreferredVendor() {
+		return preferredVendor;
+	}
+
+	public void setPreferredVendor(String preferredVendor) {
+		this.preferredVendor = preferredVendor;
+	}
+
+	public String getProductSeries() {
+		return productSeries;
+	}
+
+	public void setProductSeries(String productSeries) {
+		this.productSeries = productSeries;
+	}
+
+	public String getHandletype() {
+		return handletype;
+	}
+
+	public void setHandletype(String handletype) {
+		this.handletype = handletype;
+	}
+
+	public String getOmniChannelStatus() {
+		return omniChannelStatus;
+	}
+
+	public void setOmniChannelStatus(String omniChannelStatus) {
+		this.omniChannelStatus = omniChannelStatus;
 	}
 }
