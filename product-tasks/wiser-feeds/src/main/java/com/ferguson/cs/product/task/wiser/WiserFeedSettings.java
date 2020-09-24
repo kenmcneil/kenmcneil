@@ -19,6 +19,7 @@ public class WiserFeedSettings {
 	private Double priceMaxPercentDifference;
 	private Double priceMinDifference;
 	private Double priceMaxDifference;
+	private Boolean featureSwitchAdditionalProductData = false;
 
 	public String getTemporaryLocalFilePath() {
 		return temporaryLocalFilePath;
@@ -122,5 +123,13 @@ public class WiserFeedSettings {
 
 	public void setPriceMaxDifference(Double priceMaxDifference) {
 		this.priceMaxDifference = priceMaxDifference;
+	}
+
+	public Boolean getFeatureSwitchAdditionalProductData() {
+		return featureSwitchAdditionalProductData;
+	}
+
+	public void setFeatureSwitchAdditionalProductData(Boolean featureSwitchAdditionalProductData) {
+		this.featureSwitchAdditionalProductData = featureSwitchAdditionalProductData;
 	}
 }

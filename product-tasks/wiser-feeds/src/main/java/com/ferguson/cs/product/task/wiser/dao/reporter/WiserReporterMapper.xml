@@ -29,6 +29,12 @@
 		<result column="listPrice" property="listPrice" />
 		<result column="hctCategory" property="hctCategory" />
 		<result column="conversionCategory" property="conversionCategory" />
+		<result column="isLiquidated" property="isLiquidated" />
+		<result column="stockStatus" property="stockStatus" />
+		<result column="preferredVendor" property="preferredVendor" />
+		<result column="productSeries" property="productSeries" />
+		<result column="handletype" property="handletype" />
+		<result column="omniChannelStatus" property="omniChannelStatus" />
 	</resultMap>
 
 	<select id="getProductData" resultMap="productDataMap">
@@ -56,7 +62,18 @@
 		p.dateAdded as 'dateAdded',
 		p.msrp as 'listPrice',
 		COALESCE(rc.revenueCategorization,'T') as 'hctCategory',
-		COALESCE(cb.conversionBucket,'M') as 'conversionCategory'
+		COALESCE(cb.conversionBucket,'M') as 'conversionCategory',
+		IIF(li.productUniqueId IS NOT null AND li.active = 1,1,0) as 'isLiquidated',
+		s.status as 'stockStatus',
+		v.vendorId as 'preferredVendor',
+		se.series as 'productSeries',
+		ht.handleType as 'handletype',
+		CASE
+			WHEN pfo.productUniqueId IS NOT NULL THEN 'ferguson_owned'
+			WHEN pfw.productUniqueId IS NOT NULL THEN 'build_owned'
+			ELSE 'not_omni'
+		END AS 'omniChannelStatus'
+
 		FROM mmc.product.product p WITH (NOLOCK)
 		INNER JOIN mmc.product.family fa WITH(NOLOCK)
 		ON p.familyId = fa.id
@@ -74,6 +91,10 @@
 		ON ta.typeId = ty.id
 		INNER JOIN mmc.product.application a WITH(NOLOCK)
 		ON ta.applicationId = a.id
+		INNER JOIN mmc.product.handletype ht WITH(NOLOCK)
+		ON taht.handletypeId = ht.id
+		LEFT JOIN mmc.product.series se WITH(NOLOCK)
+		ON fa.seriesId = se.id
 		INNER JOIN mmc.product.status s WITH(NOLOCK)
 		ON p.statusId = s.id
 		INNER JOIN mmc.product.modified mo WITH(NOLOCK)
@@ -110,6 +131,8 @@
 		AND pbco.priceBookId = 1
 		INNER JOIN mmc.dbo.productPreferredVendor ppv WITH(NOLOCK)
 		ON ppv.productUniqueId = p.uniqueId
+		INNER JOIN omc.dbo.vendor v WITH(NOLOCK)
+		ON ppv.vendorUid = v.uid
 		INNER JOIN omc.dbo.vendor_cost vc WITH(NOLOCK)
 		ON vc.uniqueId = p.uniqueId
 		AND vc.vendorUid = ppv.vendorUid
@@ -124,8 +147,14 @@
 		ON p.uniqueId = prc.productUniqueId
 		LEFT JOIN Integration.wiser.revenueCategorization rc WITH(NOLOCK)
 		ON prc.revenueCategorizationId = rc.id
+		LEFT JOIN mmc.product.pricingFeiWhitelist pfw WITH(NOLOCK)
+		ON p.uniqueId = pfw.productUniqueId
+		LEFT JOIN mmc.product.pricingFeiOwned pfo WITH(NOLOCK)
+		ON p.uniqueId = pfo.productUniqueId
+		LEFT JOIN mmc.product.liquidation li WITH(NOLOCK)
+		ON p.uniqueId = li.productUniqueId
 		WHERE ct.type = 'Product'
-		AND s.status = 'stock'
+		AND s.status IN ('stock','nonstock')
 		ORDER BY p.uniqueId ASC
 	</select>
 

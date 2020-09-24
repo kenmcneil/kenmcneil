@@ -13,6 +13,7 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ferguson.cs.product.task.wiser.WiserFeedSettings;
 import com.ferguson.cs.product.task.wiser.model.ProductData;
 import com.ferguson.cs.product.task.wiser.model.WiserProductData;
 import com.ferguson.cs.product.task.wiser.model.WiserSale;
@@ -25,6 +26,7 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 	private Map<Integer, WiserSale> wiserSaleMap;
 	private Set<Integer> productUniqueIds;
 	private Date date;
+	private WiserFeedSettings wiserFeedSettings;
 
 	@Autowired
 	public void setProductUniqueIds(Set<Integer> productUniqueIds) {
@@ -35,6 +37,11 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 	@Autowired
 	public void setWiserService(WiserService wiserService) {
 		this.wiserService = wiserService;
+	}
+
+	@Autowired
+	public void setWiserFeedSettings(WiserFeedSettings wiserFeedSettings) {
+		this.wiserFeedSettings = wiserFeedSettings;
 	}
 
 	@Override
@@ -113,6 +120,12 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 		wiserProductData.setListPrice(item.getListPrice());
 		wiserProductData.setHctCategory(item.getHctCategory());
 		wiserProductData.setConversionCategory(item.getConversionCategory());
+		wiserProductData.setIsLiquidated(Boolean.TRUE.equals(item.getIsLiquidated()) ? "liquidation" : "not_liquidation");
+		wiserProductData.setStockStatus(item.getStockStatus());
+		wiserProductData.setProductSeries(item.getProductSeries());
+		wiserProductData.setPreferredVendor(item.getPreferredVendor());
+		wiserProductData.setHandletype(item.getHandletype());
+		wiserProductData.setOmniChannelStatus(item.getOmniChannelStatus());
 
 
 		return wiserProductData;
@@ -125,6 +138,7 @@ public class WiserProductDataProcessor implements ItemProcessor<ProductData, Wis
 				&& productData.getManufacturer() != null
 				&& productData.getCompositeId() != null
 				&& productData.getFinish() != null
-				&& (productUniqueIds.isEmpty() || productUniqueIds.contains(productData.getUniqueId())));
+				&& (productUniqueIds.isEmpty() || productUniqueIds.contains(productData.getUniqueId()))
+				&& ((wiserFeedSettings != null && wiserFeedSettings.getFeatureSwitchAdditionalProductData()) || productData.getStockStatus().equalsIgnoreCase("stock")));
 	}
 }
