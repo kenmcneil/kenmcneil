@@ -18,7 +18,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.task.inventory.ElectroluxInventorySettings;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
-import com.ferguson.cs.product.task.inventory.client.ElectroluxFeignClient;
+import com.ferguson.cs.product.task.inventory.client.ElectroluxClient;
 import com.ferguson.cs.product.task.inventory.dao.core.ElectroluxInventoryDao;
 import com.ferguson.cs.product.task.inventory.model.ElectroluxInventoryResponse;
 import com.ferguson.cs.product.task.inventory.model.ElectroluxSkuVendorData;
@@ -29,16 +29,16 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 
 	private final ElectroluxInventorySettings electroluxInventorySettings;
 	private final InventoryImportSettings inventoryImportSettings;
-	private final ElectroluxFeignClient electroluxFeignClient;
+	private final ElectroluxClient electroluxClient;
 	private final ElectroluxInventoryDao electroluxInventoryDao;
 
 
 	private static final Logger log = LoggerFactory.getLogger(ElectroluxInventoryServiceImpl.class);
 
-	public ElectroluxInventoryServiceImpl(ElectroluxInventorySettings electroluxInventorySettings, InventoryImportSettings inventoryImportSettings, ElectroluxFeignClient electroluxFeignClient, ElectroluxInventoryDao electroluxInventoryDao) {
+	public ElectroluxInventoryServiceImpl(ElectroluxInventorySettings electroluxInventorySettings, InventoryImportSettings inventoryImportSettings, ElectroluxClient electroluxClient, ElectroluxInventoryDao electroluxInventoryDao) {
 		this.electroluxInventorySettings = electroluxInventorySettings;
 		this.inventoryImportSettings = inventoryImportSettings;
-		this.electroluxFeignClient = electroluxFeignClient;
+		this.electroluxClient = electroluxClient;
 		this.electroluxInventoryDao = electroluxInventoryDao;
 	}
 
@@ -62,16 +62,15 @@ public class ElectroluxInventoryServiceImpl implements ElectroluxInventoryServic
 				String[] headerRow = new String[]{"sku", "vendorUid", "quantity"};
 				writer.writeNext(headerRow);
 
-				String commaDelmitedSkus = electroluxSkuVendorDataList.stream().map(ElectroluxSkuVendorData::getSku).collect(Collectors.joining(","));
 				ElectroluxInventoryResponse response = null;
 				try {
-					response = electroluxFeignClient
-							.getElectroluxInventoryData(warehouse.getValue(), commaDelmitedSkus);
+					response = electroluxClient
+							.getElectroluxInventoryData(warehouse.getValue(),  electroluxSkuVendorDataList.stream().map(ElectroluxSkuVendorData::getSku).collect(Collectors.toList()));
 				} catch (Exception e) {
 					log.error("Failed to get Electrolux stock for vendor {}. Cause: {}", warehouse.getKey(),e.toString());
 				}
 				if(response != null && !CollectionUtils.isEmpty(response.getInventoryResponse())) {
-					response.getInventoryResponse().stream().filter(r->r.getWarehouseCode().equalsIgnoreCase(warehouse.getValue())).forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
+					response.getInventoryResponse().forEach(p -> writer.writeNext(new String[]{p.getModelNumber(),warehouse.getKey().toString(),p.getNetInventory().toString()}));
 				}
 			} catch (IOException e) {
 				log.error("Failed to write Electrolux inventory file: {}",e.toString());
