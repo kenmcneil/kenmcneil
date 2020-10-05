@@ -15,6 +15,7 @@ public class ElectroluxInventorySettings {
 	private String fileNamePrefix;
 	private String apiUsername;
 	private String apiPassword;
+	private String clientId;
 
 	public String getApiUrl() {
 		return apiUrl;
@@ -70,5 +71,13 @@ public class ElectroluxInventorySettings {
 
 	public void setApiPassword(String apiPassword) {
 		this.apiPassword = apiPassword;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 }
