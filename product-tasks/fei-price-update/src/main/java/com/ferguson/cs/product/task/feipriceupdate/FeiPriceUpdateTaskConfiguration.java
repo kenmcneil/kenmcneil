@@ -38,14 +38,16 @@ import com.ferguson.cs.product.task.feipriceupdate.batch.FeiCreateCostUpdateJobT
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiCreatePriceUpdateTempTableTasklet;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiInputFileExistsDecider;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiInputFileProcessorListener;
+import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPb1PriceUpdateItemWriter;
+import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPb22PriceUpdateItemWriter;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateFileSystemResource;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemProcessor;
-import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateItemWriter;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiPriceUpdateJobListener;
 import com.ferguson.cs.product.task.feipriceupdate.batch.FeiSendErrorReportTasklet;
 import com.ferguson.cs.product.task.feipriceupdate.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.model.PricebookType;
 import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.utilities.DateUtils;
@@ -97,15 +99,21 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	@Bean
-	public FeiPriceUpdateItemProcessor priceUpdateItemprocessor() {
-		return new FeiPriceUpdateItemProcessor(feiPriceUpdateService, feiPriceUpdateSettings);
+	public FeiPriceUpdateItemProcessor pb1PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB1, feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
+	@Bean
+	public FeiPriceUpdateItemProcessor pb22PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB22, feiPriceUpdateService, feiPriceUpdateSettings);
 	}
 
 	@Bean
 	public Job feiUpdatePriceJob(
 			Step createTempTableStep,
 			Step createPriceUpdateErrorReport,
-			Step processInputFileStep,
+			Step processPb1InputFileStep,
+			Step processPb22InputFileStep,
 			Step createCostUploadJobTasklet,
 			Step emailErrorReportTasklet,
 			Step backupInputFilesTasklet) {
@@ -114,7 +122,8 @@ public class FeiPriceUpdateTaskConfiguration {
 				.start(createTempTableStep)
 				.next(inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).stop()
 				.from(inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE)
-				.to(processInputFileStep)
+				.to(processPb1InputFileStep)
+				.next(processPb22InputFileStep)
 				.next(createCostUploadJobTasklet)
 				.next(createPriceUpdateErrorReport)
 				.next(emailErrorReportTasklet)
@@ -143,19 +152,33 @@ public class FeiPriceUpdateTaskConfiguration {
 
 	/*
 	 * Step 2
-	 * Read the input price update CSV file and load the tempDB table in preparation
-	 * for Cost Update job creation/execution
+	 * Read the PB1 input price update CSV file and load the tempDB table in preparation
+	 * for Cost Update job creation/execution.  This has to happen before the PB22 file is processed.
+	 * PB22 processing references PB1 records in temp table.
 	 */
 	@Bean
-	public Step processInputFileStep() {
-		return taskBatchJobFactory.getStepBuilder("processInputFile").listener(new FeiInputFileProcessorListener(notificationService))
-				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(allFilesReader()).faultTolerant()
-				.processor(priceUpdateItemprocessor())
-				.writer(feiPriceUpdateItemWriter()).build();
+	public Step processPb1InputFileStep() {
+		return taskBatchJobFactory.getStepBuilder("processPb1InputFile").listener(new FeiInputFileProcessorListener(PricebookType.PB1, notificationService))
+				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(readPb1File(null)).faultTolerant()
+				.processor(pb1PriceUpdateItemprocessor())
+				.writer(feiPb1PriceUpdateItemWriter()).build();
 	}
 
 	/*
 	 * Step 3
+	 * Read the PB22 input price update CSV file and load the tempDB table in preparation
+	 * for Cost Update job creation/execution
+	 */
+	@Bean
+	public Step processPb22InputFileStep() {
+		return taskBatchJobFactory.getStepBuilder("processPb22InputFile").listener(new FeiInputFileProcessorListener(PricebookType.PB22, notificationService))
+				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(readPb22File(null)).faultTolerant()
+				.processor(pb22PriceUpdateItemprocessor())
+				.writer(feiPb22PriceUpdateItemWriter()).build();
+	}
+
+	/*
+	 * Step 4
 	 * Step to create the job, load the data from the temp table (Done with a select into) and execute the job
 	 */
 	@Bean
@@ -216,16 +239,13 @@ public class FeiPriceUpdateTaskConfiguration {
 		return reader;
 	}
 
-	/*
-	 * We will process all files in the input folder if there a multiple
-	 */
 	@Bean
 	@StepScope
-	public MultiResourceItemReader<FeiPriceUpdateItem> allFilesReader() {
+	public MultiResourceItemReader<FeiPriceUpdateItem> readPb1File(@Value("#{jobExecutionContext['PB1_inputFile']}") String fileName) {
 		Resource[] resources = null;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
 		try {
-			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + "*.csv");
+			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + fileName);
 		} catch (IOException e) {
 			LOGGER.error("Error processing input CSV file(s). Exception: {}", e.toString());
 		}
@@ -236,15 +256,44 @@ public class FeiPriceUpdateTaskConfiguration {
 		return resourceItemReader;
 	}
 
+	@Bean
+	@StepScope
+	public MultiResourceItemReader<FeiPriceUpdateItem> readPb22File(@Value("#{jobExecutionContext['PB22_inputFile']}") String fileName) {
+		Resource[] resources = null;
+		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
+		try {
+			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + fileName);
+		} catch (IOException e) {
+			LOGGER.error("Error processing input CSV file(s). Exception: {}", e.toString());
+		}
+
+		MultiResourceItemReader<FeiPriceUpdateItem> resourceItemReader = new MultiResourceItemReader<FeiPriceUpdateItem>();
+		resourceItemReader.setResources(resources);
+		resourceItemReader.setDelegate(feiPriceUpdateItemReader());
+		return resourceItemReader;
+	}
+
+
 	/*
 	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
 	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
 	 */
 	@Bean
 	@StepScope
-	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter() {
-		return new FeiPriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
+	public ItemWriter<FeiPriceUpdateItem> feiPb22PriceUpdateItemWriter() {
+		return new FeiPb22PriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
 	}
+
+	/*
+	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
+	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
+	 */
+	@Bean
+	@StepScope
+	public ItemWriter<FeiPriceUpdateItem> feiPb1PriceUpdateItemWriter() {
+		return new FeiPb1PriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
 
 	/*
 	 * CSV error report reader.  Will extract all records from the temp DB table where the

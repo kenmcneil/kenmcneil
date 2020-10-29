@@ -5,15 +5,18 @@ import org.springframework.batch.item.ItemProcessor;
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.model.PricebookType;
 
 public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdateItem, FeiPriceUpdateItem> {
 
 	private final FeiPriceUpdateService feiPriceUpdateService;
 	private final FeiPriceUpdateSettings feiPriceUpdateSettings;
+	private final PricebookType pricebookType;
 
-	public FeiPriceUpdateItemProcessor(FeiPriceUpdateService feiPriceUpdateService,FeiPriceUpdateSettings feiPriceUpdateSettings) {
+	public FeiPriceUpdateItemProcessor(PricebookType pricebookType, FeiPriceUpdateService feiPriceUpdateService,FeiPriceUpdateSettings feiPriceUpdateSettings) {
 		this.feiPriceUpdateService = feiPriceUpdateService;
 		this.feiPriceUpdateSettings = feiPriceUpdateSettings;
+		this.pricebookType = pricebookType;
 	}
 
 	@Override
@@ -24,6 +27,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 			// @Param working if multiple params are required so I resorted to putting
 			// into the model object
 			item.setTempTableName(feiPriceUpdateSettings.getTempTableName());
+			item.setPricebookId(pricebookType.getIntValue());
 			FeiPriceUpdateItem productDetails = feiPriceUpdateService.getPriceUpdateProductDetails(item);
 
 			if (productDetails != null) {
@@ -33,9 +37,13 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 				item.setBaseCategoryId(productDetails.getBaseCategoryId());
 				item.setFeiOwnedActive(productDetails.getFeiOwnedActive());
 				item.setMapPrice(productDetails.getMapPrice());
-				// Here our item record is a customer priced item. In the writer I will create a
-				// 2nd pro pricing record for pricebookId 22 with the calculated pro price.
-				item.setPricebookId(1);
+				item.setProductStatus(productDetails.getProductStatus());
+				item.setContainerType(productDetails.getContainerType());
+				item.setFeiPricingType(productDetails.getFeiPricingType());
+				item.setPricebookId(pricebookType.getIntValue());
+				item.setNewPb1Price(productDetails.getNewPb1Price());
+				item.setExistingPb1Price(productDetails.getExistingPb1Price());
+				item.setFeedPrice(item.getPrice());
 			}
 		}
 		return item;

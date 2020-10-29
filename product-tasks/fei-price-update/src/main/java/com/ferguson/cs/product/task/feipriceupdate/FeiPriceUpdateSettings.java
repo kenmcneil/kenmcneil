@@ -18,5 +18,8 @@ public class FeiPriceUpdateSettings {
 	private Integer costUpdateJobUserid;
 	private String backupFolderPath;
 	private String[] errorReportEmailList;
-	private Double margin;
+	private Double pb1margin;
+	private Double pb22margin;
+	private String pb1InputFilePrefix;
+	private String pb22InputFilePrefix;
 }

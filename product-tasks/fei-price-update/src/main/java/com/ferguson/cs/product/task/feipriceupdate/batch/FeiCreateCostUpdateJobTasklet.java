@@ -45,7 +45,9 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 
 		List<String> inputResources;
 		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-		Integer inputFileRecordCount = executionContext.getInt("READ_COUNT", -1);
+		Integer Pb1inputFileRecordCount = executionContext.getInt("PB1_READ_COUNT", 0);
+		Integer Pb22inputFileRecordCount = executionContext.getInt("PB22_READ_COUNT", 0);
+		Integer inputRecordCount = Pb1inputFileRecordCount + Pb22inputFileRecordCount;
 
 		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
 			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES);
@@ -54,8 +56,11 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 					"CreateCostUpdateJobTasklet - Input file resources not defined in ExecutionContext");
 		}
 
+		// Job is based on 2 input files.  Will combine the names to pass to the create service below
+		String inputFiles = inputResources.get(0) + "-" + inputResources.get(1);
+
 		// Need to create the CostUploaderJob. Need the ID for downstream processing
-		CostUpdateJob job = feiPriceUpdateService.createCostUploadJob(inputResources.get(0),
+		CostUpdateJob job = feiPriceUpdateService.createCostUploadJob(inputFiles,
 				CostPriceType.PRICEBOOK_CSV, DateUtils.now(), feiPriceUpdateSettings.getCostUpdateJobUserid());
 
 		if (job == null || job.getId() == null) {
@@ -68,17 +73,16 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 		criteria.setDeleteCost(false);
 
 		Integer updateRecordCount = feiPriceUpdateService.loadPriceBookCostUpdatesFromTempTable(criteria);
-		LOGGER.info("Creating CostUpdateJob with JobID: {}, inputFile: {}, record count (P1 and P22): {}", job.getId(),
-				inputResources.get(0), updateRecordCount);
+		LOGGER.info("Creating CostUpdateJob with JobID: {}, input files: {}, record count (P1 and P22): {}", job.getId(),
+				inputFiles, updateRecordCount);
 
-		// There is going to be twice the number of records as were in the input file
-		// since we had to create the P22 records. All the input records are P1
-		if (inputFileRecordCount != (updateRecordCount / 2)) {
-			LOGGER.warn("FEI Price Update processing: {} failed validation rules",
-					inputFileRecordCount - (updateRecordCount / 2));
+
+		if (inputRecordCount != updateRecordCount) {
+			LOGGER.warn("FEI Price Update processing.  Input record count: {} was not equal to the record update count: {}",
+					inputRecordCount,updateRecordCount);
 		}
 
-		// If no records then then no need to execute update
+		// If no records then no need to execute update
 		if (updateRecordCount > 0) {
 			job.setStatus(CostPriceJobStatus.ENTERED.getMessageTemplate());
 			Calendar cal = Calendar.getInstance();

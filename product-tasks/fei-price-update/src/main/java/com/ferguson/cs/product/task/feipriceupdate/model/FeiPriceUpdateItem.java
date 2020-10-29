@@ -23,10 +23,18 @@ public class FeiPriceUpdateItem implements Serializable {
 	private Integer pricebookId;
 	private Double preferredVendorCost;
 	private Boolean feiOwnedActive;
-	private PriceUpdateStatus status;
+	// Current PB1 price in pricebook_cost table
+	private Double existingPb1Price;
+	// New PB1 price in our temp table for the current job run
+	private Double newPb1Price;
+	private PriceUpdateStatus priceUpdateStatus;
+	private ContainerType containerType;
+	private FeiPricingType feiPricingType;
+	private ProductStatus productStatus;
 
 	// Added for research purposes.
 	private String statusMsg;
 	private Double margin;
 	private String priceCalculation;
+	private Double feedPrice;
 }

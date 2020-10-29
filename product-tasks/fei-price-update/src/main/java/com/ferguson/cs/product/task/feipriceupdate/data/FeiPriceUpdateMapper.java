@@ -31,10 +31,16 @@ public interface FeiPriceUpdateMapper {
 	void insertTempPriceUpdateRecord(FeiPriceUpdateItem item);
 
 	/*
-	 * Retrieve product details required for pricing calculations
+	 * Retrieve product details for PB1
 	 * @Param FeiPriceUpdateItem
 	 */
-	FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item);
+	FeiPriceUpdateItem getPb1PriceUpdateProductDetails(FeiPriceUpdateItem item);
+
+	/*
+	 * Retrieve product details for PB22
+	 * @Param FeiPriceUpdateItem
+	 */
+	FeiPriceUpdateItem getPb22PriceUpdateProductDetails(FeiPriceUpdateItem item);
 
 	/**
 	 * This method inserts a new record into the tempData.dbo.costUpdateJob table and the following fields cannot
