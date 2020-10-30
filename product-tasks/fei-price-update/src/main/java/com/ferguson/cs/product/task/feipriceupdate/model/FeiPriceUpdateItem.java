@@ -35,6 +35,4 @@ public class FeiPriceUpdateItem implements Serializable {
 	// Added for research purposes.
 	private String statusMsg;
 	private Double margin;
-	private String priceCalculation;
-	private Double feedPrice;
 }

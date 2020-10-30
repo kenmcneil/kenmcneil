@@ -41,7 +41,7 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 		// Make sure we have a 2 data files. 1 PB1 and 1 PB22. If not, decider will check this and end job
 		Resource[] resources;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
-		resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() +  "*.csv");
+		resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + "*.csv");
 
 		if (resources != null && resources.length > 0) {
 
