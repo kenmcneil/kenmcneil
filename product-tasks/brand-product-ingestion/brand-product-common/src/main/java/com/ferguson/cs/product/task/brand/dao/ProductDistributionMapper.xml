@@ -141,7 +141,7 @@
 				
 	</insert>
 	
-	<insert id="insertProductJson"  parameterType="map"  keyColumn="id" useGeneratedKeys="true" keyProperty="id" >
+	<insert id="insertProductJson"  parameterType="map"  keyColumn="id" useGeneratedKeys="true" >
 		INSERT INTO integration.productDistribution.productJson(
 				productId,
 				jsonid
