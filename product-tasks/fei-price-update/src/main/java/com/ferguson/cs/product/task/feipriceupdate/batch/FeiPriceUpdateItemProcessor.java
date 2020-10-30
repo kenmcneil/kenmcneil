@@ -43,7 +43,6 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 				item.setPricebookId(pricebookType.getIntValue());
 				item.setNewPb1Price(productDetails.getNewPb1Price());
 				item.setExistingPb1Price(productDetails.getExistingPb1Price());
-				item.setFeedPrice(item.getPrice());
 			}
 		}
 		return item;

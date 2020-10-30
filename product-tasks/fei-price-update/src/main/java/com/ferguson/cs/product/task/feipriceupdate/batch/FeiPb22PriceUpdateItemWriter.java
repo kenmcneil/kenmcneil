@@ -45,64 +45,11 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 			LOGGER.debug("FeiPb22PriceUpdateItemWriter - Processing Item uniqueId: {}, mpid:{}, consumer price: {}",
 					item.getUniqueId(), item.getMpid(), item.getPrice());
 
-			PriceUpdateStatus validationStatus = validPriceUpdateRecord(item);
+			// Validate the record
+			item.setPriceUpdateStatus(validPriceUpdateRecord(item));
 
-			if (validationStatus == PriceUpdateStatus.VALID) {
-				// Apply pro pricing calculations.  Save initial price in the event profit margin
-				// is too low and we need to revert.  Then validate the new pro price.
-				Double feedFilePrice = item.getPrice();
-				item.setPrice(calculateProPricing(item));
-				validationStatus = validateProPricing(item);
-			}
-
-			//			// Initial validation passed - Create the PB22 and apply additional validation.
-			//			if (validationStatus == PriceUpdateStatus.VALID) {
-			//				Double preferredVendorCost = null;
-			//
-			//				// Apply pro pricing calculations.  Save initial price in the event profit margin
-			//				// is too low and we need to revert.
-			//				Double feedFilePrice = item.getPrice();
-			//				item.setPrice(calculateProPricing(item));
-			//
-			//				// Validate IMAP price.  If UMRP then price can not be below the IMAP price
-			//				if (item.getUmrpId() != null && item.getMapPrice() != null) {
-			//					BigDecimal feiPrice = BigDecimal.valueOf(item.getPrice()).setScale(4,RoundingMode.HALF_EVEN);
-			//					BigDecimal floorPrice = BigDecimal.valueOf(item.getMapPrice()).setScale(4,RoundingMode.HALF_EVEN);
-			//
-			//					if (feiPrice.compareTo(floorPrice) < 0 ) {
-			//						LOGGER.debug("FeiPb22PriceUpdateItemWriter - UniqueId: {} - Fei Price: {} is less than IMAP price: {}",
-			//								item.getUniqueId(),feiPrice.toString(),floorPrice.toString());
-			//						item.setStatusMsg("IMAP_PRICE_ERROR - FEI price: " + feiPrice.toString() + " below MAP price: " + floorPrice.toString());
-			//						validationStatus = PriceUpdateStatus.IMAP_PRICE_ERROR;
-			//					}
-			//				}
-			//
-			//				if (validationStatus == PriceUpdateStatus.VALID) {
-			//					// Get preferred vendor cost.  This will be used to validate the margin.
-			//					preferredVendorCost = feiPriceUpdateService.getPreferredVendorCost(item.getUniqueId());
-			//					if (preferredVendorCost == null) {
-			//						validationStatus = PriceUpdateStatus.VENDOR_COST_LOOKUP_ERROR;
-			//						item.setStatusMsg("VENDOR_COST_LOOKUP_ERROR - No matching vendor preferred cost found fpr product uniqueId");
-			//					} else if (!isValidProfitMargin(preferredVendorCost, item)) {
-			//						validationStatus = PriceUpdateStatus.LOW_MARGIN_ERROR;
-			//						item.setStatusMsg("LOW_MARGIN_ERROR - PB1 Profit margin: " + item.getMargin() + " is below: " + this.profitMargin);
-			//					}
-			//
-			//					item.setPreferredVendorCost(preferredVendorCost);
-			//				}
-			//			}
-
-			item.setPriceUpdateStatus(validationStatus);
-
-			//			// If the PB1 record passed validation build the PB22.  There are no additional validation
-			//			// checks for PB22.  By default the PB22 price will never be > PB1 price as we prime the PB22
-			//			// record with the PB1 price.  All price reduction multipliers are < 1 (.9 or .97)
-			//			if (validationStatus == PriceUpdateStatus.VALID) {
-			//				// Create a record for Pro pricing. Input file is customer pricing only
-			//				FeiPriceUpdateItem proItem = buildProPricingRecord(item);
-			//				LOGGER.debug("FeiPb22PriceUpdateItemWriter - Pro price: {}", proItem.getPrice());
-			//			}
-
+			// Insert into temp table regardless of validation status.  Valid records will be passed on
+			// to the costUploader.  Invalid records will go on the error report that is sent out.
 			feiPriceUpdateService.insertTempPriceUpdateRecord(item);
 		}
 	}
@@ -127,7 +74,7 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 			return PriceUpdateStatus.INPUT_VALIDATION_ERROR;
 		}
 
-		// Not processing error - This just means it won't be included in the update as it's not a FEI or Build product
+		// Product must be FEI or Build owned
 		if (item.getFeiOwnedProductId() == null &&
 				(item.getFeiPricingType() == null || item.getFeiPricingType() != FeiPricingType.PERMANENT)) {
 			LOGGER.debug("FeiPb22PriceUpdateItemWriter - Skipping product unique ID : {}. Not FEI or Build owned",
@@ -169,12 +116,6 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 			return PriceUpdateStatus.OWNED_INACTIVE_ERROR;
 		}
 
-		return PriceUpdateStatus.VALID;
-	}
-
-	private PriceUpdateStatus validateProPricing(FeiPriceUpdateItem item) {
-		Double preferredVendorCost = null;
-
 		// Validate IMAP price.  If UMRP then price can not be below the IMAP price
 		if (item.getUmrpId() != null && item.getMapPrice() != null) {
 			BigDecimal feiPrice = BigDecimal.valueOf(item.getPrice()).setScale(4,RoundingMode.HALF_EVEN);
@@ -189,19 +130,19 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 		}
 
 		// Get preferred vendor cost.  This will be used to validate the margin.
-		preferredVendorCost = feiPriceUpdateService.getPreferredVendorCost(item.getUniqueId());
+		Double preferredVendorCost = feiPriceUpdateService.getPreferredVendorCost(item.getUniqueId());
 		item.setPreferredVendorCost(preferredVendorCost);
 
 		if (preferredVendorCost == null) {
 			item.setStatusMsg("VENDOR_COST_LOOKUP_ERROR - No matching vendor preferred cost found fpr product uniqueId");
 			return PriceUpdateStatus.VENDOR_COST_LOOKUP_ERROR;
 		} else if (!isValidProfitMargin(preferredVendorCost, item)) {
-			item.setStatusMsg("LOW_MARGIN_ERROR - PB1 Profit margin: " + item.getMargin() + " is below: " + this.profitMargin);
+			item.setStatusMsg("LOW_MARGIN_ERROR - PB22 Profit margin: " + item.getMargin() + " is below: " + this.profitMargin);
 			return PriceUpdateStatus.LOW_MARGIN_ERROR;
 		}
 
-		// Validate that the PB22 price is not greater than the PB1 price.
-		// If there was a new PB1 price in the current PB1 input file use that.  Otherwise we will reference the PB1 price
+		// Validate that the PB22 price is not greater than the PB1 price. If there was a new PB1 price
+		// in the current PB1 input file use that. Otherwise we will reference the PB1 price
 		// from the pricebook_cost table.
 		Double pb1Price = item.getNewPb1Price() == null ? item.getExistingPb1Price() : item.getNewPb1Price();
 
@@ -211,7 +152,6 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 		}
 
 		return PriceUpdateStatus.VALID;
-
 	}
 
 	private boolean isProductActive(FeiPriceUpdateItem item) {
@@ -233,45 +173,10 @@ public class FeiPb22PriceUpdateItemWriter implements ItemWriter<FeiPriceUpdateIt
 		}
 
 		return false;
-
 	}
 
 	/*
-	 * calculate Pro pricing based on the following criteria:
-	 * Lighting Product Base Category: PB22 = PC24 x .9
-	 * Everything else: PB22 = PC24 x .97
-	 * UMRP Skus: PB22 = PC24 (No discount)
-	 */
-	private Double calculateProPricing(FeiPriceUpdateItem item) {
-		// Default to customer price
-		BigDecimal proPrice = BigDecimal.valueOf(item.getPrice());
-
-		// if UMRP then pro pricing is same as customer.
-		if (item.getUmrpId() == null) {
-			if (item.getBaseCategoryId() != null && item.getBaseCategoryId() == LIGHTING_BASE_CATEGORY_ID) {
-				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.9] to product unique ID: {}",
-						item.getUniqueId());
-				proPrice = proPrice.multiply(BigDecimal.valueOf(.9));
-
-				item.setPriceCalculation("Lighting Category: .9");
-			} else {
-				LOGGER.debug("calculateProPricing - Applying pro pricing multiplier: [.97] to product unique ID: {}",
-						item.getUniqueId());
-				proPrice = proPrice.multiply(BigDecimal.valueOf(.97));
-
-				item.setPriceCalculation(".97");
-			}
-		} else {
-			LOGGER.debug("calculateProPricing - No pro pricing multiplier for product unique ID: {}",
-					item.getUniqueId());
-			item.setPriceCalculation("N/A umrpID exists");
-		}
-
-		return proPrice.doubleValue();
-	}
-
-	/*
-	 * Calculate the profit margin.  If less than 14% we will reject this pricing update.
+	 * Calculate the profit margin.  If less than 10% (config item) we will reject this pricing update.
 	 */
 	private Boolean isValidProfitMargin(Double vendorCost, FeiPriceUpdateItem item) {
 

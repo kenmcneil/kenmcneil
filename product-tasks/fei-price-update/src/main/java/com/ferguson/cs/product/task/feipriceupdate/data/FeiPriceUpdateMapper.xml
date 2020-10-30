@@ -83,7 +83,7 @@
 			LEFT OUTER JOIN mmc.dbo.product_imap_flag pm ON p.uniqueId = pm.uniqueId
 			LEFT OUTER JOIN mmc.product.pricingFeiWhitelist pwl on pwl.productUniqueId = p.uniqueId
 			LEFT OUTER JOIN mmc.dbo.pricebook_cost pb on pb.uniqueId = p.uniqueId and pb.pricebookid = 1
-			LEFT OUTER JOIN tempData.dbo.${tempTableName} tmp on tmp.uniqueId = p.uniqueId and tmp.pricebookId = 1
+			LEFT OUTER JOIN tempData.dbo.${tempTableName} tmp on tmp.uniqueId = p.uniqueId and tmp.pricebookId = 1 and tmp.priceUpdateStatusId = 0
 		WHERE p.uniqueId =#{uniqueId}
 	</select>
 	
@@ -92,14 +92,12 @@
 	  ( 
 	        [uniqueId] [int],
 	       	[mpid] [int],
-	       	[feedPrice] [decimal](18,2),
 	        [price] [decimal](18,2),
 	        [pricebookId] [int],
 	        [preferredVendorCost] [decimal](18,2),
 	        [priceUpdateStatusId] [int],
 	        [statusMsg] [varchar](100),
-	        [margin] [decimal](18,4),
-	        [priceCalculation] [varchar](32)
+	        [margin] [decimal](18,4)
 	  )
 	  CREATE NONCLUSTERED INDEX nux_temp_fei_inbound_pricing_uniqueId ON [tempData].[dbo].[${_parameter}] (uniqueId);
 	</insert>
@@ -110,24 +108,20 @@
 			uniqueId,
 			mpid,
 			price,
-			feedPrice,
 			pricebookId,
 			preferredVendorCost,
 			priceUpdateStatusId,
 			statusMsg,
-			margin,
-			priceCalculation
+			margin
 		) VALUES (
 			#{uniqueId},
 			#{mpid},
 			#{price},
-			#{feedPrice},
 			#{pricebookId},
 			#{preferredVendorCost},
 			#{priceUpdateStatus.intValue},
 			#{statusMsg},
-			#{margin},
-			#{priceCalculation}
+			#{margin}
 		)
 	</insert>
 	

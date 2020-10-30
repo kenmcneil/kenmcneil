@@ -80,34 +80,9 @@ public class FeiPriceUpdateTaskConfiguration {
 		this.buildWebServicesFeignClient = buildWebServicesFeignClient;
 	}
 
-	@Bean
-	@JobScope
-	public FeiPriceUpdateFileSystemResource feiFileSystemResource() {
-		return new FeiPriceUpdateFileSystemResource();
-	}
-
-	@Bean
-	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
-		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
-		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer(DelimitedLineTokenizer.DELIMITER_COMMA);
-		lineTokenizer.setNames("mpid", "uniqueId", "price");
-		BeanWrapperFieldSetMapper<FeiPriceUpdateItem> mapper = new BeanWrapperFieldSetMapper<>();
-		mapper.setTargetType(FeiPriceUpdateItem.class);
-		lineMapper.setLineTokenizer(lineTokenizer);
-		lineMapper.setFieldSetMapper(mapper);
-		return lineMapper;
-	}
-
-	@Bean
-	public FeiPriceUpdateItemProcessor pb1PriceUpdateItemprocessor() {
-		return new FeiPriceUpdateItemProcessor(PricebookType.PB1, feiPriceUpdateService, feiPriceUpdateSettings);
-	}
-
-	@Bean
-	public FeiPriceUpdateItemProcessor pb22PriceUpdateItemprocessor() {
-		return new FeiPriceUpdateItemProcessor(PricebookType.PB22, feiPriceUpdateService, feiPriceUpdateSettings);
-	}
-
+	/*
+	 * Job
+	 */
 	@Bean
 	public Job feiUpdatePriceJob(
 			Step createTempTableStep,
@@ -131,8 +106,8 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Decider that checks if an input file names was placed in the execution
-	 * context by the parent step. If not then there was no input file and we will
+	 * Decider that checks if both PB1 and PB22 input file names were added to the execution
+	 * context by the parent step. If not then there was a problem with the expected input files and we will
 	 * stop
 	 */
 	@Bean
@@ -142,7 +117,7 @@ public class FeiPriceUpdateTaskConfiguration {
 
 	/*
 	 * Step 1
-	 * Create the temporary DB table Step
+	 * Create the temporary DB table Step, update job execution context with data required downstream
 	 */
 	@Bean
 	public Step createTempTableStep() {
@@ -188,7 +163,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 4
+	 * Step 5
 	 * Step to write any update validation errors to a csv file to be emailed out.
 	 */
 	@Bean
@@ -199,7 +174,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 5
+	 * Step 6
 	 * Email error report
 	 */
 	@Bean
@@ -209,7 +184,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 6
+	 * Step 7
 	 * move input file to backup folder
 	 */
 	@Bean
@@ -227,6 +202,18 @@ public class FeiPriceUpdateTaskConfiguration {
 		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService);
 	}
 
+	@Bean
+	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
+		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
+		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer(DelimitedLineTokenizer.DELIMITER_COMMA);
+		lineTokenizer.setNames("mpid", "uniqueId", "price");
+		BeanWrapperFieldSetMapper<FeiPriceUpdateItem> mapper = new BeanWrapperFieldSetMapper<>();
+		mapper.setTargetType(FeiPriceUpdateItem.class);
+		lineMapper.setLineTokenizer(lineTokenizer);
+		lineMapper.setFieldSetMapper(mapper);
+		return lineMapper;
+	}
+
 	/*
 	 * CSV input file reader
 	 */
@@ -239,6 +226,9 @@ public class FeiPriceUpdateTaskConfiguration {
 		return reader;
 	}
 
+	/*
+	 * Read PB1 file (fei_show_nets)
+	 */
 	@Bean
 	@StepScope
 	public MultiResourceItemReader<FeiPriceUpdateItem> readPb1File(@Value("#{jobExecutionContext['PB1_inputFile']}") String fileName) {
@@ -256,6 +246,9 @@ public class FeiPriceUpdateTaskConfiguration {
 		return resourceItemReader;
 	}
 
+	/*
+	 * Read PB22 file (fei_pro_nets)
+	 */
 	@Bean
 	@StepScope
 	public MultiResourceItemReader<FeiPriceUpdateItem> readPb22File(@Value("#{jobExecutionContext['PB22_inputFile']}") String fileName) {
@@ -273,10 +266,24 @@ public class FeiPriceUpdateTaskConfiguration {
 		return resourceItemReader;
 	}
 
+	/*
+	 * PB 1 processor
+	 */
+	@Bean
+	public FeiPriceUpdateItemProcessor pb1PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB1, feiPriceUpdateService, feiPriceUpdateSettings);
+	}
 
 	/*
-	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
-	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
+	 * PB22 processor
+	 */
+	@Bean
+	public FeiPriceUpdateItemProcessor pb22PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB22, feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
+	/*
+	 * Write the temp PB1 price update record to the temp table.
 	 */
 	@Bean
 	@StepScope
@@ -285,15 +292,13 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
-	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
+	 * Write the temp PB22 price update record to the temp table.
 	 */
 	@Bean
 	@StepScope
 	public ItemWriter<FeiPriceUpdateItem> feiPb1PriceUpdateItemWriter() {
 		return new FeiPb1PriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
 	}
-
 
 	/*
 	 * CSV error report reader.  Will extract all records from the temp DB table where the
@@ -370,6 +375,12 @@ public class FeiPriceUpdateTaskConfiguration {
 	@Bean
 	public FeiBackupInputFileTasklet backupFileTasklet() {
 		return new FeiBackupInputFileTasklet(feiPriceUpdateSettings);
+	}
+
+	@Bean
+	@JobScope
+	public FeiPriceUpdateFileSystemResource feiFileSystemResource() {
+		return new FeiPriceUpdateFileSystemResource();
 	}
 
 }
