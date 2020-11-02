@@ -92,25 +92,28 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 		int pb1Index = -1;
 		int pb22Index = -1;
 		List<String> inputFiles = new ArrayList<String>();
+		boolean multipleFiles = false;
 
 		for (int i = 0 ; i < resources.length; i++) {
 			// Check for PB1 file
 			if (resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb1InputFilePrefix().toUpperCase())) {
 				// If pb1 index is not -1 we have multiple pb1 input files - That's a problem.
 				if (pb1Index != -1) {
+					multipleFiles = true;
 					break;
 				}
 				pb1Index = i;
 			} else 	if (resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb22InputFilePrefix().toUpperCase())) {
 				// If pb22 index is not -1 we have multiple pb22 input files - That's a problem.
 				if (pb22Index != -1) {
+					multipleFiles = true;
 					break;
 				}
 				pb22Index = i;
 			}
 		}
 
-		if (pb1Index >= 0 && pb22Index >= 0) {
+		if (!multipleFiles && pb1Index >= 0 && pb22Index >= 0) {
 			inputFiles.add(resources[pb1Index].getFilename());
 			inputFiles.add(resources[pb22Index].getFilename());
 		}
