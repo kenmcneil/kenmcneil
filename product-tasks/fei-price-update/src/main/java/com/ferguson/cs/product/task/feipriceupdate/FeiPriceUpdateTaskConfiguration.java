@@ -166,6 +166,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
+	 * Step 1
 	 * Create the temporary DB table Step, update job execution context with data required downstream
 	 */
 	@Bean
