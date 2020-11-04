@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.feipriceupdate.batch;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
@@ -39,25 +41,35 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 		this.notificationService = notificationService;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-		List<String> inputResources;
+		List<String> inputResources = new ArrayList<>();
 		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 		Integer Pb1inputFileRecordCount = executionContext.getInt("PB1_READ_COUNT", 0);
 		Integer Pb22inputFileRecordCount = executionContext.getInt("PB22_READ_COUNT", 0);
 		Integer inputRecordCount = Pb1inputFileRecordCount + Pb22inputFileRecordCount;
+		String inputFiles;
 
-		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
-			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES);
-		} else {
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.PB1_INPUT_FILE)) {
+			inputResources.add((String)executionContext.get(FeiCreatePriceUpdateTempTableTasklet.PB1_INPUT_FILE));
+		}
+
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.PB22_INPUT_FILE)) {
+			inputResources.add((String)executionContext.get(FeiCreatePriceUpdateTempTableTasklet.PB22_INPUT_FILE));
+		}
+
+		if (CollectionUtils.isEmpty(inputResources)) {
 			throw new FeiPriceUpdateException(
 					"CreateCostUpdateJobTasklet - Input file resources not defined in ExecutionContext");
 		}
 
-		// Job is based on 2 input files.  Will combine the names to pass to the create service below
-		String inputFiles = inputResources.get(0) + "-" + inputResources.get(1);
+		// Can only have 2 input files max.  If we have 2 then concat them.  createcostUploadJob() wants a filename passed
+		if (inputResources.size() == 2) {
+			inputFiles = inputResources.get(0) + "-" + inputResources.get(1);
+		} else {
+			inputFiles = inputResources.get(0);
+		}
 
 		// Need to create the CostUploaderJob. Need the ID for downstream processing
 		CostUpdateJob job = feiPriceUpdateService.createCostUploadJob(inputFiles,
