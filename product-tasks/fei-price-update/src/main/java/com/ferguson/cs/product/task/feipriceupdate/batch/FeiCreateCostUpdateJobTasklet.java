@@ -64,7 +64,7 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 					"CreateCostUpdateJobTasklet - Input file resources not defined in ExecutionContext");
 		}
 
-		// Can only have 2 input files max.  If we have 2 then concat them.  createcostUploadJob() wants a filename passed
+		// Can only have 2 input files max.  If we have 2 then concat them.  createCostUploadJob() wants a filename passed
 		if (inputResources.size() == 2) {
 			inputFiles = inputResources.get(0) + "-" + inputResources.get(1);
 		} else {

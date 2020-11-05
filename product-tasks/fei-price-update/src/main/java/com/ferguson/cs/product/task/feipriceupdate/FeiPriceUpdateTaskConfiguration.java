@@ -180,7 +180,8 @@ public class FeiPriceUpdateTaskConfiguration {
 
 	/*
 	 * Step 4
-	 * Step to create the job, load the data from the temp table (Done with a select into) and execute the job
+	 * Step to create the Cost Uploader job, load job data from temp
+	 * table (Done with a select into) and execute the Cost Uploader job
 	 */
 	@Bean
 	public Step createCostUploadJobTasklet() {
@@ -201,7 +202,7 @@ public class FeiPriceUpdateTaskConfiguration {
 
 	/*
 	 * Step 6
-	 * Email error report
+	 * Email error report created in step 5
 	 */
 	@Bean
 	public Step emailErrorReportTasklet() {
@@ -252,6 +253,9 @@ public class FeiPriceUpdateTaskConfiguration {
 		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService);
 	}
 
+	/*
+	 * Line mapper.  Both input files are in the same format so this is used for both.
+	 */
 	@Bean
 	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
 		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
@@ -332,6 +336,10 @@ public class FeiPriceUpdateTaskConfiguration {
 		return new FeiPriceUpdateItemProcessor(PricebookType.PB22, feiPriceUpdateService, feiPriceUpdateSettings);
 	}
 
+	/*
+	 * Writer
+	 * Used for both input files
+	 */
 	@Bean
 	@StepScope
 	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter() {

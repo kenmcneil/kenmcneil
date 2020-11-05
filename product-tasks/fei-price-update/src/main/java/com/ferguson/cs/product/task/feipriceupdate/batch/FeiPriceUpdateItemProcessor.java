@@ -70,9 +70,9 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 				// Now perform record specific validation if we passed the above checks
 				if (validationStatus == PriceUpdateStatus.VALID) {
 					if (pricebookType == PricebookType.PB1) {
-						validationStatus = performPB1Validation(item);
+						validationStatus = validatePb1Record(item);
 					} else {
-						validationStatus = performPB22Validation(item);
+						validationStatus = validatePb22Record(item);
 					}
 				}
 
@@ -87,7 +87,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 	}
 
 	/*
-	 * Perform record validation. The validation here is common for both the PB1 and PB22 records.
+	 * Shared PB1/PB22 record validation.
 	 * Error code will be stored in temp table and a CSV file will
 	 * be sent out containing any errors that failed validation resulting in no price update.
 	 */
@@ -150,7 +150,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 	/*
 	 * PB1 specific validation
 	 */
-	private PriceUpdateStatus performPB1Validation(FeiPriceUpdateItem item) {
+	private PriceUpdateStatus validatePb1Record(FeiPriceUpdateItem item) {
 
 		// Product must be FEI owned
 		if (item.getFeiOwnedProductId() == null) {
@@ -187,7 +187,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 	/*
 	 * PB22 specific validation
 	 */
-	private PriceUpdateStatus performPB22Validation(FeiPriceUpdateItem item) {
+	private PriceUpdateStatus validatePb22Record(FeiPriceUpdateItem item) {
 
 		// Product must be FEI or Build owned
 		if (item.getFeiOwnedProductId() == null &&
@@ -257,7 +257,7 @@ public class FeiPriceUpdateItemProcessor implements ItemProcessor<FeiPriceUpdate
 	}
 
 	/*
-	 * Calculate the profit margin.  If less than 10% (config item) we will reject this pricing update.
+	 * Calculate the profit margin (config item).  If less than 10% (PB22) or 14% (PB1) we will reject this pricing update.
 	 */
 	private Boolean isValidProfitMargin(Double vendorCost, FeiPriceUpdateItem item) {
 
