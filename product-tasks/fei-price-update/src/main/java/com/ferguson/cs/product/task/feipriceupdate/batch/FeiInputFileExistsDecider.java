@@ -20,10 +20,6 @@ public class FeiInputFileExistsDecider implements JobExecutionDecider {
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
 
-		if (stepExecution == null) {
-			throw new IllegalArgumentException("stepExecution cannot be null");
-		}
-
 		// If no type is defined we are checking for the existence of any input file. In this case we will stop the job altogether.
 		// This decider is leveraged several times in the job config to control flow based the type of file we need to process.
 		if (pricebookType == null) {

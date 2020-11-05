@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class FeiPriceUpdateItem implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private String tempTableName;
 	private Integer uniqueId;
