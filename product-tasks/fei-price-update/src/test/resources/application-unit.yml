@@ -8,3 +8,7 @@ datasource:
 spring:
   main:
     allow-bean-definition-overriding: true
+
+fei-price-update:
+  pb1margin: .14
+  pb22margin: .10
