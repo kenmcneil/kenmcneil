@@ -10,6 +10,7 @@ import com.ferguson.cs.product.task.feipriceupdate.model.CostPriceType;
 import com.ferguson.cs.product.task.feipriceupdate.model.CostUpdateJob;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
 import com.ferguson.cs.product.task.feipriceupdate.model.PriceBookLoadCriteria;
+import com.ferguson.cs.product.task.feipriceupdate.model.PricebookType;
 
 @Service("feiPriceUpdateService")
 public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
@@ -56,7 +57,20 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 
 	@Override
 	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item) {
-		return feiPriceUpdateDao.getPriceUpdateProductDetails(item);
+		Assert.notNull(item.getPricebookId(), "Pricebook ID is required for retrieving product details.");
+		Assert.isTrue((item.getPricebookId() == PricebookType.PB1.getIntValue() || item.getPricebookId() == PricebookType.PB22.getIntValue()),
+				"Only PB1 and PB22 pricebooks are supported.");
+
+		FeiPriceUpdateItem productDetails = null;
+		if (item.getPricebookId() == PricebookType.PB1.getIntValue()) {
+			productDetails = feiPriceUpdateDao.getPb1PriceUpdateProductDetails(item);
+		}
+
+		if (item.getPricebookId() == PricebookType.PB22.getIntValue()) {
+			productDetails =  feiPriceUpdateDao.getPb22PriceUpdateProductDetails(item);
+		}
+
+		return productDetails;
 	}
 
 	@Override

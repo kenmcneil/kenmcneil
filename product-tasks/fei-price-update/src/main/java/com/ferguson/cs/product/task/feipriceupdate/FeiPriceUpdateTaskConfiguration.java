@@ -15,6 +15,8 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.FlowBuilder;
+import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -46,6 +48,7 @@ import com.ferguson.cs.product.task.feipriceupdate.batch.FeiSendErrorReportTaskl
 import com.ferguson.cs.product.task.feipriceupdate.client.BuildWebServicesFeignClient;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
 import com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem;
+import com.ferguson.cs.product.task.feipriceupdate.model.PricebookType;
 import com.ferguson.cs.product.task.feipriceupdate.notification.NotificationService;
 import com.ferguson.cs.task.batch.TaskBatchJobFactory;
 import com.ferguson.cs.utilities.DateUtils;
@@ -78,62 +81,35 @@ public class FeiPriceUpdateTaskConfiguration {
 		this.buildWebServicesFeignClient = buildWebServicesFeignClient;
 	}
 
-	@Bean
-	@JobScope
-	public FeiPriceUpdateFileSystemResource feiFileSystemResource() {
-		return new FeiPriceUpdateFileSystemResource();
-	}
-
-	@Bean
-	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
-		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
-		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer(DelimitedLineTokenizer.DELIMITER_COMMA);
-		lineTokenizer.setNames("mpid", "uniqueId", "price");
-		BeanWrapperFieldSetMapper<FeiPriceUpdateItem> mapper = new BeanWrapperFieldSetMapper<>();
-		mapper.setTargetType(FeiPriceUpdateItem.class);
-		lineMapper.setLineTokenizer(lineTokenizer);
-		lineMapper.setFieldSetMapper(mapper);
-		return lineMapper;
-	}
-
-	@Bean
-	public FeiPriceUpdateItemProcessor priceUpdateItemprocessor() {
-		return new FeiPriceUpdateItemProcessor(feiPriceUpdateService, feiPriceUpdateSettings);
-	}
-
+	/*
+	 * Job
+	 */
 	@Bean
 	public Job feiUpdatePriceJob(
 			Step createTempTableStep,
 			Step createPriceUpdateErrorReport,
-			Step processInputFileStep,
 			Step createCostUploadJobTasklet,
 			Step emailErrorReportTasklet,
-			Step backupInputFilesTasklet) {
+			Step backupInputFilesTasklet,
+			Flow validateInputFilesExistFlow,
+			Flow pb1FileProcessorFlow,
+			Flow pb22FileProcessorFlow) {
 		return taskBatchJobFactory.getJobBuilder("feiPriceUpdateJob")
 				.listener(new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService))
-				.start(createTempTableStep)
-				.next(inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).stop()
-				.from(inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE)
-				.to(processInputFileStep)
+				.flow(createTempTableStep)
+				.next(validateInputFilesExistFlow)
+				.next(pb1FileProcessorFlow)
+				.next(pb22FileProcessorFlow)
 				.next(createCostUploadJobTasklet)
 				.next(createPriceUpdateErrorReport)
 				.next(emailErrorReportTasklet)
 				.next(backupInputFilesTasklet).end().build();
 	}
 
-	/*
-	 * Decider that checks if an input file names was placed in the execution
-	 * context by the parent step. If not then there was no input file and we will
-	 * stop
-	 */
-	@Bean
-	public FeiInputFileExistsDecider inputFileExistsDecider() {
-		return new FeiInputFileExistsDecider();
-	}
 
 	/*
 	 * Step 1
-	 * Create the temporary DB table Step
+	 * Create the temporary DB table Step, update job execution context with data required downstream
 	 */
 	@Bean
 	public Step createTempTableStep() {
@@ -142,21 +118,70 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 2
-	 * Read the input price update CSV file and load the tempDB table in preparation
-	 * for Cost Update job creation/execution
+	 * Check if input files exist in FTP folder.  If not we stop.  Nothing to do.
 	 */
 	@Bean
-	public Step processInputFileStep() {
-		return taskBatchJobFactory.getStepBuilder("processInputFile").listener(new FeiInputFileProcessorListener(notificationService))
-				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(allFilesReader()).faultTolerant()
-				.processor(priceUpdateItemprocessor())
+	public Flow validateInputFilesExistFlow() {
+		return new FlowBuilder<Flow>("validateInputFilesExistFlow")
+				.start(inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).stop()
+				.from(inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE).end("COMPLETED")
+				.build();
+	}
+
+	/*
+	 * Check if PB1 files exists and if so call the PB1 processing step
+	 */
+	@Bean
+	public Flow pb1FileProcessorFlow() {
+		return new FlowBuilder<Flow>("pb1FileProcessorFlow")
+				.start(pb1inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE).to(processPb1InputFileStep())
+				.from(pb1inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).end("COMPLETED")
+				.build();
+	}
+
+	/*
+	 * Check if the PB22 files exists and if so call the PB22 processing step
+	 */
+	@Bean
+	public Flow pb22FileProcessorFlow() {
+		return new FlowBuilder<Flow>("pb22FileProcessorFlow")
+				.start(pb22inputFileExistsDecider()).on(FeiInputFileExistsDecider.CONTINUE).to(processPb22InputFileStep())
+				.from(pb22inputFileExistsDecider()).on(FeiInputFileExistsDecider.NO_INPUT_FILE).end("COMPLETED")
+				.build();
+	}
+
+	/*
+	 * Step 2
+	 * Conditional, executed only if PB1 file exists
+	 * Read the PB1 input price update CSV file and load the tempDB table in preparation
+	 * for Cost Update job creation/execution.
+	 */
+	@Bean
+	public Step processPb1InputFileStep() {
+		return taskBatchJobFactory.getStepBuilder("processPb1InputFile").listener(new FeiInputFileProcessorListener(PricebookType.PB1, notificationService))
+				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(readPb1File(null)).faultTolerant()
+				.processor(pb1PriceUpdateItemprocessor())
 				.writer(feiPriceUpdateItemWriter()).build();
 	}
 
 	/*
 	 * Step 3
-	 * Step to create the job, load the data from the temp table (Done with a select into) and execute the job
+	 * Conditional, Executed only if the PB22 file exists
+	 * Read the PB22 input price update CSV file and load the tempDB table in preparation
+	 * for Cost Update job creation/execution
+	 */
+	@Bean
+	public Step processPb22InputFileStep() {
+		return taskBatchJobFactory.getStepBuilder("processPb22InputFile").listener(new FeiInputFileProcessorListener(PricebookType.PB22, notificationService))
+				.<FeiPriceUpdateItem, FeiPriceUpdateItem>chunk(1000).reader(readPb22File(null)).faultTolerant()
+				.processor(pb22PriceUpdateItemprocessor())
+				.writer(feiPriceUpdateItemWriter()).build();
+	}
+
+	/*
+	 * Step 4
+	 * Step to create the Cost Uploader job, load job data from temp
+	 * table (Done with a select into) and execute the Cost Uploader job
 	 */
 	@Bean
 	public Step createCostUploadJobTasklet() {
@@ -165,7 +190,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 4
+	 * Step 5
 	 * Step to write any update validation errors to a csv file to be emailed out.
 	 */
 	@Bean
@@ -176,8 +201,8 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 5
-	 * Email error report
+	 * Step 6
+	 * Email error report created in step 5
 	 */
 	@Bean
 	public Step emailErrorReportTasklet() {
@@ -186,7 +211,7 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Step 6
+	 * Step 7
 	 * move input file to backup folder
 	 */
 	@Bean
@@ -196,12 +221,51 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
+	 * Decider that checks if we have any input files to process.
+	 */
+	@Bean
+	public FeiInputFileExistsDecider inputFileExistsDecider() {
+		return new FeiInputFileExistsDecider(null);
+	}
+
+	/*
+	 * Decider that checks if we have a PB1 file to process.
+	 */
+	@Bean
+	public FeiInputFileExistsDecider pb1inputFileExistsDecider() {
+		return new FeiInputFileExistsDecider(PricebookType.PB1);
+	}
+
+	/*
+	 * Decider that checks if we have a PB22 file to process.
+	 */
+	@Bean
+	public FeiInputFileExistsDecider pb22inputFileExistsDecider() {
+		return new FeiInputFileExistsDecider(PricebookType.PB22);
+	}
+
+	/*
 	 * Job listener who's main purpose is to drop the temp table when complete
 	 */
 	@Bean
 	@JobScope
 	public FeiPriceUpdateJobListener feiPriceUpdateJobListener() {
 		return new FeiPriceUpdateJobListener(feiPriceUpdateSettings, feiPriceUpdateService,notificationService);
+	}
+
+	/*
+	 * Line mapper.  Both input files are in the same format so this is used for both.
+	 */
+	@Bean
+	public LineMapper<FeiPriceUpdateItem> feiPriceUpdateItemLineMapper() {
+		DefaultLineMapper<FeiPriceUpdateItem> lineMapper = new DefaultLineMapper<>();
+		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer(DelimitedLineTokenizer.DELIMITER_COMMA);
+		lineTokenizer.setNames("mpid", "uniqueId", "price");
+		BeanWrapperFieldSetMapper<FeiPriceUpdateItem> mapper = new BeanWrapperFieldSetMapper<>();
+		mapper.setTargetType(FeiPriceUpdateItem.class);
+		lineMapper.setLineTokenizer(lineTokenizer);
+		lineMapper.setFieldSetMapper(mapper);
+		return lineMapper;
 	}
 
 	/*
@@ -217,15 +281,15 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * We will process all files in the input folder if there a multiple
+	 * Read PB1 file (fei_show_nets)
 	 */
 	@Bean
 	@StepScope
-	public MultiResourceItemReader<FeiPriceUpdateItem> allFilesReader() {
+	public MultiResourceItemReader<FeiPriceUpdateItem> readPb1File(@Value("#{jobExecutionContext['PB1_inputFile']}") String fileName) {
 		Resource[] resources = null;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
 		try {
-			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + "*.csv");
+			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + fileName);
 		} catch (IOException e) {
 			LOGGER.error("Error processing input CSV file(s). Exception: {}", e.toString());
 		}
@@ -237,13 +301,49 @@ public class FeiPriceUpdateTaskConfiguration {
 	}
 
 	/*
-	 * Write the temp price update record to the temp table.  This step will also create a 2nd price update
-	 * record for the Pro pricing (PB22).  The input file represent customer pricing only (PB1)
+	 * Read PB22 file (fei_pro_nets)
+	 */
+	@Bean
+	@StepScope
+	public MultiResourceItemReader<FeiPriceUpdateItem> readPb22File(@Value("#{jobExecutionContext['PB22_inputFile']}") String fileName) {
+		Resource[] resources = null;
+		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
+		try {
+			resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + fileName);
+		} catch (IOException e) {
+			LOGGER.error("Error processing input CSV file(s). Exception: {}", e.toString());
+		}
+
+		MultiResourceItemReader<FeiPriceUpdateItem> resourceItemReader = new MultiResourceItemReader<FeiPriceUpdateItem>();
+		resourceItemReader.setResources(resources);
+		resourceItemReader.setDelegate(feiPriceUpdateItemReader());
+		return resourceItemReader;
+	}
+
+	/*
+	 * PB 1 processor
+	 */
+	@Bean
+	public FeiPriceUpdateItemProcessor pb1PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB1, feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
+	/*
+	 * PB22 processor
+	 */
+	@Bean
+	public FeiPriceUpdateItemProcessor pb22PriceUpdateItemprocessor() {
+		return new FeiPriceUpdateItemProcessor(PricebookType.PB22, feiPriceUpdateService, feiPriceUpdateSettings);
+	}
+
+	/*
+	 * Writer
+	 * Used for both input files
 	 */
 	@Bean
 	@StepScope
 	public ItemWriter<FeiPriceUpdateItem> feiPriceUpdateItemWriter() {
-		return new FeiPriceUpdateItemWriter(feiPriceUpdateService, feiPriceUpdateSettings);
+		return new FeiPriceUpdateItemWriter(feiPriceUpdateService);
 	}
 
 	/*
@@ -321,6 +421,12 @@ public class FeiPriceUpdateTaskConfiguration {
 	@Bean
 	public FeiBackupInputFileTasklet backupFileTasklet() {
 		return new FeiBackupInputFileTasklet(feiPriceUpdateSettings);
+	}
+
+	@Bean
+	@JobScope
+	public FeiPriceUpdateFileSystemResource feiFileSystemResource() {
+		return new FeiPriceUpdateFileSystemResource();
 	}
 
 }

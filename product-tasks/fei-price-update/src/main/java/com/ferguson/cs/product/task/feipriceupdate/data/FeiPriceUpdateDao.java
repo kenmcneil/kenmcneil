@@ -27,12 +27,18 @@ public interface FeiPriceUpdateDao {
 	public void insertTempPriceUpdateRecord(FeiPriceUpdateItem item);
 
 	/**
-	 * This method will return the product details required in determining pro
-	 * pricing
+	 * This method will return the product details required for PB1 processing
 	 *
 	 * @param FeiPriceUpdateItem
 	 */
-	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item);
+	public FeiPriceUpdateItem getPb1PriceUpdateProductDetails(FeiPriceUpdateItem item);
+
+	/**
+	 * This method will return the product details required for PB22 processing
+	 *
+	 * @param FeiPriceUpdateItem
+	 */
+	public FeiPriceUpdateItem getPb22PriceUpdateProductDetails(FeiPriceUpdateItem item);
 
 	/**
 	 * This method loads the tempData.dbo.pricebookCostUpdates table by doing a

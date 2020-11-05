@@ -1,5 +1,6 @@
 package com.ferguson.cs.product.task.feipriceupdate.batch;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.task.feipriceupdate.FeiPriceUpdateSettings;
 import com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateService;
@@ -39,23 +41,38 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 		this.notificationService = notificationService;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-		List<String> inputResources;
+		List<String> inputResources = new ArrayList<>();
 		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-		Integer inputFileRecordCount = executionContext.getInt("READ_COUNT", -1);
+		Integer Pb1inputFileRecordCount = executionContext.getInt("PB1_READ_COUNT", 0);
+		Integer Pb22inputFileRecordCount = executionContext.getInt("PB22_READ_COUNT", 0);
+		Integer inputRecordCount = Pb1inputFileRecordCount + Pb22inputFileRecordCount;
+		String inputFiles;
 
-		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES)) {
-			inputResources = (List<String>) executionContext.get(FeiCreatePriceUpdateTempTableTasklet.INPUT_DATA_FILES);
-		} else {
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.PB1_INPUT_FILE)) {
+			inputResources.add((String)executionContext.get(FeiCreatePriceUpdateTempTableTasklet.PB1_INPUT_FILE));
+		}
+
+		if (executionContext.containsKey(FeiCreatePriceUpdateTempTableTasklet.PB22_INPUT_FILE)) {
+			inputResources.add((String)executionContext.get(FeiCreatePriceUpdateTempTableTasklet.PB22_INPUT_FILE));
+		}
+
+		if (CollectionUtils.isEmpty(inputResources)) {
 			throw new FeiPriceUpdateException(
 					"CreateCostUpdateJobTasklet - Input file resources not defined in ExecutionContext");
 		}
 
+		// Can only have 2 input files max.  If we have 2 then concat them.  createCostUploadJob() wants a filename passed
+		if (inputResources.size() == 2) {
+			inputFiles = inputResources.get(0) + "-" + inputResources.get(1);
+		} else {
+			inputFiles = inputResources.get(0);
+		}
+
 		// Need to create the CostUploaderJob. Need the ID for downstream processing
-		CostUpdateJob job = feiPriceUpdateService.createCostUploadJob(inputResources.get(0),
+		CostUpdateJob job = feiPriceUpdateService.createCostUploadJob(inputFiles,
 				CostPriceType.PRICEBOOK_CSV, DateUtils.now(), feiPriceUpdateSettings.getCostUpdateJobUserid());
 
 		if (job == null || job.getId() == null) {
@@ -68,17 +85,16 @@ public class FeiCreateCostUpdateJobTasklet implements Tasklet {
 		criteria.setDeleteCost(false);
 
 		Integer updateRecordCount = feiPriceUpdateService.loadPriceBookCostUpdatesFromTempTable(criteria);
-		LOGGER.info("Creating CostUpdateJob with JobID: {}, inputFile: {}, record count (P1 and P22): {}", job.getId(),
-				inputResources.get(0), updateRecordCount);
+		LOGGER.info("Creating CostUpdateJob with JobID: {}, input files: {}, record count (P1 and P22): {}", job.getId(),
+				inputFiles, updateRecordCount);
 
-		// There is going to be twice the number of records as were in the input file
-		// since we had to create the P22 records. All the input records are P1
-		if (inputFileRecordCount != (updateRecordCount / 2)) {
-			LOGGER.warn("FEI Price Update processing: {} failed validation rules",
-					inputFileRecordCount - (updateRecordCount / 2));
+
+		if (inputRecordCount != updateRecordCount) {
+			LOGGER.warn("FEI Price Update processing.  Input record count: {} was not equal to the record update count: {}",
+					inputRecordCount,updateRecordCount);
 		}
 
-		// If no records then then no need to execute update
+		// If no records then no need to execute update
 		if (updateRecordCount > 0) {
 			job.setStatus(CostPriceJobStatus.ENTERED.getMessageTemplate());
 			Calendar cal = Calendar.getInstance();

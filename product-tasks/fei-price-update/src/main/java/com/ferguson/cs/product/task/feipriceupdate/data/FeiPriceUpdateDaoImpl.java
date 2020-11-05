@@ -34,8 +34,13 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 	}
 
 	@Override
-	public FeiPriceUpdateItem getPriceUpdateProductDetails(FeiPriceUpdateItem item) {
-		return feiPriceUpdateMapper.getPriceUpdateProductDetails(item);
+	public FeiPriceUpdateItem getPb1PriceUpdateProductDetails(FeiPriceUpdateItem item) {
+		return feiPriceUpdateMapper.getPb1PriceUpdateProductDetails(item);
+	}
+
+	@Override
+	public FeiPriceUpdateItem getPb22PriceUpdateProductDetails(FeiPriceUpdateItem item) {
+		return feiPriceUpdateMapper.getPb22PriceUpdateProductDetails(item);
 	}
 
 	@Override

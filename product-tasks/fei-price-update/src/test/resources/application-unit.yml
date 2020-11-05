@@ -1,0 +1,14 @@
+datasource:
+  core:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://chico-db-dev.build.internal\CICDEV2;selectMethod=direct;applicationName=integration;sendStringParametersAsUnicode=false
+    username: wbsrvr_mmc
+    password: 'Build12Dot24Cow!'
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+fei-price-update:
+  pb1margin: .14
+  pb22margin: .10

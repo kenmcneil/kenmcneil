@@ -3,7 +3,7 @@
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.task.feipriceupdate.data.FeiPriceUpdateMapper">
 
-	<resultMap id="feiPriceUpdateDataMap" type="FeiPriceUpdateItem">
+	<resultMap id="feiPriceUpdateDataMap" type="com.ferguson.cs.product.task.feipriceupdate.model.FeiPriceUpdateItem">
 		<result column="uniqueId" property="uniqueId"/>
 		<result column="mpid" property="mpid"/>
 		<result column="price" property="price"/>
@@ -14,10 +14,18 @@
 		<result column="feiOwnedProductId" property="feiOwnedProductId"/>
 		<result column="feiOwnedActive" property="feiOwnedActive"/>
 		<result column="pricebookId" property="pricebookId"/>	
-		<result column="statusId" property="status"
-				javaType="PriceUpdateStatus"
-				typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>	
 		<result column="statusMsg" property="statusMsg"/>
+		<result column="existingPb1Price" property="existingPb1Price"/>
+		<result column="newPb1Price" property="newPb1Price"/>
+		<result column="feiPricingTypeId" property="feiPricingType" 
+			javaType="FeiPricingType" 
+			typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>
+		<result column="productStatusId" property="productStatus" 
+			javaType="ProductStatus" 
+			typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>
+		<result column="containerTypeId" property="containerType" 
+			javaType="ContainerType" 
+			typeHandler="com.ferguson.cs.product.task.feipriceupdate.data.IntMappedEnumTypeHandler"/>
 	</resultMap>
 	
 	<select id="getFeiPriceUpdateErrors" resultMap="feiPriceUpdateDataMap">
@@ -28,10 +36,10 @@
 			pricebookId,
 			statusMsg
 		FROM tempData.dbo.${tempTableName}
-		WHERE statusId != 0	order by uniqueId
+		WHERE priceUpdateStatusId != 0	order by uniqueId
 	</select>
 	
-	<select id="getPriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
+	<select id="getPb1PriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
 		select 
 			p.uniqueId as uniqueId,
 			bc.base_category_id as baseCategoryId,
@@ -42,12 +50,40 @@
 			fei.active as feiOwnedActive
 		from
 			mmc.product.product p with(NOLOCK)
-			INNER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
 			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
 			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
+			LEFT OUTER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
 			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.manufacturerId
 			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId
 			LEFT OUTER JOIN mmc.dbo.product_imap_flag pm ON p.uniqueId = pm.uniqueId	
+		WHERE p.uniqueId =#{uniqueId}
+	</select>
+	
+	<select id="getPb22PriceUpdateProductDetails"  parameterType="FeiPriceUpdateItem" resultMap="feiPriceUpdateDataMap">
+		select 
+			p.uniqueId as uniqueId,
+			p.statusId as productStatusId,
+			bc.base_category_id as baseCategoryId,
+			m.id as manufacturerId,
+			umrp.id as umrpId,
+			pm.MAP_price as mapPrice,
+			fei.productUniqueId as feiOwnedProductId,
+			fei.active as feiOwnedActive,
+			pwl.feiPricingTypeId as feiPricingTypeId,
+			pf.containerTypeId as containerTypeId,
+			tmp.price as newPb1Price,
+			pb.cost as existingPb1Price			
+		from
+			mmc.product.product p with(NOLOCK)
+			INNER JOIN mmc.product.family pf WITH(NOLOCK) ON p.familyId = pf.id
+			INNER JOIN mmc.dbo.manufacturer m WITH(NOLOCK) ON pf.manufacturerId = m.id
+			LEFT OUTER JOIN mmc.dbo.product_base_category bc WITH(NOLOCK) on p.uniqueId = bc.uniqueid
+			LEFT OUTER JOIN mmc.dbo.manufacturerIsUMRP umrp WITH(NOLOCK) ON m.id = umrp.manufacturerId
+			LEFT OUTER JOIN mmc.product.pricingFeiOwned fei WITH(NOLOCK) ON p.uniqueId = fei.productUniqueId
+			LEFT OUTER JOIN mmc.dbo.product_imap_flag pm ON p.uniqueId = pm.uniqueId
+			LEFT OUTER JOIN mmc.product.pricingFeiWhitelist pwl on pwl.productUniqueId = p.uniqueId
+			LEFT OUTER JOIN mmc.dbo.pricebook_cost pb on pb.uniqueId = p.uniqueId and pb.pricebookid = 1
+			LEFT OUTER JOIN tempData.dbo.${tempTableName} tmp on tmp.uniqueId = p.uniqueId and tmp.pricebookId = 1 and tmp.priceUpdateStatusId = 0
 		WHERE p.uniqueId =#{uniqueId}
 	</select>
 	
@@ -59,11 +95,11 @@
 	        [price] [decimal](18,2),
 	        [pricebookId] [int],
 	        [preferredVendorCost] [decimal](18,2),
-	        [statusId] [int],
+	        [priceUpdateStatusId] [int],
 	        [statusMsg] [varchar](100),
-	        [margin] [decimal](18,4),
-	        [priceCalculation] [varchar](32)
+	        [margin] [decimal](18,4)
 	  )
+	  CREATE NONCLUSTERED INDEX nux_temp_fei_inbound_pricing_uniqueId ON [tempData].[dbo].[${_parameter}] (uniqueId);
 	</insert>
 	
 	<insert id="insertTempPriceUpdateRecord" parameterType="FeiPriceUpdateItem">
@@ -74,20 +110,18 @@
 			price,
 			pricebookId,
 			preferredVendorCost,
-			statusId,
+			priceUpdateStatusId,
 			statusMsg,
-			margin,
-			priceCalculation
+			margin
 		) VALUES (
 			#{uniqueId},
 			#{mpid},
 			#{price},
 			#{pricebookId},
 			#{preferredVendorCost},
-			#{status.intValue},
+			#{priceUpdateStatus.intValue},
 			#{statusMsg},
-			#{margin},
-			#{priceCalculation}
+			#{margin}
 		)
 	</insert>
 	
@@ -130,7 +164,7 @@
 			price,
 			#{deleteCost} 
 		FROM tempData.dbo.${tempTableName}
-		WHERE statusId = 0
+		WHERE priceUpdateStatusId = 0
 	</insert>
 	
 	<select id="executePricebookUpdater" parameterType="int">
