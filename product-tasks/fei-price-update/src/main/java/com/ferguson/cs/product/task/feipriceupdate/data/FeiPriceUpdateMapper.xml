@@ -97,7 +97,8 @@
 	        [preferredVendorCost] [decimal](18,2),
 	        [priceUpdateStatusId] [int],
 	        [statusMsg] [varchar](100),
-	        [margin] [decimal](18,4)
+	        [margin] [decimal](18,4),
+	        CONSTRAINT nux_temp_fei_inbound_pricing_uniqueId_pricebookId UNIQUE (uniqueId, pricebookId)        
 	  )
 	  CREATE NONCLUSTERED INDEX nux_temp_fei_inbound_pricing_uniqueId ON [tempData].[dbo].[${_parameter}] (uniqueId);
 	</insert>
@@ -124,6 +125,17 @@
 			#{margin}
 		)
 	</insert>
+	
+	<update id="updateTempPriceUpdateRecordStatus" parameterType="FeiPriceUpdateItem">
+		UPDATE tempData.dbo.${tempTableName}
+		<set>
+			priceUpdateStatusId = #{priceUpdateStatus.intValue},
+			statusMsg = #{statusMsg},
+		</set>
+		<where>
+			uniqueId = #{uniqueId}
+		</where>
+	</update>
 	
 	<update id="dropTempTable" parameterType="java.lang.String">
 		DROP TABLE IF EXISTS tempData.dbo.${_parameter}

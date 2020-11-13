@@ -103,4 +103,9 @@ public class FeiPriceUpdateServiceImpl implements FeiPriceUpdateService {
 		return feiPriceUpdateDao.getPreferredVendorCost(uniqueId);
 	}
 
+	@Override
+	public void updateTempPriceUpdateRecordStatus(FeiPriceUpdateItem item) {
+		feiPriceUpdateDao.updateTempPriceUpdateRecordStatus(item);
+	}
+
 }

@@ -100,4 +100,11 @@ public interface FeiPriceUpdateMapper {
 	 */
 	List<FeiPriceUpdateItem> getFeiPriceUpdateErrors(@Param("tempTableName") String tempTableName);
 
+	/**
+	 * Update the pricebook record status code and status message for the given uniqueId
+	 * @param item
+	 */
+	void updateTempPriceUpdateRecordStatus(FeiPriceUpdateItem item);
+
+
 }
