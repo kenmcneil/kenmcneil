@@ -89,4 +89,9 @@ public class FeiPriceUpdateDaoImpl implements FeiPriceUpdateDao {
 		return feiPriceUpdateMapper.getPreferredVendorCost(uniqueId);
 	}
 
+	@Override
+	public void updateTempPriceUpdateRecordStatus(FeiPriceUpdateItem item) {
+		feiPriceUpdateMapper.updateTempPriceUpdateRecordStatus(item);
+	}
+
 }

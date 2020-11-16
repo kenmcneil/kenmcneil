@@ -100,4 +100,10 @@ public interface FeiPriceUpdateDao {
 	 */
 	Double getPreferredVendorCost(Integer uniqueId);
 
+	/**
+	 * Update the pricebook input record status code and status message for the given item.uniqueId.
+	 * @param item
+	 */
+	void updateTempPriceUpdateRecordStatus(FeiPriceUpdateItem item);
+
 }
