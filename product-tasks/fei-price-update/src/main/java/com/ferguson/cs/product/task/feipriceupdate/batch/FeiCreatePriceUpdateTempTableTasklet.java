@@ -40,7 +40,7 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
 		// See what input files we have.  We can only have one PB1 and/or one PB22 file.
-		List<String> inputFiles = getInputResources();
+		List<String> inputFiles = getInputResources(chunkContext);
 
 		if (!CollectionUtils.isEmpty(inputFiles)) {
 			// Making sure temp table does not exist first by making a call to drop it.
@@ -59,11 +59,6 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 				}
 
 			}
-		} else {
-			// Notify the slack channel that there was no input file
-			notificationService.message("FEI Price Update DataFlow task:"
-					+ chunkContext.getStepContext().getJobName()
-					+ " input file validation failed, unable to continue", SlackMessageType.WARNING);
 		}
 
 		return RepeatStatus.FINISHED;
@@ -71,49 +66,59 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 
 	// loop over our resource files and check for the specific pb1 and pb22 files ignoring case.
 	// Acceptable combinations are: only one PB1 file or only 1 PB22 file or one of each.
-	private List<String> getInputResources() throws IOException {
+	private List<String> getInputResources(ChunkContext chunkContext) throws IOException {
 
 		Resource[] resources;
 		ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
 		resources = patternResolver.getResources("file:" + feiPriceUpdateSettings.getInputFilePath() + "*.csv");
-
-		if (resources == null || resources.length == 0) {
-			return null;
-		}
-
+		List<String> inputFiles = new ArrayList<>();
 		int pb1Index = -1;
 		int pb22Index = -1;
-		List<String> inputFiles = new ArrayList<String>();
 		boolean multipleFiles = false;
 
-		for (int i = 0 ; i < resources.length; i++) {
-			// Check for PB1 file
-			if (resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb1InputFilePrefix().toUpperCase())) {
-				// If pb1 index is not -1 we have multiple pb1 input files - That's a problem.
-				if (pb1Index != -1) {
-					multipleFiles = true;
-					break;
+		if (resources != null && resources.length > 0) {
+			for (int i = 0 ; i < resources.length; i++) {
+				// Check for PB1 file
+				if (resources[i].getFilename() != null &&
+						resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb1InputFilePrefix().toUpperCase())) {
+					// If pb1 index is not -1 we have multiple pb1 input files - That's a problem.
+					if (pb1Index != -1) {
+						multipleFiles = true;
+						break;
+					}
+					pb1Index = i;
+				} else 	if (resources[i].getFilename() != null &&
+						resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb22InputFilePrefix().toUpperCase())) {
+					// If pb22 index is not -1 we have multiple pb22 input files - That's a problem.
+					if (pb22Index != -1) {
+						multipleFiles = true;
+						break;
+					}
+					pb22Index = i;
 				}
-				pb1Index = i;
-			} else 	if (resources[i].getFilename().toUpperCase().startsWith(feiPriceUpdateSettings.getPb22InputFilePrefix().toUpperCase())) {
-				// If pb22 index is not -1 we have multiple pb22 input files - That's a problem.
-				if (pb22Index != -1) {
-					multipleFiles = true;
-					break;
+			}
+
+			// If we have multiple PB1 or PB22 files notify slack channel and break
+			if (multipleFiles) {
+				notificationService.message("FEI Price Update DataFlow task:"
+						+ chunkContext.getStepContext().getJobName()
+						+ " multiple PB1 or PB22 input files found in input folder.  Unable to continue", SlackMessageType.WARNING);
+			} else {
+				if (pb1Index >= 0) {
+					inputFiles.add(resources[pb1Index].getFilename());
 				}
-				pb22Index = i;
+				if (pb22Index >= 0) {
+					inputFiles.add(resources[pb22Index].getFilename());
+				}
 			}
 		}
 
-		if (!multipleFiles) {
-			if (pb1Index >= 0) {
-				inputFiles.add(resources[pb1Index].getFilename());
-			}
-			if (pb22Index >= 0) {
-				inputFiles.add(resources[pb22Index].getFilename());
-			}
+		// if no valid input files - notify slack channel
+		if (!multipleFiles && CollectionUtils.isEmpty(inputFiles)) {
+			notificationService.message("FEI Price Update DataFlow task:"
+					+ chunkContext.getStepContext().getJobName()
+					+ " No input files found.  Unable to continue", SlackMessageType.WARNING);
 		}
-
 		return inputFiles;
 	}
 }
