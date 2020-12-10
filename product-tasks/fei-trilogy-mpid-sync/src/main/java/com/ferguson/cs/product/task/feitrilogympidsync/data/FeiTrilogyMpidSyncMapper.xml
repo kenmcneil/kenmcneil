@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.task.feitrilogympidsync.data.FeiTrilogyMpidSyncMapper">
+
+	<resultMap id="FeiTrilogyMpidSyncMap" type="com.ferguson.cs.product.task.feitrilogympidsync.model.FeiTrilogyMpidSync">
+		<result column="uniqueId" property="uniqueId"/>
+		<result column="mpid" property="mpid"/>
+		<result column="inTrilogy" property="inTrilogy"/>
+	</resultMap>
+	
+	<select id="getTrilogyMpidsToUpdate" resultMap="FeiTrilogyMpidSyncMap">
+		SELECT 
+			t.mpid as mpid,
+			f.uniqueId as uniqueId,
+			f.inTrilogy as inTrilogy
+		FROM 
+			<!-- There is no Departments DB in dev environments.  To test create the table in tempData -->
+			<!-- tempData.dbo.trilogyMPID t  -->
+			Departments.feiintegration.trilogyMPID t	
+		INNER JOIN mmc.product.feiMPID f
+			ON t.mpid = f.mpid
+		WHERE f.inTrilogy = 0
+	</select>
+	
+	<update id="updateFeiMpidTrilogyFlag" parameterType="com.ferguson.cs.product.task.feitrilogympidsync.model.FeiTrilogyMpidSync">
+		UPDATE 
+			mmc.product.feiMPID
+		SET 
+			inTrilogy = #{inTrilogy}
+		WHERE
+			uniqueId = #{uniqueId}
+	</update>
+	
+</mapper>

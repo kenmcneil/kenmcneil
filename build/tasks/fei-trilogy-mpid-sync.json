@@ -1,0 +1,9 @@
+[
+  {
+    "appName": "fei-trilogy-mpid-sync",
+    "name": "fei-trilogy-mpid-sync",
+    "jobName": "feiTrilogyMpidSyncJob",
+    "heapSize": "512m"
+  }
+
+]
