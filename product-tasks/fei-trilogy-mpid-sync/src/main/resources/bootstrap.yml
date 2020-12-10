@@ -2,7 +2,7 @@
 
 spring:
   application:
-    name: fei-price-update
+    name: fei-trilogy-mpid-sync
   profiles:
     active: localdev
   cloud:
