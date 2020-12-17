@@ -10,6 +10,7 @@
 		<module>wiser-feeds</module>
 		<module>fei-price-feed</module>
 		<module>fei-price-update</module>
+		<module>fei-trilogy-mpid-sync</module>
 		<module>mpn-mpid-mismatch</module>
 	</modules>
 	
