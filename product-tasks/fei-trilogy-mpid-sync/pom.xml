@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>fei-trilogy_mpid-sync</artifactId>
+	<artifactId>fei-trilogy-mpid-sync</artifactId>
 
 	<dependencies>
 		<dependency>
