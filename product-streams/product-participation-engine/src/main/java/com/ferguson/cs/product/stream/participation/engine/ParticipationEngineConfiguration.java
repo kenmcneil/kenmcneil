@@ -13,12 +13,14 @@ import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCor
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV2Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV2Dao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationCouponV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV2Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV2Lifecycle;
 
 @Configuration
 @EnableScheduling

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Mapper">
+<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationV2Mapper">
 
 	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
 		-- Update the base price and sale date of pricebook prices that already exist in the table.
