@@ -87,13 +87,13 @@
 		UPDATE
 			pbCost
 		SET
-			@wasPrice = COALESCE(pb1LOS.wasPrice, wasPrice.wasPrice, 0.00),--check pb1LOS usage here
+			@wasPrice = COALESCE(pb1los.wasPrice, wasPrice.wasPrice, 0.00),--check pb1LOS usage here
 			pbcost.cost = ROUND(IIF(
 										pb1Discount.isPercent = 1,
-										COALESCE(pb1LOS.basePrice, pb1Cost.basePrice) * pb1Discount.changeValue,
-										COALESCE(pb1LOS.basePrice, pb1Cost.basePrice) + pb1Discount.changeValue
+										COALESCE(pb1los.basePrice, pb1Cost.basePrice) * pb1Discount.changeValue,
+										COALESCE(pb1los.basePrice, pb1Cost.basePrice) + pb1Discount.changeValue
 									), 2),
-			pbCost.basePrice = COALESCE(pb1LOS.basePrice, pbCost.basePrice),--check pb1LOS usage here
+			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = pb1Discount.participationId,
 			pbCost.userId = #{userId},
 			pbCost.wasPrice = @wasPrice
@@ -110,10 +110,15 @@
 			mmc.dbo.pricebookwasprice AS wasPrice
 			ON wasPrice.uniqueId = pbCost.uniqueId
 		LEFT JOIN
-			mmc.product.participationLastOnSale AS pb1LOS
-			ON pb1LOS.uniqueId = pbCost.uniqueId
-			AND pb1LOS.pricebookId = 1
-			AND DATEDIFF_BIG(minute, pb1LOS.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			mmc.product.participationLastOnSale AS los
+			ON los.uniqueId = pbCost.uniqueId
+				AND los.pricebookId = pbCost.pricebookId
+				AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+		LEFT JOIN
+			mmc.product.participationLastOnSale AS pb1los
+			ON pb1los.uniqueId = pbCost.uniqueId
+				AND pb1los.pricebookId = 1
+				AND DATEDIFF_BIG(minute, pb1los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 		LEFT JOIN
 			MMC.dbo.pricebook_cost AS pb1Cost
 			ON pbCost.uniqueId = pb1Cost.uniqueId
