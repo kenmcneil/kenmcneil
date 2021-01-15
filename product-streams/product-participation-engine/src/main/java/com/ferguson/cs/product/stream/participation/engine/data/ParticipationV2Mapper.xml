@@ -113,7 +113,7 @@
 			mmc.product.participationLastOnSale AS pb1LOS
 			ON pb1LOS.uniqueId = pbCost.uniqueId
 			AND pb1LOS.pricebookId = 1
-			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			AND DATEDIFF_BIG(minute, pb1LOS.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 		LEFT JOIN
 			MMC.dbo.pricebook_cost AS pb1Cost
 			ON pbCost.uniqueId = pb1Cost.uniqueId

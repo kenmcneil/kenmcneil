@@ -283,7 +283,8 @@ public class ParticipationV2Lifecycle implements ParticipationLifecycle {
 		// Return ready-to-insert pricebook 1 and 22 discount objects.
 		discounts.add(makeCalculatedDiscount(item.getId(), 1, ParticipationLifecycle.getAtPath(discountMap, PB1_DISCOUNT_VALUE_PATH),
 				isPercentDisc, discountTemplateId));
-		discounts.add(makeCalculatedDiscount(item.getId(), 22, ParticipationLifecycle.getAtPath(discountMap, PB22_DISCOUNT_VALUE_PATH),
+		// PB22 discounts are deprecated. Overwrite with PB1 instead
+		discounts.add(makeCalculatedDiscount(item.getId(), 22, ParticipationLifecycle.getAtPath(discountMap, PB1_DISCOUNT_VALUE_PATH),
 				isPercentDisc, discountTemplateId));
 
 		return discounts;
