@@ -79,7 +79,6 @@ public class ParticipationV2Lifecycle implements ParticipationLifecycle {
 			"priceDiscounts", "calculatedDiscount", "discountType", "value"};
 	private static final String[] PRICE_DISCOUNTS_CALCULATED_DISCOUNT_PATH = {"priceDiscounts", "calculatedDiscount"};
 	private static final String[] CALCULATED_DISCOUNT_TEMPLATE_PATH = {"template", "selected"};
-	private static final String[] PB22_DISCOUNT_VALUE_PATH = {"pricebookId22", "text"};
 	private static final String[] PB1_DISCOUNT_VALUE_PATH = {"pricebookId1", "text"};
 	private static final String PERCENT_DISCOUNT_KEY = "percentDiscount";
 	private static final String PRICE_DISCOUNTS_KEY = "priceDiscounts";
