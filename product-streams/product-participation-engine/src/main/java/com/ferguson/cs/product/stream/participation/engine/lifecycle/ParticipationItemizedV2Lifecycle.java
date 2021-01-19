@@ -10,7 +10,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV2Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -53,7 +53,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;
-	private final ParticipationItemizedV2Dao participationItemizedV2Dao;
+	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
 
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_ITEMIZED_V2;
@@ -84,7 +84,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
 		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
-		rowsAffected += participationItemizedV2Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
+		rowsAffected += participationItemizedV1Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
 
 		return rowsAffected;
 	}
@@ -131,7 +131,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 		int totalRows = 0;
 
 		// Activate any new itemized discounts.
-		int rowsAffected = participationItemizedV2Dao.applyNewItemizedDiscounts(processingDate, userId,
+		int rowsAffected = participationItemizedV1Dao.applyNewItemizedDiscounts(processingDate, userId,
 				participationEngineSettings.getCoolOffPeriod().toMinutes());
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} pricebook prices (on {} products) discounted", participationId, rowsAffected, rowsAffected/2);
@@ -184,11 +184,11 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 		int userId = itemPartial.getLastModifiedUserId();
 		int totalRows = 0;
 
-		int rowsAffected = participationItemizedV2Dao.updateLastOnSaleBasePrices(processingDate);
+		int rowsAffected = participationItemizedV1Dao.updateLastOnSaleBasePrices(processingDate);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} lastOnSale base prices saved", participationId, rowsAffected);
 
-		rowsAffected = participationItemizedV2Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
+		rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
 		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices taken off sale from itemized discounts", participationId, rowsAffected);
 
@@ -199,7 +199,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		return participationCoreDao.deleteParticipationProducts(participationId)
-				+ participationItemizedV2Dao.deleteParticipationItemizedDiscounts(participationId)
+				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
 				+ participationCoreDao.deleteParticipationItemPartial(participationId);
 	}
 
@@ -260,7 +260,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 
 		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
 		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
-		participationItemizedV2Dao.insertParticipationItemizedDiscountsHistory(
+		participationItemizedV1Dao.insertParticipationItemizedDiscountsHistory(
 				partialHistoryId, (getParticipationItemizedDiscounts(item)));
 	}
 

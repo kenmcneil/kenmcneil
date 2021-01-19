@@ -11,7 +11,6 @@ import com.ferguson.cs.product.stream.participation.engine.construct.ContentEven
 import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV2Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV2Dao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationCouponV1Lifecycle;
@@ -97,10 +96,10 @@ public class ParticipationEngineConfiguration {
 	public ParticipationItemizedV2Lifecycle participationItemizedV2Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao,
-			ParticipationItemizedV2Dao participationItemizedV2Dao
+			ParticipationItemizedV1Dao participationItemizedV1Dao
 	) {
 		return new ParticipationItemizedV2Lifecycle(participationEngineSettings,
-				participationCoreDao, participationItemizedV2Dao);
+				participationCoreDao, participationItemizedV1Dao);
 	}
 
 	@Bean
