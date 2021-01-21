@@ -315,7 +315,7 @@ public class ParticipationTestUtilities {
 				: ParticipationContentType.PARTICIPATION_V1;
 
 		// Insert discount records, where applicable
-		if (contentType == ParticipationContentType.PARTICIPATION_V1) {
+		if (contentType == ParticipationContentType.PARTICIPATION_V1 || contentType == ParticipationContentType.PARTICIPATION_V2) {
 			nullSafeStream(fixture.getCalculatedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
 					.forEach(discount -> jdbcTemplate.update(INSERT_PARTICIPATION_CALCULATED_DISCOUNT,
@@ -342,7 +342,7 @@ public class ParticipationTestUtilities {
 
 		// Insert any uniqueIds as participationProduct records with isOwner = false.
 		List<Integer> uniqueIds = new ArrayList<>();
-		if (contentType ==ParticipationContentType.PARTICIPATION_V1) {
+		if (contentType == ParticipationContentType.PARTICIPATION_V1 || contentType == ParticipationContentType.PARTICIPATION_V2) {
 			uniqueIds = ParticipationV1TestLifecycle.getUniqueIds(fixture);
 		} else if (contentType ==ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
 			uniqueIds = ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
