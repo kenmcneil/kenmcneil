@@ -12,11 +12,14 @@ import com.ferguson.cs.product.stream.participation.engine.construct.Participati
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationV2Dao;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationCouponV1Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV1Lifecycle;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationItemizedV2Lifecycle;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV1Lifecycle;
+import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationV2Lifecycle;
 
 @Configuration
 @EnableScheduling
@@ -70,12 +73,32 @@ public class ParticipationEngineConfiguration {
 	}
 
 	@Bean
+	public ParticipationV2Lifecycle participationV2Lifecycle(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationCoreDao participationCoreDao,
+			ParticipationV2Dao participationV2Dao
+	) {
+		return new ParticipationV2Lifecycle(participationEngineSettings, participationCoreDao,
+				participationV2Dao);
+	}
+
+	@Bean
 	public ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle(
 			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao,
 			ParticipationItemizedV1Dao participationItemizedV1Dao
 	) {
 		return new ParticipationItemizedV1Lifecycle(participationEngineSettings,
+				participationCoreDao, participationItemizedV1Dao);
+	}
+
+	@Bean
+	public ParticipationItemizedV2Lifecycle participationItemizedV2Lifecycle(
+			ParticipationEngineSettings participationEngineSettings,
+			ParticipationCoreDao participationCoreDao,
+			ParticipationItemizedV1Dao participationItemizedV1Dao
+	) {
+		return new ParticipationItemizedV2Lifecycle(participationEngineSettings,
 				participationCoreDao, participationItemizedV1Dao);
 	}
 
@@ -91,11 +114,18 @@ public class ParticipationEngineConfiguration {
 			ParticipationEngineSettings participationEngineSettings,
 			ParticipationCoreDao participationCoreDao,
 			ParticipationV1Lifecycle participationV1Lifecycle,
+			ParticipationV2Lifecycle participationV2Lifecycle,
 			ParticipationItemizedV1Lifecycle participationItemizedV1Lifecycle,
+			ParticipationItemizedV2Lifecycle participationItemizedV2Lifecycle,
 			ParticipationCouponV1Lifecycle participationCouponV1Lifecycle
 	) {
 		return new ParticipationLifecycleServiceImpl(participationEngineSettings,
-				participationCoreDao, participationV1Lifecycle, participationItemizedV1Lifecycle,
-				participationCouponV1Lifecycle);
+				participationCoreDao,
+				participationV1Lifecycle,
+				participationV2Lifecycle,
+				participationItemizedV1Lifecycle,
+				participationItemizedV2Lifecycle,
+				participationCouponV1Lifecycle
+		);
 	}
 }
