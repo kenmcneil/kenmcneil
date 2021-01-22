@@ -140,7 +140,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 				.isActive(false)
 				.isCoupon(true)
 				.shouldBlockDynamicPricing(false)
-				.contentTypeId(ParticipationContentType.PARTICIPATION_V2.contentTypeId())
+				.contentTypeId(ParticipationContentType.PARTICIPATION_V1.contentTypeId())
 				.build();
 		List<Integer> uniqueIds = new ArrayList<>();
 		uniqueIds.add(tUniqueId);
