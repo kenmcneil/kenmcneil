@@ -61,6 +61,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 
 		List<String> messageIds;
 		try {
+			//Get ids of messages for signed in user, filtering to those with attachments
 			messageIds = graphServiceClient.me().messages().buildRequest().filter("hasAttachments eq true").select("id")
 					.get().getCurrentPage().stream().map(m -> m.id).collect(Collectors.toList());
 
@@ -95,15 +96,19 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		for (String messageId : messageIds) {
 			boolean hasError = false;
 			try {
+				//Get the attachments associated to message id
 				List<Attachment> attachments = graphServiceClient.me().messages(messageId).attachments().buildRequest()
 						.get().getCurrentPage();
 
 				for (Attachment attachment : attachments) {
+					//Unfortunately, file type attachments returned from Microsoft's Graph SDK are NOT of type
+					//FileAttachment. So we check this field in lieu of a "typeof" check
 					if (attachment.oDataType.contains("file")) {
 
 						String attachFilePath = attachmentDir.getAbsolutePath().concat("/").concat(attachment.name);
 						InventoryImportJobEmailAttachment inventoryImportJobEmailAttachment = new InventoryImportJobEmailAttachment();
 						inventoryImportJobEmailAttachment.setFilename(attachment.name);
+						//Content is base 64 encoded, need to decode it
 						try (InputStream inputStream = new ByteArrayInputStream(Base64.getDecoder()
 								.decode(attachment.getRawObject().get("contentBytes").getAsString().getBytes()));
 							 FileOutputStream fos = new FileOutputStream(new File(attachFilePath))) {
@@ -148,6 +153,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 					}
 				}
 				if(!hasError) {
+					//Delete message from inbox, if no errors were encountered
 					graphServiceClient.me().messages(messageId).buildRequest().delete();
 				}
 

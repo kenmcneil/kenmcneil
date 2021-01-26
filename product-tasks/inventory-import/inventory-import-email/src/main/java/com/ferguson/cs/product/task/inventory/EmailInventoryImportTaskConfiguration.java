@@ -27,9 +27,16 @@ public class EmailInventoryImportTaskConfiguration {
 	@Bean
 	public IGraphServiceClient graphServiceClient() {
 		List<String> scopes = new ArrayList<>();
+		//Scope of permissions granted by token, needed to read and delete email
 		scopes.add("Mail.ReadWrite.Shared");
 
-		UsernamePasswordProvider  authProvider = new UsernamePasswordProvider(emailInventoryImportSettings.getClientId(), scopes, emailInventoryImportSettings.getEmailUsername(), emailInventoryImportSettings.getEmailPassword(), NationalCloud.Global, emailInventoryImportSettings.getTenantId(), emailInventoryImportSettings.getClientSecret());
+		//Uses username and password to get a token for account. Other methods of doing this: A) Require user interaction
+		//B) Require onerous application permission overhauls, or C) Are explicitly forbidden by the API from
+		//accessing email
+		UsernamePasswordProvider authProvider = new UsernamePasswordProvider(emailInventoryImportSettings
+				.getClientId(), scopes, emailInventoryImportSettings.getEmailUsername(), emailInventoryImportSettings
+				.getEmailPassword(), NationalCloud.Global, emailInventoryImportSettings
+				.getTenantId(), emailInventoryImportSettings.getClientSecret());
 
 		return GraphServiceClient
 				.builder()
