@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.product.task.inventory.EmailInventoryImportSettings;
 import com.ferguson.cs.product.task.inventory.InventoryImportException;
 import com.ferguson.cs.product.task.inventory.InventoryImportSettings;
 import com.ferguson.cs.product.task.inventory.model.EmailInventoryImportJobLog;
@@ -35,6 +36,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 
 	private IGraphServiceClient graphServiceClient;
 	private InventoryImportSettings inventoryImportSettings;
+	private EmailInventoryImportSettings emailInventoryImportSettings;
 	private InventoryImportJobLogService inventoryImportJobLogService;
 
 	@Autowired
@@ -50,6 +52,11 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 	@Autowired
 	public void setGraphServiceClient(IGraphServiceClient graphServiceClient) {
 		this.graphServiceClient = graphServiceClient;
+	}
+
+	@Autowired
+	public void setEmailInventoryImportSettings(EmailInventoryImportSettings emailInventoryImportSettings) {
+		this.emailInventoryImportSettings = emailInventoryImportSettings;
 	}
 
 	@Override
@@ -152,7 +159,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 						}
 					}
 				}
-				if(!hasError) {
+				if(!hasError && emailInventoryImportSettings != null && Boolean.FALSE.equals(emailInventoryImportSettings.getSafeMode())) {
 					//Delete message from inbox, if no errors were encountered
 					graphServiceClient.me().messages(messageId).buildRequest().delete();
 				}
