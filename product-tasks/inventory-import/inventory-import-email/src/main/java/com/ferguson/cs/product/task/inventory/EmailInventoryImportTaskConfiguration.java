@@ -1,16 +1,17 @@
 package com.ferguson.cs.product.task.inventory;
 
-import java.util.Properties;
-
-import javax.mail.Authenticator;
-import javax.mail.PasswordAuthentication;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.IntegrationComponentScan;
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailReceiver;
+
+import com.microsoft.graph.auth.enums.NationalCloud;
+import com.microsoft.graph.auth.publicClient.UsernamePasswordProvider;
+import com.microsoft.graph.models.extensions.IGraphServiceClient;
+import com.microsoft.graph.requests.extensions.GraphServiceClient;
 
 @Configuration
 @IntegrationComponentScan(basePackages = "com.ferguson.cs.product.task.inventory")
@@ -24,42 +25,16 @@ public class EmailInventoryImportTaskConfiguration {
 	}
 
 	@Bean
-	public MailReceiver inventoryMailReceiver() {
+	public IGraphServiceClient graphServiceClient() {
+		List<String> scopes = new ArrayList<>();
+		scopes.add("Mail.ReadWrite.Shared");
 
-		Properties mailProperties = new Properties();
+		UsernamePasswordProvider  authProvider = new UsernamePasswordProvider(emailInventoryImportSettings.getClientId(), scopes, emailInventoryImportSettings.getEmailUsername(), emailInventoryImportSettings.getEmailPassword(), NationalCloud.Global, emailInventoryImportSettings.getTenantId(), emailInventoryImportSettings.getClientSecret());
 
-		mailProperties.setProperty("mail.store.protocol", "imaps");
-		mailProperties.setProperty("mail.imap.partialfetch", "false");
-		mailProperties.setProperty("mail.mime.decodetext.strict", "false");
-
-		// SSL setting
-		mailProperties.setProperty("mail.imap.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-		mailProperties.setProperty("mail.imap.socketFactory.fallback", "false");
-		mailProperties.setProperty("mail.imap.socketFactory.port", emailInventoryImportSettings.getEmailPort().toString());
-
-		mailProperties.setProperty("mail.debug", "true");
-
-		Authenticator javaMailAuthenticator = new Authenticator() {
-			@Override
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(emailInventoryImportSettings.getEmailUsername(),emailInventoryImportSettings.getEmailPassword());
-			}
-		};
-		String url = String
-				.format("imaps://%s:%s@%s:%d/INBOX", emailInventoryImportSettings.getEmailUsername(), emailInventoryImportSettings
-						.getEmailPassword(), emailInventoryImportSettings.getEmailHostName(), emailInventoryImportSettings
-						.getEmailPort());
-		ImapMailReceiver imapMailReceiver = new ImapMailReceiver(url);
-		// If safe mode is enabled, don't mark emails as read or delete them
-		imapMailReceiver.setShouldMarkMessagesAsRead(!emailInventoryImportSettings.getSafeMode());
-		imapMailReceiver.setShouldDeleteMessages(!emailInventoryImportSettings.getSafeMode());
-		imapMailReceiver.setJavaMailProperties(mailProperties);
-		imapMailReceiver.setJavaMailAuthenticator(javaMailAuthenticator);
-		imapMailReceiver.setMaxFetchSize(10000);
-		imapMailReceiver.setSimpleContent(true);
-		imapMailReceiver.afterPropertiesSet();
-		return imapMailReceiver;
+		return GraphServiceClient
+				.builder()
+				.authenticationProvider(authProvider)
+				.buildClient();
 
 	}
-
 }

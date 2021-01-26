@@ -11,6 +11,9 @@ public class EmailInventoryImportSettings {
 	private String emailUsername;
 	private String emailPassword;
 	private Boolean safeMode;
+	private String clientId;
+	private String clientSecret;
+	private String tenantId;
 
 	public Integer getEmailPort() {
 		return emailPort;
@@ -50,5 +53,29 @@ public class EmailInventoryImportSettings {
 
 	public void setSafeMode(Boolean safeMode) {
 		this.safeMode = safeMode;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getClientSecret() {
+		return clientSecret;
+	}
+
+	public void setClientSecret(String clientSecret) {
+		this.clientSecret = clientSecret;
 	}
 }
