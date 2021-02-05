@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +36,7 @@ import net.freeutils.tnef.TNEFInputStream;
 
 @Service("emailInventoryImportService")
 public class EmailInventoryImportServiceImpl implements InventoryImportService {
+	private static final Logger LOG = LoggerFactory.getLogger(EmailInventoryImportServiceImpl.class);
 
 	private IGraphServiceClient graphServiceClient;
 	private InventoryImportSettings inventoryImportSettings;
@@ -113,6 +117,14 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 					if (attachment.oDataType.contains("file")) {
 
 						String attachFilePath = attachmentDir.getAbsolutePath().concat("/").concat(attachment.name);
+
+						String fileExtension = FilenameUtils.getExtension(attachment.name).toLowerCase();
+						if (!fileExtension.equals("csv") && !fileExtension.equals("txt")
+								&& !fileExtension.equals("xlsx") && !fileExtension.equals("zip")
+								&& !fileExtension.equals("dat")) {
+							LOG.warn("Skip Attachment (" + attachment.name+ "): no extention match");
+							continue;
+						}
 						InventoryImportJobEmailAttachment inventoryImportJobEmailAttachment = new InventoryImportJobEmailAttachment();
 						inventoryImportJobEmailAttachment.setFilename(attachment.name);
 						//Content is base 64 encoded, need to decode it
@@ -159,8 +171,8 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 						}
 					}
 				}
-				if(!hasError && emailInventoryImportSettings != null && Boolean.FALSE.equals(emailInventoryImportSettings.getSafeMode())) {
-					//Delete message from inbox, if no errors were encountered
+				if(emailInventoryImportSettings != null && Boolean.FALSE.equals(emailInventoryImportSettings.getSafeMode())) {
+					//Delete message from inbox, unless in safe mode
 					graphServiceClient.me().messages(messageId).buildRequest().delete();
 				}
 
