@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.ferguson.cs.product</groupId>
 		<artifactId>product-streams</artifactId>
-		<version>1.0.132</version>
+		<version>1.0.133-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>product-participation-engine</artifactId>
