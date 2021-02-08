@@ -73,7 +73,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 		List<String> messageIds;
 		try {
 			//Get ids of messages for signed in user, filtering to those with attachments
-			messageIds = graphServiceClient.me().messages().buildRequest().filter("hasAttachments eq true").select("id")
+			messageIds = graphServiceClient.me().mailFolders("inbox").messages().buildRequest().top(1000).filter("hasAttachments eq true").select("id")
 					.get().getCurrentPage().stream().map(m -> m.id).collect(Collectors.toList());
 
 
@@ -173,7 +173,7 @@ public class EmailInventoryImportServiceImpl implements InventoryImportService {
 				}
 				if(emailInventoryImportSettings != null && Boolean.FALSE.equals(emailInventoryImportSettings.getSafeMode())) {
 					//Delete message from inbox, unless in safe mode
-					graphServiceClient.me().messages(messageId).buildRequest().delete();
+					graphServiceClient.me().messages(messageId).move("deleteditems").buildRequest().post();
 				}
 
 			} catch (Exception e) {
