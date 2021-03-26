@@ -27,7 +27,6 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 	private final FeiPriceUpdateService feiPriceUpdateService;
 	private final NotificationService notificationService;
 
-
 	public FeiCreatePriceUpdateTempTableTasklet(FeiPriceUpdateSettings feiPriceUpdateSettings,
 			FeiPriceUpdateService feiPriceUpdateService,
 			NotificationService notificationService) {
