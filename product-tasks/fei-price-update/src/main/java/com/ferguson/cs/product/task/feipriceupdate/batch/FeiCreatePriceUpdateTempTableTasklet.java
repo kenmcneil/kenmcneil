@@ -113,12 +113,6 @@ public class FeiCreatePriceUpdateTempTableTasklet implements Tasklet {
 			}
 		}
 
-		// if no valid input files - notify slack channel
-		if (!multipleFiles && CollectionUtils.isEmpty(inputFiles)) {
-			notificationService.message("FEI Price Update DataFlow task:"
-					+ chunkContext.getStepContext().getJobName()
-					+ " No input files found.  Unable to continue", SlackMessageType.WARNING);
-		}
 		return inputFiles;
 	}
 }
