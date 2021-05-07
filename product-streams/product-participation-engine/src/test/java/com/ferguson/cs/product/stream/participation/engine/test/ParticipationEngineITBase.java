@@ -68,7 +68,11 @@ public abstract class ParticipationEngineITBase extends BaseTest {
 		return new CalculatedDiscountFixture(pricebookId, amountDiscount, false, null);
 	}
 
-	public ItemizedDiscountFixture itemizedDiscount(int uniqueId, double pricebook1Price, double pricebook22Price) {
+	public ItemizedDiscountFixture itemizedV1Discount(int uniqueId, double pricebook1Price, double pricebook22Price) {
 		return new ItemizedDiscountFixture(uniqueId, pricebook1Price, pricebook22Price);
+	}
+
+	public ItemizedDiscountFixture itemizedV2Discount(int uniqueId, double pricebook1Price) {
+		return new ItemizedDiscountFixture(uniqueId, pricebook1Price, null);
 	}
 }

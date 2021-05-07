@@ -50,7 +50,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		rowsAffected = participationCoreDao.activateAndDeactivateProductSaleIds();
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
-		rowsAffected = participationV1Dao.updateLastOnSaleBasePrices(new Date());
+		rowsAffected = participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		rowsAffected = participationV1Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		rowsAffected = participationCoreDao.updateProductModifiedDates(new Date(), 1);
@@ -87,7 +87,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		participationCoreDao.updateOwnerChangesForActivation(p1.getParticipationId());
 		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
 		participationCoreDao.activateAndDeactivateProductSaleIds();
-		participationV1Dao.updateLastOnSaleBasePrices(new Date());
+		participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		participationV1Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
 
@@ -95,7 +95,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 		participationCoreDao.updateOwnerChangesForDeactivation(p1.getParticipationId());
 		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
 		participationCoreDao.activateAndDeactivateProductSaleIds();
-		participationV1Dao.updateLastOnSaleBasePrices(new Date());
+		participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		int rowsAffected = participationV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);

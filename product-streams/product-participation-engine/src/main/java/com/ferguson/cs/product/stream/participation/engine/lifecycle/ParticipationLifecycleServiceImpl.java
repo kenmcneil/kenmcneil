@@ -94,26 +94,30 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== activating participation {} ====", participationId);
 
-		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, true);
+		int totalRows = participationCoreDao.setParticipationIsActive(participationId, true);
 
 		// (1) Apply non-effect-specific queries for activating this Participation. Perform set up
 		// to call deactivateEffects() and activateEffects().
-		affectedRows += activatingLifecycle.activate(itemPartial, processingDate);
+		totalRows += activatingLifecycle.activate(itemPartial, processingDate);
+
+		int rowsAffected = participationCoreDao.updateLastOnSaleForDeactivatingProducts(processingDate);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} lastOnSale base prices saved", participationId, rowsAffected);
 
 		// (2) Make deactivation changes for all Participation types, to remove their effects on
 		// entities becoming owned by the activating Participation.
-		affectedRows += lifecyclesByContentType.values().stream()
+		totalRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.deactivateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
 
 		// (3) Apply effects of the activating itemPartial record to newly-owned entities.
-		affectedRows += activatingLifecycle.activateEffects(itemPartial, processingDate);
+		totalRows += activatingLifecycle.activateEffects(itemPartial, processingDate);
 
-		LOG.debug("{}: {} total rows updated to activate", participationId, affectedRows);
+		LOG.debug("{}: {} total rows updated to activate", participationId, totalRows);
 
 		activatingLifecycle.updateActivatedHistory(itemPartial, processingDate);
 
-		return affectedRows;
+		return totalRows;
 	}
 
 	/**
@@ -127,26 +131,30 @@ public class ParticipationLifecycleServiceImpl implements ParticipationLifecycle
 
 		LOG.debug("==== deactivating participation {} ====", participationId);
 
-		int affectedRows = participationCoreDao.setParticipationIsActive(participationId, false);
+		int totalRows = participationCoreDao.setParticipationIsActive(participationId, false);
 
-		// (1) Run effect-specific queries for deactivating this Participation. Perform set up
+		// (1) Run type-specific queries for deactivating this Participation. Perform set up
 		// for calling activateEffects() and deactivateEffects().
-		affectedRows += deactivatingLifecycle.deactivate(itemPartial, processingDate);
+		totalRows += deactivatingLifecycle.deactivate(itemPartial, processingDate);
+
+		int rowsAffected = participationCoreDao.updateLastOnSaleForDeactivatingProducts(processingDate);
+		totalRows += rowsAffected;
+		LOG.debug("{}: {} lastOnSale base prices saved", participationId, rowsAffected);
 
 		// (2) Remove effects of the deactivating record from the entities it owns.
-		affectedRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
+		totalRows += deactivatingLifecycle.deactivateEffects(itemPartial, processingDate);
 
 		// (3) Apply effects of any active Participations that are taking ownership of the entities
 		// owned by the deactivating record.
-		affectedRows += lifecyclesByContentType.values().stream()
+		totalRows += lifecyclesByContentType.values().stream()
 				.map(lifecycle -> lifecycle.activateEffects(itemPartial, processingDate))
 				.reduce(0, Integer::sum);
 
-		LOG.debug("{}: {} total rows updated to deactivate", participationId, affectedRows);
+		LOG.debug("{}: {} total rows updated to deactivate", participationId, totalRows);
 
 		deactivatingLifecycle.updateDeactivatedHistory(itemPartial, processingDate);
 
-		return affectedRows;
+		return totalRows;
 	}
 
 	/**

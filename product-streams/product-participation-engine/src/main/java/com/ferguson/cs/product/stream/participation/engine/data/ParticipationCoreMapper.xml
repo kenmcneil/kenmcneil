@@ -174,6 +174,54 @@
 			ON users.userId = #{userId}
 	</update>
 
+	<update id="updateLastOnSaleForDeactivatingProducts" parameterType="map">
+		UPDATE
+			lastOnSale
+		SET
+			lastOnSale.basePrice = pbCost.basePrice,
+			lastOnSale.saleDate = #{processingDate},
+			lastOnSale.wasPrice = pbCost.wasPrice
+		FROM
+			mmc.product.participationLastOnSale AS lastOnSale
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = lastOnSale.uniqueId
+			JOIN
+				mmc.dbo.pricebook_cost AS pbCost
+				ON pbCost.uniqueId = lastOnSale.uniqueId
+					AND pbCost.pricebookId = lastOnSale.pricebookId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.oldParticipationId
+					AND p.contentTypeId IN (
+						<foreach collection="contentTypeIds" item="contentTypeId" separator=",">#{contentTypeId}</foreach>
+					)
+	</update>
+
+	<insert id="insertMissingLastOnSaleForDeactivatingProducts" parameterType="map">
+		INSERT INTO
+			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice, wasPrice)
+		SELECT
+			pbCost.pricebookId, pbCost.uniqueId, #{processingDate}, pbCost.basePrice, pbCost.wasPrice
+		FROM
+			mmc.dbo.pricebook_cost AS pbCost
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.oldParticipationId
+					AND p.contentTypeId IN (
+						<foreach collection="contentTypeIds" item="contentTypeId" separator=",">#{contentTypeId}</foreach>
+					)
+			LEFT JOIN
+				mmc.product.participationLastOnSale AS los
+				ON los.uniqueId = pbCost.uniqueId
+					AND los.pricebookId = pbCost.pricebookId
+		WHERE
+			los.uniqueId IS NULL
+	</insert>
+
 	<delete id="deleteParticipationProducts" parameterType="int">
 		DELETE FROM
 			mmc.product.participationProduct
@@ -281,6 +329,21 @@
 			END
 	</insert>
 
+	<select id="getParticipationItemPartial" parameterType="int" resultType="ParticipationItemPartial">
+		SELECT
+		    participationId,
+		    saleId,
+		    startDate,
+		    endDate,
+		    lastModifiedUserId,
+		    isActive,
+		    contentTypeId
+		FROM
+		    mmc.product.participationItemPartial
+		WHERE
+		    participationId = #{participationId}
+	</select>
+
 	<insert id="insertParticipationProducts" parameterType="map">
 		DECLARE @participationId INT = #{participationId}
 		DECLARE @uniqueidList VARCHAR(MAX) = #{csvUniqueIds}
@@ -303,16 +366,6 @@
 			logs.dbo.participationItemPartialHistory
 		WHERE
 			participationId = #{participationId}
-	</select>
-
-	<select id="getparticipationItemPartialHistoryId" parameterType="int" resultType="int">
-		SELECT
-			id
-		FROM
-			logs.dbo.participationItemPartialHistory
-		WHERE
-			participationId = #{participationId}
-			AND versionId = #{versionId}
 	</select>
 
 	<select id="insertParticipationItemPartialHistory" parameterType="map"  resultType="int">

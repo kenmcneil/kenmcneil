@@ -1,6 +1,6 @@
 package com.ferguson.cs.product.stream.participation.engine.test.model;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 /**
  * Represents an itemized discount, where the price field is a double representing the new sale price of a product at
  * a certain pricebook id. This is the exact value entered by the Participation author.
+ *
+ * This fixture is used for both v1 and v2 type of itemized discounts.
  */
 @Data
 @Builder
@@ -25,20 +27,16 @@ public class ItemizedDiscountFixture {
 
 	/**
 	 * Converts a single row of itemized discounts reduced from the mongo format (uniqueId, pb1DiscountPriced,
-	 * pb22DiscountPrice) to 2 rows in the SQL format (participationId, uniqueId, pricebookId, discountePrice)
+	 * pb22DiscountPrice) to 2 rows in the SQL format (participationId, uniqueId, pricebookId, discountPrice).
+	 *
+	 * In v2 itemized discounts the pb1 price is used for the pb22 price so they match; a null indicates that it's
+	 * a v2 itemized discount.
 	 */
 	public List<ParticipationItemizedDiscount> toParticipationItemizedDiscounts(Integer participationId) {
-		List<ParticipationItemizedDiscount> discounts = new ArrayList<>();
-		discounts.add(new ParticipationItemizedDiscount(
-				participationId,
-				uniqueId,
-				1,
-				pricebook1Price));
-		discounts.add(new ParticipationItemizedDiscount(
-				participationId,
-				uniqueId,
-				22,
-				pricebook22Price));
-		return discounts;
+		return Arrays.asList(
+				new ParticipationItemizedDiscount(participationId, uniqueId, 1, pricebook1Price),
+				new ParticipationItemizedDiscount(participationId, uniqueId, 22,
+						pricebook22Price == null ? pricebook1Price : pricebook22Price)
+		);
 	}
 }

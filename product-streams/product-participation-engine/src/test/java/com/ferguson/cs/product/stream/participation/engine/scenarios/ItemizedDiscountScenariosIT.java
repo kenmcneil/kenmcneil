@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsV1TestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
@@ -18,7 +18,7 @@ public class ItemizedDiscountScenariosIT extends ParticipationScenarioITBase {
 	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
 
 	@Autowired
-	ItemizedDiscountsTestEffectLifecycle itemizedDiscountsTestEffectLifecycle;
+	protected ItemizedDiscountsV1TestEffectLifecycle itemizedDiscountsV1TestEffectLifecycle;
 
 	/**
 	 * Scenario
@@ -33,14 +33,15 @@ public class ItemizedDiscountScenariosIT extends ParticipationScenarioITBase {
 		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.saleId(2020)
-				.itemizedDiscounts(
-					itemizedDiscount(uniqueIds[0], 200.00, 100.00)
+				.itemizedV1Discounts(
+						itemizedV1Discount(uniqueIds[0], 200.00, 100.00)
 				)
 				.scheduleByDays(0, 2)
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
 				.build();
 
-		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle, itemizedDiscountsTestEffectLifecycle);
+		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle,
+				itemizedDiscountsV1TestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(3);

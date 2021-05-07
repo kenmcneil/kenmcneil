@@ -1,0 +1,11 @@
+{
+  "_type": "participation-itemized@2.0.0",
+  "productSale": {
+    "saleId": 0,
+    "_type": "atom-product-sale@1.0.0"
+  },
+  "itemizedDiscounts": {
+    "list": [],
+    "_type": "atom-tuple-list@1.0.0"
+  }
+}

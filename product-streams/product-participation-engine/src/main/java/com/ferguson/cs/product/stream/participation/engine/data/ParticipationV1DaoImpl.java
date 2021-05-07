@@ -9,7 +9,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCa
 
 @Repository
 public class ParticipationV1DaoImpl implements ParticipationV1Dao {
-	private ParticipationV1Mapper participationV1Mapper;
+	final private ParticipationV1Mapper participationV1Mapper;
 
 	public ParticipationV1DaoImpl(ParticipationV1Mapper participationV1Mapper) {
 		this.participationV1Mapper = participationV1Mapper;
@@ -19,14 +19,7 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 	public int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes) {
 		// Restore any base prices that were on sale recently enough to be considered back-to-back,
 		// and apply any calculated discounts to pricebook prices.
-		return participationV1Mapper.applyNewCalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
-	}
-
-	@Override
-	public int updateLastOnSaleBasePrices(Date processingDate) {
-		// Update existing or insert new lastOnSale rows with PriceBook_Cost basePrice values.
-		return participationV1Mapper.updateExistingLastOnSaleBasePrices(processingDate)
-				+ participationV1Mapper.insertMissingLastOnSaleBasePrices(processingDate);
+		return participationV1Mapper.applyNewV1CalculatedDiscounts(processingDate, userId, coolOffPeriodMinutes);
 	}
 
 	@Override
@@ -38,20 +31,20 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 		// They need to be taken off sale in case the new owning participation does not have price discounts.
 		// The new participation will overwrite these changes if it has a discount, so a possible optimization would
 		// be to only apply pending base price changes if needed, i.e. if the new participation does not have a discount...
-		return participationV1Mapper.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
+		return participationV1Mapper.takeV1PricesOffSaleAndApplyPendingBasePriceUpdates(userId);
 	}
 
 	@Override
 	public int deleteParticipationCalculatedDiscounts(int participationId) {
-		return participationV1Mapper.deleteParticipationCalculatedDiscounts(participationId);
+		return participationV1Mapper.deleteParticipationV1CalculatedDiscounts(participationId);
 	}
 
 	@Override
 	public int upsertParticipationCalculatedDiscounts(int participationId,
 														List<ParticipationCalculatedDiscount> calculatedDiscounts) {
-		int rowsAffected = participationV1Mapper.deleteParticipationCalculatedDiscounts(participationId);
+		int rowsAffected = participationV1Mapper.deleteParticipationV1CalculatedDiscounts(participationId);
 		if(!calculatedDiscounts.isEmpty()) {
-			rowsAffected += participationV1Mapper.insertParticipationCalculatedDiscounts(calculatedDiscounts);
+			rowsAffected += participationV1Mapper.insertParticipationV1CalculatedDiscounts(calculatedDiscounts);
 		}
 		return rowsAffected;
 	}
@@ -62,7 +55,7 @@ public class ParticipationV1DaoImpl implements ParticipationV1Dao {
 	public void insertParticipationCalculatedDiscountsHistory(
 			int partialHistoryId, List<ParticipationCalculatedDiscount> calculatedDiscounts) {
 		if (!calculatedDiscounts.isEmpty()) {
-			participationV1Mapper.insertParticipationCalculatedDiscountsHistory(partialHistoryId, calculatedDiscounts);
+			participationV1Mapper.insertParticipationV1CalculatedDiscountsHistory(partialHistoryId, calculatedDiscounts);
 		}
 	}
 }

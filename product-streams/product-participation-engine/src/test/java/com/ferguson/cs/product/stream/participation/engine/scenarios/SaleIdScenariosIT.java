@@ -106,9 +106,9 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 		ParticipationItemFixture p3 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
 				.saleId(100002)
-				.itemizedDiscounts(
-						itemizedDiscount(uniqueIds[1], 200.00, 150.00),
-						itemizedDiscount(uniqueIds[3], 400.00, 350.00)
+				.itemizedV1Discounts(
+						itemizedV1Discount(uniqueIds[1], 200.00, 150.00),
+						itemizedV1Discount(uniqueIds[3], 400.00, 350.00)
 				)
 				.scheduleByDays(3, 7)
 				.build();

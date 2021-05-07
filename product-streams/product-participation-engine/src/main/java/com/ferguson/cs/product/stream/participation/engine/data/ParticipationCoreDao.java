@@ -76,6 +76,15 @@ public interface ParticipationCoreDao {
 	int updateProductModifiedDates(Date processingDate, int userId);
 
 	/**
+	 * Update pricing data to track base- and Was-prices for the product, to use to carry those values to the next
+	 * discount when gap in time between the ending discount and the new discount is within a configured amount (the
+	 * "Cool off period").
+	 * @param processingDate The date the participation is being processed.
+	 * @return The number of records updated or inserted.
+	 */
+	int updateLastOnSaleForDeactivatingProducts(Date processingDate);
+
+	/**
 	 * Get next participation that is expired and may be pending deactivation, at the given date.
 	 * Optionally restrict to records with id >= minParticipationId (for testmode).
 	 */
@@ -103,8 +112,19 @@ public interface ParticipationCoreDao {
 	 */
 	int deleteParticipationItemPartial(int participationId);
 
+	/**
+	 * Add or update a participation Item.
+	 * @param itemPartial The participation to add or update.
+	 * @return The number of records modified.
+	 */
 	int upsertParticipationItemPartial(ParticipationItemPartial itemPartial);
 
+	/**
+	 * Add or update the products for a participation.
+	 * @param participationId The id of the participation to which the products belong.
+	 * @param uniqueIds The list of product variant ids that belong to the participation.
+	 * @return The number of records modified.
+	 */
 	int upsertParticipationProducts(int participationId, List<Integer> uniqueIds);
 
 
@@ -129,6 +149,4 @@ public interface ParticipationCoreDao {
 	 * record date of current participation version deactivation for posterity
 	 */
 	int updateDeactivatedHistory(int participationId, Date processingDate);
-
 }
-

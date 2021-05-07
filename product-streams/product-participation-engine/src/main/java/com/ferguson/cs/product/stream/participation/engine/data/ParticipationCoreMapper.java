@@ -3,7 +3,6 @@ package com.ferguson.cs.product.stream.participation.engine.data;
 import java.util.Date;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
@@ -75,6 +74,27 @@ public interface ParticipationCoreMapper {
 	int updateProductModifiedDates(Date processingDate, int userId);
 
 	/**
+	 * Update lastOnSale records with values from the PriceBook_Cost table. Used when the price is going off-sale.
+	 * Updates are restricted to products owned by Participations with the given content type ids.
+	 *
+	 * @param contentTypeIds A list of the Participation types that affect pricebook prices.
+	 * @param processingDate The date the participation is being processed.
+	 * @return The number of records modified.
+	 */
+	int updateLastOnSaleForDeactivatingProducts(int[] contentTypeIds, Date processingDate);
+
+	/**
+	 * Inserts missing lastOnSale records from the PriceBook_Cost table. Use when the price is going off-sale.
+	 * Use after updating any existing records with updateExistingLastOnSaleBasePrices().
+	 * Updates are restricted to products owned by Participations with the given content type ids.
+	 *
+	 * @param contentTypeIds A list of the Participation types that affect pricebook prices.
+	 * @param processingDate The date the participation is being processed.
+	 * @return The number of records modified.
+	 */
+	int insertMissingLastOnSaleForDeactivatingProducts(int[] contentTypeIds, Date processingDate);
+
+	/**
 	 * Remove all participationProduct records for the given
 	 * participation id.
 	 *
@@ -113,10 +133,11 @@ public interface ParticipationCoreMapper {
 	 */
 	int insertParticipationProducts(int participationId, String csvUniqueIds);
 
-	@Select("SELECT participationId, saleId, startDate, endDate, lastModifiedUserId, isActive, contentTypeId" +
-			" FROM mmc.product.participationItemPartial" +
-			" WHERE participationId = #{participationId}")
+	/**
+	 * Get the participation item for the given id.
+	 */
 	ParticipationItemPartial getParticipationItemPartial(int participationId);
+
 
 	// HISTORY
 

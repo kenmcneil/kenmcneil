@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1V2Mapper">
+
+	<insert id="insertParticipationItemizedV1V2Discounts" parameterType="map">
+		DECLARE @participationId INT = #{participationId}
+		DECLARE @discountRows VARCHAR(MAX) = #{csDiscounts}
+		DECLARE @newline VARCHAR(1) = CHAR(10)
+
+		INSERT INTO mmc.product.participationItemizedDiscount (
+			participationId,
+			uniqueId,
+			pricebookId,
+			price
+		)
+		SELECT
+			@participationId,
+			--first string up to comma
+			SUBSTRING(value, 1, CHARINDEX(',', value, 0) - 1) AS uniqueId,
+			--string between commas
+			SUBSTRING(  value,
+						CHARINDEX(',',value, 0)+1,
+						CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1)) - (CHARINDEX(',',value, 0)+1)
+				) AS pricebookId,
+			--last string
+			SUBSTRING(	value,
+						(CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1))+1),
+						LEN(value)
+				) AS price
+		FROM
+			STRING_SPLIT(@discountRows, @newline)
+	</insert>
+
+	<update id="applyNewItemizedV1V2Discounts" parameterType="map">
+		-- Apply itemizedDiscount prices to products becoming owned by a Participation.
+		-- Also sets the basePrice to any applicable last-on-sale base prices
+		UPDATE
+			pbCost
+		SET
+			pbCost.cost = discount.price,
+			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
+			pbCost.participationId = discount.participationId,
+			pbCost.userId = #{userId},
+			pbCost.wasPrice = COALESCE(los.wasPrice, wasPrice.wasPrice, 0)
+		FROM
+			MMC.dbo.pricebook_cost AS pbCost
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.newParticipationId
+					AND p.contentTypeId = #{contentTypeId}
+			JOIN
+				mmc.product.participationItemizedDiscount AS discount
+				ON discount.participationId = oc.newParticipationId
+				AND discount.uniqueId = pbCost.uniqueId
+				AND discount.pricebookId = pbCost.pricebookId
+			JOIN
+				mmc.dbo.pricebookwasprice AS wasPrice
+				ON wasPrice.uniqueId = pbCost.uniqueId
+			LEFT JOIN
+				mmc.product.participationLastOnSale AS los
+				ON los.uniqueId = pbCost.uniqueId
+				AND los.pricebookId = pbCost.pricebookId
+				AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+	</update>
+
+	<update id="takeItemizedV1V2PricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="map">
+		-- Set cost to a pending base price if present, else to basePrice.
+		-- Set basePrice to a pending base price if present.
+		-- Set participationId and userId.
+		-- The cost and basePrice columns are updated in this one query in order to prevent multiple log entries with no price change.
+		UPDATE
+			pbCost
+		SET
+			pbCost.cost = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
+			pbCost.basePrice = IIF(lbp.basePrice != pbCost.basePrice, lbp.basePrice, pbCost.basePrice),
+			pbCost.wasPrice = 0.00,
+			pbCost.participationId = 0,
+			pbCost.userId = #{userId}
+		FROM
+			MMC.dbo.pricebook_cost AS pbCost
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.oldParticipationId
+					AND p.contentTypeId = #{contentTypeId}
+			JOIN
+				mmc.product.participationItemizedDiscount AS discount
+				ON discount.participationId = oc.oldParticipationId
+				AND discount.uniqueId = pbCost.uniqueId
+				AND discount.pricebookId = pbCost.pricebookId
+			JOIN
+				mmc.product.latestBasePrice AS lbp
+				ON lbp.uniqueId = pbCost.uniqueId
+				AND lbp.pricebookId = pbCost.pricebookId
+	</update>
+
+	<delete id="deleteParticipationItemizedV1V2Discounts" parameterType="int">
+		DELETE FROM mmc.product.participationItemizedDiscount
+		WHERE participationId = #{participationId}
+	</delete>
+
+	<insert id="insertParticipationItemizedV1V2DiscountsHistory" parameterType="map">
+		DECLARE @partialHistoryId INT = #{partialHistoryId}
+		DECLARE @discountRows VARCHAR(MAX) = #{csDiscounts}
+		DECLARE @newline VARCHAR(1) = CHAR(10)
+
+		INSERT INTO logs.dbo.participationItemizedDiscountHistory (
+			participationItemPartialHistoryId,
+			uniqueId,
+			pricebookId,
+			price
+		)
+		SELECT
+			@partialHistoryId,
+			--first string up to comma
+			SUBSTRING(value, 1, CHARINDEX(',', value, 0) - 1) AS uniqueId,
+			--string between commas
+			SUBSTRING(  value,
+						CHARINDEX(',',value, 0)+1,
+						CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1)) - (CHARINDEX(',',value, 0)+1)
+				) AS pricebookId,
+			--last string
+			SUBSTRING(	value,
+						  (CHARINDEX(',',value, (CHARINDEX(',',value, 0)+1))+1),
+						  LEN(value)
+				) AS price
+		FROM
+			STRING_SPLIT(@discountRows, @newline)
+	</insert>
+</mapper>
