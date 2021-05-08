@@ -36,7 +36,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 				.saleId(3030)
 				.isActive(true)
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
-				.calculatedDiscounts(
+				.calculatedDiscountsV1(
 						percentCalculatedDiscount(1, 25),
 						amountCalculatedDiscount(22, 25)
 				)
@@ -76,7 +76,7 @@ public class ParticipationV1DaoIT extends ParticipationEngineITBase {
 				.saleId(3030)
 				.isActive(false)
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
-				.calculatedDiscounts(
+				.calculatedDiscountsV1(
 						percentCalculatedDiscount(1, 25),
 						percentCalculatedDiscount(22, 25)
 				)

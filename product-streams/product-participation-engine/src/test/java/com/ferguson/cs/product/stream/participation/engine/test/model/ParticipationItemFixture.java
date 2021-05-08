@@ -178,16 +178,35 @@ public class ParticipationItemFixture {
 		}
 
 		/**
-		 * For use in tests to populate calculated discounts. Values must not be null.
+		 * For use in tests to populate v1 calculated discounts. The pb1 and pb22 discounts are required.
 		 */
-		public ParticipationItemFixtureBuilder calculatedDiscounts(CalculatedDiscountFixture... discountFixtures) {
-			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
-				Assertions.assertThat(discountFixture).isNotNull();
-				Assertions.assertThat(discountFixture.getPricebookId()).isNotNull();
-				Assertions.assertThat(discountFixture.getDiscountAmount()).isNotNull();
-				Assertions.assertThat(discountFixture.getIsPercent()).isNotNull();
-			});
-			this.calculatedDiscountFixtures = Arrays.asList(discountFixtures);
+		public ParticipationItemFixtureBuilder calculatedDiscountsV1(
+				CalculatedDiscountFixture discountFixturePb1,
+				CalculatedDiscountFixture discountFixturePb22
+		) {
+			Assertions.assertThat(discountFixturePb1).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getIsPercent()).isNotNull();
+
+			Assertions.assertThat(discountFixturePb22).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getIsPercent()).isNotNull();
+
+			this.calculatedDiscountFixtures = Arrays.asList(discountFixturePb1, discountFixturePb22);
+			return this;
+		}
+
+		/**
+		 * For use in tests to populate v2 calculated discounts. The pb1 discount is required.
+		 */
+		public ParticipationItemFixtureBuilder calculatedDiscountsV2(CalculatedDiscountFixture discountFixturePb1) {
+			Assertions.assertThat(discountFixturePb1).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getIsPercent()).isNotNull();
+			this.calculatedDiscountFixtures = Arrays.asList(discountFixturePb1);
 			return this;
 		}
 

@@ -34,6 +34,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationPr
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationCouponV1TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1V2TestLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1V2TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.model.OffsalePriceFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
@@ -140,6 +141,11 @@ public class ParticipationTestUtilities {
 
 	public static final String UPDATE_PRICEBOOKWASPRICE_WASPRICE =
 			"UPDATE mmc.dbo.pricebookWasPrice SET wasPrice = ? WHERE uniqueId = ?";
+
+	public static final String INSERT_PRICEBOOK_COST =
+			"INSERT INTO mmc.dbo.pricebook_cost (uniqueId, pricebookId, cost, multiplier," +
+					" basePrice, userId, participationId, wasPrice)" +
+					" VALUES (?, ?, ?, 1.0, ?, " + TEST_USERID + ", 0, 0)";
 
 	public static final String SELECT_PRICEBOOKCOST_BASEPRICE =
 		"SELECT basePrice" +
@@ -477,6 +483,20 @@ public class ParticipationTestUtilities {
 			Assertions.assertThat(wasPrice.getUniqueId()).isNotNull();
 			Assertions.assertThat(wasPrice.getWasPrice()).isNotNull();
 			jdbcTemplate.update(UPDATE_PRICEBOOKWASPRICE_WASPRICE, wasPrice.getWasPrice(), wasPrice.getUniqueId());
+		}
+	}
+
+	/**
+	 * Insert the given values into the pricebook_cost table, with the other columns defaulted to off-sale values.
+	 * @param prices An array of the prices to insert.
+	 */
+	public void insertNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
+		for (OffsalePriceFixture price: prices) {
+			Assertions.assertThat(price.getUniqueId()).isNotNull();
+			Assertions.assertThat(price.getPricebookId()).isNotNull();
+			Assertions.assertThat(price.getPrice()).isNotNull();
+			jdbcTemplate.update(INSERT_PRICEBOOK_COST, price.getUniqueId(), price.getPricebookId(),
+					price.getPrice(), price.getPrice());
 		}
 	}
 

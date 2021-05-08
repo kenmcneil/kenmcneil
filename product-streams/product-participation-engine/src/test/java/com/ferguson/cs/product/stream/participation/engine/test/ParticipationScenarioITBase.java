@@ -63,6 +63,7 @@ import com.ferguson.cs.product.stream.participation.engine.test.effects.Scheduli
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
+import com.ferguson.cs.product.stream.participation.engine.test.model.OffsalePriceFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.WasPriceFixture;
 
@@ -203,6 +204,10 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 */
 	public void withWasPrices(WasPriceFixture... wasPrices) {
 		participationTestUtilities.updateWasPrices(wasPrices);
+	}
+
+	public void withNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
+		participationTestUtilities.insertNonDiscountedPricebookCosts(prices);
 	}
 
 	public void testLifecycles(ParticipationTestEffectLifecycle... params) {

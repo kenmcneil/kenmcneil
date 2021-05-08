@@ -30,7 +30,7 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 				.contentType(ParticipationContentType.PARTICIPATION_V2)
 				.saleId(2020)
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
-				.calculatedDiscounts(percentCalculatedDiscount(1, 10))
+				.calculatedDiscountsV2(percentCalculatedDiscount(1, 10))
 				.expectedWasPrices(wasPrice0)
 				.scheduleByDays(0, 2)
 				.build();
@@ -75,7 +75,7 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 				.contentType(ParticipationContentType.PARTICIPATION_V2)
 				.saleId(2001)
 				.uniqueIds(uniqueIds[1], uniqueIds[2])
-				.calculatedDiscounts(percentCalculatedDiscount(1, 20))
+				.calculatedDiscountsV2(percentCalculatedDiscount(1, 20))
 				.expectedWasPrices(wasPrice1)
 				.scheduleByDays(3, 6)
 				.build();
