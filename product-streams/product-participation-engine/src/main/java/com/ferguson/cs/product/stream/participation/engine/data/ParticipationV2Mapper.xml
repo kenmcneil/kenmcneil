@@ -84,6 +84,8 @@
 				MMC.dbo.pricebook_cost AS pb1Cost
 				ON pbCost.uniqueId = pb1Cost.uniqueId
 				AND pb1Cost.pricebookId = 1
+		WHERE
+			pbCost.pricebookId IN (1, 22)
 	</update>
 
 	<insert id="insertParticipationV2CalculatedDiscounts">

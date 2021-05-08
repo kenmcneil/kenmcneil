@@ -69,8 +69,9 @@ public class CalculatedDiscountScenariosIT extends ParticipationScenarioITBase {
 	}
 
 	/**
-	 * Regression test for bug where extra pricebook_cost prices are discounted, corrected in SODEV-31916.
-	 * Only pb1 and pb22 pricebook prices should be modified.
+	 * Regression test for bug where extra pricebook_cost prices are discounted during activation in
+	 * participation@2 Participations; corrected in SODEV-31916. Only pb1 and pb22 pricebook prices
+	 * should be modified.
 	 */
 	@Test
 	public void engine_calculatedDiscountV2_onlyPb1And22PricesModified() {

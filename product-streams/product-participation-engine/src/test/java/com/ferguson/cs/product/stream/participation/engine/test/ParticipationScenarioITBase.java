@@ -595,7 +595,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		List<CalculatedDiscountFixture> discounts = fixture.getCalculatedDiscountFixtures();
 		if (!CollectionUtils.isEmpty(discounts)) {
 			CalculatedDiscountFixture discount1 = discounts.get(0);
-			CalculatedDiscountFixture discount22 = discounts.get(0);
+			CalculatedDiscountFixture discount22 = discounts.get(1);
 			content = discount1.getIsPercent()
 					? getContentTemplate("participationV1-content-percent-discount.json")
 					: getContentTemplate("participationV1-content-amount-discount.json");
