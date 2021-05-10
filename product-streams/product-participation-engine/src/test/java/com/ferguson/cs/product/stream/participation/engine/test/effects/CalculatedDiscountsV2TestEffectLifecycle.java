@@ -31,7 +31,7 @@ public class CalculatedDiscountsV2TestEffectLifecycle implements ParticipationTe
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_V2.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -55,7 +55,7 @@ public class CalculatedDiscountsV2TestEffectLifecycle implements ParticipationTe
 	 */
 	@Override
 	public void beforeActivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_V2.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -70,7 +70,7 @@ public class CalculatedDiscountsV2TestEffectLifecycle implements ParticipationTe
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_V2.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -128,7 +128,7 @@ public class CalculatedDiscountsV2TestEffectLifecycle implements ParticipationTe
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_V2.equals(fixture.getContentType())) {
 			return;
 		}
 

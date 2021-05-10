@@ -35,8 +35,7 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(0, 2)
 				.build();
 
-		testLifecycles(calculatedDiscountsV2TestEffectLifecycle);
-		withWasPrices(wasPrice0);
+		setWasPrices(wasPrice0);
 
 		createUserPublishEvent(p1);
 		advanceToDay(3);
@@ -44,19 +43,11 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 	}
 
 	/**
-	 * Verify that a Was price for a product is carried from sale to sale in
-	 * the activate/deactivate processes.
-	 *
-	 * Scenario
-	 *   - user publishes P1 (saleId(2000), products(0, 1), schedule(0, 10))
-	 *   - user publishes P2 (saleId(2001), products(1, 2), schedule(3, 6))
-	 *
-	 * Verify
-	 *   - when P2 activates it takes ownership of product 101 from P1 and sets sale id 2001 on it.
-	 *   - when P2 deactivates, P1 takes back ownership of product 101 and sets sale id 2000 on it.
+	 * Verify that a Was price for a product is carried from sale to sale in the activate/deactivate
+	 * processes when a shorter overlapping sale starts and ends during a longer sale.
 	 */
 	@Test
-	public void engine_wasPrice_carriedToNextDiscount() {
+	public void engine_wasPriceCarriedToNextDiscount_overlappingParticipations() {
 		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
 		WasPriceFixture wasPrice1 = WasPriceFixture.builder()
 				.uniqueId(uniqueIds[1]).wasPrice(111.22).build();
@@ -80,8 +71,7 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(3, 6)
 				.build();
 
-		testLifecycles(calculatedDiscountsV2TestEffectLifecycle, itemizedDiscountsV2TestEffectLifecycle);
-		withWasPrices(wasPrice1);
+		setWasPrices(wasPrice1);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);
@@ -93,6 +83,94 @@ public class WasPriceScenariosIT extends ParticipationScenarioITBase {
 		verifyParticipationOwnsExactly(p1, uniqueIds[0], uniqueIds[1]);
 
 		advanceToDay(11);
+		verifySimpleLifecycleLog(p1, p2);
+	}
+
+	/**
+	 * Verify that a Was price for a product is carried from sale to sale in
+	 * the activate/deactivate processes when one sale starts right after the first.
+	 *
+	 *
+	 */
+	@Test
+	public void engine_wasPriceCarriedToNextDiscount_backToBackParticipations() {
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
+		WasPriceFixture wasPrice1 = WasPriceFixture.builder().uniqueId(uniqueIds[1]).wasPrice(111.22).build();
+		WasPriceFixture wasPrice2 = WasPriceFixture.builder().uniqueId(uniqueIds[1]).wasPrice(0.0).build();
+
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V2)
+				.saleId(2000)
+				.itemizedV2Discounts(
+						itemizedV2Discount(uniqueIds[0], 100.00),
+						itemizedV2Discount(uniqueIds[1], 200.00))
+				.expectedWasPrices(wasPrice1)
+				.scheduleByDays(0, 1)
+				.build();
+
+		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V2)
+				.saleId(2001)
+				.uniqueIds(uniqueIds[1], uniqueIds[2])
+				.calculatedDiscountsV2(percentCalculatedDiscount(1, 20))
+				.expectedWasPrices(wasPrice1)
+				.scheduleByDays(2, 3)
+				.build();
+
+		setWasPrices(wasPrice1);
+
+		createUserPublishEvent(p1);
+		createUserPublishEvent(p2);
+
+		advanceToDay(1);
+		setWasPrices(wasPrice2);
+
+		advanceToDay(4);
+		verifySimpleLifecycleLog(p1, p2);
+	}
+
+	/**
+	 * Verify that a Was price for a product is not carried from sale to sale in
+	 * the activate/deactivate processes when one sale starts a while after the first.
+	 * In this case, it should grab the current wasPrice when the second sale starts
+	 * since the gap is longer than the cool-down period.
+	 *
+	 *
+	 */
+	@Test
+	public void engine_wasPriceNotCarriedToNextDiscountWhenGapBetweenParticipations() {
+		int[] uniqueIds = participationTestUtilities.getSafeTestUniqueIds();
+		WasPriceFixture wasPriceNonZero = WasPriceFixture.builder().uniqueId(uniqueIds[1]).wasPrice(111.22).build();
+		WasPriceFixture wasPriceZero = WasPriceFixture.builder().uniqueId(uniqueIds[1]).wasPrice(0.0).build();
+
+		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V2)
+				.saleId(2000)
+				.itemizedV2Discounts(
+						itemizedV2Discount(uniqueIds[0], 100.00),
+						itemizedV2Discount(uniqueIds[1], 200.00))
+				.expectedWasPrices(wasPriceZero)
+				.scheduleByDays(0, 1)
+				.build();
+
+		ParticipationItemFixture p2 = ParticipationItemFixture.builder()
+				.contentType(ParticipationContentType.PARTICIPATION_V2)
+				.saleId(2001)
+				.uniqueIds(uniqueIds[1], uniqueIds[2])
+				.calculatedDiscountsV2(percentCalculatedDiscount(1, 20))
+				.expectedWasPrices(wasPriceNonZero)
+				.scheduleByDays(3, 4)
+				.build();
+
+		setWasPrices(wasPriceZero);
+
+		createUserPublishEvent(p1);
+		createUserPublishEvent(p2);
+
+		advanceToDay(1);
+		setWasPrices(wasPriceNonZero);
+
+		advanceToDay(5);
 		verifySimpleLifecycleLog(p1, p2);
 	}
 }

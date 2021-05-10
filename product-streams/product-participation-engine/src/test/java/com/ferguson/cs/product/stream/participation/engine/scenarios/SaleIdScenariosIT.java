@@ -1,21 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class SaleIdScenariosIT extends ParticipationScenarioITBase {
-	@Autowired
-	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
-
-	@Autowired
-	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
-
 	/**
 	 * Scenario
 	 *   - user publishes P(saleId(2020), products(100, 101))
@@ -33,8 +24,6 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.scheduleByDays(0, 1)
 				.build();
-
-		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(2);
@@ -66,8 +55,6 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.uniqueIds(uniqueIds[1], uniqueIds[2])
 				.scheduleByDays(3, 6)
 				.build();
-
-		testLifecycles(saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);
@@ -112,8 +99,6 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				)
 				.scheduleByDays(3, 7)
 				.build();
-
-		testLifecycles(saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);

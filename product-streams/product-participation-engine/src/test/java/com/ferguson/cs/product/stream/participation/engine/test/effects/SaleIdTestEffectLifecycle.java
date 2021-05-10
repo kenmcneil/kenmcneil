@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
  * Also verify that the product.modified table is updated, which is required to trigger product storage cache updates.
  *
  * TODO: Check ownership priority when the start dates are exactly the same in two overlapping Participations.
+ *
+ * These tests are not specific to the Participation type.
  */
 @RequiredArgsConstructor
 public class SaleIdTestEffectLifecycle implements ParticipationTestEffectLifecycle {

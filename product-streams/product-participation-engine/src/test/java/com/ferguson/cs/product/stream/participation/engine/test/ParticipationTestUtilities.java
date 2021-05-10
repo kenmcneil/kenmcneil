@@ -427,7 +427,7 @@ public class ParticipationTestUtilities {
 	}
 
 	public List<ProductSaleParticipation> getProductSaleParticipations(List<Integer> uniqueIds) {
-		return uniqueIds.size() == 0
+		return uniqueIds.isEmpty()
 				? Collections.emptyList()
 				: namedParameterJdbcTemplate.query(
 						SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
@@ -442,6 +442,9 @@ public class ParticipationTestUtilities {
 	}
 
 	public List<ProductModified> getProductModifieds(List<Integer> uniqueIds) {
+		if (uniqueIds.isEmpty()) {
+			return Collections.emptyList();
+		}
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
 				namedParameters, BeanPropertyRowMapper.newInstance(ProductModified.class));

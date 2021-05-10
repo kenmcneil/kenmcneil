@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
@@ -13,6 +14,7 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationCo
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationTestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 
@@ -30,7 +32,7 @@ public class ItemizedDiscountsV1TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -50,6 +52,10 @@ public class ItemizedDiscountsV1TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void beforeActivate(ParticipationItemFixture fixture, Date processingDate) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
+			return;
+		}
+
 		Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
 				.as("Unexpected participation id in pricebook_cost record: " + fixture)
 				.isEqualTo(0);
@@ -60,7 +66,7 @@ public class ItemizedDiscountsV1TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -74,28 +80,50 @@ public class ItemizedDiscountsV1TestEffectLifecycle implements ParticipationTest
 
 		List<Integer> expectedUniqueIds = ParticipationTestLifecycle.getExpectedUniqueIds(fixture);
 
-		// Verify the number of discounted prices is count(pricebookIds) * count(expectedUniqueIds).
+		// Verify the number of discounted prices is (2 pricebooks) * count(expectedUniqueIds), which is
+		// the same as the size of fixture.itemizedDiscountFixtures.
 		Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
-				.isEqualTo(discountsFromFixture.size() * expectedUniqueIds.size());
+				.isEqualTo(discountsFromFixture.size());
+
+		List<PricebookCost> pricebookCostsPb1 = participationTestUtilities.getPricebookCostsInOrder(expectedUniqueIds,
+				Collections.singletonList(1));
+		List<PricebookCost> pricebookCostsPb22 = participationTestUtilities.getPricebookCostsInOrder(expectedUniqueIds,
+				Collections.singletonList(22));
+		Assertions.assertThat(pricebookCostsPb1.size()).isEqualTo(expectedUniqueIds.size());
+		Assertions.assertThat(pricebookCostsPb22.size()).isEqualTo(expectedUniqueIds.size());
+
+		Map<Integer, ItemizedDiscountFixture> discountFixturesByUniqueId = fixture.getItemizedDiscountFixtures().stream()
+				.collect(Collectors.toMap(ItemizedDiscountFixture::getUniqueId, discountFixture -> discountFixture));
 
 		// Verify that pricebook_cost record values are correct for each pricebook discount.
-		discountsFromFixture.forEach(discount -> {
-			List<PricebookCost> pricebookCosts = participationTestUtilities.getPricebookCostsInOrder(
-					expectedUniqueIds, Collections.singletonList(discount.getPricebookId()));
-			pricebookCosts.forEach(pbcost -> {
-				Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
-				Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
-				Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
-				Double expectedCost = discount.getPrice();
-				Assertions.assertThat(pbcost.getCost()).isEqualTo(expectedCost);
+		for (int i = 0; i < pricebookCostsPb1.size(); i++) {
+			PricebookCost pbcost1 = pricebookCostsPb1.get(i);
+			PricebookCost pbcost22 = pricebookCostsPb22.get(i);
 
-				if (!CollectionUtils.isEmpty(fixture.getExpectedWasPrices())
-						&& fixture.getExpectedWasPrices().containsKey(pbcost.getUniqueId())) {
-					Assertions.assertThat(pbcost.getWasPrice()).isEqualTo(
-							fixture.getExpectedWasPrices().get(pbcost.getUniqueId()).getWasPrice());
-				}
-			});
-		});
+			Assertions.assertThat(pbcost1.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
+			Assertions.assertThat(pbcost1.getParticipationId()).isEqualTo(fixture.getParticipationId());
+			Assertions.assertThat(pbcost1.getBasePrice()).isNotEqualTo(0);
+			Assertions.assertThat(pbcost1.getCost()).isEqualTo(
+					discountFixturesByUniqueId.get(pbcost1.getUniqueId()).getPricebook1Price()
+			);
+
+			// PB22 price values should match PB1 except for the cost.
+			Assertions.assertThat(pbcost22.getUniqueId()).isEqualTo(pbcost1.getUniqueId());
+			Assertions.assertThat(pbcost22.getUserId()).isEqualTo(pbcost1.getUserId());
+			Assertions.assertThat(pbcost22.getParticipationId()).isEqualTo(pbcost1.getParticipationId());
+			Assertions.assertThat(pbcost22.getWasPrice()).isEqualTo(pbcost1.getWasPrice());
+			Assertions.assertThat(pbcost22.getBasePrice()).isNotEqualTo(0);
+			Assertions.assertThat(pbcost22.getCost()).isEqualTo(
+					discountFixturesByUniqueId.get(pbcost22.getUniqueId()).getPricebook22Price()
+			);
+
+			if (!CollectionUtils.isEmpty(fixture.getExpectedWasPrices())
+					&& fixture.getExpectedWasPrices().containsKey(pbcost1.getUniqueId())) {
+				double expectedWasPrice = fixture.getExpectedWasPrices().get(pbcost1.getUniqueId()).getWasPrice();
+				Assertions.assertThat(pbcost1.getWasPrice()).isEqualTo(expectedWasPrice);
+				Assertions.assertThat(pbcost22.getWasPrice()).isEqualTo(expectedWasPrice);
+			}
+		}
 	}
 
 	/**
@@ -106,7 +134,7 @@ public class ItemizedDiscountsV1TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
 			return;
 		}
 

@@ -33,7 +33,7 @@ public class ItemizedDiscountsV2TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V2.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -53,6 +53,10 @@ public class ItemizedDiscountsV2TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void beforeActivate(ParticipationItemFixture fixture, Date processingDate) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V2.equals(fixture.getContentType())) {
+			return;
+		}
+
 		Assertions.assertThat(participationTestUtilities.getPricebookCostParticipationCount(fixture.getParticipationId()))
 				.as("Unexpected participation id in pricebook_cost record: " + fixture)
 				.isEqualTo(0);
@@ -63,7 +67,7 @@ public class ItemizedDiscountsV2TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V2.equals(fixture.getContentType())) {
 			return;
 		}
 
@@ -96,24 +100,30 @@ public class ItemizedDiscountsV2TestEffectLifecycle implements ParticipationTest
 				.collect(Collectors.toMap(ItemizedDiscountFixture::getUniqueId, discountFixture -> discountFixture));
 
 		for (int i = 0; i < pricebookCostsPb1.size(); i++) {
-			PricebookCost pbcost = pricebookCostsPb1.get(i);
-			Assertions.assertThat(pbcost.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
-			Assertions.assertThat(pbcost.getParticipationId()).isEqualTo(fixture.getParticipationId());
-			Assertions.assertThat(pbcost.getBasePrice()).isNotEqualTo(0);
+			PricebookCost pbcost1 = pricebookCostsPb1.get(i);
+			PricebookCost pbcost22 = pricebookCostsPb22.get(i);
 
-			Assertions.assertThat(pbcost.getCost()).isEqualTo(
-					discountFixturesByUniqueId.get(pbcost.getUniqueId()).getPricebook1Price()
+			Assertions.assertThat(pbcost1.getUserId()).isEqualTo(fixture.getLastModifiedUserId());
+			Assertions.assertThat(pbcost1.getParticipationId()).isEqualTo(fixture.getParticipationId());
+			Assertions.assertThat(pbcost1.getBasePrice()).isNotEqualTo(0);
+
+			Assertions.assertThat(pbcost1.getCost()).isEqualTo(
+					discountFixturesByUniqueId.get(pbcost1.getUniqueId()).getPricebook1Price()
 			);
 
-			// PB 22 cost and wasPrice should be the same as PB 1 cost and wasPrice.
-			PricebookCost pbcost22 = pricebookCostsPb22.get(i);
-			Assertions.assertThat(pbcost22.getCost()).isEqualTo(pbcost.getCost());
-			Assertions.assertThat(pbcost22.getWasPrice()).isEqualTo(pbcost.getWasPrice());
+			// PB22 price values should match PB1 except for the cost.
+			Assertions.assertThat(pbcost22.getUniqueId()).isEqualTo(pbcost1.getUniqueId());
+			Assertions.assertThat(pbcost22.getUserId()).isEqualTo(pbcost1.getUserId());
+			Assertions.assertThat(pbcost22.getParticipationId()).isEqualTo(pbcost1.getParticipationId());
+			Assertions.assertThat(pbcost22.getWasPrice()).isEqualTo(pbcost1.getWasPrice());
+			Assertions.assertThat(pbcost22.getBasePrice()).isNotEqualTo(0);
+			Assertions.assertThat(pbcost22.getCost()).isEqualTo(pbcost1.getCost());
 
 			if (!CollectionUtils.isEmpty(fixture.getExpectedWasPrices())
-					&& fixture.getExpectedWasPrices().containsKey(pbcost.getUniqueId())) {
-				Assertions.assertThat(pbcost.getWasPrice()).isEqualTo(
-						fixture.getExpectedWasPrices().get(pbcost.getUniqueId()).getWasPrice());
+					&& fixture.getExpectedWasPrices().containsKey(pbcost1.getUniqueId())) {
+				double expectedWasPrice = fixture.getExpectedWasPrices().get(pbcost1.getUniqueId()).getWasPrice();
+				Assertions.assertThat(pbcost1.getWasPrice()).isEqualTo(expectedWasPrice);
+				Assertions.assertThat(pbcost22.getWasPrice()).isEqualTo(expectedWasPrice);
 			}
 		}
 	}
@@ -126,7 +136,7 @@ public class ItemizedDiscountsV2TestEffectLifecycle implements ParticipationTest
 	 */
 	@Override
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
-		if (!fixture.getContentType().equals(ParticipationContentType.PARTICIPATION_ITEMIZED_V2)) {
+		if (!ParticipationContentType.PARTICIPATION_ITEMIZED_V2.equals(fixture.getContentType())) {
 			return;
 		}
 

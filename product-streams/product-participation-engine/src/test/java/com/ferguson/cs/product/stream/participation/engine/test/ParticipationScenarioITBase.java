@@ -137,6 +137,30 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		}
 	}
 
+	@Autowired
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
+
+	@Autowired
+	protected CalculatedDiscountsV1TestEffectLifecycle calculatedDiscountsV1TestEffectLifecycle;
+
+	@Autowired
+	protected CalculatedDiscountsV2TestEffectLifecycle calculatedDiscountsV2TestEffectLifecycle;
+
+	@Autowired
+	protected CouponTestEffectLifecycle couponTestEffectLifecycle;
+
+	@Autowired
+	protected ItemizedDiscountsV1TestEffectLifecycle itemizedDiscountsV1TestEffectLifecycle;
+
+	@Autowired
+	protected ItemizedDiscountsV2TestEffectLifecycle itemizedDiscountsV2TestEffectLifecycle;
+
+	@Autowired
+	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
+
+	@Autowired
+	protected SchedulingTestEffectLifecycle schedulingTestEffectLifecycle;
+
 	/*
 	 * Mocking and spying
 	 *
@@ -190,8 +214,16 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// Perform before-all initialization.
 		if (!ranBeforeAll) {
 			setupMocks();
+
 			ranBeforeAll = true;
 		}
+
+		// Use ALL test lifecycles in scenario tests by default. May be overridden by calling
+		// useTestLifecycles() with the desired list of lifecycles.
+		lifecycleTests = Arrays.asList(basicWorkflowTestEffectLifecycle, calculatedDiscountsV1TestEffectLifecycle,
+				calculatedDiscountsV2TestEffectLifecycle, couponTestEffectLifecycle,
+				itemizedDiscountsV1TestEffectLifecycle, itemizedDiscountsV2TestEffectLifecycle,
+				saleIdTestEffectLifecycle, schedulingTestEffectLifecycle);
 
 		// Default the simulated scenario start date.
 		originalSimulatedDate = new Date();
@@ -202,15 +234,18 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	 * Set values for given price-related properties. Each given PricebookCost must have a uniqueId and at least one
 	 * non-null value to set for that product variant. Only properties with non-null values will be updated in the DB.
 	 */
-	public void withWasPrices(WasPriceFixture... wasPrices) {
+	public void setWasPrices(WasPriceFixture... wasPrices) {
 		participationTestUtilities.updateWasPrices(wasPrices);
 	}
 
-	public void withNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
+	public void setNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
 		participationTestUtilities.insertNonDiscountedPricebookCosts(prices);
 	}
 
-	public void testLifecycles(ParticipationTestEffectLifecycle... params) {
+	/**
+	 * Override the default of ALL test lifecycles, to use the given list of lifecycles.
+	 */
+	public void useTestLifecycles(ParticipationTestEffectLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
 	}
 

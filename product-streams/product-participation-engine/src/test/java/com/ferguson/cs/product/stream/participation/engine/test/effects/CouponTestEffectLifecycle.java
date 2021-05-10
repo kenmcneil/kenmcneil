@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.assertj.core.api.Assertions;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationTestUtilities;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
@@ -24,6 +25,10 @@ public class CouponTestEffectLifecycle implements ParticipationTestEffectLifecyc
 	 */
 	@Override
 	public void afterPublish(ParticipationItemFixture fixture, Date processingDate) {
+		if (!ParticipationContentType.PARTICIPATION_COUPON_V1.equals(fixture.getContentType())) {
+			return;
+		}
+
 		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
 		Assertions.assertThat(itemPartial.getIsCoupon()).isNotNull();
 		Assertions.assertThat(itemPartial.getShouldBlockDynamicPricing()).isNotNull();

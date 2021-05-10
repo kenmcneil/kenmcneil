@@ -1,20 +1,11 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class BasicScenariosIT extends ParticipationScenarioITBase {
-	@Autowired
-	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
-
-	@Autowired
-	protected SchedulingTestEffectLifecycle schedulingTestEffectLifecycle;
-
 	/**
 	 * Test scenario:
 	 *   - user publishes P() - an empty participation record
@@ -38,9 +29,6 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 				.saleId(999)
 				.build();
 
-		// Set up scenario
-		testLifecycles(basicWorkflowTestEffectLifecycle);
-
 		// Execute scenario steps in sequence.
 		manualPublish(p1);
 	    processEvents();
@@ -57,8 +45,6 @@ public class BasicScenariosIT extends ParticipationScenarioITBase {
 		ParticipationItemFixture p1 = ParticipationItemFixture.builder()
 				.scheduleByDays(1, 3)
 				.build();
-
-		testLifecycles(schedulingTestEffectLifecycle);
 
 		manualPublish(p1);
 		advanceToDay(4);
