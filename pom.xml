@@ -14,7 +14,7 @@
 	<properties>
 		<api-task.version>4.0.2</api-task.version>
 	</properties>
-	<version>1.0.134</version>
+	<version>1.0.135-SNAPSHOT</version>
 
 	<groupId>com.ferguson.cs.product</groupId>
 	<artifactId>product-services</artifactId>
@@ -51,7 +51,7 @@
 			<dependency>
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>product-model</artifactId>
-				<version>1.0.134</version>
+				<version>1.0.135-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>io.springfox</groupId>
