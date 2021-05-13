@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>product-tasks</artifactId>
 		<groupId>com.ferguson.cs.product</groupId>
-		<version>1.0.134-SNAPSHOT</version>
+		<version>1.0.134</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -22,12 +22,12 @@
 			<dependency>
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>inventory-import-common</artifactId>
-				<version>1.0.134-SNAPSHOT</version>
+				<version>1.0.134</version>
 			</dependency>
 			<dependency>
 				<groupId>com.ferguson.cs.product</groupId>
 				<artifactId>inventory-import-ftp</artifactId>
-				<version>1.0.134-SNAPSHOT</version>
+				<version>1.0.134</version>
 			</dependency>
 			<dependency>
 				<groupId>com.ferguson.cs.product</groupId>
