@@ -3,7 +3,9 @@ package com.ferguson.cs.product.stream.participation.engine.test.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -32,17 +34,25 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ParticipationItemFixture {
 	private Integer participationId;
+
 	private Date startDate;
+
 	private Date endDate;
+
 	private Integer lastModifiedUserId;
+
 	@Builder.Default
 	private Boolean isActive = false;
+
 	@Builder.Default
 	private Integer saleId = 0;
+
 	@Builder.Default
 	private Boolean isSimulatedPublish = false;
+
 	@Builder.Default
 	private Boolean isCoupon = false;
+
 	@Builder.Default
 	private Boolean shouldBlockDynamicPricing = false;
 
@@ -79,6 +89,11 @@ public class ParticipationItemFixture {
 	private List<Integer> expectedOwnedUniqueIds;
 
 	/**
+	 * Use in tests to specify the expected wasPrice values for discounted products after activation.
+	 */
+	private Map<Integer, WasPriceFixture> expectedWasPrices;
+
+	/**
 	 * Use in tests to populate records in the participationCalculatedDiscount table.
 	 */
 	private List<CalculatedDiscountFixture> calculatedDiscountFixtures;
@@ -94,7 +109,7 @@ public class ParticipationItemFixture {
 
 	@Override
 	public String toString() {
-		return String.format("Participation(id(%s), type(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s)",
+		return String.format("Participation(id(%s), type(%s), saleId(%s), products(%s), schedule(%s, %s)), contentType(%s), expectedWasPrices(%s)",
 				participationId,
 				contentType == ParticipationContentType.PARTICIPATION_V1
 						? (CollectionUtils.isEmpty(uniqueIds) ? "SaleID" : "Calc")
@@ -103,7 +118,8 @@ public class ParticipationItemFixture {
 				StringUtils.join(uniqueIds, ", "),
 				startDateOffsetDays != null ? startDateOffsetDays : startDate,
 				endDateOffsetDays != null ? endDateOffsetDays : endDate,
-				contentType
+				contentType,
+				StringUtils.join(expectedWasPrices, ", ")
 		);
 	}
 
@@ -140,6 +156,19 @@ public class ParticipationItemFixture {
 		}
 
 		/**
+		 * For use in tests to populate Was prices. Values must not be null.
+		 */
+		public ParticipationItemFixtureBuilder expectedWasPrices(WasPriceFixture... wasPrices) {
+			this.expectedWasPrices = new HashMap<>(wasPrices.length);
+			for (WasPriceFixture wasPrice: wasPrices) {
+				Assertions.assertThat(wasPrice.getUniqueId()).isNotNull();
+				Assertions.assertThat(wasPrice.getWasPrice()).isNotNull();
+				this.expectedWasPrices.put(wasPrice.getUniqueId(), wasPrice);
+			}
+			return this;
+		}
+
+		/**
 		 * For use in tests to populate uniqueIds. Values must not be null.
 		 */
 		public ParticipationItemFixtureBuilder expectedOwnedUniqueIds(Integer... ids) {
@@ -149,27 +178,60 @@ public class ParticipationItemFixture {
 		}
 
 		/**
-		 * For use in tests to populate calculated discounts. Values must not be null.
+		 * For use in tests to populate v1 calculated discounts. The pb1 and pb22 discounts are required.
 		 */
-		public ParticipationItemFixtureBuilder calculatedDiscounts(CalculatedDiscountFixture... discountFixtures) {
-			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
-				Assertions.assertThat(discountFixture).isNotNull();
-				Assertions.assertThat(discountFixture.getPricebookId()).isNotNull();
-				Assertions.assertThat(discountFixture.getDiscountAmount()).isNotNull();
-				Assertions.assertThat(discountFixture.getIsPercent()).isNotNull();
-			});
-			this.calculatedDiscountFixtures = Arrays.asList(discountFixtures);
+		public ParticipationItemFixtureBuilder calculatedDiscountsV1(
+				CalculatedDiscountFixture discountFixturePb1,
+				CalculatedDiscountFixture discountFixturePb22
+		) {
+			Assertions.assertThat(discountFixturePb1).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getIsPercent()).isNotNull();
+
+			Assertions.assertThat(discountFixturePb22).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb22.getIsPercent()).isNotNull();
+
+			this.calculatedDiscountFixtures = Arrays.asList(discountFixturePb1, discountFixturePb22);
+			return this;
+		}
+
+		/**
+		 * For use in tests to populate v2 calculated discounts. The pb1 discount is required.
+		 */
+		public ParticipationItemFixtureBuilder calculatedDiscountsV2(CalculatedDiscountFixture discountFixturePb1) {
+			Assertions.assertThat(discountFixturePb1).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getPricebookId()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getDiscountAmount()).isNotNull();
+			Assertions.assertThat(discountFixturePb1.getIsPercent()).isNotNull();
+			this.calculatedDiscountFixtures = Arrays.asList(discountFixturePb1);
 			return this;
 		}
 
 		/**
 		 * For use in tests to populate itemized discounts. Values must not be null.
 		 */
-		public ParticipationItemFixtureBuilder itemizedDiscounts(ItemizedDiscountFixture... discountFixtures) {
+		public ParticipationItemFixtureBuilder itemizedV1Discounts(ItemizedDiscountFixture... discountFixtures) {
 			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
 				Assertions.assertThat(discountFixture).isNotNull();
 				Assertions.assertThat(discountFixture.getPricebook1Price()).isNotNull();
 				Assertions.assertThat(discountFixture.getPricebook22Price()).isNotNull();
+			});
+			this.itemizedDiscountFixtures = Arrays.asList(discountFixtures);
+			return this;
+		}
+
+		/**
+		 * For use in tests to populate itemized discounts. PB1 value must be specified but PB22 must be null
+		 * since v2 only uses pb1 values.
+		 */
+		public ParticipationItemFixtureBuilder itemizedV2Discounts(ItemizedDiscountFixture... discountFixtures) {
+			Assertions.assertThat(discountFixtures).allSatisfy(discountFixture -> {
+				Assertions.assertThat(discountFixture).isNotNull();
+				Assertions.assertThat(discountFixture.getPricebook1Price()).isNotNull();
+				Assertions.assertThat(discountFixture.getPricebook22Price()).isNull();
 			});
 			this.itemizedDiscountFixtures = Arrays.asList(discountFixtures);
 			return this;

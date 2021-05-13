@@ -167,15 +167,13 @@ public class ParticipationV2Lifecycle implements ParticipationLifecycle {
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		int userId = itemPartial.getLastModifiedUserId();
-		int totalRows = 0;
 
 		// Activate any new calculated discounts.
 		int rowsAffected = participationV2Dao.applyNewCalculatedDiscounts(processingDate, userId,
 				participationEngineSettings.getCoolOffPeriod().toMinutes());
-		totalRows += rowsAffected;
 		LOG.debug("{}: {} prices discounted by calculated discounts", participationId, rowsAffected);
 
-		return totalRows;
+		return rowsAffected;
 	}
 
 	/**
@@ -221,17 +219,11 @@ public class ParticipationV2Lifecycle implements ParticipationLifecycle {
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		int userId = itemPartial.getLastModifiedUserId();
-		int totalRows = 0;
 
-		int rowsAffected = participationV2Dao.updateLastOnSaleBasePrices(processingDate);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} lastOnSale basePrice values saved", participationId, rowsAffected);
-
-		rowsAffected = participationV2Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		totalRows += rowsAffected;
+		int rowsAffected = participationV2Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
 		LOG.debug("{}: {} prices taken off sale from calculated discounts", participationId, rowsAffected);
 
-		return totalRows;
+		return rowsAffected;
 	}
 
 	@Override

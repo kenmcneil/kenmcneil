@@ -2,54 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationV1Mapper">
 
-	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
-		-- Update the base price and sale date of pricebook prices that already exist in the table.
-		UPDATE
-			lastOnSale
-		SET
-			lastOnSale.basePrice = pbCost.basePrice ,
-			lastOnSale.saleDate = #{processingDate},
-			lastOnSale.wasPrice = pbCost.wasPrice
-		FROM
-			mmc.product.participationLastOnSale AS lastOnSale
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = lastOnSale.uniqueId
-		JOIN
-			mmc.dbo.pricebook_cost AS pbCost
-			ON pbCost.uniqueId = lastOnSale.uniqueId
-			AND pbCost.pricebookId = lastOnSale.pricebookId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-	</update>
-
-	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
-		-- Record the base price for prices going off sale, for pricebook prices
-		-- that don't exist in the last on sale table.
-		INSERT INTO
-			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice, wasPrice)
-		SELECT
-			pbCost.pricebookId, pbCost.uniqueId, #{processingDate}, pbCost.basePrice, pbCost.wasPrice
-		FROM
-			mmc.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS los
-			ON los.uniqueId = pbCost.uniqueId
-			AND los.pricebookId = pbCost.pricebookId
-		WHERE
-			los.uniqueId IS NULL
-	</insert>
-
-	<update id="takePricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
+	<update id="takeV1PricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
 		-- Set cost to a pending base price if present, else to basePrice.
 		-- Set basePrice to a pending base price if present.
 		-- Set participationId and userId.
@@ -64,20 +17,24 @@
 			pbCost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-		JOIN
-			mmc.product.latestBasePrice AS lbp
-			ON lbp.uniqueId = pbCost.uniqueId
-			AND lbp.pricebookId = pbCost.pricebookId
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.oldParticipationId
+					AND p.contentTypeId = 1 -- ParticipationContentType.PARTICIPATION_V1
+			JOIN
+				mmc.product.participationCalculatedDiscount AS discount
+				ON discount.participationId = oc.oldParticipationId
+				AND discount.pricebookId = pbCost.pricebookId
+			JOIN
+				mmc.product.latestBasePrice AS lbp
+				ON lbp.uniqueId = pbCost.uniqueId
+				AND lbp.pricebookId = pbCost.pricebookId
 	</update>
 
-	<update id="applyNewCalculatedDiscounts" parameterType="map">
+	<update id="applyNewV1CalculatedDiscounts" parameterType="map">
 		-- Apply calculated discounts to products becoming owned by a Participation.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
 		-- for the calculations. Rounds the discounted price down to 2 decimal places.
@@ -86,35 +43,40 @@
 			pbCost
 		SET
 			@wasPrice = COALESCE(los.wasPrice, wasPrice.wasPrice, 0.00),
-			pbcost.cost = ROUND(IIF(
-										discount.isPercent = 1,
-										COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
-										COALESCE(los.basePrice, pbCost.basePrice) + discount.changeValue
-									), 2),
+			pbcost.cost =
+			    ROUND(IIF(
+					discount.isPercent = 1,
+					COALESCE(los.basePrice, pbCost.basePrice) * discount.changeValue,
+					COALESCE(los.basePrice, pbCost.basePrice) + discount.changeValue
+				), 2),
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = discount.participationId,
 			pbCost.userId = #{userId},
 			pbCost.wasPrice = @wasPrice
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.newParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-		LEFT JOIN
-			mmc.dbo.pricebookwasprice AS wasPrice
-			ON wasPrice.uniqueId = pbCost.uniqueId
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS los
-			ON los.uniqueId = pbCost.uniqueId
-			AND los.pricebookId = pbCost.pricebookId
-			AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.newParticipationId
+					AND p.contentTypeId = 1 -- ParticipationContentType.PARTICIPATION_V1
+			JOIN
+				mmc.product.participationCalculatedDiscount AS discount
+				ON discount.participationId = oc.newParticipationId
+				AND discount.pricebookId = pbCost.pricebookId
+			LEFT JOIN
+				mmc.dbo.pricebookwasprice AS wasPrice
+				ON wasPrice.uniqueId = pbCost.uniqueId
+			LEFT JOIN
+				mmc.product.participationLastOnSale AS los
+				ON los.uniqueId = pbCost.uniqueId
+				AND los.pricebookId = pbCost.pricebookId
+				AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
 	</update>
 
-	<insert id="insertParticipationCalculatedDiscounts">
+	<insert id="insertParticipationV1CalculatedDiscounts">
 		INSERT INTO mmc.product.participationCalculatedDiscount (
 		participationId,
 		pricebookId,
@@ -132,14 +94,14 @@
 		</foreach>
 	</insert>
 
-	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
+	<delete id="deleteParticipationV1CalculatedDiscounts" parameterType="int">
 		DELETE FROM
 			mmc.product.participationCalculatedDiscount
 		WHERE
 			participationId = #{participationId}
 	</delete>
 
-	<insert id="insertParticipationCalculatedDiscountsHistory">
+	<insert id="insertParticipationV1CalculatedDiscountsHistory">
 		INSERT INTO logs.dbo.participationCalculatedDiscountHistory (
 			participationItemPartialHistoryId,
 			pricebookId,

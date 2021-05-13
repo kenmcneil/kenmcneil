@@ -21,13 +21,6 @@ public interface ParticipationV1Dao {
 	int applyNewCalculatedDiscounts(Date processingDate, int userId, long coolOffPeriodMinutes);
 
 	/**
-	 * Record last-on-sale base prices.
-	 * @param processingDate The date the participation is being processed.
-	 * @return The number of records modified.
-	 */
-	int updateLastOnSaleBasePrices(Date processingDate);
-
-	/**
 	 * Take the prices owned by the participation off sale.
 	 * @param userId The id of the user initiating the changes.
 	 * @return The number of records modified.

@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * Verify that scheduling works - it should be activated at the start date and deactivated
  * on the end date.
+ *
+ * These tests are not specific to the Participation type.
  */
 @RequiredArgsConstructor
 public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLifecycle {
@@ -48,10 +50,13 @@ public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLif
 	public void afterActivate(ParticipationItemFixture fixture, Date processingDate) {
 		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
 
-		// Should have activated near the start date. Verify no more than one day has passed (since
-		// that's the resolution of the scenario test system if using day offsets).
-		LocalDate startDatePlusOneDay = LocalDate.from(itemPartial.getStartDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
-		Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(startDatePlusOneDay);
+		if (itemPartial.getStartDate() != null) {
+			// Should have activated near the start date. Verify no more than one day has passed (since
+			// that's the resolution of the scenario test system if using day offsets).
+			LocalDate startDatePlusOneDay = LocalDate.from(
+					itemPartial.getStartDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
+			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(startDatePlusOneDay);
+		}
 	}
 
 	/**
@@ -61,8 +66,10 @@ public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLif
 	public void beforeDeactivate(ParticipationItemFixture fixture, Date processingDate) {
 		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
 
-		// Should not be deactivating if the start date is not before the processing date.
-		Assertions.assertThat(itemPartial.getStartDate().getTime()).isLessThanOrEqualTo(processingDate.getTime());
+		if (itemPartial.getStartDate() != null) {
+			// Should not be deactivating if the start date is not before the processing date.
+			Assertions.assertThat(itemPartial.getStartDate().getTime()).isLessThanOrEqualTo(processingDate.getTime());
+		}
 	}
 
 	/**
@@ -72,9 +79,11 @@ public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLif
 	public void afterDeactivate(ParticipationItemFixture fixture, Date processingDate) {
 		ParticipationItemPartial itemPartial = participationTestUtilities.getParticipationItemPartial(fixture.getParticipationId());
 
-		// Should have deactivated near the end date. Verify no more than one day has passed (since
-		// that's the resolution of the scenario test system if using day offsets).
-		LocalDate endDatePlusOneDay = LocalDate.from(itemPartial.getEndDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
-		Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(endDatePlusOneDay);
+		if (itemPartial.getEndDate() != null) {
+			// Should have deactivated near the end date. Verify no more than one day has passed (since
+			// that's the resolution of the scenario test system if using day offsets).
+			LocalDate endDatePlusOneDay = LocalDate.from(itemPartial.getEndDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
+			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(endDatePlusOneDay);
+		}
 	}
 }

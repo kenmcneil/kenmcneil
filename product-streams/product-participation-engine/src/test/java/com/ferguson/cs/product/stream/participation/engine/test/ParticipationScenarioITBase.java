@@ -52,16 +52,20 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsV1TestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.CalculatedDiscountsV2TestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.CouponTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsTestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsV1TestEffectLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.effects.ItemizedDiscountsV2TestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.ParticipationTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.effects.SchedulingTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.CalculatedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ItemizedDiscountFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.LifecycleState;
+import com.ferguson.cs.product.stream.participation.engine.test.model.OffsalePriceFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
+import com.ferguson.cs.product.stream.participation.engine.test.model.WasPriceFixture;
 
 /**
  * Subclass this to create scenarios that test expected behavior at various points
@@ -98,17 +102,31 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		}
 
 		@Bean
-		public CalculatedDiscountsTestEffectLifecycle calculatedDiscountsTestLifecycle (
+		public CalculatedDiscountsV1TestEffectLifecycle calculatedDiscountsV1TestLifecycle(
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new CalculatedDiscountsTestEffectLifecycle(participationTestUtilities);
+			return new CalculatedDiscountsV1TestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
-		public ItemizedDiscountsTestEffectLifecycle itemizedDiscountsTestLifecycle (
+		public CalculatedDiscountsV2TestEffectLifecycle calculatedDiscountsV2TestLifecycle (
 				ParticipationTestUtilities participationTestUtilities
 		) {
-			return new ItemizedDiscountsTestEffectLifecycle(participationTestUtilities);
+			return new CalculatedDiscountsV2TestEffectLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public ItemizedDiscountsV1TestEffectLifecycle itemizedDiscountsV1TestLifecycle(
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new ItemizedDiscountsV1TestEffectLifecycle(participationTestUtilities);
+		}
+
+		@Bean
+		public ItemizedDiscountsV2TestEffectLifecycle itemizedDiscountsV2TestLifecycle (
+				ParticipationTestUtilities participationTestUtilities
+		) {
+			return new ItemizedDiscountsV2TestEffectLifecycle(participationTestUtilities);
 		}
 
 		@Bean
@@ -118,6 +136,30 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			return new CouponTestEffectLifecycle(participationTestUtilities);
 		}
 	}
+
+	@Autowired
+	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
+
+	@Autowired
+	protected CalculatedDiscountsV1TestEffectLifecycle calculatedDiscountsV1TestEffectLifecycle;
+
+	@Autowired
+	protected CalculatedDiscountsV2TestEffectLifecycle calculatedDiscountsV2TestEffectLifecycle;
+
+	@Autowired
+	protected CouponTestEffectLifecycle couponTestEffectLifecycle;
+
+	@Autowired
+	protected ItemizedDiscountsV1TestEffectLifecycle itemizedDiscountsV1TestEffectLifecycle;
+
+	@Autowired
+	protected ItemizedDiscountsV2TestEffectLifecycle itemizedDiscountsV2TestEffectLifecycle;
+
+	@Autowired
+	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
+
+	@Autowired
+	protected SchedulingTestEffectLifecycle schedulingTestEffectLifecycle;
 
 	/*
 	 * Mocking and spying
@@ -172,15 +214,38 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// Perform before-all initialization.
 		if (!ranBeforeAll) {
 			setupMocks();
+
 			ranBeforeAll = true;
 		}
+
+		// Use ALL test lifecycles in scenario tests by default. May be overridden by calling
+		// useTestLifecycles() with the desired list of lifecycles.
+		lifecycleTests = Arrays.asList(basicWorkflowTestEffectLifecycle, calculatedDiscountsV1TestEffectLifecycle,
+				calculatedDiscountsV2TestEffectLifecycle, couponTestEffectLifecycle,
+				itemizedDiscountsV1TestEffectLifecycle, itemizedDiscountsV2TestEffectLifecycle,
+				saleIdTestEffectLifecycle, schedulingTestEffectLifecycle);
 
 		// Default the simulated scenario start date.
 		originalSimulatedDate = new Date();
 		currentSimulatedDate = originalSimulatedDate;
 	}
 
-	public void testLifecycles(ParticipationTestEffectLifecycle... params) {
+	/**
+	 * Set values for given price-related properties. Each given PricebookCost must have a uniqueId and at least one
+	 * non-null value to set for that product variant. Only properties with non-null values will be updated in the DB.
+	 */
+	public void setWasPrices(WasPriceFixture... wasPrices) {
+		participationTestUtilities.updateWasPrices(wasPrices);
+	}
+
+	public void setNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
+		participationTestUtilities.insertNonDiscountedPricebookCosts(prices);
+	}
+
+	/**
+	 * Override the default of ALL test lifecycles, to use the given list of lifecycles.
+	 */
+	public void useTestLifecycles(ParticipationTestEffectLifecycle... params) {
 		lifecycleTests = Arrays.asList(params);
 	}
 
@@ -294,6 +359,11 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	public void verifyParticipationOwnsExactly(ParticipationItemFixture fixture, Integer... expectedUniqueIds) {
 		List<Integer> ownedUniqueIds = participationTestUtilities.getOwnedUniqueIds(fixture.getParticipationId());
 		Assertions.assertThat(ownedUniqueIds).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedUniqueIds));
+	}
+
+	public void logPricebookPrices(Integer... uniqueIds) {
+		participationTestUtilities.getPricebookCostsInOrder(Arrays.asList(uniqueIds), Arrays.asList(1, 22))
+				.forEach(System.out::println);
 	}
 
 	public void logSaleIds(ParticipationItemFixture fixture) {
@@ -505,6 +575,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 			fixture.setEndDate(dateOffsetByDaysAtEndOfDay(currentSimulatedDate, fixture.getEndDateOffsetDays()));
 		}
 
+		// Check requirements of the type of the given participation and build the content Map.
 		ParticipationItem item = ParticipationItem.builder()
 				.id(fixture.getParticipationId())
 				.saleId(fixture.getSaleId())
@@ -516,22 +587,26 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 				.updateStatus(ParticipationItemUpdateStatus.NEEDS_PUBLISH)
 				.build();
 		if ("participation@1".equals(fixture.getContentType().nameWithMajorVersion())) {
-			// check requirements of this type of participation
-			//TODO make calculatedDiscount content required here after Coupon type goes live
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
-			// set the content object
 			item.setContent(getParticipationV1Content(fixture));
+		} else if ("participation@2".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
+			item.setContent(getParticipationV2Content(fixture));
 		} else if ("participation-itemized@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
 			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
-			// set the content object
 			item.setContent(getParticipationItemizedV1Content(fixture));
+		} else if ("participation-itemized@2".equals(fixture.getContentType().nameWithMajorVersion())) {
+			Assertions.assertThat(fixture.getSaleId()).isNotZero();
+			Assertions.assertThat(fixture.getUniqueIds()).isNullOrEmpty();
+			Assertions.assertThat(fixture.getItemizedDiscountFixtures()).isNotEmpty();
+			item.setContent(getParticipationItemizedV2Content(fixture));
 		} else if ("participation-coupon@1".equals(fixture.getContentType().nameWithMajorVersion())) {
 			Assertions.assertThat(fixture.getSaleId()).isNotZero();
 			Assertions.assertThat(fixture.getUniqueIds()).isNotEmpty();
-			// set the content object
 			item.setContent(getParticipationCouponV1Content(fixture));
 		} else {
 			Assertions.fail("Unknown content type in %s", fixture.toString());
@@ -555,7 +630,7 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		List<CalculatedDiscountFixture> discounts = fixture.getCalculatedDiscountFixtures();
 		if (!CollectionUtils.isEmpty(discounts)) {
 			CalculatedDiscountFixture discount1 = discounts.get(0);
-			CalculatedDiscountFixture discount22 = discounts.get(0);
+			CalculatedDiscountFixture discount22 = discounts.get(1);
 			content = discount1.getIsPercent()
 					? getContentTemplate("participationV1-content-percent-discount.json")
 					: getContentTemplate("participationV1-content-amount-discount.json");
@@ -580,6 +655,34 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	/**
+	 * Build the content map for the given fixture of type participation@2, as if it came from Construct.
+	 */
+	private Map<String, Object> getParticipationV2Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		// Calculated discount values are required. Load the template and fill in the discounts.
+		List<CalculatedDiscountFixture> discounts = fixture.getCalculatedDiscountFixtures();
+		if (CollectionUtils.isEmpty(discounts)) {
+			Assertions.fail("Missing required calculated discount content in %s", fixture.toString());
+		}
+
+		CalculatedDiscountFixture discount1 = discounts.get(0);
+		content = discount1.getIsPercent()
+				? getContentTemplate("participationV2-content-percent-discount.json")
+				: getContentTemplate("participationV2-content-amount-discount.json");
+		String discountTypeFieldName = discount1.getIsPercent() ? "percentDiscount" : "amountDiscount";
+		String pathToDiscount = "/priceDiscounts/calculatedDiscount/" + discountTypeFieldName + "/%s";
+		atPath(content, pathToDiscount, "template").put("selected", discount1.getTemplateId());
+		atPath(content, pathToDiscount, "pricebookId1").put("text", discount1.getDiscountAmount().toString());
+
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+		atPath(content, "/calculatedDiscounts/uniqueIds").set("list", mapper.valueToTree(fixture.getUniqueIds()));
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
 	 * Build the content map for the given fixture of type @itemized-participation@1, as if it came from Construct.
 	 * Requires the fixture to include at least two list entries (pb1 and pb22, in that order). Additional entries
 	 * will be ignored.
@@ -591,15 +694,15 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// discounts.
 		List<ItemizedDiscountFixture> discounts = fixture.getItemizedDiscountFixtures();
 		List<List<Object>> mappedDiscounts = discounts.stream()
-									.map(discount-> {
-										List<Object> row = new ArrayList<>();
-										row.add(discount.getUniqueId());
-										row.add("Manufacturer for uniqueId " + discount.getUniqueId());
-										row.add(discount.getPricebook1Price());
-										row.add(discount.getPricebook22Price());
-										return row;
-									})
-									.collect(Collectors.toList());
+				.map(discount-> {
+					List<Object> row = new ArrayList<>();
+					row.add(discount.getUniqueId());
+					row.add("Manufacturer for uniqueId " + discount.getUniqueId());
+					row.add(discount.getPricebook1Price());
+					row.add(discount.getPricebook22Price());
+					return row;
+				})
+				.collect(Collectors.toList());
 		if (CollectionUtils.isEmpty(discounts)) {
 			Assertions.fail("Missing required itemized discount content in %s", fixture.toString());
 		}
@@ -609,6 +712,36 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 		// instead of "participation@1.0.0", since the minor and patch versions indicate non-breaking changes
 		// in the major version. Records from Construct would have the specific @x.y.z version that was used
 		// to edit the record, but since the minor and patch is ignored in the engine it works either way.
+		content.put("_type", fixture.getContentType().nameWithMajorVersion());
+		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
+
+		return mapper.convertValue(content, new TypeReference<Map<String, Object>>(){});
+	}
+
+	/**
+	 * Build the content map for the given fixture of type @itemized-participation@2, as if it came from Construct.
+	 * Requires the fixture to include at least two list entries (pb1 and pb22, in that order). Additional entries
+	 * will be ignored.
+	 */
+	private Map<String, Object> getParticipationItemizedV2Content(ParticipationItemFixture fixture) {
+		ObjectNode content;
+
+		// Itemized discount values are not optional. Load the matching template and fill in any discounts.
+		List<ItemizedDiscountFixture> discounts = fixture.getItemizedDiscountFixtures();
+		List<List<Object>> mappedDiscounts = discounts.stream()
+				.map(discount-> {
+					List<Object> row = new ArrayList<>();
+					row.add(discount.getUniqueId());
+					row.add("Manufacturer for uniqueId " + discount.getUniqueId());
+					row.add(discount.getPricebook1Price());
+					return row;
+				})
+				.collect(Collectors.toList());
+		if (CollectionUtils.isEmpty(discounts)) {
+			Assertions.fail("Missing required itemized discount content in %s", fixture.toString());
+		}
+		content = getContentTemplate("participationItemizedV2-content-discount.json");
+		atPath(content, "/itemizedDiscounts").set("list", mapper.valueToTree(mappedDiscounts));
 		content.put("_type", fixture.getContentType().nameWithMajorVersion());
 		atPath(content, "/productSale").put("saleId", fixture.getSaleId());
 

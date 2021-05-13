@@ -6,19 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * This represents a record in the mmc.dbo.Pricebook_Cost table.
+ * This represents a Was price value to put in the mmc.dbo.pricebookWasPrice table.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PricebookCost {
+public class WasPriceFixture {
 	private Integer uniqueId;
-	private Integer pricebookId;
-	private Double cost;
-	private Float multiplier;
-	private Double basePrice;
-	private Integer userId;
-	private Integer participationId;
 	private Double wasPrice;
 }

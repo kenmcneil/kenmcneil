@@ -36,7 +36,7 @@ public class ParticipationV2DaoIT extends ParticipationEngineITBase {
 				.saleId(3030)
 				.isActive(true)
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
-				.calculatedDiscounts(
+				.calculatedDiscountsV1(
 						percentCalculatedDiscount(1, 25),
 						percentCalculatedDiscount(22, 25)
 				)
@@ -51,7 +51,7 @@ public class ParticipationV2DaoIT extends ParticipationEngineITBase {
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
 		rowsAffected = participationCoreDao.activateAndDeactivateProductSaleIds();
 		Assertions.assertThat(rowsAffected).isEqualTo(2);
-		rowsAffected = participationV2Dao.updateLastOnSaleBasePrices(new Date());
+		participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		rowsAffected = participationV2Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		rowsAffected = participationCoreDao.updateProductModifiedDates(new Date(), 1);
@@ -77,7 +77,7 @@ public class ParticipationV2DaoIT extends ParticipationEngineITBase {
 				.saleId(3030)
 				.isActive(false)
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
-				.calculatedDiscounts(
+				.calculatedDiscountsV1(
 						percentCalculatedDiscount(1, 25),
 						percentCalculatedDiscount(22, 25)
 				)
@@ -89,7 +89,7 @@ public class ParticipationV2DaoIT extends ParticipationEngineITBase {
 		participationCoreDao.updateOwnerChangesForActivation(p1.getParticipationId());
 		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
 		participationCoreDao.activateAndDeactivateProductSaleIds();
-		participationV2Dao.updateLastOnSaleBasePrices(new Date());
+		participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		participationV2Dao.applyNewCalculatedDiscounts(new Date(), 1, 15);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);
 
@@ -97,7 +97,7 @@ public class ParticipationV2DaoIT extends ParticipationEngineITBase {
 		participationCoreDao.updateOwnerChangesForDeactivation(p1.getParticipationId());
 		participationCoreDao.addProductOwnershipForNewOwners(p1.getParticipationId());
 		participationCoreDao.activateAndDeactivateProductSaleIds();
-		participationV2Dao.updateLastOnSaleBasePrices(new Date());
+		participationCoreDao.updateLastOnSaleForDeactivatingProducts(new Date());
 		int rowsAffected = participationV2Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(1);
 		Assertions.assertThat(rowsAffected).isEqualTo(4);
 		participationCoreDao.updateProductModifiedDates(new Date(), 1);

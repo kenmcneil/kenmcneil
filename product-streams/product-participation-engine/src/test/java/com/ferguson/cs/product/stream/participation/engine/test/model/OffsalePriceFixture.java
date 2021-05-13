@@ -6,19 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * This represents a record in the mmc.dbo.Pricebook_Cost table.
+ * This represents a non-discounted pricebook_cost record.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PricebookCost {
+public class OffsalePriceFixture {
 	private Integer uniqueId;
 	private Integer pricebookId;
-	private Double cost;
-	private Float multiplier;
-	private Double basePrice;
-	private Integer userId;
-	private Integer participationId;
-	private Double wasPrice;
+	private Double price;
 }

@@ -1,0 +1,35 @@
+{
+  "_type": "participation@2.0.0",
+  "productSale": {
+    "saleId": 0,
+    "_type": "atom-product-sale@1.0.0"
+  },
+  "calculatedDiscounts": {
+    "_type": "atom-section@1.0.0",
+    "uniqueIds": {
+      "list": [],
+      "_type": "atom-id-list@1.0.0"
+    }
+  },
+  "priceDiscounts": {
+    "_type": "atom-section@1.0.0",
+    "calculatedDiscount": {
+      "_type": "atom-section@1.0.0",
+      "discountType": {
+        "value": "percentDiscount",
+        "_type": "atom-toggle-radios@1.0.0"
+      },
+      "percentDiscount": {
+        "_type": "atom-section@1.0.0",
+        "template": {
+          "selected": 0,
+          "_type": "atom-select@1.0.0"
+        },
+        "pricebookId1": {
+          "text": "",
+          "_type": "atom-text@1.0.0"
+        }
+      }
+    }
+  }
+}

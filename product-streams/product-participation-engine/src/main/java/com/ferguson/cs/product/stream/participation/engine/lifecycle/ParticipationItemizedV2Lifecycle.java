@@ -10,7 +10,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
-import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1Dao;
+import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1V2Dao;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -53,7 +53,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ParticipationCoreDao participationCoreDao;
-	private final ParticipationItemizedV1Dao participationItemizedV1Dao;
+	private final ParticipationItemizedV1V2Dao participationItemizedV1V2Dao;
 
 	public ParticipationContentType getContentType() {
 		return ParticipationContentType.PARTICIPATION_ITEMIZED_V2;
@@ -67,7 +67,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 				.endDate(item.getSchedule() == null ? null : item.getSchedule().getTo())
 				.lastModifiedUserId(item.getLastModifiedUserId())
 				.isActive(false)
-				.contentTypeId(ParticipationContentType.PARTICIPATION_ITEMIZED_V2.contentTypeId())
+				.contentTypeId(getContentType().contentTypeId())
 				.isCoupon(false)
 				.shouldBlockDynamicPricing(true)
 				.build();
@@ -83,8 +83,8 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 		ParticipationItemPartial itemPartial = buildItemPartial(item);
 
 		int rowsAffected = participationCoreDao.upsertParticipationItemPartial(itemPartial);
-		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(),getUniqueIds(item));
-		rowsAffected += participationItemizedV1Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
+		rowsAffected += participationCoreDao.upsertParticipationProducts(item.getId(), getUniqueIds(item));
+		rowsAffected += participationItemizedV1V2Dao.upsertParticipationItemizedDiscounts(getParticipationItemizedDiscounts(item));
 
 		return rowsAffected;
 	}
@@ -128,15 +128,13 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 	public int activateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		int userId = itemPartial.getLastModifiedUserId();
-		int totalRows = 0;
 
 		// Activate any new itemized discounts.
-		int rowsAffected = participationItemizedV1Dao.applyNewItemizedDiscounts(processingDate, userId,
-				participationEngineSettings.getCoolOffPeriod().toMinutes());
-		totalRows += rowsAffected;
+		int rowsAffected = participationItemizedV1V2Dao.applyNewItemizedDiscounts(getContentType().contentTypeId(),
+				processingDate, userId, participationEngineSettings.getCoolOffPeriod().toMinutes());
 		LOG.debug("{}: {} pricebook prices (on {} products) discounted", participationId, rowsAffected, rowsAffected/2);
 
-		return totalRows;
+		return rowsAffected;
 	}
 
 	/**
@@ -182,24 +180,19 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 	public int deactivateEffects(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		int userId = itemPartial.getLastModifiedUserId();
-		int totalRows = 0;
 
-		int rowsAffected = participationItemizedV1Dao.updateLastOnSaleBasePrices(processingDate);
-		totalRows += rowsAffected;
-		LOG.debug("{}: {} lastOnSale base prices saved", participationId, rowsAffected);
-
-		rowsAffected = participationItemizedV1Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(userId);
-		totalRows += rowsAffected;
+		int rowsAffected = participationItemizedV1V2Dao.takePricesOffSaleAndApplyPendingBasePriceUpdates(
+				getContentType().contentTypeId(), userId);
 		LOG.debug("{}: {} prices taken off sale from itemized discounts", participationId, rowsAffected);
 
-		return totalRows;
+		return rowsAffected;
 	}
 
 	@Override
 	public int unpublish(ParticipationItemPartial itemPartial, Date processingDate) {
 		int participationId = itemPartial.getParticipationId();
 		return participationCoreDao.deleteParticipationProducts(participationId)
-				+ participationItemizedV1Dao.deleteParticipationItemizedDiscounts(participationId)
+				+ participationItemizedV1V2Dao.deleteParticipationItemizedDiscounts(participationId)
 				+ participationCoreDao.deleteParticipationItemPartial(participationId);
 	}
 
@@ -260,7 +253,7 @@ public class ParticipationItemizedV2Lifecycle implements ParticipationLifecycle 
 
 		int partialHistoryId = participationCoreDao.insertParticipationItemPartialHistory(itemPartial);
 		participationCoreDao.insertParticipationProductsHistory(partialHistoryId, getUniqueIds(item));
-		participationItemizedV1Dao.insertParticipationItemizedDiscountsHistory(
+		participationItemizedV1V2Dao.insertParticipationItemizedDiscountsHistory(
 				partialHistoryId, (getParticipationItemizedDiscounts(item)));
 	}
 

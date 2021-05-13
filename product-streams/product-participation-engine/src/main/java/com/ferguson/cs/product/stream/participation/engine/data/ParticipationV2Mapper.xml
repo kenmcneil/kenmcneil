@@ -2,54 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ferguson.cs.product.stream.participation.engine.data.ParticipationV2Mapper">
 
-	<update id="updateExistingLastOnSaleBasePrices" parameterType="Date">
-		-- Update the base price and sale date of pricebook prices that already exist in the table.
-		UPDATE
-			lastOnSale
-		SET
-			lastOnSale.basePrice = pbCost.basePrice ,
-			lastOnSale.saleDate = #{processingDate},
-			lastOnSale.wasPrice = pbCost.wasPrice
-		FROM
-			mmc.product.participationLastOnSale AS lastOnSale
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = lastOnSale.uniqueId
-		JOIN
-			mmc.dbo.pricebook_cost AS pbCost
-			ON pbCost.uniqueId = lastOnSale.uniqueId
-			AND pbCost.pricebookId = lastOnSale.pricebookId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-	</update>
-
-	<insert id="insertMissingLastOnSaleBasePrices" parameterType="Date">
-		-- Record the base price for prices going off sale, for pricebook prices
-		-- that don't exist in the last on sale table.
-		INSERT INTO
-			mmc.product.participationLastOnSale (pricebookId, uniqueId, saleDate, basePrice, wasPrice)
-		SELECT
-			pbCost.pricebookId, pbCost.uniqueId, #{processingDate}, pbCost.basePrice, pbCost.wasPrice
-		FROM
-			mmc.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS los
-			ON los.uniqueId = pbCost.uniqueId
-			AND los.pricebookId = pbCost.pricebookId
-		WHERE
-			los.uniqueId IS NULL
-	</insert>
-
-	<update id="takePricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
+	<update id="takeV2PricesOffSaleAndApplyPendingBasePriceUpdates" parameterType="int">
 		-- Set cost to a pending base price if present, else to basePrice.
 		-- Set basePrice to a pending base price if present.
 		-- Set participationId and userId.
@@ -64,74 +17,84 @@
 			pbCost.userId = #{userId}
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS discount
-			ON discount.participationId = oc.oldParticipationId
-			AND discount.pricebookId = pbCost.pricebookId
-		JOIN
-			mmc.product.latestBasePrice AS lbp
-			ON lbp.uniqueId = pbCost.uniqueId
-			AND lbp.pricebookId = pbCost.pricebookId
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.oldParticipationId
+					AND p.contentTypeId = 4 -- ParticipationContentType.PARTICIPATION_V2
+			JOIN
+				mmc.product.participationCalculatedDiscount AS discount
+				ON discount.participationId = oc.oldParticipationId
+				AND discount.pricebookId = pbCost.pricebookId
+			JOIN
+				mmc.product.latestBasePrice AS lbp
+				ON lbp.uniqueId = pbCost.uniqueId
+				AND lbp.pricebookId = pbCost.pricebookId
 	</update>
 
-	<update id="applyNewCalculatedDiscounts" parameterType="map">
+	<update id="applyNewV2CalculatedDiscounts" parameterType="map">
 		-- Apply PB1 calculated discounts to products becoming owned by a Participation.
 		-- Apply PB1 value even to PB22, where necessary, in order to have all customers get the same sale price.
 		-- Also sets the basePrice to any applicable last-on-sale base prices, and uses those
 		-- for the calculations. Rounds the discounted price down to 2 decimal places.
-
 		DECLARE @wasPrice decimal(18,2);
 		UPDATE
 			pbCost
 		SET
-			@wasPrice = COALESCE(pb1los.wasPrice, wasPrice.wasPrice, 0.00),--check pb1LOS usage here
-			pbcost.cost = ROUND(IIF(
-										pb1Discount.isPercent = 1,
-										COALESCE(pb1los.basePrice, pb1Cost.basePrice) * pb1Discount.changeValue,
-										COALESCE(pb1los.basePrice, pb1Cost.basePrice) + pb1Discount.changeValue
-									), 2),
+			@wasPrice = COALESCE(pb1los.wasPrice, wasPrice.wasPrice, 0.00),
+			pbcost.cost =
+			    ROUND(IIF(
+					pb1Discount.isPercent = 1,
+					COALESCE(pb1los.basePrice, pb1Cost.basePrice) * pb1Discount.changeValue,
+					COALESCE(pb1los.basePrice, pb1Cost.basePrice) + pb1Discount.changeValue
+				), 2),
 			pbCost.basePrice = COALESCE(los.basePrice, pbCost.basePrice),
 			pbCost.participationId = pb1Discount.participationId,
 			pbCost.userId = #{userId},
 			pbCost.wasPrice = @wasPrice
 		FROM
 			MMC.dbo.pricebook_cost AS pbCost
-		JOIN
-			tempData.participation.participationOwnerChange AS oc
-			ON oc.uniqueId = pbCost.uniqueId
-		JOIN
-			mmc.product.participationCalculatedDiscount AS pb1Discount
-			ON pb1Discount.participationId = oc.newParticipationId
-			AND pb1Discount.pricebookId = 1 --no longer using PB22 for sale pricing
-		LEFT JOIN
-			mmc.dbo.pricebookwasprice AS wasPrice
-			ON wasPrice.uniqueId = pbCost.uniqueId
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS los
-			ON los.uniqueId = pbCost.uniqueId
-				AND los.pricebookId = pbCost.pricebookId
-				AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
-		LEFT JOIN
-			mmc.product.participationLastOnSale AS pb1los
-			ON pb1los.uniqueId = pbCost.uniqueId
-				AND pb1los.pricebookId = 1
-				AND DATEDIFF_BIG(minute, pb1los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
-		LEFT JOIN
-			MMC.dbo.pricebook_cost AS pb1Cost
-			ON pbCost.uniqueId = pb1Cost.uniqueId
-			AND pb1Cost.pricebookId = 1
+			JOIN
+				tempData.participation.participationOwnerChange AS oc
+				ON oc.uniqueId = pbCost.uniqueId
+			JOIN
+				mmc.product.participationItemPartial AS p
+				ON p.participationId = oc.newParticipationId
+					AND p.contentTypeId = 4 -- ParticipationContentType.PARTICIPATION_V2
+			JOIN
+				mmc.product.participationCalculatedDiscount AS pb1Discount
+				ON pb1Discount.participationId = oc.newParticipationId
+				AND pb1Discount.pricebookId = 1 --no longer using PB22 for sale pricing
+			LEFT JOIN
+				mmc.dbo.pricebookwasprice AS wasPrice
+				ON wasPrice.uniqueId = pbCost.uniqueId
+			LEFT JOIN
+				mmc.product.participationLastOnSale AS los
+				ON los.uniqueId = pbCost.uniqueId
+					AND los.pricebookId = pbCost.pricebookId
+					AND DATEDIFF_BIG(minute, los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			LEFT JOIN
+				mmc.product.participationLastOnSale AS pb1los
+				ON pb1los.uniqueId = pbCost.uniqueId
+					AND pb1los.pricebookId = 1
+					AND DATEDIFF_BIG(minute, pb1los.saleDate, #{processingDate}) &lt; #{coolOffPeriodMinutes}
+			LEFT JOIN
+				MMC.dbo.pricebook_cost AS pb1Cost
+				ON pbCost.uniqueId = pb1Cost.uniqueId
+				AND pb1Cost.pricebookId = 1
+		WHERE
+			pbCost.pricebookId IN (1, 22)
 	</update>
 
-	<insert id="insertParticipationCalculatedDiscounts">
+	<insert id="insertParticipationV2CalculatedDiscounts">
 		INSERT INTO mmc.product.participationCalculatedDiscount (
-		participationId,
-		pricebookId,--PB22 is no longer used but we may still store? Poss remove later
-		changeValue,
-		isPercent,
-		templateId
+			participationId,
+			pricebookId,
+			changeValue,
+			isPercent,
+			templateId
 		)
 		VALUES
 		<foreach collection="calculatedDiscounts" item="calculatedDiscount" index="index" open="(" separator="),(" close=")">
@@ -143,17 +106,17 @@
 		</foreach>
 	</insert>
 
-	<delete id="deleteParticipationCalculatedDiscounts" parameterType="int">
+	<delete id="deleteParticipationV2CalculatedDiscounts" parameterType="int">
 		DELETE FROM
 			mmc.product.participationCalculatedDiscount
 		WHERE
 			participationId = #{participationId}
 	</delete>
 
-	<insert id="insertParticipationCalculatedDiscountsHistory">
+	<insert id="insertParticipationV2CalculatedDiscountsHistory">
 		INSERT INTO logs.dbo.participationCalculatedDiscountHistory (
 			participationItemPartialHistoryId,
-			pricebookId,--PB22 is no longer used but we may still store? Poss remove later
+			pricebookId,
 			changeValue,
 			isPercent,
 			templateId

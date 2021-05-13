@@ -32,12 +32,14 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemizedDiscount;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationProduct;
 import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationCouponV1TestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1TestLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationItemizedV1V2TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.lifecycle.ParticipationV1V2TestLifecycle;
+import com.ferguson.cs.product.stream.participation.engine.test.model.OffsalePriceFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 import com.ferguson.cs.product.stream.participation.engine.test.model.PricebookCost;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductModified;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ProductSaleParticipation;
+import com.ferguson.cs.product.stream.participation.engine.test.model.WasPriceFixture;
 
 public class ParticipationTestUtilities {
 	public static final int TEST_USERID = 1234;
@@ -137,15 +139,24 @@ public class ParticipationTestUtilities {
 	public static final String UPDATE_PRICEBOOK_COST_COST =
 			"UPDATE mmc.dbo.PriceBook_Cost SET cost = ? WHERE UniqueId = ? AND PriceBookId = ?";
 
+	public static final String UPDATE_PRICEBOOKWASPRICE_WASPRICE =
+			"UPDATE mmc.dbo.pricebookWasPrice SET wasPrice = ? WHERE uniqueId = ?";
+
+	public static final String INSERT_PRICEBOOK_COST =
+			"INSERT INTO mmc.dbo.pricebook_cost (uniqueId, pricebookId, cost, multiplier," +
+					" basePrice, userId, participationId, wasPrice)" +
+					" VALUES (?, ?, ?, 1.0, ?, " + TEST_USERID + ", 0, 0)";
+
 	public static final String SELECT_PRICEBOOKCOST_BASEPRICE =
 		"SELECT basePrice" +
 				" FROM mmc.dbo.PriceBook_Cost" +
 				" WHERE uniqueId = ? AND pricebookId = ?";
 
 	public static final String SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID =
-			"SELECT uniqueId, cost, basePrice, userId, participationId" +
+			"SELECT uniqueId, pricebookId, cost, multiplier, basePrice, userId, participationId, wasPrice" +
 					" FROM mmc.dbo.PriceBook_Cost" +
-					" WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )";
+					" WHERE uniqueId IN ( :uniqueIds ) AND pricebookId IN ( :pricebookIds )" +
+					" ORDER BY uniqueId, pricebookId";
 
 	public static final String UPDATE_PARTICIPATION_LASTONSALE =
 			"UPDATE mmc.product.participationLastOnSale" +
@@ -295,6 +306,10 @@ public class ParticipationTestUtilities {
 		validateAndSetDefaults(fixture);
 
 		int participationId = fixture.getParticipationId();
+		ParticipationContentType contentType = fixture.getContentType() != null
+				? fixture.getContentType()
+				: ParticipationContentType.PARTICIPATION_V1;
+		List<Integer> uniqueIds = new ArrayList<>();
 
 		// Insert participationItemPartial record.
 		jdbcTemplate.update(INSERT_PARTICIPATION_ITEM_PARTIAL_SQL,
@@ -304,17 +319,13 @@ public class ParticipationTestUtilities {
 				fixture.getEndDate(),
 				fixture.getLastModifiedUserId(),
 				fixture.getIsActive(),
-				fixture.getContentType() == null ? ParticipationContentType.PARTICIPATION_V1.contentTypeId() :
-						fixture.getContentType().contentTypeId(),
+				contentType.contentTypeId(),
 				fixture.getIsCoupon() == null ? 0 : fixture.getIsCoupon(),
 				fixture.getShouldBlockDynamicPricing() == null ? 0 : fixture.getShouldBlockDynamicPricing()
 		);
 
-		ParticipationContentType contentType = fixture.getContentType() != null
-				? fixture.getContentType()
-				: ParticipationContentType.PARTICIPATION_V1;
-
-		// Insert discount records, where applicable
+		// Insert discount records where applicable, and any uniqueIds as participationProduct
+		// records with isOwner = false.
 		if (contentType == ParticipationContentType.PARTICIPATION_V1 || contentType == ParticipationContentType.PARTICIPATION_V2) {
 			nullSafeStream(fixture.getCalculatedDiscountFixtures())
 					.map(discountFixture -> discountFixture.toParticipationCalculatedDiscount(participationId))
@@ -325,7 +336,12 @@ public class ParticipationTestUtilities {
 							discount.getIsPercent(),
 							discount.getTemplateId())
 					);
-		} else if (contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
+			uniqueIds = ParticipationV1V2TestLifecycle.getUniqueIds(fixture);
+
+		} else if (
+				contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V1
+				|| contentType == ParticipationContentType.PARTICIPATION_ITEMIZED_V2
+		) {
 			// Insert any participationItemizedDiscount records, provided a list of lists where the inner list
 			// is [[uniqueid, 1, pb1DiscountPrice], [uniqueId, 22, pb22DiscountPrice]]
 			nullSafeStream(fixture.getItemizedDiscountFixtures())
@@ -338,17 +354,11 @@ public class ParticipationTestUtilities {
 								discount.get(1).getUniqueId(), discount.get(1).getPricebookId(),
 								discount.get(1).getPrice());
 					});
-		}
-
-		// Insert any uniqueIds as participationProduct records with isOwner = false.
-		List<Integer> uniqueIds = new ArrayList<>();
-		if (contentType == ParticipationContentType.PARTICIPATION_V1 || contentType == ParticipationContentType.PARTICIPATION_V2) {
-			uniqueIds = ParticipationV1TestLifecycle.getUniqueIds(fixture);
-		} else if (contentType ==ParticipationContentType.PARTICIPATION_ITEMIZED_V1) {
-			uniqueIds = ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
-		} else if (contentType ==ParticipationContentType.PARTICIPATION_COUPON_V1) {
+			uniqueIds = ParticipationItemizedV1V2TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
+		} else if (contentType == ParticipationContentType.PARTICIPATION_COUPON_V1) {
 			uniqueIds = ParticipationCouponV1TestLifecycle.getUniqueIds(fixture);
 		}
+
 		if (!CollectionUtils.isEmpty(uniqueIds)) {
 			SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(
 					uniqueIds.stream()
@@ -417,7 +427,7 @@ public class ParticipationTestUtilities {
 	}
 
 	public List<ProductSaleParticipation> getProductSaleParticipations(List<Integer> uniqueIds) {
-		return uniqueIds.size() == 0
+		return uniqueIds.isEmpty()
 				? Collections.emptyList()
 				: namedParameterJdbcTemplate.query(
 						SELECT_PRODUCT_SALE_LINK_BY_UNIQUE_ID,
@@ -432,12 +442,16 @@ public class ParticipationTestUtilities {
 	}
 
 	public List<ProductModified> getProductModifieds(List<Integer> uniqueIds) {
+		if (uniqueIds.isEmpty()) {
+			return Collections.emptyList();
+		}
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRODUCT_MODIFIED_BY_UNIQUE_ID,
 				namedParameters, BeanPropertyRowMapper.newInstance(ProductModified.class));
 	}
 
-	public List<PricebookCost> getPricebookCosts(List<Integer> uniqueIds, List<Integer> pricebookIds) {
+	// Returns results ordered by uniqueId then pricebookId.
+	public List<PricebookCost> getPricebookCostsInOrder(List<Integer> uniqueIds, List<Integer> pricebookIds) {
 		SqlParameterSource namedParameters = new MapSqlParameterSource("uniqueIds", uniqueIds)
 				.addValue("pricebookIds", pricebookIds);
 		return namedParameterJdbcTemplate.query(SELECT_PRICEBOOK_COST_BY_UNIQUEID_PRICEBOOKID,
@@ -465,6 +479,28 @@ public class ParticipationTestUtilities {
 
 	public void updatePricebookCostCost(Double cost, int uniqueId, int pricebookId) {
 		jdbcTemplate.update(UPDATE_PRICEBOOK_COST_COST, cost, uniqueId, pricebookId);
+	}
+
+	public void updateWasPrices(WasPriceFixture... wasPrices) {
+		for (WasPriceFixture wasPrice: wasPrices) {
+			Assertions.assertThat(wasPrice.getUniqueId()).isNotNull();
+			Assertions.assertThat(wasPrice.getWasPrice()).isNotNull();
+			jdbcTemplate.update(UPDATE_PRICEBOOKWASPRICE_WASPRICE, wasPrice.getWasPrice(), wasPrice.getUniqueId());
+		}
+	}
+
+	/**
+	 * Insert the given values into the pricebook_cost table, with the other columns defaulted to off-sale values.
+	 * @param prices An array of the prices to insert.
+	 */
+	public void insertNonDiscountedPricebookCosts(OffsalePriceFixture... prices) {
+		for (OffsalePriceFixture price: prices) {
+			Assertions.assertThat(price.getUniqueId()).isNotNull();
+			Assertions.assertThat(price.getPricebookId()).isNotNull();
+			Assertions.assertThat(price.getPrice()).isNotNull();
+			jdbcTemplate.update(INSERT_PRICEBOOK_COST, price.getUniqueId(), price.getPricebookId(),
+					price.getPrice(), price.getPrice());
+		}
 	}
 
 	public Double getPricebookCostBasePrice(int uniqueId, int pricebookId) {

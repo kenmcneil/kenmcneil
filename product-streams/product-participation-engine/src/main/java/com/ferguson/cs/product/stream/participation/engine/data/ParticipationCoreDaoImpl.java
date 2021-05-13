@@ -6,10 +6,18 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 
 @Repository
 public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
+	private final static int[] CONTENT_TYPE_IDS_AFFECTING_PRICES = {
+			ParticipationContentType.PARTICIPATION_V1.contentTypeId(),
+			ParticipationContentType.PARTICIPATION_V2.contentTypeId(),
+			ParticipationContentType.PARTICIPATION_ITEMIZED_V1.contentTypeId(),
+			ParticipationContentType.PARTICIPATION_ITEMIZED_V2.contentTypeId()
+	};
+
 	private final ParticipationCoreMapper participationCoreMapper;
 
 	public ParticipationCoreDaoImpl(ParticipationCoreMapper participationCoreMapper) {
@@ -69,6 +77,14 @@ public class ParticipationCoreDaoImpl implements ParticipationCoreDao {
 	@Override
 	public int updateProductModifiedDates(Date processingDate, int userId) {
 		return participationCoreMapper.updateProductModifiedDates(processingDate, userId);
+	}
+
+	@Override
+	public int updateLastOnSaleForDeactivatingProducts(Date processingDate) {
+		// Update existing or insert new lastOnSale rows with PriceBook_Cost values.
+		return participationCoreMapper.updateLastOnSaleForDeactivatingProducts(CONTENT_TYPE_IDS_AFFECTING_PRICES,
+				processingDate) + participationCoreMapper.insertMissingLastOnSaleForDeactivatingProducts(
+				CONTENT_TYPE_IDS_AFFECTING_PRICES, processingDate);
 	}
 
 	@Override

@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
  *
  */
 @RequiredArgsConstructor
-public class ParticipationItemizedV1TestLifecycle implements ParticipationTestLifecycle {
+public class ParticipationItemizedV1V2TestLifecycle implements ParticipationTestLifecycle {
 	/**
 	 * Helper to get a non-null list of expected unique ids from the fixture.
 	 */

@@ -21,12 +21,14 @@ public interface ParticipationTestLifecycle {
 			return fixture.getExpectedOwnedUniqueIds();
 		}
 
-		if (ParticipationContentType.PARTICIPATION_V1.equals(fixture.getContentType())) {
-			return ParticipationV1TestLifecycle.getUniqueIds(fixture);
+		if (ParticipationContentType.PARTICIPATION_V1.equals(fixture.getContentType())
+				|| ParticipationContentType.PARTICIPATION_V2.equals(fixture.getContentType())) {
+			return ParticipationV1V2TestLifecycle.getUniqueIds(fixture);
 		}
 
-		if (ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())) {
-			return ParticipationItemizedV1TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
+		if (ParticipationContentType.PARTICIPATION_ITEMIZED_V1.equals(fixture.getContentType())
+				|| ParticipationContentType.PARTICIPATION_ITEMIZED_V2.equals(fixture.getContentType())) {
+			return ParticipationItemizedV1V2TestLifecycle.getUniqueIdsFromItemizedDiscounts(fixture);
 		}
 
 		if (ParticipationContentType.PARTICIPATION_COUPON_V1.equals(fixture.getContentType())) {

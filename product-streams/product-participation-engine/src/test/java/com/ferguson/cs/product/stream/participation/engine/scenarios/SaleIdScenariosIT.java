@@ -1,21 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class SaleIdScenariosIT extends ParticipationScenarioITBase {
-	@Autowired
-	protected BasicWorkflowTestEffectLifecycle basicWorkflowTestEffectLifecycle;
-
-	@Autowired
-	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
-
 	/**
 	 * Scenario
 	 *   - user publishes P(saleId(2020), products(100, 101))
@@ -33,8 +24,6 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.uniqueIds(uniqueIds[0], uniqueIds[1])
 				.scheduleByDays(0, 1)
 				.build();
-
-		testLifecycles(basicWorkflowTestEffectLifecycle, saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(2);
@@ -66,8 +55,6 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 				.uniqueIds(uniqueIds[1], uniqueIds[2])
 				.scheduleByDays(3, 6)
 				.build();
-
-		testLifecycles(saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);
@@ -106,14 +93,12 @@ public class SaleIdScenariosIT extends ParticipationScenarioITBase {
 		ParticipationItemFixture p3 = ParticipationItemFixture.builder()
 				.contentType(ParticipationContentType.PARTICIPATION_ITEMIZED_V1)
 				.saleId(100002)
-				.itemizedDiscounts(
-						itemizedDiscount(uniqueIds[1], 200.00, 150.00),
-						itemizedDiscount(uniqueIds[3], 400.00, 350.00)
+				.itemizedV1Discounts(
+						itemizedV1Discount(uniqueIds[1], 200.00, 150.00),
+						itemizedV1Discount(uniqueIds[3], 400.00, 350.00)
 				)
 				.scheduleByDays(3, 7)
 				.build();
-
-		testLifecycles(saleIdTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		createUserPublishEvent(p2);

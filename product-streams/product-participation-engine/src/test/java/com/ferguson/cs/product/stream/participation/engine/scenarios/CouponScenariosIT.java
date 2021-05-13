@@ -1,26 +1,12 @@
 package com.ferguson.cs.product.stream.participation.engine.scenarios;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationContentType;
 import com.ferguson.cs.product.stream.participation.engine.test.ParticipationScenarioITBase;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.BasicWorkflowTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.CouponTestEffectLifecycle;
-import com.ferguson.cs.product.stream.participation.engine.test.effects.SaleIdTestEffectLifecycle;
 import com.ferguson.cs.product.stream.participation.engine.test.model.ParticipationItemFixture;
 
 public class CouponScenariosIT extends ParticipationScenarioITBase {
-
-	@Autowired
-	protected BasicWorkflowTestEffectLifecycle basicWorkFlowTestEffectLifecycle;
-
-	@Autowired
-	protected SaleIdTestEffectLifecycle saleIdTestEffectLifecycle;
-
-	@Autowired
-	protected CouponTestEffectLifecycle couponTestEffectLifecycle;
-
 	/**
 	 * Scenario
 	 *   - user publishes P(saleId(2020), products(100, 101))
@@ -43,8 +29,6 @@ public class CouponScenariosIT extends ParticipationScenarioITBase {
 				.scheduleByDays(0,2)
 				.contentType(ParticipationContentType.PARTICIPATION_COUPON_V1)
 				.build();
-
-		testLifecycles(basicWorkFlowTestEffectLifecycle, saleIdTestEffectLifecycle, couponTestEffectLifecycle);
 
 		createUserPublishEvent(p1);
 		advanceToDay(3);
