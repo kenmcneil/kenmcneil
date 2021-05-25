@@ -12,6 +12,7 @@
 		<module>fei-price-update</module>
 		<module>fei-trilogy-mpid-sync</module>
 		<module>mpn-mpid-mismatch</module>
+		<module>fei-omni-price-harmonization</module>
 	</modules>
 	
 	<parent>
