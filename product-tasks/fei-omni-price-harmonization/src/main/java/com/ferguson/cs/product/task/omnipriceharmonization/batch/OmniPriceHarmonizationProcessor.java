@@ -11,9 +11,19 @@ public class OmniPriceHarmonizationProcessor implements ItemProcessor<PriceHarmo
 			return null;
 		}
 
-		if(item.getMpid() != null && item.getMpid().equalsIgnoreCase("null")) {
-			item.setMpid(null);
+		if(item.getMpid() != null) {
+
+			if(item.getMpid().equalsIgnoreCase("null")) {
+				item.setMpid(null);
+			} else {
+				try {
+					Integer.parseInt(item.getMpid());
+				} catch (NumberFormatException e) {
+					return null;
+				}
+			}
 		}
+
 		return item;
 	}
 }
