@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ferguson.cs.product.task.omnipriceharmonization.data.reporter.OmniPriceHarmonizationMapper">
+	<insert id="insertPriceHarmonizationData" parameterType="com.ferguson.cs.product.task.omnipriceharmonization.model.PriceHarmonizationData">
+		INSERT INTO departments.pricing.feiOmniPriceHarmonization (mpid,uniqueId,dg,pc24,masterList,imap)
+		VALUES (#{mpid},#{uniqueId},#{dg}, #{pc24},#{masterList},#{imap})
+	</insert>
+
+	<update id="truncatePriceHarmonizationData">
+		TRUNCATE TABLE departments.pricing.feiOmniPriceHarmonization
+	</update>
+</mapper>

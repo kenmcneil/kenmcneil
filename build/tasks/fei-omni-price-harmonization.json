@@ -1,0 +1,8 @@
+[
+  {
+    "appName": "fei-omni-price-harmonization",
+    "name": "import-price-harmonization-report",
+    "jobName": "importPriceHarmonizationReport",
+    "heapSize": "512m"
+  }
+]
