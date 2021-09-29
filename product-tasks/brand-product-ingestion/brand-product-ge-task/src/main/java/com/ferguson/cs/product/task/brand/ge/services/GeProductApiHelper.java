@@ -39,7 +39,6 @@ import com.ge_products.api.GeProductSearchRangeFilter;
 import com.ge_products.api.GeProductSearchRangeFilterType;
 import com.ge_products.api.GeProductSearchResult;
 import com.ge_products.api.GeProductSelectedDimension;
-import com.newrelic.api.agent.NewRelic;
 
 public final class GeProductApiHelper {
 
@@ -63,7 +62,7 @@ public final class GeProductApiHelper {
 	 * @param rootNode - raw JSON response returned by GE Product API
 	 * @return GeProductSearchResult - GE product data formatted for better use
 	 */
-	public static GeProductSearchResult getResultFromJsonNode(JsonNode rootNode) {
+	public static GeProductSearchResult getResultFromJsonNode(JsonNode rootNode, MetricsService metricsService) {
 		if (rootNode == null) {
 			return null;
 		}
@@ -89,7 +88,7 @@ public final class GeProductApiHelper {
 			}
 		}
 
-		branches.forEach((name, value) -> processBranch(name, value, result));
+		branches.forEach((name, value) -> processBranch(name, value, result, metricsService));
 
 		return result;
 	}
@@ -102,15 +101,18 @@ public final class GeProductApiHelper {
 	 * @param branch     - JSON node to pass down for further de-serialization
 	 * @param result     - Search result structure that is updated throughout
 	 */
-	private static void processBranch(String branchName, JsonNode branch, GeProductSearchResult result) {
+	private static void processBranch(String branchName,
+	                                  JsonNode branch,
+	                                  GeProductSearchResult result,
+	                                  MetricsService metricsService) {
 		switch (branchName) {
 			case "filters":
 				// Available filters
-				processFilterBranch(branch, result);
+				processFilterBranch(branch, result, metricsService);
 				break;
 			case "selectedDimensions":
 				// Search criteria given selected dimensions
-				processSelectedDimensionsBranch(branch, result);
+				processSelectedDimensionsBranch(branch, result, metricsService);
 				break;
 			case "searchCrumbs":
 				// Search Crumbs - not yet implemented
@@ -118,7 +120,7 @@ public final class GeProductApiHelper {
 				break;
 			case "records":
 				// Process product record list
-				processRecordsBranch(branch, result);
+				processRecordsBranch(branch, result, metricsService);
 				break;
 			default:
 				throw new RuntimeException("GE Product API Helper - Unknown response branch! " + branchName);
@@ -135,8 +137,11 @@ public final class GeProductApiHelper {
 	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processFilterBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processFilterBranch(JsonNode branch,
+	                                        GeProductSearchResult result,
+	                                        MetricsService metricsService) {
 		// Create the map of string to filter list
 		Map<String, GeProductDimension> filters = new HashMap<>();
 
@@ -161,7 +166,7 @@ public final class GeProductApiHelper {
 				filters.put(fieldName, filter);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Filters'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -178,8 +183,11 @@ public final class GeProductApiHelper {
 	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processSelectedDimensionsBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processSelectedDimensionsBranch(JsonNode branch,
+	                                                    GeProductSearchResult result,
+	                                                    MetricsService metricsService) {
 		// Get dimensions branch
 		Iterator<JsonNode> dimensions = branch.get("selectedDimensions").elements();
 
@@ -200,7 +208,7 @@ public final class GeProductApiHelper {
 				searchDimensions.add(dimension);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Selected Dimensions'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -218,8 +226,11 @@ public final class GeProductApiHelper {
 	 *
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processRecordsBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processRecordsBranch(JsonNode branch,
+	                                         GeProductSearchResult result,
+	                                         MetricsService metricsService) {
 		JsonNode recordsBranch = branch.get("records");
 		result.setTotalRecordCount(recordsBranch.get("totalNumRecs").asInt());
 		result.setFirstRecordNumber(recordsBranch.get("firstRecNum").asInt());
@@ -238,10 +249,10 @@ public final class GeProductApiHelper {
 			// Get the record object from the array of record json objects
 			try {
 				String productId = productIdIterator.next();
-				records.add(getProductRecord(productId, productsNode.get(productId)));
+				records.add(getProductRecord(productId, productsNode.get(productId), metricsService));
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Product'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -258,8 +269,9 @@ public final class GeProductApiHelper {
 	 *
 	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processProductRecordBenefitCopy(JsonNode node, GeProduct record) {
+	private static void processProductRecordBenefitCopy(JsonNode node, GeProduct record, MetricsService metricsService) {
 
 		Iterator<JsonNode> childNodes = node.elements();
 
@@ -280,7 +292,7 @@ public final class GeProductApiHelper {
 				featureList.add(feature);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Benefit Copy'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -297,8 +309,9 @@ public final class GeProductApiHelper {
 	 *
 	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processProductRecordAttributes(JsonNode node, GeProduct record) {
+	private static void processProductRecordAttributes(JsonNode node, GeProduct record, MetricsService metricsService) {
 		List<GeProductAttribute> productAttributes = new ArrayList<>();
 
 		Iterator<String> attributeNames = node.fieldNames();
@@ -319,7 +332,7 @@ public final class GeProductApiHelper {
 				productAttributes.add(attribute);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Attributes'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -397,8 +410,9 @@ public final class GeProductApiHelper {
 	 *
 	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processProductRecordBinaryObject(JsonNode node, GeProduct record) {
+	private static void processProductRecordBinaryObject(JsonNode node, GeProduct record, MetricsService metricsService) {
 
 		Iterator<JsonNode> childNodes = node.elements();
 
@@ -419,7 +433,7 @@ public final class GeProductApiHelper {
 				binaryObjectList.add(binaryObject);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'BinaryObjectDetails'", e);
-				NewRelic.noticeError(e);
+				metricsService.noticeError(e);
 			}
 		}
 
@@ -436,8 +450,9 @@ public final class GeProductApiHelper {
 	 *
 	 * @param node   - JSON node to de-serialization
 	 * @param record - product data domain object that is updated
+	 * @param metricsService - Interface used for error notification
 	 */
-	private static void processProductRecordRelationships(JsonNode node, GeProduct record) {
+	private static void processProductRecordRelationships(JsonNode node, GeProduct record, MetricsService metricsService) {
 		Map<String, List<GeProductRelationship>> relationships = new HashMap<>();
 
 		Iterator<String> relationshipNames = node.fieldNames();
@@ -469,7 +484,7 @@ public final class GeProductApiHelper {
 					relationshipCollection.add(relationship);
 				} catch (IOException e) {
 					LOGGER.error("GE Product API Helper exception processing Json Branch 'Relationships'", e);
-					NewRelic.noticeError(e);
+					metricsService.noticeError(e);
 				}
 			}
 
@@ -493,9 +508,12 @@ public final class GeProductApiHelper {
 	 *
 	 * @param productId - unique GE product identifier of JSON node to de-serialize
 	 * @param productNode - JSON product node to de-serialization
-	 * @param result      - Search result structure that is updated
+	 * @param metricsService - Interface used for error notification
+	 * @result      - Search result structure that is updated
 	 */
-	private static GeProduct getProductRecord(String productId, JsonNode productNode) throws IOException {
+	private static GeProduct getProductRecord(String productId,
+	                                          JsonNode productNode,
+	                                          MetricsService metricsService) throws IOException {
 		// We create the GE product record object
 		GeProduct record = new GeProduct();
 		record.setProductId(productId);
@@ -535,10 +553,10 @@ public final class GeProductApiHelper {
 						);
 						break;
 					case "BenefitCopy":
-						processProductRecordBenefitCopy(fragment.get(field), record);
+						processProductRecordBenefitCopy(fragment.get(field), record, metricsService);
 						break;
 					case "Attributes":
-						processProductRecordAttributes(fragment.get(field), record);
+						processProductRecordAttributes(fragment.get(field), record, metricsService);
 						break;
 					case "Images":
 						processProductRecordImages(fragment.get(field), record);
@@ -551,7 +569,7 @@ public final class GeProductApiHelper {
 						// Ignore - Have not found any example response with this content
 						break;
 					case "Relationships":
-						processProductRecordRelationships(fragment.get(field), record);
+						processProductRecordRelationships(fragment.get(field), record, metricsService);
 						break;
 					case "BinaryObjectDetails":
 						if (fragment.get(field) != null && fragment.get(field).size() > 0) {
@@ -561,7 +579,7 @@ public final class GeProductApiHelper {
 						// Binary Object Details related to feature are de-serialized in BenefitCopy
 						// Have not found any example response with content at the Product level
 
-						processProductRecordBinaryObject(fragment.get(field), record);
+						processProductRecordBinaryObject(fragment.get(field), record, metricsService);
 						break;
 					default:
 						// Schema-less product property, place into property map

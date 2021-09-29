@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.construct.ContentEventRepository;
+import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1V2Dao;
@@ -25,33 +26,42 @@ import com.ferguson.cs.product.stream.participation.engine.lifecycle.Participati
 @EnableScheduling
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
+	private final MetricsService metricsService;
+
+	public ParticipationEngineConfiguration(MetricsService metricsService) {
+		this.metricsService = metricsService;
+	}
+
 	@Bean
 	public ConstructService constructService(
-			ParticipationEngineSettings participationEngineSettings,
 			ContentEventRepository contentEventRepository,
 			ParticipationItemRepository participationItemRepository
 	) {
-		return new ConstructServiceImpl(participationEngineSettings, contentEventRepository,
-				participationItemRepository);
+		return new ConstructServiceImpl(contentEventRepository, participationItemRepository);
 	}
 
 	@Bean
 	public ParticipationWriter participationWriter(
-			ParticipationLifecycleService participationLifecycleService,
-			ConstructService constructService
+			ConstructService constructService,
+			ParticipationLifecycleService participationLifecycleService
 	) {
-		return new ParticipationWriter(participationLifecycleService, constructService);
+		return new ParticipationWriter(constructService, metricsService, participationLifecycleService);
 	}
 
 	@Bean
 	public ParticipationProcessor participationProcessor(
 			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
+			MetricsService metricsService,
 			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
-		return new ParticipationProcessor(participationEngineSettings, constructService,
-				participationLifecycleService, participationWriter);
+		return new ParticipationProcessor(
+				participationEngineSettings,
+				constructService,
+				metricsService,
+				participationLifecycleService,
+				participationWriter);
 	}
 
 	@Bean

@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
@@ -23,15 +24,17 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.test.BaseTest;
 
 public class ParticipationWriterTest extends BaseTest {
-	private ParticipationLifecycleService participationLifecycleService;
 	private ConstructService constructService;
+	private MetricsService metricsService;
+	private ParticipationLifecycleService participationLifecycleService;
 	private ParticipationWriter participationWriter;
 
 	@Before
 	public void beforeTest() {
-		participationLifecycleService = mock(ParticipationLifecycleService.class);
 		constructService = mock(ConstructService.class);
-		participationWriter = new ParticipationWriter(participationLifecycleService, constructService);
+		metricsService = mock(MetricsService.class);
+		participationLifecycleService = mock(ParticipationLifecycleService.class);
+		participationWriter = new ParticipationWriter(constructService, metricsService, participationLifecycleService);
 	}
 
 	@Test

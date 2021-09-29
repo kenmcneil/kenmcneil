@@ -2,7 +2,6 @@ package com.ferguson.cs.product.stream.participation.engine.construct;
 
 import java.util.Date;
 
-import com.ferguson.cs.product.stream.participation.engine.ParticipationEngineSettings;
 import com.ferguson.cs.product.stream.participation.engine.model.ContentEvent;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
@@ -15,7 +14,6 @@ public class ConstructServiceImpl implements ConstructService {
 	private final ParticipationItemRepository participationItemRepository;
 
 	public ConstructServiceImpl(
-			ParticipationEngineSettings participationEngineSettings,
 			ContentEventRepository contentEventRepository,
 			ParticipationItemRepository participationItemRepository
 	) {

@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
+import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
-import com.newrelic.api.agent.NewRelic;
 
 /**
  * Poll for user events and process them.
@@ -20,17 +20,20 @@ public class ParticipationProcessor {
 
 	private final ParticipationEngineSettings participationEngineSettings;
 	private final ConstructService constructService;
+	private final MetricsService metricsService;
 	private final ParticipationLifecycleService participationLifecycleService;
 	private final ParticipationWriter participationWriter;
 
 	public ParticipationProcessor(
 			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
+			MetricsService metricsService,
 			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
 		this.participationEngineSettings = participationEngineSettings;
 		this.constructService = constructService;
+		this.metricsService = metricsService;
 		this.participationLifecycleService = participationLifecycleService;
 		this.participationWriter = participationWriter;
 	}
@@ -81,7 +84,7 @@ public class ParticipationProcessor {
 				LOG.info("participation {} unpublished to draft status", item.getId());
 			} catch (Exception e) {
 				String errorMessage = "Error unpublishing participation " + item.getId();
-				NewRelic.noticeError(errorMessage);
+				metricsService.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
@@ -103,7 +106,7 @@ public class ParticipationProcessor {
 				LOG.info("participation {} activated by scheduling", itemPartial.getParticipationId());
 			} catch (Exception e) {
 				String errorMessage = "Error activating participation " + itemPartial.getParticipationId();
-				NewRelic.noticeError(errorMessage);
+				metricsService.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
@@ -128,7 +131,7 @@ public class ParticipationProcessor {
 				}
 			} catch (Exception e) {
 				String errorMessage = "Error deactivating or unpublishing participation " + itemPartial.getParticipationId();
-				NewRelic.noticeError(errorMessage);
+				metricsService.noticeError(errorMessage);
 				throw new RuntimeException(errorMessage, e);
 			}
 
