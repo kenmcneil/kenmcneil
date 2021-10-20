@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.construct.ContentEventRepository;
-import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ParticipationItemRepository;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationCoreDao;
 import com.ferguson.cs.product.stream.participation.engine.data.ParticipationItemizedV1V2Dao;

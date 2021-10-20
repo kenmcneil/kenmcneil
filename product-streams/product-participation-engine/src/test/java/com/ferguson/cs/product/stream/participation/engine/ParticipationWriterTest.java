@@ -15,8 +15,8 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;

@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsClientHttpRequestFactory;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsRequestSigner;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;

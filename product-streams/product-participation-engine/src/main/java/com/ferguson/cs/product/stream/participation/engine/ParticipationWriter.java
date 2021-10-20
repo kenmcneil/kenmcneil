@@ -5,14 +5,13 @@ import java.util.Date;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
-import com.ferguson.cs.product.stream.participation.engine.construct.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.newrelic.api.agent.Trace;
 
 /**
  * The methods in the writer handle each of the four events: publish, unpublish, activate, and deactivate.
@@ -37,7 +36,7 @@ public class ParticipationWriter {
 	 * Publish the given ParticipationItem by upserting its data into SQL tables.
 	 * If this Participation is currently active then deactivates it first.
 	 */
-	@Trace(dispatcher=true, metricName="processPublish")
+	//@Trace(dispatcher=true, metricName="processPublish") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
 		metricsService.addCustomParameter("participationId", item.getId());
@@ -61,7 +60,7 @@ public class ParticipationWriter {
 		}
 	}
 
-	@Trace(dispatcher=true, metricName="processActivation")
+	//@Trace(dispatcher=true, metricName="processActivation") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		metricsService.addCustomParameter("participationId", itemPartial.getParticipationId());
@@ -78,7 +77,7 @@ public class ParticipationWriter {
 		}
 	}
 
-	@Trace(dispatcher=true, metricName="processDeactivation")
+	//@Trace(dispatcher=true, metricName="processDeactivation") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		metricsService.addCustomParameter("participationId", itemPartial.getParticipationId());
@@ -100,7 +99,7 @@ public class ParticipationWriter {
 	 * Deactivate given participation if needed and unpublish. If the record is not present in SQL then simply
 	 * set Construct record to draft status.
 	 */
-	@Trace(dispatcher=true, metricName="processUnpublish")
+	//@Trace(dispatcher=true, metricName="processUnpublish") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processUnpublish(ParticipationItem item, Date processingDate) {
 		metricsService.addCustomParameter("participationId", item.getId());

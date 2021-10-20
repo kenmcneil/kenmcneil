@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.JsonReference;
