@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructServiceImpl;
 import com.ferguson.cs.product.stream.participation.engine.construct.ContentEventRepository;
@@ -26,10 +25,8 @@ import com.ferguson.cs.product.stream.participation.engine.lifecycle.Participati
 @EnableScheduling
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
-	private final MetricsService metricsService;
 
-	public ParticipationEngineConfiguration(MetricsService metricsService) {
-		this.metricsService = metricsService;
+	public ParticipationEngineConfiguration() {
 	}
 
 	@Bean
@@ -45,21 +42,19 @@ public class ParticipationEngineConfiguration {
 			ConstructService constructService,
 			ParticipationLifecycleService participationLifecycleService
 	) {
-		return new ParticipationWriter(constructService, metricsService, participationLifecycleService);
+		return new ParticipationWriter(constructService, participationLifecycleService);
 	}
 
 	@Bean
 	public ParticipationProcessor participationProcessor(
 			ParticipationEngineSettings participationEngineSettings,
 			ConstructService constructService,
-			MetricsService metricsService,
 			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
 		return new ParticipationProcessor(
 				participationEngineSettings,
 				constructService,
-				metricsService,
 				participationLifecycleService,
 				participationWriter);
 	}

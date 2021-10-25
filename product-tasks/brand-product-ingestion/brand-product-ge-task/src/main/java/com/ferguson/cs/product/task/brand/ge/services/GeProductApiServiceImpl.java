@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ferguson.cs.metrics.MetricsService;
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsClientHttpRequestFactory;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsRequestSigner;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;
@@ -28,14 +28,11 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 
 	private RestTemplateBuilder restTemplateBuilder;
 	private GeProductApiSettings settings;
-	private MetricsService metricsService;
 
 	public GeProductApiServiceImpl(RestTemplateBuilder restTemplateBuilder,
-	                               GeProductApiSettings settings,
-	                               MetricsService metricsService) {
+	                               GeProductApiSettings settings) {
 		this.restTemplateBuilder = restTemplateBuilder;
 		this.settings = settings;
-		this.metricsService = metricsService;
 	}
 
 	private RestTemplate restTemplate;
@@ -67,14 +64,14 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		} catch (RestClientException rce) {
 			String errorMessage = "Rest exception '" + rce.getMessage() + "' occurred for GE Product data query: " + query;
 			LOGGER.error(errorMessage);
-			metricsService.noticeError(errorMessage);
-			metricsService.noticeError(rce);
+			MetricsServiceUtil.getInstance().noticeError(errorMessage);
+			MetricsServiceUtil.getInstance().noticeError(rce);
 			throw rce;
 		}
 		if (response == null || response.equals("Error occurred while fetching information... Please try again...")) {
 			String errorMessage = "Error occurred while fetching GE Product data for query: " + query;
 			LOGGER.error(errorMessage);
-			metricsService.noticeError(errorMessage);
+			MetricsServiceUtil.getInstance().noticeError(errorMessage);
 			throw new RuntimeException(errorMessage);
 		}
 		return response;
@@ -94,7 +91,7 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 			node = objectMapper.readTree(response);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
-			metricsService.noticeError(e);
+			MetricsServiceUtil.getInstance().noticeError(e);
 		}
 		return node;
 	}
@@ -104,7 +101,7 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		// Get the search query string from the search criteria
 		String query = GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
 		String response = executeQuery(settings.getResults(), query);
-		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response), metricsService);
+		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
 
 	}
 
@@ -113,7 +110,7 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		// Get the search query string from the search criteria
 		String query = GeProductApiHelper.getQueryStringFromSearchCriteria(criteria);
 		String response = executeQuery(settings.getDimensions(), query);
-		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response), metricsService);
+		return GeProductApiHelper.getResultFromJsonNode(convertResultsToJson(response));
 	}
 
 }

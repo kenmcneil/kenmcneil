@@ -2,10 +2,10 @@ package com.ferguson.cs.product.stream.participation.engine;
 
 import java.util.Date;
 
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
@@ -21,14 +21,11 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 public class ParticipationWriter {
 	private final ConstructService constructService;
 	private final ParticipationLifecycleService participationLifecycleService;
-	private final MetricsService metricsService;
 
 	public ParticipationWriter(
 			ConstructService constructService,
-			MetricsService metricsService,
 			ParticipationLifecycleService participationLifecycleService) {
 		this.constructService = constructService;
-		this.metricsService = metricsService;
 		this.participationLifecycleService = participationLifecycleService;
 	}
 
@@ -39,7 +36,7 @@ public class ParticipationWriter {
 	//@Trace(dispatcher=true, metricName="processPublish") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
-		metricsService.addCustomParameter("participationId", item.getId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
 
 		try {
 			// If this Participation is currently active then deactivate it before publishing the new version.
@@ -55,7 +52,7 @@ public class ParticipationWriter {
 					ParticipationItemUpdateStatus.NEEDS_UPDATE, processingDate, item.getLastModifiedUserId());
 		} catch (Exception e) {
 			RuntimeException exceptionWithMessage = new RuntimeException("Error publishing participation " + item.getId(), e);
-			metricsService.noticeError(exceptionWithMessage);
+			MetricsServiceUtil.getInstance().noticeError(exceptionWithMessage);
 			throw exceptionWithMessage;
 		}
 	}
@@ -63,7 +60,7 @@ public class ParticipationWriter {
 	//@Trace(dispatcher=true, metricName="processActivation") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
-		metricsService.addCustomParameter("participationId", itemPartial.getParticipationId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
 
 		try {
 			participationLifecycleService.activateByType(itemPartial, processingDate);
@@ -72,7 +69,7 @@ public class ParticipationWriter {
 		} catch (Exception e) {
 			RuntimeException exceptionWithMessage = new RuntimeException(
 					"Error publishing participation " + itemPartial.getParticipationId(), e);
-			metricsService.noticeError(exceptionWithMessage);
+			MetricsServiceUtil.getInstance().noticeError(exceptionWithMessage);
 			throw exceptionWithMessage;
 		}
 	}
@@ -80,7 +77,7 @@ public class ParticipationWriter {
 	//@Trace(dispatcher=true, metricName="processDeactivation") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
-		metricsService.addCustomParameter("participationId", itemPartial.getParticipationId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
 
 		if (itemPartial.getIsActive()) {
 			participationLifecycleService.deactivateByType(itemPartial, processingDate);
@@ -102,7 +99,7 @@ public class ParticipationWriter {
 	//@Trace(dispatcher=true, metricName="processUnpublish") TODO-Replace @Trace annotation here
 	@Transactional
 	public void processUnpublish(ParticipationItem item, Date processingDate) {
-		metricsService.addCustomParameter("participationId", item.getId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
 
 		// Get the participation item from SQL. If not there, then we'll skip any SQL changes and change the Construct
 		// record to be DRAFT status (assumes the SQL Participation record is not present because the engine already
@@ -119,7 +116,7 @@ public class ParticipationWriter {
 
 			participationLifecycleService.unpublishByType(itemPartial, processingDate);
 		} else {
-			metricsService.addCustomParameter("warning-previous-construct-unpublished-update-failed", item.getId());
+			MetricsServiceUtil.getInstance().addCustomParameter("warning-previous-construct-unpublished-update-failed", item.getId());
 		}
 
 		// Update record in Construct to DRAFT status.
