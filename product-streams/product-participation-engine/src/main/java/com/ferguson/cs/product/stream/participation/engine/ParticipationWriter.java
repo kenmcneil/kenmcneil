@@ -2,10 +2,10 @@ package com.ferguson.cs.product.stream.participation.engine;
 
 import java.util.Date;
 
-import com.ferguson.cs.metrics.MetricsServiceUtil;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
