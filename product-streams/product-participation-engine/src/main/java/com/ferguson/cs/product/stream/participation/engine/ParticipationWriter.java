@@ -13,6 +13,8 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
 
+import datadog.trace.api.Trace;
+
 /**
  * The methods in the writer handle each of the four events: publish, unpublish, activate, and deactivate.
  * Each event handler is set to add a New Relic transaction, and saves the participation id with the transaction.
@@ -33,7 +35,7 @@ public class ParticipationWriter {
 	 * Publish the given ParticipationItem by upserting its data into SQL tables.
 	 * If this Participation is currently active then deactivates it first.
 	 */
-	//@Trace(dispatcher=true, metricName="processPublish") TODO-Replace @Trace annotation here
+	@Trace
 	@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
 		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
@@ -57,7 +59,7 @@ public class ParticipationWriter {
 		}
 	}
 
-	//@Trace(dispatcher=true, metricName="processActivation") TODO-Replace @Trace annotation here
+	@Trace
 	@Transactional
 	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
@@ -74,7 +76,7 @@ public class ParticipationWriter {
 		}
 	}
 
-	//@Trace(dispatcher=true, metricName="processDeactivation") TODO-Replace @Trace annotation here
+	@Trace
 	@Transactional
 	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
 		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
@@ -96,7 +98,7 @@ public class ParticipationWriter {
 	 * Deactivate given participation if needed and unpublish. If the record is not present in SQL then simply
 	 * set Construct record to draft status.
 	 */
-	//@Trace(dispatcher=true, metricName="processUnpublish") TODO-Replace @Trace annotation here
+	@Trace
 	@Transactional
 	public void processUnpublish(ParticipationItem item, Date processingDate) {
 		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
