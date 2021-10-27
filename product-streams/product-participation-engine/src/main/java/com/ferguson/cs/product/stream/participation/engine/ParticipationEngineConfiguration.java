@@ -26,9 +26,6 @@ import com.ferguson.cs.product.stream.participation.engine.lifecycle.Participati
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
 
-	public ParticipationEngineConfiguration() {
-	}
-
 	@Bean
 	public ConstructService constructService(
 			ContentEventRepository contentEventRepository,
