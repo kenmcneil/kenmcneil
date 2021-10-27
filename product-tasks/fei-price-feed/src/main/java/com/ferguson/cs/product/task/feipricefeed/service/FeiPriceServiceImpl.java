@@ -4,10 +4,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.stereotype.Service;
 
+import com.ferguson.cs.metrics.MetricsService;
 import com.ferguson.cs.product.task.feipricefeed.data.core.FeiPriceCoreDao;
 import com.ferguson.cs.product.task.feipricefeed.data.reporter.FeiPriceDao;
 import com.ferguson.cs.product.task.feipricefeed.model.DeprioritizedBrandView;
@@ -20,6 +23,7 @@ import com.ferguson.cs.utilities.DateUtils;
 @Service
 public class FeiPriceServiceImpl implements FeiPriceService {
 
+	private static final Logger LOG = LoggerFactory.getLogger(FeiPriceServiceImpl.class);
 	private final JobRepositoryHelper jobRepositoryHelper;
 	private final TaskControlDataDao taskControlDataDao;
 	private final FeiPriceDao feiPriceDao;
@@ -34,9 +38,13 @@ public class FeiPriceServiceImpl implements FeiPriceService {
 
 	@Override
 	public Date getLastRanDate(String jobName) {
-		JobExecution jobExecution = jobRepositoryHelper.getLastJobExecution(jobName, ExitStatus.COMPLETED);
-		if(jobExecution != null) {
-			return jobExecution.getEndTime();
+		try {
+			JobExecution jobExecution = jobRepositoryHelper.getLastJobExecution(jobName, ExitStatus.COMPLETED);
+			if (jobExecution != null) {
+				return jobExecution.getEndTime();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to retrieve previous job execution data", e);
 		}
 		return  null;
 	}
