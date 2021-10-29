@@ -31,7 +31,11 @@
 		</plugins>
 	</build>
 	
-   <dependencies> 
+   <dependencies>
+	   <dependency>
+		   <groupId>com.ferguson.cs</groupId>
+		   <artifactId>api-metrics</artifactId>
+	   </dependency>
   		<dependency>
 			<groupId>com.ge.products</groupId>
 			<artifactId>ge-products-api</artifactId>

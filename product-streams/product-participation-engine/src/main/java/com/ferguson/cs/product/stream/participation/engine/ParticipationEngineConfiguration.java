@@ -25,22 +25,21 @@ import com.ferguson.cs.product.stream.participation.engine.lifecycle.Participati
 @EnableScheduling
 @EnableConfigurationProperties(ParticipationEngineSettings.class)
 public class ParticipationEngineConfiguration {
+
 	@Bean
 	public ConstructService constructService(
-			ParticipationEngineSettings participationEngineSettings,
 			ContentEventRepository contentEventRepository,
 			ParticipationItemRepository participationItemRepository
 	) {
-		return new ConstructServiceImpl(participationEngineSettings, contentEventRepository,
-				participationItemRepository);
+		return new ConstructServiceImpl(contentEventRepository, participationItemRepository);
 	}
 
 	@Bean
 	public ParticipationWriter participationWriter(
-			ParticipationLifecycleService participationLifecycleService,
-			ConstructService constructService
+			ConstructService constructService,
+			ParticipationLifecycleService participationLifecycleService
 	) {
-		return new ParticipationWriter(participationLifecycleService, constructService);
+		return new ParticipationWriter(constructService, participationLifecycleService);
 	}
 
 	@Bean
@@ -50,8 +49,11 @@ public class ParticipationEngineConfiguration {
 			ParticipationLifecycleService participationLifecycleService,
 			ParticipationWriter participationWriter
 	) {
-		return new ParticipationProcessor(participationEngineSettings, constructService,
-				participationLifecycleService, participationWriter);
+		return new ParticipationProcessor(
+				participationEngineSettings,
+				constructService,
+				participationLifecycleService,
+				participationWriter);
 	}
 
 	@Bean

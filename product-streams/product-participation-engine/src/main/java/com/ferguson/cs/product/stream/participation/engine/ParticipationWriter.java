@@ -5,14 +5,15 @@ import java.util.Date;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import com.ferguson.cs.product.stream.participation.engine.construct.ConstructService;
 import com.ferguson.cs.product.stream.participation.engine.lifecycle.ParticipationLifecycleService;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItem;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemPartial;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemStatus;
 import com.ferguson.cs.product.stream.participation.engine.model.ParticipationItemUpdateStatus;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
+
+import datadog.trace.api.Trace;
 
 /**
  * The methods in the writer handle each of the four events: publish, unpublish, activate, and deactivate.
@@ -20,25 +21,24 @@ import com.newrelic.api.agent.Trace;
  * An exception is notified to New Relic, associated to the NR transaction in which it occurred.
  */
 public class ParticipationWriter {
-	private final ParticipationLifecycleService participationLifecycleService;
 	private final ConstructService constructService;
+	private final ParticipationLifecycleService participationLifecycleService;
 
 	public ParticipationWriter(
-			ParticipationLifecycleService participationLifecycleService,
-			ConstructService constructService
-	) {
-		this.participationLifecycleService = participationLifecycleService;
+			ConstructService constructService,
+			ParticipationLifecycleService participationLifecycleService) {
 		this.constructService = constructService;
+		this.participationLifecycleService = participationLifecycleService;
 	}
 
 	/**
 	 * Publish the given ParticipationItem by upserting its data into SQL tables.
 	 * If this Participation is currently active then deactivates it first.
 	 */
-	@Trace(dispatcher=true, metricName="processPublish")
+	@Trace
 	@Transactional
 	public void processPublish(ParticipationItem item, Date processingDate) {
-		NewRelic.addCustomParameter("participationId", item.getId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
 
 		try {
 			// If this Participation is currently active then deactivate it before publishing the new version.
@@ -54,15 +54,15 @@ public class ParticipationWriter {
 					ParticipationItemUpdateStatus.NEEDS_UPDATE, processingDate, item.getLastModifiedUserId());
 		} catch (Exception e) {
 			RuntimeException exceptionWithMessage = new RuntimeException("Error publishing participation " + item.getId(), e);
-			NewRelic.noticeError(exceptionWithMessage);
+			MetricsServiceUtil.getInstance().noticeError(exceptionWithMessage);
 			throw exceptionWithMessage;
 		}
 	}
 
-	@Trace(dispatcher=true, metricName="processActivation")
+	@Trace
 	@Transactional
 	public void processActivation(ParticipationItemPartial itemPartial, Date processingDate) {
-		NewRelic.addCustomParameter("participationId", itemPartial.getParticipationId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
 
 		try {
 			participationLifecycleService.activateByType(itemPartial, processingDate);
@@ -71,15 +71,15 @@ public class ParticipationWriter {
 		} catch (Exception e) {
 			RuntimeException exceptionWithMessage = new RuntimeException(
 					"Error publishing participation " + itemPartial.getParticipationId(), e);
-			NewRelic.noticeError(exceptionWithMessage);
+			MetricsServiceUtil.getInstance().noticeError(exceptionWithMessage);
 			throw exceptionWithMessage;
 		}
 	}
 
-	@Trace(dispatcher=true, metricName="processDeactivation")
+	@Trace
 	@Transactional
 	public void processDeactivation(ParticipationItemPartial itemPartial, Date processingDate) {
-		NewRelic.addCustomParameter("participationId", itemPartial.getParticipationId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", itemPartial.getParticipationId());
 
 		if (itemPartial.getIsActive()) {
 			participationLifecycleService.deactivateByType(itemPartial, processingDate);
@@ -98,10 +98,10 @@ public class ParticipationWriter {
 	 * Deactivate given participation if needed and unpublish. If the record is not present in SQL then simply
 	 * set Construct record to draft status.
 	 */
-	@Trace(dispatcher=true, metricName="processUnpublish")
+	@Trace
 	@Transactional
 	public void processUnpublish(ParticipationItem item, Date processingDate) {
-		NewRelic.addCustomParameter("participationId", item.getId());
+		MetricsServiceUtil.getInstance().addCustomParameter("participationId", item.getId());
 
 		// Get the participation item from SQL. If not there, then we'll skip any SQL changes and change the Construct
 		// record to be DRAFT status (assumes the SQL Participation record is not present because the engine already
@@ -118,7 +118,7 @@ public class ParticipationWriter {
 
 			participationLifecycleService.unpublishByType(itemPartial, processingDate);
 		} else {
-			NewRelic.addCustomParameter("warning-previous-construct-unpublished-update-failed", item.getId());
+			MetricsServiceUtil.getInstance().addCustomParameter("warning-previous-construct-unpublished-update-failed", item.getId());
 		}
 
 		// Update record in Construct to DRAFT status.

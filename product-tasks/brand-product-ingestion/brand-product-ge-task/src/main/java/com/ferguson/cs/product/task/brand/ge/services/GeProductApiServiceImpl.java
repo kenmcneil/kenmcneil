@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -14,24 +13,27 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsClientHttpRequestFactory;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsRequestSigner;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;
 import com.ferguson.cs.product.task.brand.ge.aws.GeProductApiSettings;
 import com.ge_products.api.GeProductSearchCriteria;
 import com.ge_products.api.GeProductSearchResult;
-import com.newrelic.api.agent.NewRelic;
 
 @Service
 public class GeProductApiServiceImpl implements GeProductApiService {
 
 	private static final Log LOGGER = LogFactory.getLog(GeProductApiServiceImpl.class);
 
-	@Autowired
 	private RestTemplateBuilder restTemplateBuilder;
-
-	@Autowired
 	private GeProductApiSettings settings;
+
+	public GeProductApiServiceImpl(RestTemplateBuilder restTemplateBuilder,
+	                               GeProductApiSettings settings) {
+		this.restTemplateBuilder = restTemplateBuilder;
+		this.settings = settings;
+	}
 
 	private RestTemplate restTemplate;
 
@@ -41,7 +43,6 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 	private void postConstruct() {
 		restTemplate = restTemplateBuilder.requestFactory(this::getClientHttpRequestFactory).build();
 		objectMapper = new ObjectMapper();
-
 	}
 
 	private AwsClientHttpRequestFactory getClientHttpRequestFactory() {
@@ -61,16 +62,16 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 		try {
 			response = restTemplate.getForObject(url + query, String.class);
 		} catch (RestClientException rce) {
-			String errorMessage = "Rest exception '" + rce.getMessage() + "' occured for GE Product data query: " + query;
+			String errorMessage = "Rest exception '" + rce.getMessage() + "' occurred for GE Product data query: " + query;
 			LOGGER.error(errorMessage);
-			NewRelic.noticeError(errorMessage);
-			NewRelic.noticeError(rce);
+			MetricsServiceUtil.getInstance().noticeError(errorMessage);
+			MetricsServiceUtil.getInstance().noticeError(rce);
 			throw rce;
 		}
-		if (response == null || response.equals("Error occured while fetching information... Please try again...")) {
-			String errorMessage = "Error occured while fetching GE Product data for query: " + query;
+		if (response == null || response.equals("Error occurred while fetching information... Please try again...")) {
+			String errorMessage = "Error occurred while fetching GE Product data for query: " + query;
 			LOGGER.error(errorMessage);
-			NewRelic.noticeError(errorMessage);
+			MetricsServiceUtil.getInstance().noticeError(errorMessage);
 			throw new RuntimeException(errorMessage);
 		}
 		return response;
@@ -90,7 +91,7 @@ public class GeProductApiServiceImpl implements GeProductApiService {
 			node = objectMapper.readTree(response);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
-			NewRelic.noticeError(e);
+			MetricsServiceUtil.getInstance().noticeError(e);
 		}
 		return node;
 	}

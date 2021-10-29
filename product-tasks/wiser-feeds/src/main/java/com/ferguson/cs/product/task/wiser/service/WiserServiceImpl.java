@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ import com.ferguson.cs.utilities.DateUtils;
 
 @Service
 public class WiserServiceImpl implements WiserService {
+
+	private static final Logger LOG = LoggerFactory.getLogger(WiserServiceImpl.class);
+
 	private WiserIntegrationDao wiserIntegrationDao;
 	private WiserReporterDao wiserReporterDao;
 	private WiserDao wiserDao;
@@ -53,9 +58,13 @@ public class WiserServiceImpl implements WiserService {
 
 	@Override
 	public Date getLastRanDate(String jobName) {
-		JobExecution jobExecution = jobRepositoryHelper.getLastJobExecution(jobName, ExitStatus.COMPLETED);
-		if(jobExecution != null) {
-			return jobExecution.getEndTime();
+		try {
+			JobExecution jobExecution = jobRepositoryHelper.getLastJobExecution(jobName, ExitStatus.COMPLETED);
+			if (jobExecution != null) {
+				return jobExecution.getEndTime();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to retrieve previous job execution data", e);
 		}
 		return  null;
 	}

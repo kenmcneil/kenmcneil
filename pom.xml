@@ -8,11 +8,11 @@
 	<parent>
 		<groupId>com.ferguson.cs</groupId>
 		<artifactId>api-parent</artifactId>
-		<version>4.0.3</version>
+		<version>4.0.8</version>
 	</parent>
 
 	<properties>
-		<api-task.version>4.0.2</api-task.version>
+		<api-task.version>4.0.7</api-task.version>
 	</properties>
 	<version>1.0.136-SNAPSHOT</version>
 

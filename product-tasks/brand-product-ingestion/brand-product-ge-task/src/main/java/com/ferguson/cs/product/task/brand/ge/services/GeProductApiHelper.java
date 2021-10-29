@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ferguson.cs.metrics.MetricsServiceUtil;
 import com.ferguson.cs.product.task.brand.ge.aws.AwsVersion4RequestSigner;
 import com.ferguson.cs.product.task.brand.model.BrandProduct;
 import com.ferguson.cs.product.task.brand.model.JsonReference;
@@ -39,7 +40,6 @@ import com.ge_products.api.GeProductSearchRangeFilter;
 import com.ge_products.api.GeProductSearchRangeFilterType;
 import com.ge_products.api.GeProductSearchResult;
 import com.ge_products.api.GeProductSelectedDimension;
-import com.newrelic.api.agent.NewRelic;
 
 public final class GeProductApiHelper {
 
@@ -102,7 +102,9 @@ public final class GeProductApiHelper {
 	 * @param branch     - JSON node to pass down for further de-serialization
 	 * @param result     - Search result structure that is updated throughout
 	 */
-	private static void processBranch(String branchName, JsonNode branch, GeProductSearchResult result) {
+	private static void processBranch(String branchName,
+	                                  JsonNode branch,
+	                                  GeProductSearchResult result) {
 		switch (branchName) {
 			case "filters":
 				// Available filters
@@ -136,7 +138,8 @@ public final class GeProductApiHelper {
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
-	private static void processFilterBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processFilterBranch(JsonNode branch,
+	                                        GeProductSearchResult result) {
 		// Create the map of string to filter list
 		Map<String, GeProductDimension> filters = new HashMap<>();
 
@@ -161,7 +164,7 @@ public final class GeProductApiHelper {
 				filters.put(fieldName, filter);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Filters'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -179,7 +182,8 @@ public final class GeProductApiHelper {
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
-	private static void processSelectedDimensionsBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processSelectedDimensionsBranch(JsonNode branch,
+	                                                    GeProductSearchResult result) {
 		// Get dimensions branch
 		Iterator<JsonNode> dimensions = branch.get("selectedDimensions").elements();
 
@@ -200,7 +204,7 @@ public final class GeProductApiHelper {
 				searchDimensions.add(dimension);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Selected Dimensions'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -219,7 +223,8 @@ public final class GeProductApiHelper {
 	 * @param branch - JSON node to de-serialization
 	 * @param result - Search result structure that is updated
 	 */
-	private static void processRecordsBranch(JsonNode branch, GeProductSearchResult result) {
+	private static void processRecordsBranch(JsonNode branch,
+	                                         GeProductSearchResult result) {
 		JsonNode recordsBranch = branch.get("records");
 		result.setTotalRecordCount(recordsBranch.get("totalNumRecs").asInt());
 		result.setFirstRecordNumber(recordsBranch.get("firstRecNum").asInt());
@@ -241,7 +246,7 @@ public final class GeProductApiHelper {
 				records.add(getProductRecord(productId, productsNode.get(productId)));
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Product'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -280,7 +285,7 @@ public final class GeProductApiHelper {
 				featureList.add(feature);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Benefit Copy'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -319,7 +324,7 @@ public final class GeProductApiHelper {
 				productAttributes.add(attribute);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'Attributes'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -419,7 +424,7 @@ public final class GeProductApiHelper {
 				binaryObjectList.add(binaryObject);
 			} catch (IOException e) {
 				LOGGER.error("GE Product API Helper exception processing Json Branch 'BinaryObjectDetails'", e);
-				NewRelic.noticeError(e);
+				MetricsServiceUtil.getInstance().noticeError(e);
 			}
 		}
 
@@ -469,7 +474,7 @@ public final class GeProductApiHelper {
 					relationshipCollection.add(relationship);
 				} catch (IOException e) {
 					LOGGER.error("GE Product API Helper exception processing Json Branch 'Relationships'", e);
-					NewRelic.noticeError(e);
+					MetricsServiceUtil.getInstance().noticeError(e);
 				}
 			}
 
@@ -493,9 +498,10 @@ public final class GeProductApiHelper {
 	 *
 	 * @param productId - unique GE product identifier of JSON node to de-serialize
 	 * @param productNode - JSON product node to de-serialization
-	 * @param result      - Search result structure that is updated
+	 * @result      - Search result structure that is updated
 	 */
-	private static GeProduct getProductRecord(String productId, JsonNode productNode) throws IOException {
+	private static GeProduct getProductRecord(String productId,
+	                                          JsonNode productNode) throws IOException {
 		// We create the GE product record object
 		GeProduct record = new GeProduct();
 		record.setProductId(productId);

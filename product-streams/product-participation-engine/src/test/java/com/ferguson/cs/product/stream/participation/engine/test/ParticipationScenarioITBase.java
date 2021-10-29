@@ -496,9 +496,9 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	private void processEventsUpTo(Date futureDate) {
 		currentSimulatedDate = Date.from(
 				LocalDate
-						.from(currentSimulatedDate.toInstant().atZone(ZoneId.systemDefault()))
+						.from(currentSimulatedDate.toInstant().atZone(ZoneId.of("UTC")))
 						.plusDays(1)
-						.atStartOfDay(ZoneId.systemDefault())
+						.atStartOfDay(ZoneId.of("UTC"))
 						.toInstant());
 		while (currentSimulatedDate.getTime() < futureDate.getTime()) {
 			processEventsAtCurrentSimulatedDate();
@@ -523,13 +523,13 @@ public abstract class ParticipationScenarioITBase extends ParticipationEngineITB
 	}
 
 	private Date dateOffsetByDaysAtStartOfDay(Date from, int days) {
-		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.systemDefault()))
-				.plusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.of("UTC")))
+				.plusDays(days).atStartOfDay(ZoneId.of("UTC")).toInstant());
 	}
 
 	private Date dateOffsetByDaysAtEndOfDay(Date from, int days) {
-		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.systemDefault()))
-				.plusDays(days + 1).atStartOfDay(ZoneId.systemDefault())
+		return Date.from(LocalDate.from(from.toInstant().atZone(ZoneId.of("UTC")))
+				.plusDays(days + 1).atStartOfDay(ZoneId.of("UTC"))
 				.minus(1, ChronoUnit.MINUTES).toInstant());
 	}
 

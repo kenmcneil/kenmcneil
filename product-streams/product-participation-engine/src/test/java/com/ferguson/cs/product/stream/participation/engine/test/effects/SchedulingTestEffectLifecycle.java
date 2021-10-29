@@ -54,8 +54,8 @@ public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLif
 			// Should have activated near the start date. Verify no more than one day has passed (since
 			// that's the resolution of the scenario test system if using day offsets).
 			LocalDate startDatePlusOneDay = LocalDate.from(
-					itemPartial.getStartDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
-			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(startDatePlusOneDay);
+					itemPartial.getStartDate().toInstant().atZone(ZoneId.of("UTC"))).plusDays(1);
+			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.of("UTC")))).isBeforeOrEqualTo(startDatePlusOneDay);
 		}
 	}
 
@@ -82,8 +82,8 @@ public class SchedulingTestEffectLifecycle implements ParticipationTestEffectLif
 		if (itemPartial.getEndDate() != null) {
 			// Should have deactivated near the end date. Verify no more than one day has passed (since
 			// that's the resolution of the scenario test system if using day offsets).
-			LocalDate endDatePlusOneDay = LocalDate.from(itemPartial.getEndDate().toInstant().atZone(ZoneId.systemDefault())).plusDays(1);
-			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.systemDefault()))).isBeforeOrEqualTo(endDatePlusOneDay);
+			LocalDate endDatePlusOneDay = LocalDate.from(itemPartial.getEndDate().toInstant().atZone(ZoneId.of("UTC"))).plusDays(1);
+			Assertions.assertThat(LocalDate.from(processingDate.toInstant().atZone(ZoneId.of("UTC")))).isBeforeOrEqualTo(endDatePlusOneDay);
 		}
 	}
 }

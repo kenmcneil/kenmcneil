@@ -23,15 +23,15 @@ import com.ferguson.cs.product.stream.participation.engine.model.ParticipationIt
 import com.ferguson.cs.test.BaseTest;
 
 public class ParticipationWriterTest extends BaseTest {
-	private ParticipationLifecycleService participationLifecycleService;
 	private ConstructService constructService;
+	private ParticipationLifecycleService participationLifecycleService;
 	private ParticipationWriter participationWriter;
 
 	@Before
 	public void beforeTest() {
-		participationLifecycleService = mock(ParticipationLifecycleService.class);
 		constructService = mock(ConstructService.class);
-		participationWriter = new ParticipationWriter(participationLifecycleService, constructService);
+		participationLifecycleService = mock(ParticipationLifecycleService.class);
+		participationWriter = new ParticipationWriter(constructService, participationLifecycleService);
 	}
 
 	@Test
