@@ -33,6 +33,7 @@
 		<module>product-model</module>
 		<module>product-streams</module>
 		<module>product-tasks</module>
+		<module>db-to-csv</module>
 	</modules>
 	<build>
 		<plugins>

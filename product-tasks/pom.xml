@@ -13,6 +13,7 @@
 		<module>fei-trilogy-mpid-sync</module>
 		<module>mpn-mpid-mismatch</module>
 		<module>fei-omni-price-harmonization</module>
+		<module>db-to-csv</module>
 	</modules>
 	
 	<parent>
