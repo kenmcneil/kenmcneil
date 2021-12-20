@@ -1,0 +1,8 @@
+[
+  {
+    "appName" : "db-to-csv",
+    "name" : "db-to-csv",
+    "jobName" : "dbToCsvJob",
+    "heapSize" : "512m"
+  }
+]
